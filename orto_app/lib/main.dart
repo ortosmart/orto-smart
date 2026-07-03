@@ -1,6 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase_config.dart';
+
+import 'package:flutter/material.dart';
+
+import 'pages/dashboard_page.dart';
+import 'pages/garden_page.dart';
+import 'pages/irrigation_page.dart';
+import 'pages/activities_page.dart';
+import 'pages/settings_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,79 +28,78 @@ class OrtoSmartApp extends StatelessWidget {
     return MaterialApp(
       title: 'Orto Smart',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: Colors.green,
+        useMaterial3: true,
+      ),
       home: const HomePage(),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = const [
+    DashboardPage(),
+    GardenPage(),
+    IrrigationPage(),
+    ActivitiesPage(),
+    SettingsPage(),
+  ];
+
+  final List<String> _titles = const [
+    'Dashboard',
+    'Orto',
+    'Irrigazione',
+    'Attività',
+    'Impostazioni',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🌱 Orto Smart'),
+        title: Text(_titles[_selectedIndex]),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: const [
-            Text(
-              '📍 Pasiano di Pordenone',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            SizedBox(height: 24),
-
-            Text(
-              '📋 Attività di oggi',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            ListTile(
-              leading: Icon(Icons.water_drop),
-              title: Text('Irrigare pomodori'),
-            ),
-
-            SizedBox(height: 24),
-
-            Text(
-              '🌿 Colture attive',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            ListTile(
-              leading: Text('🍅'),
-              title: Text('Pomodoro'),
-            ),
-
-            SizedBox(height: 24),
-
-            Text(
-              '🧺 Prossime raccolte',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            ListTile(
-              leading: Text('🍅'),
-              title: Text('Pomodoro'),
-              subtitle: Text('Tra 90 giorni'),
-            ),
-          ],
-        ),
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.grass),
+            label: 'Orto',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.water_drop),
+            label: 'Irrigazione',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month),
+            label: 'Attività',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings),
+            label: 'Impostazioni',
+          ),
+        ],
+        onDestinationSelected: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
       ),
     );
   }
