@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'supabase_config.dart';
+import 'core/config/supabase_config.dart';
 
 import 'package:flutter/material.dart';
 
