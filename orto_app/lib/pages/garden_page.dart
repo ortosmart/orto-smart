@@ -35,9 +35,12 @@ class _GardenPageState extends State<GardenPage> {
 
         if (snapshot.hasError) {
           return Center(
-            child: Text(
-              'Errore:\n${snapshot.error}',
-              textAlign: TextAlign.center,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'Errore nel caricamento dell’orto:\n${snapshot.error}',
+                textAlign: TextAlign.center,
+              ),
             ),
           );
         }
@@ -69,40 +72,30 @@ class _GardenPageState extends State<GardenPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   if (garden.description != null &&
-                      garden.description!.isNotEmpty) ...[
+                      garden.description!.trim().isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(garden.description!),
                   ],
-
                   const SizedBox(height: 24),
-
                   Text(
                     'Numero aiuole: ${garden.bedsCount}',
                     style: const TextStyle(fontSize: 18),
                   ),
-
                   const SizedBox(height: 12),
-
                   Text(
-                    'Dimensioni aiuola: ${garden.bedWidthCm} × ${garden.bedLengthCm} cm',
+                    'Dimensioni aiuola: '
+                    '${garden.bedWidthCm} × ${garden.bedLengthCm} cm',
                     style: const TextStyle(fontSize: 18),
                   ),
-
                   const SizedBox(height: 12),
-
                   Text(
                     'Larghezza sentiero: ${garden.pathWidthCm} cm',
                     style: const TextStyle(fontSize: 18),
                   ),
-
                   const SizedBox(height: 24),
-
                   const Divider(),
-
                   const SizedBox(height: 16),
-
                   const Text(
                     'Aiuole',
                     style: TextStyle(
@@ -110,12 +103,8 @@ class _GardenPageState extends State<GardenPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 12),
-
-                  GardenMap(
-                    bedsCount: garden.bedsCount,
-                  ),
+                  const GardenMap(),
                 ],
               ),
             ),
