@@ -285,6 +285,22 @@ class _BedPageState extends State<BedPage> {
                               return _SuggestionCard(
                                 position: index + 1,
                                 suggestion: suggestions[index],
+                                onUseSuggestion: () async {
+                                  Navigator.of(sheetContext).pop();
+
+                                  final result = await Navigator.of(context).push<bool>(
+                                    MaterialPageRoute(
+                                      builder: (_) => AddPlantingPage(
+                                        bed: bed,
+                                        suggestion: suggestions[index],
+                                      ),
+                                    ),
+                                  );
+
+                                  if (result == true && mounted) {
+                                    await _refreshPlantings();
+                                  }
+                                },
                               );
                             },
                           ),
@@ -478,10 +494,12 @@ class _BedPageState extends State<BedPage> {
 class _SuggestionCard extends StatelessWidget {
   final int position;
   final CropSuggestion suggestion;
+  final VoidCallback onUseSuggestion;
 
   const _SuggestionCard({
     required this.position,
     required this.suggestion,
+    required this.onUseSuggestion,
   });
 
   @override
@@ -533,6 +551,16 @@ class _SuggestionCard extends StatelessWidget {
                   Expanded(child: Text(reason)),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: onUseSuggestion,
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('🌱 Usa questo suggerimento'),
             ),
           ),
         ],
