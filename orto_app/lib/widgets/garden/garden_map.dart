@@ -49,7 +49,8 @@ class _GardenMapState extends State<GardenMap> {
         }
 
         final beds = snapshot.data ?? [];
-
+        beds.sort((a, b) => a.number.compareTo(b.number));
+        
         if (beds.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16),
@@ -73,7 +74,7 @@ class _GardenMapState extends State<GardenMap> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => BedPage(
-                      bedNumber: bed.number,
+                      bed: bed,
                     ),
                   ),
                 );
