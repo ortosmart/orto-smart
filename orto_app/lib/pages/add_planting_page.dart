@@ -19,6 +19,11 @@ import '../services/rotation_engine.dart';
 import '../services/association_engine.dart';
 import '../widgets/bed_preview_widget.dart';
 import '../data/models/suggestion_result.dart';
+import '../widgets/planting/position_mode_card.dart';
+import '../widgets/planting/calculation_card.dart';
+import '../widgets/planting/space_suggestion_card.dart';
+import '../widgets/planting/rotation_card.dart';
+import '../widgets/planting/association_card.dart';
 
 enum _PositionMode { automatic, manual }
 
@@ -36,8 +41,7 @@ class AddPlantingPage extends StatefulWidget {
 
   bool get isEditing => planting != null;
 
-  bool get isUsingSuggestion =>
-      planting == null && suggestion != null;
+  bool get isUsingSuggestion => planting == null && suggestion != null;
 
   @override
   State<AddPlantingPage> createState() => _AddPlantingPageState();
@@ -59,7 +63,8 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
   final _notesController = TextEditingController();
 
   final CropRepository _cropRepository = CropRepository();
-  final CropAssociationRepository _associationRepository = CropAssociationRepository();
+  final CropAssociationRepository _associationRepository =
+      CropAssociationRepository();
   final SeasonRepository _seasonRepository = SeasonRepository();
   final PlantingRepository _plantingRepository = PlantingRepository();
 
@@ -85,8 +90,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
   bool _isApplyingAutomaticPosition = false;
   _PositionMode _positionMode = _PositionMode.automatic;
 
-  bool get _isAutomaticPosition =>
-      _positionMode == _PositionMode.automatic;
+  bool get _isAutomaticPosition => _positionMode == _PositionMode.automatic;
 
   bool get _isEditing => widget.isEditing;
 
@@ -112,56 +116,48 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
   }
 
   void _initializeEditingValues() {
-  final planting = _editingPlanting;
+    final planting = _editingPlanting;
 
-  if (planting != null) {
-    _plantingMethod = planting.plantingMethod;
-    _sowingDate = planting.sowingDate;
+    if (planting != null) {
+      _plantingMethod = planting.plantingMethod;
+      _sowingDate = planting.sowingDate;
+      _positionMode = _PositionMode.manual;
+
+      _startPositionController.text = planting.startPositionCm.toString();
+
+      _manualLengthController.text = planting.lengthCm.toString();
+
+      _plantsCountController.text = planting.plantsCount?.toString() ?? '';
+
+      _plantSpacingController.text = planting.plantSpacingCm?.toString() ?? '';
+
+      _rowSpacingController.text = planting.rowSpacingCm?.toString() ?? '';
+
+      _occupiedWidthController.text =
+          planting.occupiedWidthCm?.toString() ?? '';
+
+      _seedQuantityController.text =
+          planting.seedQuantityGrams?.toString() ?? '';
+
+      _notesController.text = planting.notes ?? '';
+
+      return;
+    }
+
+    final suggestion = _suggestion;
+
+    if (suggestion == null) {
+      return;
+    }
+
     _positionMode = _PositionMode.manual;
 
-    _startPositionController.text =
-        planting.startPositionCm.toString();
+    _startPositionController.text = suggestion.startPositionCm.toString();
 
-    _manualLengthController.text =
-        planting.lengthCm.toString();
+    _manualLengthController.text = suggestion.lengthCm.toString();
 
-    _plantsCountController.text =
-        planting.plantsCount?.toString() ?? '';
-
-    _plantSpacingController.text =
-        planting.plantSpacingCm?.toString() ?? '';
-
-    _rowSpacingController.text =
-        planting.rowSpacingCm?.toString() ?? '';
-
-    _occupiedWidthController.text =
-        planting.occupiedWidthCm?.toString() ?? '';
-
-    _seedQuantityController.text =
-        planting.seedQuantityGrams?.toString() ?? '';
-
-    _notesController.text = planting.notes ?? '';
-
-    return;
+    _plantsCountController.text = suggestion.plantsCount.toString();
   }
-
-  final suggestion = _suggestion;
-
-  if (suggestion == null) {
-    return;
-  }
-
-  _positionMode = _PositionMode.manual;
-
-  _startPositionController.text =
-      suggestion.startPositionCm.toString();
-
-  _manualLengthController.text =
-      suggestion.lengthCm.toString();
-
-  _plantsCountController.text =
-      suggestion.plantsCount.toString();
-}
 
   @override
   void dispose() {
@@ -186,56 +182,50 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
   }
 
   Future<List<Crop>> _loadCrops() async {
-  final crops = await _cropRepository.getCrops();
+    final crops = await _cropRepository.getCrops();
 
-  final requestedCropId =
-      _editingPlanting?.cropId ?? _suggestion?.crop.id;
+    final requestedCropId = _editingPlanting?.cropId ?? _suggestion?.crop.id;
 
-  Crop? initialCrop;
+    Crop? initialCrop;
 
-  if (requestedCropId != null) {
-    for (final crop in crops) {
-      if (crop.id == requestedCropId) {
-        initialCrop = crop;
-        break;
+    if (requestedCropId != null) {
+      for (final crop in crops) {
+        if (crop.id == requestedCropId) {
+          initialCrop = crop;
+          break;
+        }
       }
     }
-  }
 
-  if (mounted) {
-    setState(() {
-      _cropNamesById = {
-        for (final crop in crops) crop.id: crop.name,
-      };
+    if (mounted) {
+      setState(() {
+        _cropNamesById = {for (final crop in crops) crop.id: crop.name};
 
-      _cropsById = {
-        for (final crop in crops) crop.id: crop,
-      };
+        _cropsById = {for (final crop in crops) crop.id: crop};
 
-      _selectedCrop = initialCrop;
+        _selectedCrop = initialCrop;
 
-      if (widget.isUsingSuggestion && initialCrop != null) {
-        _plantingMethod =
-            _normalizePlantingMethod(initialCrop.sowingMethod);
+        if (widget.isUsingSuggestion && initialCrop != null) {
+          _plantingMethod = _normalizePlantingMethod(initialCrop.sowingMethod);
 
-        if (_plantSpacingController.text.isEmpty) {
-          _plantSpacingController.text =
-              initialCrop.plantSpacingCm?.toString() ?? '';
+          if (_plantSpacingController.text.isEmpty) {
+            _plantSpacingController.text =
+                initialCrop.plantSpacingCm?.toString() ?? '';
+          }
+
+          if (_rowSpacingController.text.isEmpty) {
+            _rowSpacingController.text =
+                initialCrop.rowSpacingCm?.toString() ?? '';
+          }
         }
+      });
+    }
 
-        if (_rowSpacingController.text.isEmpty) {
-          _rowSpacingController.text =
-              initialCrop.rowSpacingCm?.toString() ?? '';
-        }
-      }
-    });
+    _evaluateRotation();
+    _evaluateAssociation();
+
+    return crops;
   }
-
-  _evaluateRotation();
-  _evaluateAssociation();
-
-  return crops;
-}
 
   Future<void> _loadExistingPlantings() async {
     try {
@@ -250,9 +240,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
       final editingId = _editingPlanting?.id;
       final otherPlantings = editingId == null
           ? plantings
-          : plantings
-              .where((planting) => planting.id != editingId)
-              .toList();
+          : plantings.where((planting) => planting.id != editingId).toList();
 
       setState(() {
         _existingPlantings = otherPlantings;
@@ -280,57 +268,56 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     }
   }
 
-Future<void> _loadAssociations() async {
-  try {
-    final associations =
-        await _associationRepository.getAllAssociations();
+  Future<void> _loadAssociations() async {
+    try {
+      final associations = await _associationRepository.getAllAssociations();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _associations = associations;
+      });
+
+      _evaluateAssociation();
+    } catch (e, stackTrace) {
+      debugPrint('Errore caricamento consociazioni: $e');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+
+  void _evaluateAssociation() {
+    final selectedCrop = _selectedCrop;
 
     if (!mounted) {
       return;
     }
 
-    setState(() {
-      _associations = associations;
-    });
+    if (selectedCrop == null ||
+        _isLoadingExistingPlantings ||
+        _existingPlantingsError != null ||
+        _cropsById.isEmpty) {
+      if (_associationResult != null) {
+        setState(() {
+          _associationResult = null;
+        });
+      }
 
-    _evaluateAssociation();
-  } catch (e, stackTrace) {
-    debugPrint('Errore caricamento consociazioni: $e');
-    debugPrintStack(stackTrace: stackTrace);
-  }
-}
-
-void _evaluateAssociation() {
-  final selectedCrop = _selectedCrop;
-
-  if (!mounted) {
-    return;
-  }
-
-  if (selectedCrop == null ||
-      _isLoadingExistingPlantings ||
-      _existingPlantingsError != null ||
-      _cropsById.isEmpty) {
-    if (_associationResult != null) {
-      setState(() {
-        _associationResult = null;
-      });
+      return;
     }
 
-    return;
+    final result = AssociationEngine.evaluate(
+      candidateCrop: selectedCrop,
+      existingPlantings: _existingPlantings,
+      associations: _associations,
+      cropsById: _cropsById,
+    );
+
+    setState(() {
+      _associationResult = result;
+    });
   }
-
-  final result = AssociationEngine.evaluate(
-    candidateCrop: selectedCrop,
-    existingPlantings: _existingPlantings,
-    associations: _associations,
-    cropsById: _cropsById,
-  );
-
-  setState(() {
-    _associationResult = result;
-  });
-}
 
   void _evaluateRotation() {
     final selectedCrop = _selectedCrop;
@@ -364,9 +351,7 @@ void _evaluateAssociation() {
   }
 
   void _refreshCalculations() {
-    if (!mounted ||
-        _loadingCropDefaults ||
-        _isApplyingAutomaticPosition) {
+    if (!mounted || _loadingCropDefaults || _isApplyingAutomaticPosition) {
       return;
     }
 
@@ -409,8 +394,7 @@ void _evaluateAssociation() {
       return;
     }
 
-    final suggestedPosition =
-        bestSpace.startCm.round().toString();
+    final suggestedPosition = bestSpace.startCm.round().toString();
 
     if (_startPositionController.text == suggestedPosition) {
       return;
@@ -419,9 +403,7 @@ void _evaluateAssociation() {
     _isApplyingAutomaticPosition = true;
     _startPositionController.value = TextEditingValue(
       text: suggestedPosition,
-      selection: TextSelection.collapsed(
-        offset: suggestedPosition.length,
-      ),
+      selection: TextSelection.collapsed(offset: suggestedPosition.length),
     );
     _isApplyingAutomaticPosition = false;
 
@@ -438,9 +420,7 @@ void _evaluateAssociation() {
     final isEmpty = value.trim().isEmpty;
 
     setState(() {
-      _positionMode = isEmpty
-          ? _PositionMode.automatic
-          : _PositionMode.manual;
+      _positionMode = isEmpty ? _PositionMode.automatic : _PositionMode.manual;
       _saveError = null;
     });
 
@@ -460,66 +440,6 @@ void _evaluateAssociation() {
     });
 
     _applyAutomaticPositionIfPossible();
-  }
-
-  Widget _buildPositionModeCard(BuildContext context) {
-    final theme = Theme.of(context);
-    final isAutomatic = _isAutomaticPosition;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              isAutomatic
-                  ? Icons.auto_awesome_outlined
-                  : Icons.pan_tool_alt_outlined,
-              color: isAutomatic
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.tertiary,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isAutomatic
-                        ? 'Posizionamento automatico'
-                        : 'Posizionamento manuale',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    isAutomatic
-                        ? 'Orto Smart usa il primo spazio disponibile '
-                            'abbastanza grande per la nuova coltura.'
-                        : 'La posizione scelta viene rispettata anche '
-                            'se cambiano quantità o distanze.',
-                  ),
-                  if (!isAutomatic) ...[
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: _isSaving
-                          ? null
-                          : _enableAutomaticPosition,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text(
-                        'Torna al posizionamento automatico',
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   int? _parsePositiveInt(String value) {
@@ -589,11 +509,9 @@ void _evaluateAssociation() {
     } else {
       _plantingMethod = _normalizePlantingMethod(crop.sowingMethod);
 
-      _plantSpacingController.text =
-          crop.plantSpacingCm?.toString() ?? '';
+      _plantSpacingController.text = crop.plantSpacingCm?.toString() ?? '';
 
-      _rowSpacingController.text =
-          crop.rowSpacingCm?.toString() ?? '';
+      _rowSpacingController.text = crop.rowSpacingCm?.toString() ?? '';
     }
 
     _loadingCropDefaults = false;
@@ -611,8 +529,7 @@ void _evaluateAssociation() {
   }
 
   bool get _usesPlantCount {
-    return _plantingMethod == 'transplant' ||
-        _plantingMethod == 'rows';
+    return _plantingMethod == 'transplant' || _plantingMethod == 'rows';
   }
 
   bool get _isBroadcast {
@@ -646,10 +563,7 @@ void _evaluateAssociation() {
       return 1;
     }
 
-    return math.max(
-      1,
-      ((_bedWidthCm - 1) ~/ rowSpacing) + 1,
-    );
+    return math.max(1, ((_bedWidthCm - 1) ~/ rowSpacing) + 1);
   }
 
   int get _plantsPerRow {
@@ -685,23 +599,20 @@ void _evaluateAssociation() {
   }
 
   int get _occupiedWidthCm {
-    final manuallyEnteredWidth =
-        _parsePositiveInt(_occupiedWidthController.text);
+    final manuallyEnteredWidth = _parsePositiveInt(
+      _occupiedWidthController.text,
+    );
 
     if (_isBroadcast || _plantingMethod == 'manual') {
       return manuallyEnteredWidth ?? _bedWidthCm;
     }
 
     if (_calculatedRowsCount <= 1) {
-      return math.min(
-        _rowSpacingCm ?? _bedWidthCm,
-        _bedWidthCm,
-      );
+      return math.min(_rowSpacingCm ?? _bedWidthCm, _bedWidthCm);
     }
 
     final rowSpacing = _rowSpacingCm ?? 0;
-    final calculatedWidth =
-        ((_calculatedRowsCount - 1) * rowSpacing) + 1;
+    final calculatedWidth = ((_calculatedRowsCount - 1) * rowSpacing) + 1;
 
     return math.min(calculatedWidth, _bedWidthCm);
   }
@@ -721,8 +632,7 @@ void _evaluateAssociation() {
 
     return _existingPlantings.where((planting) {
       final existingStartCm = planting.startPositionCm;
-      final existingEndCm =
-          planting.startPositionCm + planting.lengthCm;
+      final existingEndCm = planting.startPositionCm + planting.lengthCm;
 
       return _startPositionCm < existingEndCm &&
           _endPositionCm > existingStartCm;
@@ -760,9 +670,7 @@ void _evaluateAssociation() {
 
   dynamic _findBestSpace(BedAnalysisResult analysis) {
     final suitableSpaces = analysis.freeSpaces
-        .where(
-          (space) => space.lengthCm >= _calculatedLengthCm,
-        )
+        .where((space) => space.lengthCm >= _calculatedLengthCm)
         .toList();
 
     if (suitableSpaces.isEmpty) {
@@ -770,10 +678,8 @@ void _evaluateAssociation() {
     }
 
     suitableSpaces.sort((first, second) {
-      final firstWaste =
-          first.lengthCm - _calculatedLengthCm;
-      final secondWaste =
-          second.lengthCm - _calculatedLengthCm;
+      final firstWaste = first.lengthCm - _calculatedLengthCm;
+      final secondWaste = second.lengthCm - _calculatedLengthCm;
 
       final wasteComparison = firstWaste.compareTo(secondWaste);
 
@@ -788,10 +694,7 @@ void _evaluateAssociation() {
   }
 
   double _remainingSpaceAfterInsertion(dynamic space) {
-    return math.max(
-      0,
-      space.lengthCm - _calculatedLengthCm,
-    ).toDouble();
+    return math.max(0, space.lengthCm - _calculatedLengthCm).toDouble();
   }
 
   String get _methodLabel {
@@ -850,16 +753,14 @@ void _evaluateAssociation() {
 
     if (_calculatedLengthCm <= 0) {
       setState(() {
-        _saveError =
-            'La lunghezza occupata deve essere maggiore di zero.';
+        _saveError = 'La lunghezza occupata deve essere maggiore di zero.';
       });
       return;
     }
 
     if (!_fitsInsideBedBounds) {
       setState(() {
-        _saveError =
-            'La coltura supera i limiti dell’aiuola.';
+        _saveError = 'La coltura supera i limiti dell’aiuola.';
       });
       return;
     }
@@ -889,7 +790,8 @@ void _evaluateAssociation() {
 
     try {
       final editingPlanting = _editingPlanting;
-      final seasonId = editingPlanting?.seasonId ??
+      final seasonId =
+          editingPlanting?.seasonId ??
           (await _seasonRepository.getActiveSeason()).id;
 
       final notesText = _notesController.text.trim();
@@ -903,12 +805,9 @@ void _evaluateAssociation() {
         startPositionCm: _startPositionCm,
         lengthCm: _calculatedLengthCm,
         plantingMethod: _plantingMethod,
-        plantSpacingCm:
-            _usesPlantCount ? _plantSpacingCm : null,
-        rowSpacingCm:
-            _usesPlantCount ? _rowSpacingCm : null,
-        rowsCount:
-            _usesPlantCount ? _calculatedRowsCount : null,
+        plantSpacingCm: _usesPlantCount ? _plantSpacingCm : null,
+        rowSpacingCm: _usesPlantCount ? _rowSpacingCm : null,
+        rowsCount: _usesPlantCount ? _calculatedRowsCount : null,
         occupiedWidthCm: _occupiedWidthCm,
         seedQuantityGrams: _isBroadcast
             ? _parsePositiveDouble(_seedQuantityController.text)
@@ -958,648 +857,13 @@ void _evaluateAssociation() {
     return '$day/$month/$year';
   }
 
-  Widget _buildSectionTitle(
-    BuildContext context,
-    String title,
-    IconData icon,
-  ) {
+  Widget _buildSectionTitle(BuildContext context, String title, IconData icon) {
     return Row(
       children: [
         Icon(icon),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(title, style: Theme.of(context).textTheme.titleMedium),
       ],
-    );
-  }
-
-  Widget _buildRotationCard(BuildContext context) {
-    final selectedCrop = _selectedCrop;
-    final result = _rotationResult;
-    final theme = Theme.of(context);
-
-    if (selectedCrop == null) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionTitle(
-                context,
-                'Rotazione colturale',
-                Icons.autorenew,
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Seleziona una coltura per ricevere la valutazione '
-                'della rotazione.',
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_isLoadingExistingPlantings) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text('Valutazione della rotazione in corso...'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_existingPlantingsError != null || result == null) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.info_outline,
-                color: theme.colorScheme.tertiary,
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'La valutazione della rotazione non è disponibile.',
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    late final IconData statusIcon;
-    late final Color statusColor;
-    late final String statusLabel;
-
-    switch (result.rating) {
-      case RotationRating.recommended:
-        statusIcon = Icons.check_circle;
-        statusColor = theme.colorScheme.primary;
-        statusLabel = 'Consigliata';
-        break;
-      case RotationRating.acceptable:
-        statusIcon = Icons.info;
-        statusColor = theme.colorScheme.tertiary;
-        statusLabel = 'Accettabile';
-        break;
-      case RotationRating.discouraged:
-        statusIcon = Icons.warning_amber_rounded;
-        statusColor = theme.colorScheme.error;
-        statusLabel = 'Sconsigliata';
-        break;
-      case RotationRating.unknown:
-        statusIcon = Icons.help_outline;
-        statusColor = theme.colorScheme.outline;
-        statusLabel = 'Dati insufficienti';
-        break;
-    }
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle(
-              context,
-              'Rotazione colturale',
-              Icons.autorenew,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(statusIcon, color: statusColor, size: 30),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    statusLabel,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Text(
-                  '${result.score}/100',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: statusColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Famiglia botanica: '
-              '${selectedCrop.botanicalFamily ?? 'non disponibile'}',
-              style: theme.textTheme.bodySmall,
-            ),
-            if (result.requiredRotationSeasons != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Rotazione consigliata: '
-                '${result.requiredRotationSeasons} stagioni',
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
-            const Divider(height: 24),
-            ...result.reasons.map(
-              (reason) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.chevron_right,
-                      size: 20,
-                      color: statusColor,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(child: Text(reason)),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-Widget _buildAssociationCard(BuildContext context) {
-  final result = _associationResult;
-  final theme = Theme.of(context);
-
-  if (_selectedCrop == null) {
-    return const SizedBox.shrink();
-  }
-
-  if (_isLoadingExistingPlantings) {
-    return const Card(
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 22,
-              height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Analisi delle consociazioni...',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  if (result == null) {
-    return const SizedBox.shrink();
-  }
-
-  IconData icon;
-  Color color;
-  String titolo;
-
-  switch (result.rating) {
-    case AssociationRating.excellent:
-      icon = Icons.verified;
-      color = Colors.green;
-      titolo = 'Consociazione eccellente';
-      break;
-
-    case AssociationRating.good:
-      icon = Icons.thumb_up;
-      color = Colors.lightGreen;
-      titolo = 'Consociazione buona';
-      break;
-
-    case AssociationRating.acceptable:
-      icon = Icons.info;
-      color = Colors.orange;
-      titolo = 'Consociazione accettabile';
-      break;
-
-    case AssociationRating.poor:
-      icon = Icons.warning_amber_rounded;
-      color = Colors.deepOrange;
-      titolo = 'Consociazione sfavorevole';
-      break;
-
-    case AssociationRating.incompatible:
-      icon = Icons.cancel;
-      color = theme.colorScheme.error;
-      titolo = 'Colture incompatibili';
-      break;
-
-    case AssociationRating.unknown:
-      icon = Icons.help_outline;
-      color = theme.colorScheme.outline;
-      titolo = 'Dati insufficienti';
-      break;
-  }
-
-  return Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle(
-            context,
-            'Consociazioni',
-            Icons.groups_outlined,
-          ),
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Icon(icon, color: color, size: 30),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  titolo,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Text(
-                '${result.score}/100',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          ...result.reasons.map(
-            (reason) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.chevron_right,
-                    size: 20,
-                    color: color,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(reason),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-  Widget _buildSpaceSuggestionCard(BuildContext context) {
-    if (_isLoadingExistingPlantings) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Calcolo degli spazi disponibili...',
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_existingPlantingsError != null) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Impossibile analizzare gli spazi disponibili.',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              SelectableText(_existingPlantingsError!),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _isLoadingExistingPlantings = true;
-                    _existingPlantingsError = null;
-                  });
-
-                  _loadExistingPlantings();
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Riprova'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_calculatedLengthCm <= 0) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionTitle(
-                context,
-                'Spazi disponibili',
-                Icons.auto_awesome_outlined,
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Inserisci i dati della coltura per ricevere '
-                'un suggerimento automatico.',
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final analysis = _bedAnalysis;
-
-    if (analysis == null) {
-      return const SizedBox.shrink();
-    }
-
-    final bestSpace = _findBestSpace(analysis);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle(
-              context,
-              'Spazi disponibili',
-              Icons.auto_awesome_outlined,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Colture già presenti: ${_existingPlantings.length}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 16),
-            if (analysis.freeSpaces.isEmpty)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Non risultano spazi liberi nell’aiuola.',
-                    ),
-                  ),
-                ],
-              )
-            else
-              ...analysis.freeSpaces.map(
-                (freeSpace) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 20,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${_formatCentimeters(freeSpace.startCm)} – '
-                          '${_formatCentimeters(freeSpace.endCm)} cm',
-                        ),
-                      ),
-                      Text(
-                        '${_formatCentimeters(freeSpace.lengthCm)} cm',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            const Divider(height: 24),
-            if (bestSpace != null) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.workspace_premium_outlined,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Miglior spazio: '
-                      '${_formatCentimeters(bestSpace.startCm)} – '
-                      '${_formatCentimeters(bestSpace.endCm)} cm',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Scelto perché lascia soltanto '
-                '${_formatCentimeters(
-                  _remainingSpaceAfterInsertion(bestSpace),
-                )} cm inutilizzati nello spazio disponibile.',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _isAutomaticPosition
-                    ? 'La posizione migliore è stata applicata automaticamente.'
-                    : 'Hai scelto manualmente la posizione.',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ] else
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      analysis.message ??
-                          'Nessuno spazio è abbastanza grande '
-                              'per questa coltura.',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCalculationCard(BuildContext context) {
-    if (_calculatedLengthCm <= 0) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            'Inserisci i dati per visualizzare il calcolo.',
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle(
-              context,
-              'Calcolo automatico',
-              Icons.calculate_outlined,
-            ),
-            const SizedBox(height: 16),
-            if (_usesPlantCount) ...[
-              _CalculationRow(
-                label: 'Numero di file',
-                value: '$_calculatedRowsCount',
-              ),
-              _CalculationRow(
-                label: 'Piante per fila',
-                value: '$_plantsPerRow',
-              ),
-            ],
-            _CalculationRow(
-              label: 'Lunghezza occupata',
-              value: '$_calculatedLengthCm cm',
-            ),
-            _CalculationRow(
-              label: 'Larghezza occupata',
-              value: '$_occupiedWidthCm cm',
-            ),
-            _CalculationRow(
-              label: 'Posizione finale',
-              value: '$_endPositionCm cm',
-            ),
-            _CalculationRow(
-              label: 'Spazio libero successivo',
-              value: _remainingLengthCm >= 0
-                  ? '$_remainingLengthCm cm'
-                  : 'superamento di ${-_remainingLengthCm} cm',
-            ),
-            const Divider(height: 24),
-            Row(
-              children: [
-                Icon(
-                  _fitsInBed
-                      ? Icons.check_circle
-                      : Icons.warning_amber_rounded,
-                  color: _fitsInBed
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _fitsInBed
-                        ? 'La coltura entra correttamente nello spazio libero.'
-                        : _hasOverlap
-                            ? 'La coltura si sovrappone a una coltura già presente.'
-                            : 'La coltura supera i limiti dell’aiuola.',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: _fitsInBed
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -1624,43 +888,32 @@ Widget _buildAssociationCard(BuildContext context) {
                 child: ListTile(
                   leading: const Icon(Icons.grid_view_outlined),
                   title: Text(widget.bed.code),
-                  subtitle: const Text(
-                    'Dimensioni: 90 × 700 cm',
-                  ),
+                  subtitle: const Text('Dimensioni: 90 × 700 cm'),
                 ),
               ),
 
-if (widget.isUsingSuggestion) ...[
-  const SizedBox(height: 12),
-  Card(
-    child: ListTile(
-      leading: const Icon(
-        Icons.auto_awesome,
-      ),
-      title: const Text(
-        'Suggerimento applicato',
-      ),
-      subtitle: Text(
-        '${_suggestion!.crop.name} · '
-        '${_suggestion!.score}/100\n'
-        'Posizione ${_suggestion!.startPositionCm} cm · '
-        '${_suggestion!.plantsCount} piante',
-      ),
-    ),
-  ),
-],              
+              if (widget.isUsingSuggestion) ...[
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.auto_awesome),
+                    title: const Text('Suggerimento applicato'),
+                    subtitle: Text(
+                      '${_suggestion!.crop.name} · '
+                      '${_suggestion!.score}/100\n'
+                      'Posizione ${_suggestion!.startPositionCm} cm · '
+                      '${_suggestion!.plantsCount} piante',
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
-              _buildSectionTitle(
-                context,
-                'Coltura',
-                Icons.eco_outlined,
-              ),
+              _buildSectionTitle(context, 'Coltura', Icons.eco_outlined),
               const SizedBox(height: 12),
               FutureBuilder<List<Crop>>(
                 future: _cropsFuture,
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState ==
-                      ConnectionState.waiting) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                       child: Padding(
                         padding: EdgeInsets.all(16),
@@ -1741,9 +994,18 @@ if (widget.isUsingSuggestion) ...[
                 },
               ),
               const SizedBox(height: 12),
-              _buildRotationCard(context),
+              RotationCard(
+                selectedCrop: _selectedCrop,
+                result: _rotationResult,
+                isLoading: _isLoadingExistingPlantings,
+                hasLoadingError: _existingPlantingsError != null,
+              ),
               const SizedBox(height: 12),
-              _buildAssociationCard(context),
+              AssociationCard(
+                hasSelectedCrop: _selectedCrop != null,
+                isLoading: _isLoadingExistingPlantings,
+                result: _associationResult,
+              ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: _plantingMethod,
@@ -1756,10 +1018,7 @@ if (widget.isUsingSuggestion) ...[
                     value: 'transplant',
                     child: Text('Trapianto'),
                   ),
-                  DropdownMenuItem(
-                    value: 'rows',
-                    child: Text('Semina a file'),
-                  ),
+                  DropdownMenuItem(value: 'rows', child: Text('Semina a file')),
                   DropdownMenuItem(
                     value: 'broadcast',
                     child: Text('Semina a spaglio'),
@@ -1811,7 +1070,11 @@ if (widget.isUsingSuggestion) ...[
                 Icons.straighten,
               ),
               const SizedBox(height: 12),
-              _buildPositionModeCard(context),
+              PositionModeCard(
+                isAutomatic: _isAutomaticPosition,
+                isSaving: _isSaving,
+                onEnableAutomaticPosition: _enableAutomaticPosition,
+              ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _startPositionController,
@@ -1827,8 +1090,7 @@ if (widget.isUsingSuggestion) ...[
                 ),
                 onChanged: _handleStartPositionChanged,
                 validator: (value) {
-                  final parsedValue =
-                      int.tryParse(value?.trim() ?? '');
+                  final parsedValue = int.tryParse(value?.trim() ?? '');
 
                   if (parsedValue == null || parsedValue < 0) {
                     return 'Inserisci una posizione valida';
@@ -1858,8 +1120,7 @@ if (widget.isUsingSuggestion) ...[
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
-                    final plantsCount =
-                        int.tryParse(value?.trim() ?? '');
+                    final plantsCount = int.tryParse(value?.trim() ?? '');
 
                     if (plantsCount == null || plantsCount <= 0) {
                       return 'Inserisci il numero di piante';
@@ -1883,8 +1144,7 @@ if (widget.isUsingSuggestion) ...[
                           border: OutlineInputBorder(),
                         ),
                         validator: (value) {
-                          final spacing =
-                              int.tryParse(value?.trim() ?? '');
+                          final spacing = int.tryParse(value?.trim() ?? '');
 
                           if (spacing == null || spacing <= 0) {
                             return 'Dato non valido';
@@ -1906,8 +1166,7 @@ if (widget.isUsingSuggestion) ...[
                           border: OutlineInputBorder(),
                         ),
                         validator: (value) {
-                          final spacing =
-                              int.tryParse(value?.trim() ?? '');
+                          final spacing = int.tryParse(value?.trim() ?? '');
 
                           if (spacing == null || spacing <= 0) {
                             return 'Dato non valido';
@@ -1925,11 +1184,7 @@ if (widget.isUsingSuggestion) ...[
                   'ma puoi modificarle liberamente.',
                 ),
               ] else ...[
-                _buildSectionTitle(
-                  context,
-                  'Area occupata',
-                  Icons.crop_square,
-                ),
+                _buildSectionTitle(context, 'Area occupata', Icons.crop_square),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _manualLengthController,
@@ -1941,8 +1196,7 @@ if (widget.isUsingSuggestion) ...[
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
-                    final length =
-                        int.tryParse(value?.trim() ?? '');
+                    final length = int.tryParse(value?.trim() ?? '');
 
                     if (length == null || length <= 0) {
                       return 'Inserisci la lunghezza occupata';
@@ -1970,9 +1224,7 @@ if (widget.isUsingSuggestion) ...[
 
                     final width = int.tryParse(value.trim());
 
-                    if (width == null ||
-                        width <= 0 ||
-                        width > _bedWidthCm) {
+                    if (width == null || width <= 0 || width > _bedWidthCm) {
                       return 'Inserisci un valore tra 1 e 90 cm';
                     }
 
@@ -1984,8 +1236,7 @@ if (widget.isUsingSuggestion) ...[
                   TextFormField(
                     controller: _seedQuantityController,
                     enabled: !_isSaving,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(
+                    keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
                     decoration: const InputDecoration(
@@ -2008,9 +1259,39 @@ if (widget.isUsingSuggestion) ...[
                 ],
               ],
               const SizedBox(height: 24),
-              _buildCalculationCard(context),
+              CalculationCard(
+                usesPlantCount: _usesPlantCount,
+                calculatedRowsCount: _calculatedRowsCount,
+                plantsPerRow: _plantsPerRow,
+                calculatedLengthCm: _calculatedLengthCm,
+                occupiedWidthCm: _occupiedWidthCm,
+                endPositionCm: _endPositionCm,
+                remainingLengthCm: _remainingLengthCm,
+                fitsInBed: _fitsInBed,
+                hasOverlap: _hasOverlap,
+              ),
               const SizedBox(height: 12),
-              _buildSpaceSuggestionCard(context),
+              SpaceSuggestionCard(
+                isLoading: _isLoadingExistingPlantings,
+                loadingError: _existingPlantingsError,
+                calculatedLengthCm: _calculatedLengthCm,
+                existingPlantingsCount: _existingPlantings.length,
+                analysis: _bedAnalysis,
+                bestSpace: _bedAnalysis == null
+                    ? null
+                    : _findBestSpace(_bedAnalysis!),
+                isAutomaticPosition: _isAutomaticPosition,
+                onRetry: () {
+                  setState(() {
+                    _isLoadingExistingPlantings = true;
+                    _existingPlantingsError = null;
+                  });
+
+                  _loadExistingPlantings();
+                },
+                formatCentimeters: _formatCentimeters,
+                remainingSpaceAfterInsertion: _remainingSpaceAfterInsertion,
+              ),
               const SizedBox(height: 12),
               BedPreviewWidget(
                 bedLengthCm: _bedLengthCm,
@@ -2034,18 +1315,14 @@ if (widget.isUsingSuggestion) ...[
               const SizedBox(height: 24),
               if (_saveError != null) ...[
                 Card(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .errorContainer,
+                  color: Theme.of(context).colorScheme.errorContainer,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: SelectableText(
                       'Errore durante il salvataggio:\n\n'
                       '$_saveError',
                       style: TextStyle(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onErrorContainer,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
                       ),
                     ),
                   ),
@@ -2060,53 +1337,21 @@ if (widget.isUsingSuggestion) ...[
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.save),
                   label: Text(
                     _isSaving
                         ? 'Salvataggio...'
                         : _isEditing
-                            ? 'Salva modifiche'
-                            : 'Salva coltura',
+                        ? 'Salva modifiche'
+                        : 'Salva coltura',
                   ),
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _CalculationRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _CalculationRow({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(label),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }
