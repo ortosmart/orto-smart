@@ -391,6 +391,18 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     final bestSpace = _findBestSpace(analysis);
 
     if (bestSpace == null) {
+      if (_startPositionController.text.isEmpty) {
+        return;
+      }
+
+      _isApplyingAutomaticPosition = true;
+      _startPositionController.clear();
+      _isApplyingAutomaticPosition = false;
+
+      setState(() {
+        _saveError = null;
+      });
+
       return;
     }
 
