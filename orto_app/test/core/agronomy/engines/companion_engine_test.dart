@@ -33,9 +33,9 @@ void main() {
 
     test('restituisce null se non esiste alcuna regola', () {
       final rule = CompanionEngine.findRule(
-        CropIds.lattuga,
-        99,
-      );
+  CropIds.lattuga,
+  '999',
+);
 
       expect(rule, isNull);
     });
@@ -56,9 +56,9 @@ test('analyze restituisce un risultato eccellente per pomodoro e basilico', () {
 
 test('analyze restituisce neutrale quando non esiste una regola', () {
   final result = CompanionEngine.analyze(
-    CropIds.lattuga,
-    99,
-  );
+  CropIds.lattuga,
+  '999',
+);
 
   expect(result.compatible, isTrue);
   expect(

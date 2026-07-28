@@ -283,6 +283,7 @@ L'architettura risulta ora predisposta per l'introduzione dei successivi moduli 
 - ✅ DOC-001 – Manuale Tecnico
 - ✅ DOC-005 – Quaderno di Sviluppo
 - ✅ DOC-008 – Roadmap di Sviluppo
+
 ---
 
 ## Sessione S004 – Companion Engine e Motore delle Consociazioni
@@ -388,11 +389,32 @@ Al termine della sessione il Motore Agronomico risulta composto dai seguenti mod
 
 L'architettura è ora pronta per lo sviluppo del **Bed Companion Analyzer**, che analizzerà automaticamente la compatibilità tra tutte le colture presenti in una stessa aiuola.
 
+### Aggiornamento della documentazione
+
+A completamento della Sessione S004 è stata eseguita una revisione approfondita della documentazione tecnica del progetto.
+
+In particolare è stato aggiornato il **DOC-001 – Manuale Tecnico**, migliorandone l'organizzazione, l'uniformità stilistica e la completezza dei contenuti.
+
+Sono stati completati e approvati:
+
+- Capitolo 1 – Scopo del documento;
+- Capitolo 2 – Architettura del sistema;
+- Capitolo 3 – Struttura del progetto.
+
+Durante la revisione sono stati inoltre:
+
+- uniformato lo stile redazionale del Manuale Tecnico;
+- numerati e corredati di didascalia i diagrammi Mermaid;
+- inseriti riferimenti tra i capitoli per facilitare la consultazione;
+- definito il criterio di approvazione dei capitoli, che vengono considerati definitivi ("congelati") fino a eventuali modifiche dell'architettura o delle funzionalità del progetto.
+
+La documentazione risulta ora allineata allo stato corrente del software e costituisce il riferimento ufficiale per le successive fasi di sviluppo.
+
 ### Documentazione aggiornata
 
 - ✅ VERSION
 - ✅ CHANGELOG
-- ✅ DOC-001 – Manuale Tecnico
+- ✅ DOC-001 – Manuale Tecnico (completati e approvati i Capitoli 1, 2 e 3)
 - ✅ DOC-005 – Quaderno di Sviluppo
 - ✅ DOC-008 – Roadmap di Sviluppo
 

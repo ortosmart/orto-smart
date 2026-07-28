@@ -7,8 +7,8 @@ enum CompanionCompatibility {
 }
 
 class CompanionRule {
-  final int cropAId;
-  final int cropBId;
+  final String cropAId;
+  final String cropBId;
   final CompanionCompatibility compatibility;
   final String reason;
 
@@ -19,7 +19,10 @@ class CompanionRule {
     required this.reason,
   });
 
-  bool matches(int firstCropId, int secondCropId) {
+  bool matches(
+    String firstCropId,
+    String secondCropId,
+  ) {
     return (cropAId == firstCropId && cropBId == secondCropId) ||
         (cropAId == secondCropId && cropBId == firstCropId);
   }
