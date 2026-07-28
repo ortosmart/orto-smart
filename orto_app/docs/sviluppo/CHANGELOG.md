@@ -1,10 +1,28 @@
 # CHANGELOG
 
-Tutte le modifiche rilevanti del progetto **Orto Smart** vengono documentate in questo file.
+Il presente documento registra tutte le modifiche rilevanti apportate al progetto **Orto Smart** tra una versione e la successiva.
 
-Questo documento registra le evoluzioni del software tra una versione e l'altra.
+Lo scopo del CHANGELOG è fornire una cronologia sintetica dell'evoluzione del software, evidenziando nuove funzionalità, miglioramenti, correzioni e modifiche significative.
 
-Per il dettaglio delle singole sessioni di lavoro fare riferimento al **DOC-005 – Quaderno di Sviluppo**.
+Per il dettaglio delle singole sessioni di sviluppo fare riferimento al **DOC-005 – Quaderno di Sviluppo**.
+
+Le regole e il workflow di sviluppo del progetto sono definiti nel **DOC-006 – Linee Guida di Sviluppo**.
+
+---
+
+# Regole di aggiornamento
+
+Il CHANGELOG viene aggiornato quando una modifica introduce nuove funzionalità, migliora il comportamento del software, corregge bug o modifica aspetti rilevanti del progetto.
+
+Le modifiche vengono classificate nelle seguenti categorie:
+
+- **Aggiunto**
+- **Modificato**
+- **Corretto**
+- **Rimosso**
+- **Sicurezza**
+
+Le attività dettagliate delle singole sessioni vengono invece documentate nel **DOC-005 – Quaderno di Sviluppo**.
 
 ---
 
@@ -24,9 +42,9 @@ Per il dettaglio delle singole sessioni di lavoro fare riferimento al **DOC-005 
 - Implementato il Repository Pattern.
 - Sviluppata la prima versione del Motore Agronomico.
 - Implementati `FreeSpaceEngine` e `SuggestionEngine`.
-- Creata la documentazione tecnica del progetto.
+- Creato il **DOC-001 – Manuale Tecnico**.
 - Creato il **DOC-005 – Quaderno di Sviluppo**.
-- Creata la **Roadmap di sviluppo**.
+- Creato il **DOC-008 – Roadmap di Sviluppo**.
 
 ## Modificato
 
@@ -51,24 +69,41 @@ Per il dettaglio delle singole sessioni di lavoro fare riferimento al **DOC-005 
 
 ---
 
-# Regole di aggiornamento
+## Versione 0.1.1-alpha
 
-Il CHANGELOG viene aggiornato quando una modifica introduce nuove funzionalità, migliora il comportamento del software, corregge bug o modifica aspetti rilevanti del progetto.
+**Data:** 27/07/2026
 
-Le modifiche vengono classificate nelle seguenti categorie:
+### Aggiunto
 
-- **Aggiunto**
-- **Modificato**
-- **Corretto**
-- **Rimosso**
-- **Sicurezza**
+- Prima versione del **Companion Engine**.
+- Modello `CompanionRule`.
+- Modello `CompanionResult`.
+- Archivio delle regole di consociazione (`companion_rules.dart`).
+- Prime regole agronomiche tra le colture.
+- Nuovi test automatici per il motore delle consociazioni.
 
-Le attività dettagliate delle singole sessioni vengono invece documentate nel **DOC-005 – Quaderno di Sviluppo**.
+### Modificato
+
+- Riorganizzata l'architettura del modulo `core/agronomy`.
+- Migliorata la separazione tra Models, Data ed Engines.
+- Definito il workflow ufficiale di sviluppo del progetto.
+
+### Corretto
+
+- Rimossi file duplicati.
+- Corretti import ambigui.
+- Spostati i file di test nella cartella dedicata.
+- Pulita la struttura del progetto.
+
+### Sicurezza
+
+Nessuna modifica.
 
 ---
 
-# Cronologia revisioni
+# Cronologia versioni
 
-| Versione | Data | Descrizione |
-|----------|------------|-------------------------------------------|
-| 0.1 | 27/07/2026 | Prima emissione del documento CHANGELOG. |
+| Versione    | Data       | Stato      | Note                                             |
+|-------------|------------|------------|--------------------------------------------------|
+| 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto.         |
+| 0.1.1-alpha | 27/07/2026 | Corrente   | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |

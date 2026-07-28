@@ -3,7 +3,7 @@
 | Campo | Valore |
 |--------|--------|
 | Progetto | Orto Smart |
-| Versione corrente | 0.1.0-alpha |
+| Versione corrente | 0.1.1-alpha |
 | Stato | Alpha |
 | Data versione | 27/07/2026 |
 | Linguaggio | Flutter / Dart |
@@ -16,9 +16,7 @@
 
 Orto Smart è attualmente in fase **Alpha**.
 
-Le funzionalità principali di gestione dell'orto sono in fase di sviluppo e vengono progressivamente integrate e testate.
-
-Il progetto è stabile dal punto di vista architetturale, ma non è ancora completo dal punto di vista funzionale.
+L'architettura principale dell'applicazione è stata definita e il motore agronomico è in continua evoluzione. Le funzionalità implementate sono stabili e validate tramite test automatici, mentre sono in corso lo sviluppo delle regole agronomiche avanzate e la loro integrazione nell'interfaccia utente.
 
 ---
 
@@ -42,7 +40,8 @@ Il progetto è stabile dal punto di vista architetturale, ma non è ancora compl
 ## Motore agronomico
 
 - FreeSpaceEngine
-- SuggestionEngine (prima versione)
+- SuggestionEngine
+- CompanionEngine (prima versione)
 
 ## Backend
 
@@ -54,6 +53,7 @@ Il progetto è stabile dal punto di vista architetturale, ma non è ancora compl
 
 - DOC-001 – Manuale Tecnico
 - DOC-005 – Quaderno di Sviluppo
+- DOC-006 – Linee Guida di Sviluppo
 - DOC-008 – Roadmap di Sviluppo
 - CHANGELOG
 
@@ -61,21 +61,21 @@ Il progetto è stabile dal punto di vista architetturale, ma non è ancora compl
 
 # Obiettivi della prossima versione
 
-La prossima versione sarà focalizzata su:
+La prossima versione sarà dedicata a:
 
-- completamento del SuggestionEngine;
-- integrazione delle regole di consociazione;
-- integrazione delle rotazioni colturali;
-- miglioramento dell'interfaccia grafica delle aiuole;
-- gestione completa delle lavorazioni.
+- sviluppo del **Bed Companion Analyzer**;
+- analisi automatica delle compatibilità tra tutte le colture presenti in un'aiuola;
+- calcolo del punteggio agronomico dell'aiuola;
+- suggerimenti automatici basati sulle consociazioni.
 
 ---
 
 # Cronologia versioni
 
 | Versione | Data | Stato | Note |
-|-----------|------------|---------|--------------------------------|
-| 0.1.0-alpha | 27/07/2026 | Corrente | Prima versione documentata del progetto. |
+|-----------|------------|-----------|--------------------------------------------------------------|
+| 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto. |
+| 0.1.1-alpha | 27/07/2026 | Corrente | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
 
 ---
 
@@ -83,6 +83,7 @@ La prossima versione sarà focalizzata su:
 
 - DOC-001 – Manuale Tecnico
 - DOC-005 – Quaderno di Sviluppo
+- DOC-006 – Linee Guida di Sviluppo
 - DOC-008 – Roadmap di Sviluppo
 - CHANGELOG
 
@@ -90,6 +91,4 @@ La prossima versione sarà focalizzata su:
 
 # Note
 
-Il numero di versione viene aggiornato esclusivamente quando viene rilasciata una nuova versione significativa del progetto.
-
-Le modifiche introdotte tra una versione e l'altra sono documentate nel **CHANGELOG**, mentre il dettaglio delle attività di sviluppo è riportato nel **DOC-005 – Quaderno di Sviluppo**.
+Le modifiche dettagliate sono riportate nel **CHANGELOG**, mentre il resoconto completo delle attività di sviluppo è documentato nel **DOC-005 – Quaderno di Sviluppo**. Le regole di sviluppo del progetto sono definite nel **DOC-006 – Linee Guida di Sviluppo**.
