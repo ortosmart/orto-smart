@@ -8,8 +8,7 @@ import '../data/models/suggestion_result.dart';
 import '../data/repositories/crop_association_repository.dart';
 import '../data/repositories/crop_repository.dart';
 import '../data/repositories/planting_repository.dart';
-import '../services/bed_analyzer.dart';
-import '../services/suggestion_engine.dart';
+import '../services/bed_analysis_service.dart';
 import '../widgets/bed_layout_widget.dart';
 import '../widgets/planting_card.dart';
 import 'add_planting_page.dart';
@@ -220,13 +219,13 @@ class _BedPageState extends State<BedPage> {
   }
 
   Future<void> _showCropSuggestions(_BedPageData data) async {
-    final bedAnalysis = BedAnalyzer.analyze(
+    final bedAnalysis = BedAnalysisService.analyzeSpace(
       bedLengthCm: bed.lengthCm.toDouble(),
       requiredLengthCm: 0,
       plantings: data.plantings,
     );
 
-    final result = SuggestionEngine.generateSuggestions(
+    final result = BedAnalysisService.generateSuggestions(
       availableCrops: data.crops,
       existingPlantings: data.plantings,
       cropsById: data.cropsById,

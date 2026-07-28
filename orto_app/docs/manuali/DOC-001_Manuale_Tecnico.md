@@ -44,6 +44,8 @@ Ogni modifica significativa all'architettura, al database o ai principali compon
 
 Mantenere il manuale sincronizzato con il codice sorgente garantisce la coerenza della documentazione e facilita la manutenzione del progetto nel lungo periodo.
 
+## 2. Architettura del sistema
+
 ## 2.1 Obiettivi dell'architettura
 
 L'architettura di **Orto Smart** è stata progettata per realizzare un'applicazione robusta, modulare e facilmente estendibile, in grado di accompagnare l'evoluzione del progetto nel lungo periodo.
@@ -332,4 +334,207 @@ Tra le principali aree di evoluzione previste rientrano:
 L'architettura potrà inoltre essere estesa con nuovi servizi e componenti senza compromettere il funzionamento dei moduli esistenti, preservando la compatibilità con le versioni precedenti dell'applicazione.
 
 L'obiettivo è accompagnare la crescita di Orto Smart mantenendo nel tempo un software affidabile, facilmente manutenibile e in grado di adattarsi alle future esigenze del progetto.
+
+# 3. Struttura del progetto
+
+## 3.1 Obiettivo
+
+La struttura del progetto rappresenta l'organizzazione fisica del codice sorgente di Orto Smart.
+
+L'obiettivo principale è mantenere una chiara separazione tra i diversi componenti dell'applicazione, facilitando lo sviluppo, la manutenzione e l'introduzione di nuove funzionalità.
+
+L'organizzazione delle cartelle riflette direttamente l'architettura descritta nel capitolo precedente: ogni directory è dedicata a una specifica responsabilità e contiene esclusivamente gli elementi necessari allo svolgimento del proprio compito.
+
+Questa impostazione rende il progetto più semplice da comprendere, favorisce il riutilizzo del codice e permette di individuare rapidamente il punto in cui intervenire durante lo sviluppo.
+
+La struttura è progettata per evolvere insieme all'applicazione, mantenendo nel tempo ordine, coerenza e scalabilità.
+
+## 3.2 Organizzazione generale
+
+Il codice sorgente principale dell'applicazione è contenuto nella cartella `lib/`, che rappresenta il cuore del progetto Flutter.
+
+Al suo interno il codice è organizzato in directory specializzate, ciascuna dedicata a un preciso livello dell'architettura software.
+
+La seguente struttura rappresenta l'organizzazione attuale del progetto.
+
+```text
+lib/
+├── core/
+│   └── config/
+├── data/
+│   ├── models/
+│   └── repositories/
+├── pages/
+├── services/
+├── widgets/
+├── main.dart
+└── supabase_config.dart
+```
+
+Ogni cartella ha una responsabilità specifica e contribuisce a mantenere il progetto ordinato e facilmente manutenibile.
+
+Nei paragrafi successivi verrà descritto il ruolo di ciascun componente della struttura.
+
+## 3.3 Struttura delle directory principali
+
+La cartella `lib/` contiene tutti i componenti software sviluppati per Orto Smart. La sua organizzazione segue i principi architetturali descritti nel Capitolo 2, mantenendo una netta separazione tra interfaccia utente, logica applicativa, gestione dei dati e configurazione.
+
+Ogni directory è dedicata a uno specifico ambito funzionale, riducendo l'accoppiamento tra i componenti e facilitando la manutenzione del codice.
+
+Le principali directory del progetto sono:
+
+| Directory | Responsabilità |
+|-----------|----------------|
+| `core/` | Configurazioni e componenti condivisi dell'applicazione. |
+| `data/` | Modelli del dominio e Repository per l'accesso ai dati. |
+| `pages/` | Schermate dell'applicazione e gestione della navigazione. |
+| `widgets/` | Componenti grafici riutilizzabili. |
+| `services/` | Servizi applicativi e logica di supporto. |
+| `main.dart` | Punto di ingresso dell'applicazione Flutter. |
+| `supabase_config.dart` | Parametri di configurazione della connessione a Supabase. |
+
+Questa organizzazione consente di individuare rapidamente il punto in cui intervenire durante lo sviluppo, mantenendo il codice ordinato e facilmente comprensibile anche all'aumentare delle funzionalità dell'applicazione.
+
+## 3.4 Cartella `core`
+
+La directory `core/` contiene gli elementi condivisi dall'intera applicazione che non appartengono a uno specifico modulo funzionale.
+
+Attualmente ospita la sottocartella `config/`, nella quale sono raccolte le configurazioni generali del progetto.
+
+Lo scopo della cartella `core` è centralizzare le risorse comuni, evitando duplicazioni e mantenendo uniforme il comportamento dell'applicazione.
+
+Con l'evoluzione di Orto Smart questa directory potrà includere ulteriori componenti condivisi, come costanti, utility, estensioni, temi grafici, servizi comuni e classi di supporto utilizzate trasversalmente dai diversi moduli del progetto.
+
+## 3.5 Cartella `data`
+
+La directory `data/` raccoglie tutti i componenti dedicati alla gestione dei dati dell'applicazione.
+
+Questo livello rappresenta il collegamento tra il database Supabase e la logica applicativa, occupandosi della rappresentazione delle entità del dominio e dell'accesso ai dati.
+
+La cartella è suddivisa in due aree principali:
+
+- `models/`, che contiene le classi che rappresentano le entità dell'applicazione;
+- `repositories/`, che implementa l'accesso ai dati e le comunicazioni con Supabase.
+
+Questa organizzazione mantiene separata la struttura dei dati dalla logica di accesso al database, semplificando la manutenzione e rendendo il codice più leggibile e facilmente estendibile.
+
+## 3.6 Cartella `models`
+
+La directory `models/` contiene le classi che rappresentano il modello dati di Orto Smart.
+
+Ogni modello descrive una specifica entità del dominio applicativo, come orti, aiuole, colture, stagioni, piantagioni e gli altri elementi gestiti dal sistema.
+
+Le classi presenti in questa cartella hanno il compito di:
+
+- rappresentare i dati provenienti dal database;
+- convertire i record di Supabase in oggetti Dart;
+- convertire gli oggetti Dart nei dati da salvare nel database;
+- garantire una struttura dati coerente all'interno dell'applicazione.
+
+I modelli non contengono logica di business né effettuano operazioni di accesso al database. La loro responsabilità è esclusivamente quella di rappresentare le informazioni in modo strutturato.
+
+Questa separazione consente di mantenere il codice più ordinato, facilita il riutilizzo delle classi e rende più semplice l'introduzione di nuove entità durante l'evoluzione del progetto.
+
+## 3.7 Cartella `repositories`
+
+La directory `repositories/` implementa il Repository Layer descritto nel Capitolo 2.
+
+Ogni Repository è responsabile dell'accesso ai dati relativi a una specifica entità dell'applicazione.
+
+Le principali responsabilità dei Repository sono:
+
+- eseguire interrogazioni verso Supabase;
+- inserire, aggiornare ed eliminare i dati;
+- convertire i risultati delle query nei modelli Dart;
+- gestire eventuali errori di comunicazione con il backend;
+- fornire all'applicazione un'interfaccia uniforme per l'accesso ai dati.
+
+Grazie a questa architettura, le pagine dell'applicazione non comunicano mai direttamente con il database, ma utilizzano esclusivamente i Repository.
+
+Questo approccio riduce l'accoppiamento tra i componenti, facilita i test e permette di modificare il backend senza influire sul resto dell'applicazione.
+
+## 3.8 Cartella `pages`
+
+La directory `pages/` contiene tutte le schermate dell'applicazione, ovvero i componenti che costituiscono l'interfaccia utente di Orto Smart.
+
+Ogni pagina rappresenta una specifica funzionalità del sistema, come la dashboard, la gestione dell'orto, delle aiuole, delle colture, dell'irrigazione o delle attività.
+
+Le pagine hanno il compito di:
+
+- gestire l'interazione con l'utente;
+- acquisire gli input;
+- richiedere i dati ai Repository;
+- visualizzare le informazioni ricevute;
+- aggiornare l'interfaccia in base allo stato dell'applicazione.
+
+Le pagine non implementano direttamente la logica di business né effettuano accessi al database. Ogni operazione sui dati viene delegata ai Repository o ai servizi dedicati, mantenendo una chiara separazione delle responsabilità.
+
+## 3.9 Cartella `widgets`
+
+La directory `widgets/` raccoglie i componenti grafici riutilizzabili dell'applicazione.
+
+Un widget rappresenta una porzione dell'interfaccia che può essere utilizzata in più pagine senza duplicare il codice. Questo approccio favorisce la modularità dell'interfaccia utente e rende più semplice la manutenzione del progetto.
+
+Tra gli esempi di widget riutilizzabili rientrano:
+
+- schede informative;
+- pulsanti personalizzati;
+- componenti grafici;
+- layout delle aiuole;
+- elementi di navigazione;
+- finestre di dialogo.
+
+L'utilizzo di widget dedicati consente di mantenere le pagine più semplici e leggibili, migliorando l'organizzazione del codice e facilitando eventuali modifiche future.
+
+## 3.10 Cartella `services`
+
+La directory `services/` contiene i servizi applicativi che implementano funzionalità trasversali utilizzate da più componenti del sistema.
+
+I servizi permettono di concentrare in un unico punto operazioni che non appartengono né all'interfaccia utente né ai Repository, mantenendo il codice ordinato e facilmente riutilizzabile.
+
+Con l'evoluzione del progetto questa cartella ospiterà, ad esempio:
+
+- servizi di supporto al Motore Agronomico;
+- gestione delle notifiche;
+- elaborazioni automatiche;
+- integrazione con sistemi esterni;
+- servizi meteorologici;
+- gestione dell'irrigazione automatica;
+- funzionalità condivise tra più moduli.
+
+La presenza di una directory dedicata ai servizi contribuisce a mantenere l'architettura modulare e facilita l'introduzione di nuove funzionalità senza modificare i componenti esistenti.
+
+## 3.11 File principali
+
+Oltre alle directory principali, il progetto comprende alcuni file fondamentali per l'avvio e la configurazione dell'applicazione.
+
+### `main.dart`
+
+È il punto di ingresso dell'applicazione Flutter.
+
+Ha il compito di inizializzare l'ambiente di esecuzione, configurare i servizi necessari all'avvio e creare l'applicazione principale.
+
+### `supabase_config.dart`
+
+Contiene i parametri di configurazione utilizzati per la connessione al backend Supabase.
+
+La separazione della configurazione dal resto del codice migliora l'organizzazione del progetto e semplifica la gestione delle impostazioni dell'applicazione.
+
+## 3.12 Considerazioni finali
+
+La struttura del progetto Orto Smart è stata progettata per garantire ordine, modularità e facilità di manutenzione durante l'intero ciclo di vita dell'applicazione.
+
+La suddivisione del codice in directory specializzate riflette direttamente l'architettura descritta nel Capitolo 2 e consente di mantenere chiaramente separate le responsabilità dei diversi componenti del sistema.
+
+Questa organizzazione permette di:
+
+- individuare rapidamente il codice relativo a una specifica funzionalità;
+- semplificare lo sviluppo di nuovi moduli;
+- ridurre il rischio di introdurre errori durante le modifiche;
+- favorire il riutilizzo del codice;
+- rendere il progetto facilmente comprensibile anche a nuovi sviluppatori.
+
+La struttura attuale rappresenta una base solida ma sufficientemente flessibile per accompagnare la crescita di Orto Smart. Con l'introduzione di nuove funzionalità potranno essere aggiunte ulteriori directory e componenti, mantenendo comunque i principi di modularità, separazione delle responsabilità e scalabilità che caratterizzano l'intera architettura del progetto.
+
+Nel capitolo successivo verrà descritto il modello dati dell'applicazione, analizzando le principali entità gestite da Orto Smart e le relazioni che le collegano all'interno del database.
 

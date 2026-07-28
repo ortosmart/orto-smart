@@ -1,10 +1,10 @@
 import '../models/companion_rule.dart';
 
 class CropIds {
-  static const int pomodoro = 1;
-  static const int lattuga = 2;
-  static const int basilico = 3;
-  static const int zucchine = 4;
+  static const String pomodoro = '1';
+  static const String lattuga = '2';
+  static const String basilico = '3';
+  static const String zucchina = '4';
 }
 
 const companionRules = <CompanionRule>[
@@ -17,14 +17,14 @@ const companionRules = <CompanionRule>[
   ),
   CompanionRule(
     cropAId: CropIds.lattuga,
-    cropBId: CropIds.zucchine,
+    cropBId: CropIds.zucchina,
     compatibility: CompanionCompatibility.good,
     reason:
         'La lattuga può convivere con le zucchine se viene raccolta prima che queste occupino completamente lo spazio.',
   ),
   CompanionRule(
     cropAId: CropIds.pomodoro,
-    cropBId: CropIds.zucchine,
+    cropBId: CropIds.zucchina,
     compatibility: CompanionCompatibility.neutral,
     reason:
         'Non esiste una particolare sinergia o incompatibilità diretta.',

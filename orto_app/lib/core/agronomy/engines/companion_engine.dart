@@ -1,14 +1,20 @@
 import '../data/companion_rules.dart';
-import '../models/companion_rule.dart';
 import '../models/companion_result.dart';
+import '../models/companion_rule.dart';
 
 class CompanionEngine {
   static CompanionRule? findRule(
-    int cropAId,
-    int cropBId,
+    String cropAId,
+    String cropBId,
   ) {
     for (final rule in companionRules) {
-      if (rule.matches(cropAId, cropBId)) {
+      final sameOrder =
+          rule.cropAId == cropAId && rule.cropBId == cropBId;
+
+      final reverseOrder =
+          rule.cropAId == cropBId && rule.cropBId == cropAId;
+
+      if (sameOrder || reverseOrder) {
         return rule;
       }
     }
@@ -16,25 +22,26 @@ class CompanionEngine {
     return null;
   }
 
-static CompanionResult analyze(
-  int cropAId,
-  int cropBId,
-) {
-  final rule = findRule(cropAId, cropBId);
+  static CompanionResult analyze(
+    String cropAId,
+    String cropBId,
+  ) {
+    final rule = findRule(cropAId, cropBId);
 
-  if (rule == null) {
-    return const CompanionResult(
-      compatible: true,
-      compatibility: CompanionCompatibility.neutral,
-      message: 'Non esistono informazioni specifiche su questa consociazione.',
+    if (rule == null) {
+      return const CompanionResult(
+        compatible: true,
+        compatibility: CompanionCompatibility.neutral,
+        message:
+            'Non esistono informazioni specifiche su questa consociazione.',
+      );
+    }
+
+    return CompanionResult(
+      compatible:
+          rule.compatibility != CompanionCompatibility.incompatible,
+      compatibility: rule.compatibility,
+      message: rule.reason,
     );
   }
-
-  return CompanionResult(
-    compatible: rule.compatibility != CompanionCompatibility.incompatible,
-    compatibility: rule.compatibility,
-    message: rule.reason,
-  );
-}
-
 }
