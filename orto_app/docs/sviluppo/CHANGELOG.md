@@ -69,11 +69,11 @@ Le attività dettagliate delle singole sessioni vengono invece documentate nel *
 
 ---
 
-## Versione 0.1.1-alpha
+# Versione 0.1.1-alpha
 
 **Data:** 27/07/2026
 
-### Aggiunto
+## Aggiunto
 
 - Prima versione del **Companion Engine**.
 - Modello `CompanionRule`.
@@ -82,20 +82,50 @@ Le attività dettagliate delle singole sessioni vengono invece documentate nel *
 - Prime regole agronomiche tra le colture.
 - Nuovi test automatici per il motore delle consociazioni.
 
-### Modificato
+## Modificato
 
 - Riorganizzata l'architettura del modulo `core/agronomy`.
 - Migliorata la separazione tra Models, Data ed Engines.
 - Definito il workflow ufficiale di sviluppo del progetto.
 
-### Corretto
+## Corretto
 
 - Rimossi file duplicati.
 - Corretti import ambigui.
 - Spostati i file di test nella cartella dedicata.
 - Pulita la struttura del progetto.
 
-### Sicurezza
+## Sicurezza
+
+Nessuna modifica.
+
+---
+
+# Versione 0.1.2-alpha
+
+**Data:** 28/07/2026
+
+## Aggiunto
+
+- Introdotto `BedAnalysisService` come servizio centralizzato per il coordinamento delle analisi dell'aiuola.
+- Implementato `BedCompanionAnalyzer`.
+- Creati i modelli `BedCompanionAnalysis` e `CompanionPairAnalysis`.
+- Aggiunti i test unitari per `BedCompanionAnalyzer` e `BedAnalysisService`.
+
+## Modificato
+
+- Convertiti gli identificativi delle colture da `int` a `String` in tutto il motore delle consociazioni.
+- Allineato il modello dati agronomico al modello dati di Supabase.
+- Integrata `BedPage` con `BedAnalysisService` per l'analisi degli spazi e la generazione dei suggerimenti.
+- Consolidata l'architettura del motore agronomico introducendo `BedAnalysisService` come orchestratore delle analisi dell'aiuola.
+
+## Corretto
+
+- Eliminate le conversioni tra identificativi numerici e stringhe nel motore delle consociazioni.
+- Aggiornati i test unitari dopo il refactoring dell'architettura.
+- Uniformato il motore agronomico al nuovo modello dati.
+
+## Sicurezza
 
 Nessuna modifica.
 
@@ -103,7 +133,8 @@ Nessuna modifica.
 
 # Cronologia versioni
 
-| Versione    | Data       | Stato      | Note                                             |
-|-------------|------------|------------|--------------------------------------------------|
-| 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto.         |
-| 0.1.1-alpha | 27/07/2026 | Corrente   | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
+| Versione | Data | Stato | Note |
+|-----------|------------|------------|--------------------------------------------------------------|
+| 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto. |
+| 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
+| 0.1.2-alpha | 28/07/2026 | Corrente | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche. |
