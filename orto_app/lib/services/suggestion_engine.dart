@@ -19,16 +19,15 @@ class SuggestionEngine {
     final suggestions = <CropSuggestion>[];
 
     for (final crop in availableCrops) {
-      final requiredLength = _calculateRequiredLength(crop);
-      final rows = _calculateRows(crop);
-      final plants = _calculatePlants(crop);
-
       dynamic suitableSpace;
 
       for (final space in bedAnalysis.freeSpaces) {
-        if (space.lengthCm >= requiredLength) {
+        if (space.lengthCm <= 0) {
+          continue;
+        }
+
+        if (suitableSpace == null || space.lengthCm > suitableSpace.lengthCm) {
           suitableSpace = space;
-          break;
         }
       }
 
@@ -36,9 +35,17 @@ class SuggestionEngine {
         continue;
       }
 
+      final availableLength = suitableSpace.lengthCm.round();
+      final rows = _calculateRows(crop);
+      final plants = _calculatePlants(crop, availableLengthCm: availableLength);
+
+      if (plants <= 0) {
+        continue;
+      }
+
       final spaceScore = _calculateSpaceScore(
-        requiredLength: requiredLength,
-        availableLength: suitableSpace.lengthCm.round(),
+        requiredLength: availableLength,
+        availableLength: availableLength,
       );
 
       final rotationResult = RotationEngine.evaluate(
@@ -48,8 +55,8 @@ class SuggestionEngine {
       );
 
       final cropAssociations = associations
-    .where((association) => association.cropId == crop.id)
-    .toList();
+          .where((association) => association.cropId == crop.id)
+          .toList();
 
       final associationResult = AssociationEngine.evaluate(
         candidateCrop: crop,
@@ -75,7 +82,7 @@ class SuggestionEngine {
           rotationScore: rotationScore,
           associationScore: associationScore,
           startPositionCm: suitableSpace.startCm.round(),
-          lengthCm: requiredLength,
+          lengthCm: availableLength,
           plantsCount: plants,
           rowsCount: rows,
           reasons: [
@@ -93,30 +100,6 @@ class SuggestionEngine {
     );
   }
 
-  static int _calculateRequiredLength(Crop crop) {
-    final plantSpacing = crop.plantSpacingCm;
-    final rowSpacing = crop.rowSpacingCm;
-
-    if (plantSpacing == null ||
-        plantSpacing <= 0 ||
-        rowSpacing == null ||
-        rowSpacing <= 0) {
-      return 100;
-    }
-
-    const bedWidthCm = 90;
-    const desiredPlants = 12;
-
-    final rows = ((bedWidthCm - 1) ~/ rowSpacing) + 1;
-    final plantsPerRow = (desiredPlants / rows).ceil();
-
-    if (plantsPerRow <= 1) {
-      return plantSpacing;
-    }
-
-    return (plantsPerRow - 1) * plantSpacing;
-  }
-
   static int _calculateRows(Crop crop) {
     final rowSpacing = crop.rowSpacingCm;
 
@@ -130,15 +113,15 @@ class SuggestionEngine {
     return rows.clamp(1, 10);
   }
 
-  static int _calculatePlants(Crop crop) {
+  static int _calculatePlants(Crop crop, {required int availableLengthCm}) {
     final plantSpacing = crop.plantSpacingCm;
 
-    if (plantSpacing == null || plantSpacing <= 0) {
+    if (plantSpacing == null || plantSpacing <= 0 || availableLengthCm <= 0) {
       return 0;
     }
 
-    final requiredLength = _calculateRequiredLength(crop);
-    final plantsPerRow = (requiredLength ~/ plantSpacing) + 1;
+    final plantsPerRow = ((availableLengthCm - 1) ~/ plantSpacing) + 1;
+
     final rows = _calculateRows(crop);
 
     return plantsPerRow * rows;
@@ -169,14 +152,14 @@ class SuggestionEngine {
     return 40;
   }
 
-static int _calculateFinalScore({
-  required int spaceScore,
-  required int rotationScore,
-  required int associationScore,
-}) {
-  return ((spaceScore * 0.4) +
-          (rotationScore * 0.3) +
-          (associationScore * 0.3))
-      .round();
-}
+  static int _calculateFinalScore({
+    required int spaceScore,
+    required int rotationScore,
+    required int associationScore,
+  }) {
+    return ((spaceScore * 0.4) +
+            (rotationScore * 0.3) +
+            (associationScore * 0.3))
+        .round();
+  }
 }

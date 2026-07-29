@@ -167,3 +167,108 @@ La sessione **S005** si conclude con il consolidamento dell'architettura del Mot
 L'introduzione di `BedAnalysisService`, la standardizzazione degli identificativi delle colture e il refactoring del motore delle consociazioni costituiscono una base più solida, modulare ed estendibile per lo sviluppo delle future funzionalità di **Orto Smart**.
 
 Le decisioni prese durante questa sessione rappresentano un importante passo avanti nell'organizzazione dell'architettura del progetto e preparano il terreno per l'integrazione delle future funzionalità agronomiche.
+
+---
+
+# S006 – Decision Engine e Analisi Agronomica Integrata
+
+**Data:** 29/07/2026
+
+**Versione interessata:** 0.1.3-alpha
+
+---
+
+## Obiettivo della sessione
+
+Completare l'integrazione dell'analisi agronomica nell'interfaccia utente introducendo un motore decisionale centralizzato in grado di elaborare automaticamente i risultati prodotti dai diversi motori agronomici e presentarli all'utente in modo chiaro e uniforme.
+
+L'obiettivo principale è stato quello di consolidare il flusso di analisi delle aiuole, preparando l'architettura per l'integrazione di ulteriori motori agronomici futuri.
+
+---
+
+## Attività svolte
+
+Durante la sessione sono state completate le seguenti attività:
+
+- Introduzione del nuovo `DecisionEngine` come componente incaricato di trasformare i risultati delle analisi agronomiche in decisioni e suggerimenti per l'utente.
+- Implementazione del modello `BedDecision` per rappresentare in modo uniforme gli esiti delle analisi.
+- Creazione del widget `CompanionAnalysisWidget` per la visualizzazione delle consociazioni direttamente nella schermata dell'aiuola.
+- Integrazione del `DecisionEngine` con il `BedAnalysisService`.
+- Refactoring del flusso di analisi per separare il calcolo agronomico dalla presentazione nell'interfaccia utente.
+- Aggiornamento della `BedPage` per utilizzare il nuovo flusso decisionale.
+- Aggiornamento e ampliamento dei test automatici.
+- Verifica del corretto funzionamento dell'intero flusso di analisi agronomica.
+
+---
+
+## Decisioni architetturali
+
+Nel corso della sessione è stata approvata una nuova decisione architetturale ufficiale, documentata nel **DOC-011 – Decisioni Architetturali**.
+
+### DEC-003 – Introduzione del Decision Engine
+
+È stato introdotto il `DecisionEngine` come componente responsabile dell'interpretazione dei risultati prodotti dai motori agronomici e della loro trasformazione in decisioni, suggerimenti e informazioni destinate all'interfaccia utente.
+
+Principio architetturale adottato:
+
+> **I motori analizzano, il Decision Engine interpreta, l'interfaccia presenta.**
+
+Questa scelta rafforza la separazione delle responsabilità tra logica di calcolo, logica decisionale e presentazione, rendendo l'architettura più modulare, estendibile e facilmente manutenibile.
+
+---
+
+## File creati
+
+Nel corso della sessione sono stati creati i seguenti nuovi componenti:
+
+- `decision_engine.dart`
+- `bed_decision.dart`
+- `companion_analysis_widget.dart`
+- Relativi file di test.
+
+---
+
+## File modificati
+
+Sono stati aggiornati diversi componenti dell'applicazione, tra cui:
+
+- `bed_analysis_service.dart`
+- `bed_page.dart`
+- Componenti del Motore Agronomico.
+- Widget dell'interfaccia utente.
+- Test automatici del progetto.
+
+---
+
+## Database
+
+Nel corso della sessione non sono state apportate modifiche alla struttura del database Supabase.
+
+Le attività hanno riguardato esclusivamente l'architettura dell'applicazione, il flusso decisionale e l'integrazione dei nuovi componenti software.
+
+---
+
+---
+
+## Attività di documentazione
+
+A completamento della sessione sono state svolte le attività di aggiornamento della documentazione tecnica del progetto, al fine di mantenere l'allineamento tra codice, documentazione e registro storico.
+
+Sono stati aggiornati i seguenti documenti:
+
+- DOC-009 – Workflow Operativo
+- DOC-005 – Quaderno di Sviluppo
+- DOC-012 – Registro Storico dello Sviluppo
+- Checklist Workflow Operativo v2.0 (Allegato A del DOC-009)
+
+Nel corso dell'aggiornamento documentale sono state inoltre approvate le seguenti regole operative:
+
+- una sessione è considerata conclusa solo quando codice, documentazione e registro storico risultano aggiornati, coerenti e allineati;
+- ogni documento deve essere completato, approvato e chiuso prima di iniziare il successivo.
+
+L'aggiornamento della documentazione conclude ufficialmente la Sessione S006 secondo il Workflow Operativo del progetto.
+
+La sessione si conclude con il completo allineamento tra sviluppo software, documentazione tecnica e registro storico, nel rispetto del Workflow Operativo adottato dal progetto Orto Smart.
+
+---
+

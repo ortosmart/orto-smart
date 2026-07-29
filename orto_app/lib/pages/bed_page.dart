@@ -12,6 +12,7 @@ import '../services/bed_analysis_service.dart';
 import '../widgets/bed_layout_widget.dart';
 import '../widgets/planting_card.dart';
 import 'add_planting_page.dart';
+import '../widgets/companion_analysis_widget.dart';
 
 class BedPage extends StatefulWidget {
   final Bed bed;
@@ -432,20 +433,33 @@ class _BedPageState extends State<BedPage> {
                   return const SizedBox.shrink();
                 }
 
+final companionAnalysis = BedAnalysisService.analyzeCompanions(
+  plantings: data.plantings,
+);
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     BedLayoutWidget(
-                      bed: bed,
-                      plantings: data.plantings,
-                      cropsById: data.cropsById,
-                    ),
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: () => _showCropSuggestions(data),
-                      icon: const Icon(Icons.auto_awesome),
-                      label: const Text('Suggerisci colture'),
-                    ),
+  bed: bed,
+  plantings: data.plantings,
+  cropsById: data.cropsById,
+),
+
+const SizedBox(height: 16),
+
+CompanionAnalysisWidget(
+  analysis: companionAnalysis,
+  cropsById: data.cropsById,
+),
+
+const SizedBox(height: 16),
+
+OutlinedButton.icon(
+  onPressed: () => _showCropSuggestions(data),
+  icon: const Icon(Icons.auto_awesome),
+  label: const Text('Suggerisci colture'),
+),
                     const SizedBox(height: 24),
                     if (data.plantings.isEmpty)
                       const Card(
