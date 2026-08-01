@@ -41,6 +41,20 @@
 
 ---
 
+# Registro delle sessioni di sviluppo
+
+| Sessione | Periodo | Durata | Totale progetto | Attività principale | Stato |
+|-----------|------------|:------:|:---------------:|---------------------------------------------------------------|:-----:|
+| S001 | Maggio 2026 | 5 h 30 min | 5 h 30 min | Avvio del progetto Orto Smart e configurazione dell'ambiente di sviluppo | ✅ |
+| S002 | Giugno 2026 | 3 h 00 min | 8 h 30 min | Integrazione di Supabase e sviluppo delle funzionalità di base | ✅ |
+| S003 | Luglio 2026 | 2 h 15 min | 10 h 45 min | Gestione delle aiuole e sviluppo del FreeSpaceEngine | ✅ |
+| S004 | Luglio 2026 | Da ricostruire | Da aggiornare | Introduzione del Companion Engine e consolidamento dell'architettura agronomica | ✅ |
+| S005 | Luglio 2026 | Da ricostruire | Da aggiornare | BedAnalysisService e Bed Companion Analyzer | ✅ |
+| S006 | Luglio 2026 | Da ricostruire | Da aggiornare | Decision Engine e consolidamento del Motore Agronomico | ✅ |
+| S007 | Agosto 2026 | 11 h 00 min* | Da aggiornare | Revisione e consolidamento della documentazione tecnica | ✅ |
+
+---
+
 # Indice
 
 ## 1. Introduzione
