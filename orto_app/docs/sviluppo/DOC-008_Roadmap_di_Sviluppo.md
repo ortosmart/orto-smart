@@ -1,14 +1,68 @@
-# DOC-008 – Roadmap di Sviluppo
+# ORTO SMART
+
+### DOC-008
+
+# Roadmap di Sviluppo
+
+**Versione:** 1.0  
+**Stato:** Approvato  
+
+**Autore:** Renzo Siega  
+**Progetto:** Orto Smart  
+
+**Data prima emissione:** 27/07/2026  
+**Ultimo aggiornamento:** 01/08/2026  
+
+**Repository:** `ortosmart/orto-smart`
+
+---
+
+# Informazioni sul documento
 
 | Campo | Valore |
-|-------|--------|
+|--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 0.2 |
-| Stato | In sviluppo |
+| Versione | 1.0 |
+| Stato | Approvato |
 | Progetto | Orto Smart |
-| Data prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 27/07/2026 |
+| Repository | ortosmart/orto-smart |
+| Prima emissione | 27/07/2026 |
+| Ultimo aggiornamento | 01/08/2026 |
+
+---
+
+# Cronologia delle revisioni
+
+| Versione | Data | Descrizione |
+|-----------|------------|------------------------------------------------|
+| 0.1 | 27/07/2026 | Prima emissione della Roadmap di Sviluppo |
+| 0.2 | 27/07/2026 | Aggiornamento della roadmap dopo la Sessione S004 |
+| 0.3 | 01/08/2026 | Revisione della struttura documentale e aggiornamento della roadmap |
+
+---
+
+# Indice
+
+## 1. Scopo
+
+## 2. Stato del progetto
+
+## 3. Roadmap generale
+3.1 Architettura  
+3.2 Gestione orto  
+3.3 Motore Agronomico  
+3.4 Irrigazione  
+3.5 Dashboard  
+3.6 Attività  
+3.7 Statistiche  
+3.8 Versioni future
+
+## 4. Prossime attività
+
+## 5. Cronologia delle revisioni
+
+## 6. Considerazioni finali
 
 ---
 
@@ -66,8 +120,10 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 |--------------|:-----:|------|
 | FreeSpaceEngine | ✅ Completato | Calcolo automatico degli spazi liberi nelle aiuole. |
 | SuggestionEngine | ✅ Completato | Individuazione del miglior spazio disponibile mediante algoritmo Best Fit. |
-| Companion Engine | ✅ Completato | Prima versione del motore delle consociazioni con `CompanionRule`, `CompanionResult` e archivio delle regole. |
-| Bed Companion Analyzer | 📋 Pianificato | Analisi automatica delle compatibilità tra tutte le colture presenti in un'aiuola. |
+| Companion Engine | ✅ Completato | Prima versione del motore delle consociazioni. |
+| BedAnalysisService | ✅ Completato | Servizio di coordinamento delle analisi agronomiche delle aiuole. |
+| Bed Companion Analyzer | ✅ Completato | Analisi automatica delle compatibilità tra le colture presenti in un'aiuola. |
+| Decision Engine | ✅ Completato | Interpretazione dei risultati dei motori agronomici e generazione delle decisioni per l'interfaccia utente. |
 | Motore delle Rotazioni | 📋 Pianificato | Verifica delle successioni colturali tra le stagioni. |
 | Sistema di Punteggio Agronomico | 📋 Pianificato | Valutazione complessiva delle aiuole basata su consociazioni, rotazioni e altri fattori agronomici. |
 
@@ -150,47 +206,41 @@ Assistente intelligente dedicato alla gestione completa dell'orto.
 
 # 4. Prossime attività
 
-## Sessione S005
+Le attività riportate in questa sezione rappresentano le principali direttrici di sviluppo previste per le prossime versioni di Orto Smart.
 
-### Obiettivo principale
+L'ordine di realizzazione potrà variare in funzione delle esigenze del progetto e delle decisioni architetturali adottate durante lo sviluppo.
 
-Realizzare il **Bed Companion Analyzer**, che analizzerà automaticamente tutte le colture presenti in un'aiuola.
+## Priorità attuali
 
-### Attività previste
+- completamento del Motore delle Rotazioni Colturali;
+- introduzione del Sistema di Punteggio Agronomico;
+- ampliamento del Decision Engine con nuovi motori agronomici;
+- evoluzione della gestione dell'irrigazione;
+- sviluppo del modulo Attività e Piano di Lavoro;
+- ampliamento della Dashboard con informazioni agronomiche e meteorologiche.
 
-- analizzare tutte le coppie di colture presenti nell'aiuola;
-- individuare compatibilità e incompatibilità;
-- calcolare un punteggio agronomico complessivo dell'aiuola;
-- generare suggerimenti automatici per migliorare le consociazioni;
-- predisporre l'integrazione con il SuggestionEngine.
-
-### Risultato atteso
-
-Completare il **Bed Companion Analyzer** e predisporre il Motore Agronomico per l'integrazione del futuro **Motore delle Rotazioni Colturali**.
+La pianificazione dettagliata delle singole sessioni di sviluppo viene documentata nel **DOC-005 – Quaderno di Sviluppo**, mentre il presente documento mantiene una visione strategica dell'evoluzione del progetto.
 
 ---
 
-# 5. Cronologia revisioni
+# 5. Cronologia delle revisioni
 
 | Versione | Data | Descrizione |
 |-----------|------------|------------------------------------------------|
-| 0.1 | 27/07/2026 | Prima emissione della Roadmap di Sviluppo. |
-| 0.2 | 27/07/2026 | Aggiornata dopo la Sessione S004 con il Companion Engine e la pianificazione della Sessione S005. |
+| 0.1 | 27/07/2026 | Prima emissione della Roadmap di Sviluppo |
+| 0.2 | 27/07/2026 | Aggiornamento della roadmap dopo la Sessione S004 |
+| 0.3 | 01/08/2026 | Revisione della struttura documentale e aggiornamento della roadmap |
+| 1.0 | 01/08/2026 | Revisione completa e approvazione della Roadmap di Sviluppo |
 
 ---
 
-**Documento:** DOC-008 – Roadmap di Sviluppo
+# 6. Considerazioni finali
 
-**Versione:** 0.2
+La Roadmap di Sviluppo rappresenta il documento di riferimento per la pianificazione strategica dell'evoluzione di Orto Smart.
 
-**Stato:** In sviluppo
+A differenza del Quaderno di Sviluppo (DOC-005), che documenta le attività svolte nelle singole sessioni, la Roadmap mantiene una visione di medio e lungo periodo, evidenziando gli obiettivi generali del progetto e le principali direttrici di sviluppo.
 
-**Ultimo aggiornamento:** Sessione S004
+Il documento viene aggiornato in occasione del completamento di funzionalità significative o quando intervengono modifiche sostanziali nella pianificazione del progetto, mantenendo la coerenza con il Manuale Tecnico (DOC-001), il Quaderno di Sviluppo (DOC-005), le Decisioni Architetturali (DOC-011) e il CHANGELOG.
 
-**Documenti correlati:**
+La Roadmap costituisce pertanto uno strumento di pianificazione e di orientamento dello sviluppo, contribuendo a garantire una crescita ordinata, coerente e sostenibile del progetto Orto Smart.
 
-- DOC-001 – Manuale Tecnico
-- DOC-005 – Quaderno di Sviluppo
-- DOC-006 – Linee Guida di Sviluppo
-- CHANGELOG
-- VERSION
