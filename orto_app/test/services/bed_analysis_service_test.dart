@@ -19,9 +19,7 @@ Planting _planting(String cropId) {
 void main() {
   group('BedAnalysisService - analyzeCompanions', () {
     test('returns no pairs for empty bed', () {
-      final analysis = BedAnalysisService.analyzeCompanions(
-        plantings: [],
-      );
+      final analysis = BedAnalysisService.analyzeCompanions(plantings: []);
 
       expect(analysis.totalPairs, 0);
       expect(analysis.hasIncompatibilities, isFalse);
@@ -29,10 +27,7 @@ void main() {
 
     test('analyzes compatible crops', () {
       final analysis = BedAnalysisService.analyzeCompanions(
-        plantings: [
-          _planting(CropIds.pomodoro),
-          _planting(CropIds.basilico),
-        ],
+        plantings: [_planting(CropIds.pomodoro), _planting(CropIds.basilico)],
       );
 
       expect(analysis.totalPairs, 1);

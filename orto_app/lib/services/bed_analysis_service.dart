@@ -32,9 +32,7 @@ class BedAnalysisService {
   static BedCompanionAnalysis analyzeCompanions({
     required List<Planting> plantings,
   }) {
-    final cropIds = plantings
-        .map((planting) => planting.cropId)
-        .toList();
+    final cropIds = plantings.map((planting) => planting.cropId).toList();
 
     return BedCompanionAnalyzer.analyze(cropIds);
   }
