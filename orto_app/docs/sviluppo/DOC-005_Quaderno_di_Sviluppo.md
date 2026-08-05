@@ -986,5 +986,94 @@ Con la conclusione della Sessione S007 termina la revisione organica della docum
 
 Le prossime sessioni di sviluppo riprenderanno dall'evoluzione del software, proseguendo l'implementazione delle funzionalità previste dalla Roadmap di Sviluppo e mantenendo aggiornata la documentazione secondo il workflow definito durante la presente sessione.
 
+---
+
+## 3.8 S008 – Censimento e consolidamento della documentazione residua
+
+**Data:** Agosto 2026
+
+**Versione interessata:** Documentazione del progetto
+
+### Obiettivo della sessione
+
+Completare il censimento, la revisione e il consolidamento della documentazione residua del progetto Orto Smart, uniformando i documenti allo Standard Documentale (DOC-000), eliminando duplicazioni, chiarendo il ruolo di ciascun documento e verificandone la coerenza reciproca.
+
+L'obiettivo principale della sessione è stato consolidare definitivamente il sistema documentale del progetto, assicurando che ogni documento abbia uno scopo ben definito e che l'insieme della documentazione costituisca un riferimento affidabile per lo sviluppo futuro.
+
+### Attività svolte
+
+Durante la sessione sono state completate le seguenti attività:
+
+- completato il censimento della documentazione ufficiale del progetto;
+- revisionati e approvati i documenti ancora in stato "In revisione";
+- consolidato il sistema documentale eliminando duplicazioni tra i documenti;
+- definito con precisione il ruolo e le responsabilità di ciascun documento ufficiale;
+- verificata la coerenza reciproca tra Quaderno di Sviluppo, Workflow Operativo, Registro Storico, Roadmap, Decisioni Architetturali, CHANGELOG e VERSION;
+- aggiornato il file VERSION per allinearlo alle versioni ufficiali del software e al CHANGELOG;
+- verificata la corrispondenza tra cronologia delle sessioni, milestone e sviluppo effettivo del progetto utilizzando il Quaderno di Sviluppo come fonte primaria;
+- completata la rilettura tecnica finale dei documenti revisionati prima della loro approvazione.
+
+### Decisioni prese
+
+Nel corso della sessione sono state consolidate le seguenti decisioni organizzative:
+
+- attribuire a ciascun documento ufficiale del progetto un ruolo specifico e non sovrapposto agli altri documenti;
+- utilizzare sempre la documentazione ufficiale come fonte primaria per le verifiche storiche, evitando ricostruzioni basate esclusivamente sulla memoria;
+- mantenere il principio "una sola fonte autorevole per ogni informazione", eliminando le duplicazioni tra i documenti;
+- considerare il file VERSION come riferimento esclusivo per la versione del software, mentre la Roadmap, il CHANGELOG, il Quaderno di Sviluppo e il Registro Storico mantengono le rispettive responsabilità documentali.
+
+### Documentazione aggiornata
+
+Nel corso della Sessione S008 sono stati revisionati, aggiornati e approvati i seguenti documenti ufficiali del progetto:
+
+- DOC-006 – Linee Guida di Sviluppo;
+- DOC-009 – Workflow Operativo;
+- DOC-012 – Registro Storico dello Sviluppo;
+- VERSION.
+
+Sono stati inoltre verificati la coerenza e l'allineamento con i seguenti documenti:
+
+- DOC-000 – Standard Documentale;
+- DOC-001 – Manuale Tecnico e Architetturale;
+- DOC-005 – Quaderno di Sviluppo;
+- DOC-008 – Roadmap di Sviluppo;
+- DOC-011 – Decisioni Architetturali;
+- CHANGELOG.
+
+Al termine della sessione il sistema documentale del progetto risulta coerente, aggiornato e conforme ai principi definiti nello Standard Documentale (DOC-000).
+
+### Esito della sessione
+
+La Sessione S008 si conclude con il completamento del censimento e del consolidamento della documentazione residua del progetto Orto Smart.
+
+Nel corso della sessione è stato completato il processo di revisione dei documenti ancora in stato "In revisione", verificandone la coerenza reciproca e uniformandoli ai criteri definiti dallo Standard Documentale (DOC-000).
+
+Al termine della sessione il sistema documentale del progetto risulta organizzato secondo una chiara separazione delle responsabilità tra i documenti, riducendo le duplicazioni e migliorando la tracciabilità delle informazioni.
+
+La documentazione costituisce ora una base stabile e coerente per la prosecuzione dello sviluppo software e per le future evoluzioni del progetto Orto Smart.
+
+### Tempo di lavoro
+
+Tempo complessivo della Sessione S008:
+
+| Attività | Tempo |
+|----------|------:|
+| Revisione e consolidamento della documentazione | 3 h 46 min (tempo ricostruito parzialmente) |
+| Operazioni di chiusura della sessione | Da aggiornare al termine della sessione |
+| **Totale Sessione S008** | **Da completare alla chiusura della sessione** |
+
+Il tempo riportato è stato ricostruito sulla base delle attività svolte e degli orari disponibili. Il totale definitivo verrà registrato al completamento delle operazioni di chiusura della sessione.
+
+### Prossimi passi
+
+Con la conclusione della Sessione S008 termina il consolidamento del sistema documentale del progetto Orto Smart.
+
+La successiva Sessione S009 sarà dedicata alla ripresa dello sviluppo software, proseguendo l'implementazione delle funzionalità previste dalla Roadmap di Sviluppo e mantenendo aggiornati i documenti del progetto secondo il Workflow Operativo definito.
+
+La documentazione consolidata durante la S008 costituirà il riferimento ufficiale per tutte le future attività di sviluppo.
+
+
+
+
 
 
