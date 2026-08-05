@@ -3,9 +3,9 @@
 | Campo | Valore |
 |--------|--------|
 | Progetto | Orto Smart |
-| Versione corrente | 0.1.1-alpha |
+| Versione corrente | 0.1.2-alpha |
 | Stato | Alpha |
-| Data versione | 27/07/2026 |
+| Data versione | 28/07/2026 |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase |
 | Repository | ortosmart/orto-smart |
@@ -16,7 +16,7 @@
 
 Orto Smart è attualmente in fase **Alpha**.
 
-L'architettura principale dell'applicazione è stata definita e il motore agronomico è in continua evoluzione. Le funzionalità implementate sono stabili e validate tramite test automatici, mentre sono in corso lo sviluppo delle regole agronomiche avanzate e la loro integrazione nell'interfaccia utente.
+L'architettura principale dell'applicazione è stata definita e il motore agronomico dispone dei componenti fondamentali per l'analisi delle aiuole. Lo sviluppo prosegue con l'introduzione di nuove funzionalità agronomiche previste dalla Roadmap di Sviluppo.
 
 ---
 
@@ -41,7 +41,10 @@ L'architettura principale dell'applicazione è stata definita e il motore agrono
 
 - FreeSpaceEngine
 - SuggestionEngine
-- CompanionEngine (prima versione)
+- CompanionEngine
+- BedAnalysisService
+- BedCompanionAnalyzer
+- DecisionEngine
 
 ## Backend
 
@@ -55,18 +58,17 @@ L'architettura principale dell'applicazione è stata definita e il motore agrono
 - DOC-005 – Quaderno di Sviluppo
 - DOC-006 – Linee Guida di Sviluppo
 - DOC-008 – Roadmap di Sviluppo
+- DOC-009 – Workflow Operativo
+- DOC-011 – Decisioni Architetturali
 - CHANGELOG
 
 ---
 
 # Obiettivi della prossima versione
 
-La prossima versione sarà dedicata a:
+Gli obiettivi della prossima versione del software sono definiti nella **Roadmap di Sviluppo (DOC-008)**.
 
-- sviluppo del **Bed Companion Analyzer**;
-- analisi automatica delle compatibilità tra tutte le colture presenti in un'aiuola;
-- calcolo del punteggio agronomico dell'aiuola;
-- suggerimenti automatici basati sulle consociazioni.
+Il presente documento riporta esclusivamente la versione corrente del software e il relativo stato di avanzamento, evitando duplicazioni con la documentazione di pianificazione del progetto.
 
 ---
 
@@ -75,7 +77,8 @@ La prossima versione sarà dedicata a:
 | Versione | Data | Stato | Note |
 |-----------|------------|-----------|--------------------------------------------------------------|
 | 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto. |
-| 0.1.1-alpha | 27/07/2026 | Corrente | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
+| 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
+| 0.1.2-alpha | 28/07/2026 | Corrente | Introdotti BedAnalysisService, BedCompanionAnalyzer e consolidata l'architettura del Motore Agronomico. |
 
 ---
 
@@ -85,6 +88,8 @@ La prossima versione sarà dedicata a:
 - DOC-005 – Quaderno di Sviluppo
 - DOC-006 – Linee Guida di Sviluppo
 - DOC-008 – Roadmap di Sviluppo
+- DOC-009 – Workflow Operativo
+- DOC-011 – Decisioni Architetturali
 - CHANGELOG
 
 ---

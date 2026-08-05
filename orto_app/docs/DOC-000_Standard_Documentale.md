@@ -1,15 +1,44 @@
 # DOC-000 – Standard Documentale
+# ORTO SMART
+
+### DOC-000
+
+# Standard Documentale
+
+**Versione:** 1.1  
+**Stato:** Approvato
+
+**Autore:** Renzo Siega  
+**Progetto:** Orto Smart
+
+**Data prima emissione:** 29/07/2026  
+**Ultimo aggiornamento:** 04/08/2026
+
+**Repository:** `ortosmart/orto-smart`
+
+---
+
+# Informazioni sul documento
 
 | Campo | Valore |
-|-------|--------|
-| **Documento** | DOC-000 |
-| **Titolo** | Standard Documentale |
-| **Versione** | 1.0 |
-| **Stato** | Ufficiale |
-| **Data prima emissione** | 29/07/2026 |
-| **Ultimo aggiornamento** | 29/07/2026 |
-| **Progetto** | Orto Smart |
-| **Repository** | ortosmart/orto-smart |
+|--------|--------|
+| Documento | DOC-000 |
+| Titolo | Standard Documentale |
+| Versione | 1.1 |
+| Stato | Approvato |
+| Progetto | Orto Smart |
+| Repository | ortosmart/orto-smart |
+| Prima emissione | 29/07/2026 |
+| Ultimo aggiornamento | 04/08/2026 |
+
+---
+
+# Cronologia delle revisioni
+
+| Versione | Data | Descrizione |
+|-----------|------------|------------------------------------------------|
+| 1.0 | 29/07/2026 | Prima emissione dello Standard Documentale |
+| 1.1 | 04/08/2026 | Allineamento della struttura del documento allo standard documentale ufficiale del progetto |
 
 ---
 
@@ -74,34 +103,62 @@ Solo dopo il completamento di tutte queste attività la sessione può essere dic
 
 # 3. Struttura standard dei documenti
 
-Tutti i documenti ufficiali del progetto Orto Smart dovranno seguire una struttura uniforme, al fine di garantire leggibilità, coerenza e facilità di manutenzione.
+Tutti i documenti ufficiali del progetto Orto Smart devono seguire una struttura uniforme, al fine di garantire leggibilità, coerenza, tracciabilità e facilità di manutenzione.
 
-## 3.1 Frontespizio
+La struttura standard è la seguente.
 
-Ogni documento deve riportare all'inizio una tabella con le seguenti informazioni:
+## 3.1 Copertina
+
+Ogni documento deve iniziare con una copertina contenente almeno:
+
+- nome del progetto;
+- codice del documento;
+- titolo del documento.
+
+La copertina consente l'immediata identificazione del documento e ne uniforma la presentazione.
+
+---
+
+## 3.2 Informazioni sul documento
+
+Subito dopo la copertina deve essere riportata una tabella contenente le principali informazioni identificative.
 
 | Campo | Descrizione |
 |-------|-------------|
 | Documento | Codice identificativo del documento |
 | Titolo | Nome del documento |
 | Versione | Versione del documento |
-| Stato | Bozza, In sviluppo, Ufficiale, Archiviato |
-| Data prima emissione | Data di creazione del documento |
-| Ultimo aggiornamento | Data dell'ultima revisione |
+| Stato | Bozza, In sviluppo, Approvato o Archiviato |
 | Progetto | Nome del progetto |
 | Repository | Repository GitHub ufficiale |
+| Prima emissione | Data di creazione del documento |
+| Ultimo aggiornamento | Data dell'ultima revisione |
 
 ---
 
-## 3.2 Indice
+## 3.3 Cronologia delle revisioni
+
+Ogni documento deve contenere una tabella che registri le principali revisioni effettuate nel tempo.
+
+La cronologia deve riportare almeno:
+
+- versione;
+- data;
+- descrizione sintetica della modifica.
+
+---
+
+## 3.4 Indice
 
 I documenti di dimensioni medio-grandi devono contenere un indice numerato dei capitoli.
 
+L'indice deve riflettere fedelmente la struttura del documento.
+
 ---
 
-## 3.3 Corpo del documento
+## 3.5 Corpo del documento
 
-Il contenuto deve essere organizzato in capitoli numerati.
+Il contenuto deve essere organizzato in capitoli e sottocapitoli numerati.
 
 Quando opportuno possono essere utilizzati:
 
@@ -116,28 +173,9 @@ Ogni sezione deve trattare un solo argomento.
 
 ---
 
-## 3.4 Chiusura standard
+## 3.6 Considerazioni finali
 
-Ogni documento termina con la seguente sezione:
-
-────────────────────────────────────────────
-
-Fine documento
-
-Documento:
-DOC-XXX
-
-Versione:
-x.x
-
-Ultimo aggiornamento:
-gg/mm/aaaa
-
-Progetto:
-Orto Smart
-
-Repository:
-ortosmart/orto-smart
+Quando opportuno, il documento si conclude con una sezione dedicata alle considerazioni finali, contenente eventuali indicazioni conclusive, criteri di utilizzo o riferimenti agli altri documenti del progetto.
 
 # 4. Convenzioni di scrittura
 
@@ -212,7 +250,6 @@ Esempi:
 |--------|-----------|
 | DOC-000 | Standard Documentale |
 | DOC-001 | Manuale Tecnico |
-| DOC-003 | CHANGELOG |
 | DOC-005 | Quaderno di Sviluppo |
 | DOC-006 | Linee Guida di Sviluppo |
 | DOC-008 | Roadmap di Sviluppo |
@@ -302,13 +339,18 @@ La documentazione ufficiale di Orto Smart è composta dai seguenti documenti.
 |---------|-----------|-------|
 | DOC-000 | Standard Documentale | Definisce le regole della documentazione |
 | DOC-001 | Manuale Tecnico | Descrive l'architettura e il funzionamento del software |
-| DOC-003 | CHANGELOG | Registra tutte le modifiche apportate al progetto |
+| DOC-002 | Manuale d'Uso | Guida l'utilizzatore nell'uso dell'applicazione |
+| DOC-003 | Installazione e Configurazione | Descrive l'installazione e la configurazione dell'ambiente |
+| DOC-004 | Manuale Database | Documenta la struttura e l'organizzazione del database |
 | DOC-005 | Quaderno di Sviluppo | Diario tecnico delle sessioni di sviluppo |
 | DOC-006 | Linee Guida di Sviluppo | Definisce il metodo di sviluppo del progetto |
+| DOC-007 | Test e Collaudo | Descrive le procedure di verifica e collaudo |
 | DOC-008 | Roadmap di Sviluppo | Pianifica l'evoluzione futura del software |
 | DOC-009 | Workflow Operativo | Descrive il flusso operativo di ogni sessione |
+| CHANGELOG | Registro delle modifiche | Registra sinteticamente le modifiche introdotte nel software |
 | DOC-011 | Decisioni Architetturali | Registra le decisioni progettuali più importanti |
 | DOC-012 | Registro Storico dello Sviluppo | Tiene traccia del tempo dedicato al progetto e delle principali milestone |
+| VERSION | Versione del progetto | Riporta la versione corrente del software e le informazioni di rilascio |
 
 ## 7.1 Nuovi documenti
 
@@ -335,7 +377,7 @@ A titolo di esempio:
 | Documento | Quando aggiornarlo |
 |-----------|-------------------|
 | DOC-001 | Modifiche tecniche o architetturali |
-| DOC-003 | Ogni nuova versione del software |
+| CHANGELOG | In occasione del rilascio di una nuova versione significativa del software |
 | DOC-005 | Alla chiusura di ogni sessione |
 | DOC-008 | Completamento o pianificazione di nuove funzionalità |
 | DOC-011 | Nuove decisioni architetturali |

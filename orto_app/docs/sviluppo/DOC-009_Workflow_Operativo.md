@@ -1,42 +1,76 @@
-# DOC-009 – Workflow Operativo
+# ORTO SMART
 
-| Campo | Valore |
-|-------|--------|
-| **Documento** | DOC-009 |
-| **Titolo** | Workflow Operativo |
-| **Versione** | 2.0 |
-| **Stato** | In revisione |
-| **Progetto** | Orto Smart |
-| **Repository** | ortosmart/orto-smart |
-| **Data prima emissione** | 29/07/2026 |
-| **Ultimo aggiornamento** | 29/07/2026 |
+### DOC-009
+
+# Workflow Operativo
+
+**Versione:** 2.0  
+**Stato:** Approvato
+
+**Autore:** Renzo Siega  
+**Progetto:** Orto Smart
+
+**Data prima emissione:** 29/07/2026  
+**Ultimo aggiornamento:** 04/08/2026
+
+**Repository:** `ortosmart/orto-smart`
 
 ---
 
-# Storico delle revisioni
+# Informazioni sul documento
+
+| Campo | Valore |
+|--------|--------|
+| Documento | DOC-009 |
+| Titolo | Workflow Operativo |
+| Versione | 2.0 |
+| Stato | Approvato |
+| Progetto | Orto Smart |
+| Repository | ortosmart/orto-smart |
+| Prima emissione | 29/07/2026 |
+| Ultimo aggiornamento | 04/08/2026 |
+
+---
+
+# Cronologia delle revisioni
 
 | Versione | Data | Descrizione |
-|-----------|------------|----------------------------------------------|
+|-----------|------------|------------------------------------------------|
 | 1.0 | 27/07/2026 | Prima emissione del Workflow Operativo |
 | 2.0 | 29/07/2026 | Revisione completa del documento, definizione del metodo di sviluppo ufficiale, integrazione della Checklist Operativa e del Diagramma del Workflow |
+| 2.1 | 04/08/2026 | Uniformazione allo Standard Documentale e revisione del documento |
 
 ---
 
 # Indice
 
-1. Scopo del documento
-2. Campo di applicazione
-3. Principi del Workflow
-4. Flusso Operativo della Sessione
-5. Controlli di Qualità
-6. Gestione della Documentazione
-7. Versionamento del Software
-8. Chiusura della Sessione
-9. Checklist Operativa
+## 1. Scopo del documento
 
-Allegato A – Checklist Workflow Operativo
+## 2. Campo di applicazione
 
-Allegato B – Diagramma del Workflow
+## 3. Principi del Workflow
+
+## 4. Flusso Operativo della Sessione
+
+## 5. Controlli di Qualità
+
+## 6. Gestione della Documentazione
+
+## 7. Versionamento del Software
+
+## 8. Chiusura della Sessione
+
+## 9. Checklist Operativa
+
+## 10. Considerazioni finali
+
+### Allegato A – Checklist Workflow Operativo
+
+### Allegato B – Diagramma del Workflow
+
+### Allegato C – Matrice della Documentazione
+
+### Allegato D – Criteri di Chiusura della Sessione
 
 ---
 
@@ -141,12 +175,11 @@ Ogni attività deve poter essere ricostruita attraverso:
 
 ## 3.7 Sessione completata
 
-Una sessione di sviluppo è considerata conclusa esclusivamente quando:
+Una sessione di sviluppo può essere considerata conclusa esclusivamente quando risultano soddisfatti tutti i criteri di chiusura definiti nel presente Workflow Operativo.
 
-- il codice risulta aggiornato;
-- la documentazione risulta aggiornata;
-- il Registro Storico dello Sviluppo risulta aggiornato;
-- codice, documentazione e registro storico sono coerenti e allineati.
+La verifica operativa delle condizioni di chiusura è descritta nel capitolo **8 – Chiusura della Sessione**.
+
+---
 
 # 4. Flusso Operativo della Sessione
 
@@ -238,20 +271,22 @@ Mantenere aggiornata e coerente la documentazione del progetto.
 
 **Attività**
 
-Aggiornare, se necessario:
+Aggiornare tutta la documentazione interessata dalle modifiche apportate durante la sessione di sviluppo.
 
-- DOC-001 – Manuale Tecnico
-- DOC-005 – Quaderno di Sviluppo
-- DOC-009 – Workflow Operativo (quando il metodo viene modificato)
-- DOC-011 – Registro Decisioni Architetturali
-- DOC-012 – Registro Storico dello Sviluppo
-- CHANGELOG
+La scelta dei documenti da aggiornare deve essere effettuata in funzione della natura delle modifiche introdotte, nel rispetto dello **Standard Documentale (DOC-000)**.
 
-Verificare inoltre:
+Tra i documenti che possono richiedere aggiornamento rientrano, a titolo esemplificativo:
 
-- coerenza della documentazione;
-- assenza di duplicazioni;
-- allineamento tra codice e documentazione.
+- Manuale Tecnico (DOC-001);
+- Quaderno di Sviluppo (DOC-005);
+- Linee Guida di Sviluppo (DOC-006);
+- Workflow Operativo (DOC-009), quando il metodo di lavoro viene modificato;
+- Decisioni Architetturali (DOC-011), quando vengono assunte nuove decisioni progettuali;
+- Registro Storico dello Sviluppo (DOC-012), quando previsto dal processo documentale del progetto;
+- CHANGELOG;
+- VERSION.
+
+Al termine della sessione deve essere verificata la coerenza complessiva tra codice sorgente, documentazione, repository e struttura documentale del progetto, assicurando l'assenza di duplicazioni e il corretto allineamento tra tutti gli elementi interessati.
 
 ---
 
@@ -390,3 +425,14 @@ Il Workflow Operativo definisce il metodo ufficiale di sviluppo del progetto Ort
 
 Il rispetto sistematico delle procedure descritte nel presente documento garantisce qualità, tracciabilità, continuità e affidabilità nello sviluppo del software.
 
+# Allegato C
+## Matrice della Documentazione
+
+Documento in preparazione.
+
+---
+
+# Allegato D
+## Criteri di Chiusura della Sessione
+
+Documento in preparazione.
