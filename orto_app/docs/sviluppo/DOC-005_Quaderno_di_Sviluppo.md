@@ -1056,13 +1056,15 @@ La documentazione costituisce ora una base stabile e coerente per la prosecuzion
 
 Tempo complessivo della Sessione S008:
 
+### Tempo di lavoro
+
 | Attività | Tempo |
 |----------|------:|
-| Revisione e consolidamento della documentazione | 3 h 46 min (tempo ricostruito parzialmente) |
-| Operazioni di chiusura della sessione | Da aggiornare al termine della sessione |
-| **Totale Sessione S008** | **Da completare alla chiusura della sessione** |
+| Revisione e consolidamento della documentazione | 3 h 46 min |
+| Operazioni di chiusura della sessione | 30 min |
+| **Totale Sessione S008** | **4 h 16 min** |
 
-Il tempo riportato è stato ricostruito sulla base delle attività svolte e degli orari disponibili. Il totale definitivo verrà registrato al completamento delle operazioni di chiusura della sessione.
+Il tempo della revisione documentale è stato ricostruito parzialmente sulla base degli orari disponibili. Le operazioni finali comprendono l'aggiornamento del Quaderno di Sviluppo, le verifiche Git, il commit e il push sul repository GitHub.
 
 ### Prossimi passi
 

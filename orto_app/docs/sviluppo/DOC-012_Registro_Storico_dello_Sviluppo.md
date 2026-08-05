@@ -91,15 +91,15 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 | Indicatore | Valore |
 |------------|--------|
-| Sessioni completate | 7 |
+| Sessioni completate | 8 |
 | Tempo complessivo di sviluppo | 36 h 15 min* |
-| Tempo complessivo di documentazione | in aggiornamento |
-| Tempo complessivo progetto | in aggiornamento |
+| Tempo complessivo di documentazione | 4 h 16 min |
+| Tempo complessivo progetto | 40 h 31 min |
 | Prima sessione | S001 |
-| Ultima sessione | S007 |
-| Stato della documentazione | Revisione organica in corso (S008) |
+| Ultima sessione | S008 |
+| Stato della documentazione | Sistema documentale consolidato |
 
-\* Valore riferito alle sole ore di sviluppo effettivamente consolidate.
+\* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
 # 3. Cronologia sintetica dello sviluppo
 
@@ -145,6 +145,8 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S005** | BedAnalysisService | Centralizzazione dell'analisi agronomica tramite un servizio dedicato. |
 | **S006** | Decision Engine | Introduzione del Decision Engine, integrazione dell'analisi agronomica nell'interfaccia utente e consolidamento del Workflow Operativo e della documentazione tecnica. |
 | **S007** | Revisione e consolidamento della documentazione tecnica | Revisione organica dei principali documenti del progetto, definizione del workflow documentale e consolidamento del sistema documentale ufficiale di Orto Smart. |
+| **S008** | Consolidamento del sistema documentale del progetto | Completata la revisione della documentazione ufficiale del progetto, definito il ruolo di ciascun documento e consolidato il sistema documentale di Orto Smart. |
+
 
 ## 4.1 Significato delle milestone
 
