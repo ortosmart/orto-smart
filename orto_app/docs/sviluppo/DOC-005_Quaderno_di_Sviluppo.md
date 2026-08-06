@@ -52,6 +52,7 @@
 | S005 | Luglio 2026 | Da ricostruire | Da aggiornare | BedAnalysisService e Bed Companion Analyzer | ✅ |
 | S006 | Luglio 2026 | Da ricostruire | Da aggiornare | Decision Engine e consolidamento del Motore Agronomico | ✅ |
 | S007 | Agosto 2026 | 11 h 00 min* | Da aggiornare | Revisione e consolidamento della documentazione tecnica | ✅ |
+| S008 | Agosto 2026 | 4 h 16 min | 40 h 31 min | Censimento e consolidamento della documentazione residua | ✅ |
 
 ---
 
@@ -73,6 +74,8 @@
 3.5 S005
 3.6 S006
 3.7 S007
+3.8 S008
+3.9 S009
 
 ## 4. Considerazioni finali
 
@@ -1073,6 +1076,147 @@ Con la conclusione della Sessione S008 termina il consolidamento del sistema doc
 La successiva Sessione S009 sarà dedicata alla ripresa dello sviluppo software, proseguendo l'implementazione delle funzionalità previste dalla Roadmap di Sviluppo e mantenendo aggiornati i documenti del progetto secondo il Workflow Operativo definito.
 
 La documentazione consolidata durante la S008 costituirà il riferimento ufficiale per tutte le future attività di sviluppo.
+
+---
+
+## 3.9 S009 – Evoluzione dell'architettura del Motore Agronomico
+
+**Data:** Agosto 2026
+
+**Versione interessata:** 0.1.3-alpha
+
+---
+
+### Obiettivo della sessione
+
+Completare l'evoluzione dell'architettura del Motore Agronomico introducendo una pipeline di orchestrazione del processo di raccomandazione, migliorando la separazione delle responsabilità tra i componenti e preparando il sistema all'integrazione di nuovi motori agronomici.
+
+L'obiettivo principale della sessione è stato sostituire il precedente flusso basato sul solo `SuggestionEngine` con un'architettura modulare centrata sulla `RecommendationPipeline`, mantenendo la piena compatibilità con l'interfaccia utente e con i componenti esistenti.
+
+---
+
+### Attività svolte
+
+Durante la sessione sono state completate le seguenti attività:
+
+- introduzione della `RecommendationPipeline` come componente di orchestrazione del processo di raccomandazione;
+- trasformazione del `SuggestionEngine` in motore specializzato dedicato all'analisi degli spazi disponibili;
+- introduzione di `RecommendationMapper` per la conversione dei risultati nel modello destinato all'interfaccia utente;
+- riorganizzazione del flusso di elaborazione del Motore Agronomico, separando orchestrazione, analisi, interpretazione e presentazione;
+- integrazione della nuova pipeline con `BedAnalysisService`;
+- aggiornamento e ampliamento dei test automatici;
+- verifica del corretto funzionamento dell'applicazione dopo il refactoring dell'architettura.
+
+---
+
+### Decisioni architetturali
+
+Nel corso della sessione non sono state approvate nuove Decisioni Architetturali (ADR).
+
+È stata invece completata l'implementazione operativa della **DEC-003 – Introduzione del Decision Engine**, mediante l'introduzione della `RecommendationPipeline` come componente responsabile dell'orchestrazione del processo di raccomandazione.
+
+La `RecommendationPipeline` coordina i motori agronomici, raccoglie le valutazioni prodotte dai componenti specializzati e demanda al `DecisionEngine` la sola interpretazione dei risultati e la generazione delle raccomandazioni, nel rispetto della separazione delle responsabilità definita dalla DEC-003.
+
+---
+
+### File creati
+
+Nel corso della sessione sono stati introdotti i seguenti nuovi componenti principali:
+
+- `recommendation_pipeline.dart`
+- `recommendation_mapper.dart`
+- `family_recommendation.dart`
+- `planting_recommendation.dart`
+- relativi file di test automatici
+
+---
+
+### File modificati
+
+Nel corso della sessione sono stati aggiornati i principali componenti del Motore Agronomico, tra cui:
+
+- `bed_analysis_service.dart`
+- `suggestion_engine.dart`
+- `decision_engine.dart`
+- componenti del Motore Agronomico interessati dal nuovo flusso di raccomandazione;
+- test automatici del progetto.
+
+---
+
+### Database
+
+Nel corso della sessione non sono state apportate modifiche alla struttura del database Supabase.
+
+Le attività hanno riguardato esclusivamente l'architettura software del Motore Agronomico e il flusso di raccomandazione dell'applicazione.
+
+---
+
+### Test eseguiti
+
+Al termine della sessione sono stati effettuati i seguenti controlli:
+
+- `flutter analyze`
+- `flutter test` (**72 test superati**)
+- verifica del corretto funzionamento dell'applicazione dopo il refactoring della `RecommendationPipeline`
+- verifica dell'assenza di regressioni nell'interfaccia utente
+
+Tutte le verifiche sono state completate con esito positivo.
+
+---
+
+### Stato del progetto
+
+Al termine della sessione il progetto dispone delle seguenti caratteristiche:
+
+- architettura del Motore Agronomico riorganizzata secondo una pipeline di orchestrazione;
+- `RecommendationPipeline` introdotta come componente centrale del processo di raccomandazione;
+- `SuggestionEngine` trasformato in motore specializzato per l'analisi degli spazi disponibili;
+- maggiore separazione delle responsabilità tra orchestrazione, analisi, interpretazione e presentazione;
+- architettura predisposta per l'integrazione di nuovi motori agronomici;
+- 72 test automatici superati senza regressioni funzionali.
+
+---
+
+### Git
+
+#### Commit
+
+```text
+Introduce RecommendationPipeline and agronomic evaluation architecture
+
+Sostituisce il vecchio SuggestionEngine con RecommendationPipeline
+```
+
+#### Push
+
+Da completare al termine dell'aggiornamento della documentazione e della chiusura della Sessione S009.
+
+---
+
+### Tempo di lavoro
+
+Da completare al termine della Sessione S009.
+
+Il tempo complessivo sarà registrato alla conclusione delle attività di sviluppo, documentazione e chiusura della sessione, secondo il Workflow Operativo del progetto.
+
+---
+
+### Esito della sessione
+
+La Sessione S009 rappresenta un'importante evoluzione dell'architettura del Motore Agronomico di Orto Smart.
+
+L'introduzione della `RecommendationPipeline` ha completato l'evoluzione del flusso di raccomandazione, consolidando la separazione delle responsabilità tra orchestrazione, analisi, interpretazione e presentazione, senza introdurre regressioni funzionali.
+
+L'architettura risultante è più modulare, estendibile e pronta ad accogliere i futuri motori agronomici previsti dalla Roadmap di Sviluppo.
+
+---
+
+### Prossimi passi
+
+Con la conclusione della Sessione S009 l'architettura del nuovo processo di raccomandazione risulta consolidata.
+
+La successiva Sessione S010 sarà dedicata all'evoluzione delle funzionalità del Motore Agronomico previste dalla Roadmap di Sviluppo, proseguendo l'implementazione dei motori specialistici e mantenendo aggiornati il codice, la documentazione tecnica e il registro storico secondo il Workflow Operativo del progetto.
+
 
 
 

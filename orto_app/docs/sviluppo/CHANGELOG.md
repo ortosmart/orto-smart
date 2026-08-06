@@ -52,6 +52,7 @@
 3.1 Versione 0.1.0-alpha  
 3.2 Versione 0.1.1-alpha  
 3.3 Versione 0.1.2-alpha
+3.4 Versione 0.1.3-alpha
 
 ## 4. Cronologia versioni
 
@@ -192,6 +193,32 @@ Nessuna modifica.
 
 Nessuna modifica.
 
+## 3.4 Versione 0.1.3-alpha
+
+**Data:** 06/08/2026
+
+### Aggiunto
+
+- Introdotta `RecommendationPipeline` come componente di orchestrazione del processo di raccomandazione.
+- Introdotti `RecommendationMapper` e `SpaceScoreCalculator`.
+- Estesa l'architettura del Motore Agronomico con una pipeline modulare per il coordinamento dei motori specializzati.
+
+### Modificato
+
+- `SuggestionEngine` trasformato in componente specializzato della `RecommendationPipeline`.
+- Riorganizzato il flusso di elaborazione del Motore Agronomico.
+- Aggiornata l'integrazione tra `BedAnalysisService` e il nuovo processo di raccomandazione.
+- Migliorata la separazione delle responsabilità tra orchestrazione, analisi e interpretazione dei risultati.
+
+### Corretto
+
+- Mantenuta la compatibilità con l'interfaccia utente esistente durante il refactoring dell'architettura.
+- Aggiornati i test automatici senza introdurre regressioni.
+
+### Sicurezza
+
+Nessuna modifica.
+
 ---
 
 # 4. Cronologia versioni
@@ -200,7 +227,8 @@ Nessuna modifica.
 |-----------|------------|------------|--------------------------------------------------------------|
 | 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto. |
 | 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
-| 0.1.2-alpha | 28/07/2026 | Corrente | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche. |
+| 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche. |
+| 0.1.3-alpha | 06/08/2026 | Corrente | Introdotta `RecommendationPipeline` come orchestratore del processo di raccomandazione e consolidata la nuova architettura del Motore Agronomico. |
 
 ---
 
