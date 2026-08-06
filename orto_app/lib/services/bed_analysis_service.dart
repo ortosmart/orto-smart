@@ -6,7 +6,7 @@ import '../data/models/crop_association.dart';
 import '../data/models/planting.dart';
 import '../data/models/suggestion_result.dart';
 import 'bed_analyzer.dart';
-import 'suggestion_engine.dart';
+import 'recommendation_pipeline.dart';
 
 /// Coordina le analisi agronomiche relative a un'aiuola.
 ///
@@ -45,7 +45,7 @@ class BedAnalysisService {
     required List<CropAssociation> associations,
     required BedAnalysisResult bedAnalysis,
   }) {
-    return SuggestionEngine.generateSuggestions(
+    return RecommendationPipeline.generate(
       availableCrops: availableCrops,
       existingPlantings: existingPlantings,
       cropsById: cropsById,
