@@ -1195,9 +1195,11 @@ Da completare al termine dell'aggiornamento della documentazione e della chiusur
 
 ### Tempo di lavoro
 
-Da completare al termine della Sessione S009.
-
-Il tempo complessivo sarà registrato alla conclusione delle attività di sviluppo, documentazione e chiusura della sessione, secondo il Workflow Operativo del progetto.
+| Attività | Tempo |
+|-----------|------:|
+| Sviluppo software | 3 h 40 min |
+| Documentazione | 1 h 42 min |
+| **Totale Sessione S009** | **5 h 22 min** |
 
 ---
 

@@ -91,10 +91,10 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 | Indicatore | Valore |
 |------------|--------|
-| Sessioni completate | 8 |
-| Tempo complessivo di sviluppo | 36 h 15 min* |
-| Tempo complessivo di documentazione | 4 h 16 min |
-| Tempo complessivo progetto | 40 h 31 min |
+| Sessioni completate | 9 |
+| Tempo complessivo di sviluppo | 39 h 55 min* |
+| Tempo complessivo di documentazione | 5 h 58 min |
+| Tempo complessivo progetto | 45 h 53 min |
 | Prima sessione | S001 |
 | Ultima sessione | S009 |
 | Stato della documentazione | Aggiornata e allineata alla nuova architettura del Motore Agronomico |
@@ -117,7 +117,7 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo di svilupp
 | **S006** | Decision Engine, integrazione dell'analisi agronomica e completamento della documentazione di progetto | **4 h** | **34 h** |
 | **S007** | Revisione e consolidamento della documentazione tecnica | **2 h 15 min** | **36 h 15 min** |
 | **S008** | Censimento e consolidamento della documentazione residua | **4 h 16 min** | **40 h 31 min** |
-| **S009** | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | **Da consolidare** | **Da aggiornare** |
+| **S009** | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | **5 h 22 min** | **45 h 53 min** |
 
 ---
 
@@ -170,14 +170,14 @@ Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e
 
 | Indicatore | Valore attuale |
 |------------|----------------|
-| Sessioni completate | 8 |
-| Ore di sviluppo consolidate | 36 h 15 min |
-| Ore di documentazione | In aggiornamento |
-| Totale ore progetto | In aggiornamento |
+| Sessioni completate | 9 |
+| Ore di sviluppo consolidate | 39 h 55 min |
+| Ore di documentazione | 5 h 58 min |
+| Totale ore progetto | 45 h 53 min |
 | Motori agronomici completati | 4 |
-| Documenti ufficiali approvati | 8 |
-| Ultima sessione completata | S008 |
-| Sessione in corso | S009 |
+| Documenti ufficiali approvati | 10 |
+| Ultima sessione completata | S009 |
+| Sessione in corso | Nessuna |
 
 Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.
 
