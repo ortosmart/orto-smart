@@ -11,7 +11,7 @@
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 05/08/2026
+**Ultimo aggiornamento:** 06/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -28,7 +28,7 @@
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 05/08/2026 |
+| Ultimo aggiornamento | 06/08/2026 |
 
 ---
 
@@ -96,8 +96,8 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 | Tempo complessivo di documentazione | 4 h 16 min |
 | Tempo complessivo progetto | 40 h 31 min |
 | Prima sessione | S001 |
-| Ultima sessione | S008 |
-| Stato della documentazione | Sistema documentale consolidato |
+| Ultima sessione | S009 |
+| Stato della documentazione | Aggiornata e allineata alla nuova architettura del Motore Agronomico |
 
 \* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
@@ -116,6 +116,10 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo di svilupp
 | **S005** | Introduzione del BedAnalysisService e integrazione dell'analisi agronomica | **4 h** | **30 h** |
 | **S006** | Decision Engine, integrazione dell'analisi agronomica e completamento della documentazione di progetto | **4 h** | **34 h** |
 | **S007** | Revisione e consolidamento della documentazione tecnica | **2 h 15 min** | **36 h 15 min** |
+| **S008** | Censimento e consolidamento della documentazione residua | **4 h 16 min** | **40 h 31 min** |
+| **S009** | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | **Da consolidare** | **Da aggiornare** |
+
+---
 
 ## 3.1 Lettura della cronologia
 
@@ -146,7 +150,9 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S006** | Decision Engine | Introduzione del Decision Engine, integrazione dell'analisi agronomica nell'interfaccia utente e consolidamento del Workflow Operativo e della documentazione tecnica. |
 | **S007** | Revisione e consolidamento della documentazione tecnica | Revisione organica dei principali documenti del progetto, definizione del workflow documentale e consolidamento del sistema documentale ufficiale di Orto Smart. |
 | **S008** | Consolidamento del sistema documentale del progetto | Completata la revisione della documentazione ufficiale del progetto, definito il ruolo di ciascun documento e consolidato il sistema documentale di Orto Smart. |
+| **S009** | RecommendationPipeline | Completata la nuova architettura del processo di raccomandazione mediante l'introduzione della RecommendationPipeline come componente di orchestrazione del Motore Agronomico. |
 
+---
 
 ## 4.1 Significato delle milestone
 
@@ -164,14 +170,14 @@ Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e
 
 | Indicatore | Valore attuale |
 |------------|----------------|
-| Sessioni completate | 7 |
+| Sessioni completate | 8 |
 | Ore di sviluppo consolidate | 36 h 15 min |
 | Ore di documentazione | In aggiornamento |
 | Totale ore progetto | In aggiornamento |
 | Motori agronomici completati | 4 |
 | Documenti ufficiali approvati | 8 |
-| Ultima sessione completata | S007 |
-| Sessione in corso | S008 |
+| Ultima sessione completata | S008 |
+| Sessione in corso | S009 |
 
 Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.
 

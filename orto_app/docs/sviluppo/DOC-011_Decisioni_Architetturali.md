@@ -59,8 +59,6 @@
 
 ---
 
-
-
 # 1. Scopo del documento
 
 Il presente documento raccoglie le principali decisioni architetturali prese durante lo sviluppo di **Orto Smart**.
@@ -204,6 +202,22 @@ In assenza di un componente dedicato, l'interfaccia utente avrebbe dovuto interp
 Introdurre un componente dedicato denominato `DecisionEngine`, responsabile dell'interpretazione dei risultati prodotti dai motori agronomici e della loro trasformazione in decisioni, suggerimenti e informazioni destinate all'interfaccia utente.
 
 Il `DecisionEngine` non esegue elaborazioni agronomiche, ma coordina e interpreta i risultati forniti dai diversi motori specializzati.
+
+### Evoluzione della decisione – Sessione S009
+
+L'architettura introdotta dalla DEC-003 è stata completata con l'introduzione della `RecommendationPipeline`, componente responsabile dell'orchestrazione del processo di raccomandazione.
+
+La `RecommendationPipeline` coordina i motori agronomici, raccoglie le valutazioni prodotte dai componenti specializzati, invoca il `DecisionEngine` e converte il risultato nel modello destinato all'interfaccia utente.
+
+Il `DecisionEngine` mantiene il ruolo definito dalla presente decisione architetturale:
+
+- interpreta le valutazioni ricevute;
+- calcola il punteggio finale;
+- produce le raccomandazioni;
+- non coordina il flusso;
+- non invoca direttamente gli altri motori.
+
+La separazione delle responsabilità prevista dalla DEC-003 rimane invariata. La `RecommendationPipeline` ne costituisce l'implementazione operativa e il componente ufficiale di orchestrazione del processo di raccomandazione.
 
 ### Motivazione
 
