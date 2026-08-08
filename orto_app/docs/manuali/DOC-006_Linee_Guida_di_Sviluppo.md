@@ -4,14 +4,14 @@
 
 # Linee Guida di Sviluppo
 
-**Versione:** 1.0  
+**Versione:** 1.1
 **Stato:** Approvato
 
-**Autore:** Renzo Siega  
+**Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
-**Data prima emissione:** 27/07/2026  
-**Ultimo aggiornamento:** 04/08/2026
+**Data prima emissione:** 27/07/2026
+**Ultimo aggiornamento:** 08/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-006 |
 | Titolo | Linee Guida di Sviluppo |
-| Versione | 1.0 |
+| Versione | 1.1 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 04/08/2026 |
+| Ultimo aggiornamento | 08/08/2026 |
 
 ---
 
@@ -38,6 +38,7 @@
 |-----------|------------|------------------------------------------------|
 | 0.1 | 27/07/2026 | Prima versione del documento |
 | 1.0 | 04/08/2026 | Revisione completa, uniformazione allo Standard Documentale e approvazione del documento |
+| 1.1 | 08/08/2026 | Aggiornamento del workflow di sviluppo, introduzione della verifica incrociata della documentazione e formalizzazione della registrazione dei tempi effettivi |
 
 ---
 
@@ -157,21 +158,33 @@ Per ogni cartella verrà descritto il suo scopo.
 
 Le presenti Linee Guida definiscono i principi generali che devono essere seguiti durante lo sviluppo del progetto Orto Smart.
 
-Il workflow operativo dettagliato, comprensivo della sequenza delle attività da svolgere durante ogni sessione di sviluppo, è definito nel **DOC-009 – Workflow Operativo**.
+Il workflow operativo dettagliato, comprensivo della sequenza delle attività, delle verifiche e delle procedure di chiusura di ogni sessione, è definito nel **DOC-009 – Workflow Operativo**.
 
-Di seguito sono riportati i principi fondamentali che guidano il processo di sviluppo.
+Ogni sessione deve seguire un processo ordinato, progressivo e verificabile basato sui seguenti principi:
 
-1. Analisi
-2. Progettazione
-3. Implementazione
-4. Test
-5. flutter analyze
-6. flutter test
-7. Commit Git
-8. Push GitHub
-9. Aggiornamento documentazione
+1. controllo iniziale dello stato del progetto e del repository;
+2. analisi e progettazione delle modifiche;
+3. implementazione mediante piccoli cambiamenti verificabili;
+4. esecuzione dei test e delle verifiche funzionali;
+5. esecuzione di `flutter analyze`;
+6. esecuzione di `flutter test`;
+7. commit del codice verificato;
+8. aggiornamento della documentazione interessata;
+9. rilettura e verifica dei singoli documenti;
+10. verifica incrociata della coerenza tra codice, documentazione e dati di progetto;
+11. commit della documentazione;
+12. verifica finale del repository;
+13. push su GitHub;
+14. registrazione dei tempi effettivi della sessione;
+15. definizione del checkpoint e degli obiettivi della sessione successiva.
 
-La sessione non è considerata conclusa finché la documentazione non è aggiornata.
+Le attività devono essere svolte **passo dopo passo**, verificando l'esito di ciascuna operazione prima di procedere con la successiva.
+
+I dati riportati nella documentazione, in particolare versioni, sessioni, tempi, indicatori e riferimenti Git, non devono essere considerati corretti per presunzione, ma verificati sulle relative fonti ufficiali prima della conferma.
+
+Il tempo dedicato al progetto deve rappresentare esclusivamente il tempo effettivo di lavoro. Pause, sospensioni e periodi di inattività devono essere esclusi dal conteggio e registrati secondo le modalità definite nel DOC-009.
+
+Una sessione non è considerata conclusa fino al completamento delle verifiche previste, dell'aggiornamento e della verifica incrociata della documentazione, della registrazione dei tempi e della sincronizzazione finale del repository.
 
 ---
 
@@ -211,6 +224,12 @@ Gli standard documentali, la struttura dei documenti e l'elenco della documentaz
 Le presenti Linee Guida stabiliscono il principio secondo cui ogni modifica significativa al progetto deve essere accompagnata dall'aggiornamento della documentazione interessata.
 
 La scelta dei documenti da aggiornare dipende dalla natura delle modifiche introdotte e deve rispettare il workflow definito nel **DOC-009 – Workflow Operativo**.
+
+Prima della chiusura di ogni sessione deve essere effettuata una verifica incrociata della documentazione interessata, allo scopo di garantire la coerenza delle informazioni condivise tra i diversi documenti.
+
+La verifica deve comprendere, quando applicabile, versioni, numero delle sessioni, tempi di lavoro, stato delle attività, milestone, indicatori evolutivi, riferimenti Git e componenti software documentati.
+
+Ogni dato deve essere verificato sulla relativa fonte prima di essere considerato definitivo. In caso di incongruenze, la sessione non può essere considerata conclusa fino al loro completo allineamento.
 
 ---
 

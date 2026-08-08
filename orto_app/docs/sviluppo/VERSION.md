@@ -3,9 +3,9 @@
 | Campo | Valore |
 |--------|--------|
 | Progetto | Orto Smart |
-| Versione corrente | 0.1.3-alpha |
+| Versione corrente | 0.1.4-alpha |
 | Stato | Alpha |
-| Data versione | 06/08/2026 |
+| Data versione | 08/08/2026 |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase |
 | Repository | ortosmart/orto-smart |
@@ -49,6 +49,7 @@ L'architettura principale dell'applicazione è stata definita e il motore agrono
 - RecommendationMapper
 - SpaceScoreCalculator
 - DecisionEngine
+- DecisionWeights
 
 ## Backend
 
@@ -83,7 +84,8 @@ Il presente documento riporta esclusivamente la versione corrente del software e
 | 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto. |
 | 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
 | 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotti BedAnalysisService, BedCompanionAnalyzer e consolidata l'architettura del Motore Agronomico. |
-| 0.1.3-alpha | 06/08/2026 | Corrente | Introdotta RecommendationPipeline e consolidata la nuova architettura del Motore Agronomico. |
+| 0.1.3-alpha | 06/08/2026 | Archiviata | Introdotta RecommendationPipeline e consolidata la nuova architettura del Motore Agronomico. |
+| 0.1.4-alpha | 08/08/2026 | Corrente   | Introdotto DecisionWeights e resa configurabile la ponderazione dei criteri utilizzati dal DecisionEngine. |
 
 ---
 

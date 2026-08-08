@@ -4,14 +4,14 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 2.0  
+**Versione:** 2.1
 **Stato:** Approvato
 
-**Autore:** Renzo Siega  
+**Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 06/08/2026
+**Ultimo aggiornamento:** 08/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 2.0 |
+| Versione | 2.1 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 06/08/2026 |
+| Ultimo aggiornamento | 08/08/2026 |
 
 ---
 
@@ -38,6 +38,7 @@
 |-----------|------------|------------------------------------------------|
 | 1.0 | 29/07/2026 | Prima emissione del documento |
 | 2.0 | 05/08/2026 | Revisione strutturale del documento, trasformazione del Registro Storico in cruscotto dell'evoluzione del progetto e uniformazione allo Standard Documentale |
+| 2.1 | 08/08/2026 | Aggiornamento del Registro Storico con la Sessione S010 e consolidamento dell'evoluzione del sistema decisionale del Motore Agronomico |
 
 ---
 
@@ -89,15 +90,15 @@ Le informazioni riportate nel presente capitolo vengono aggiornate al termine de
 
 Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Smart presenta i seguenti indicatori storici.
 
-| Indicatore | Valore |
-|------------|--------|
-| Sessioni completate | 9 |
-| Tempo complessivo di sviluppo | 39 h 55 min* |
-| Tempo complessivo di documentazione | 5 h 58 min |
-| Tempo complessivo progetto | 45 h 53 min |
-| Prima sessione | S001 |
-| Ultima sessione | S009 |
-| Stato della documentazione | Aggiornata e allineata alla nuova architettura del Motore Agronomico |
+| Indicatore                          | Valore                                            |
+| ----------------------------------- | ------------------------------------------------- |
+| Sessioni completate                 | 10                                                |
+| Tempo complessivo di sviluppo       | 40 h 37 min*                                      |
+| Tempo complessivo di documentazione | 10 h 10 min                                       |
+| Tempo complessivo progetto          | 50 h 47 min                                       |
+| Prima sessione                      | S001                                              |
+| Ultima sessione                     | S010                                              |
+| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S010 |
 
 \* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
@@ -118,6 +119,7 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo di svilupp
 | **S007** | Revisione e consolidamento della documentazione tecnica | **2 h 15 min** | **36 h 15 min** |
 | **S008** | Censimento e consolidamento della documentazione residua | **4 h 16 min** | **40 h 31 min** |
 | **S009** | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | **5 h 22 min** | **45 h 53 min** |
+| **S010** | Configurazione dei pesi del DecisionEngine mediante DecisionWeights | **4 h 54 min** | **50 h 47 min** |
 
 ---
 
@@ -151,6 +153,7 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S007** | Revisione e consolidamento della documentazione tecnica | Revisione organica dei principali documenti del progetto, definizione del workflow documentale e consolidamento del sistema documentale ufficiale di Orto Smart. |
 | **S008** | Consolidamento del sistema documentale del progetto | Completata la revisione della documentazione ufficiale del progetto, definito il ruolo di ciascun documento e consolidato il sistema documentale di Orto Smart. |
 | **S009** | RecommendationPipeline | Completata la nuova architettura del processo di raccomandazione mediante l'introduzione della RecommendationPipeline come componente di orchestrazione del Motore Agronomico. |
+| **S010** | DecisionWeights | Introduzione della configurazione separata e validata dei pesi del DecisionEngine, rendendo il sistema decisionale configurabile e predisposto all'integrazione futura di ulteriori criteri agronomici. |
 
 ---
 
@@ -168,16 +171,16 @@ A differenza degli indicatori storici riportati nel capitolo 2, che rappresentan
 
 Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e costituiscono uno strumento di monitoraggio dell'evoluzione complessiva del progetto.
 
-| Indicatore | Valore attuale |
-|------------|----------------|
-| Sessioni completate | 9 |
-| Ore di sviluppo consolidate | 39 h 55 min |
-| Ore di documentazione | 5 h 58 min |
-| Totale ore progetto | 45 h 53 min |
-| Motori agronomici completati | 4 |
-| Documenti ufficiali approvati | 10 |
-| Ultima sessione completata | S009 |
-| Sessione in corso | Nessuna |
+| Indicatore                    | Valore attuale |
+| ----------------------------- | -------------- |
+| Sessioni completate           | 10             |
+| Ore di sviluppo consolidate   | 40 h 37 min    |
+| Ore di documentazione         | 10 h 10 min    |
+| Totale ore progetto           | 50 h 47 min    |
+| Motori agronomici completati  | 4              |
+| Documenti ufficiali approvati | 10             |
+| Ultima sessione completata    | S010           |
+| Sessione in corso             | Nessuna        |
 
 Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.
 

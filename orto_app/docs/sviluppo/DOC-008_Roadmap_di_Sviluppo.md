@@ -4,14 +4,15 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 1.0  
-**Stato:** Approvato  
+**Versione:** 1.1
+**Stato:** Approvato
 
-**Autore:** Renzo Siega  
-**Progetto:** Orto Smart  
+**Autore:** Renzo
 
-**Data prima emissione:** 27/07/2026  
-**Ultimo aggiornamento:** 01/08/2026  
+**Progetto:** Orto Smart
+
+**Data prima emissione:** 27/07/2026
+**Ultimo aggiornamento:** 08/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +24,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 1.0 |
+| Versione | 1.1 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 01/08/2026 |
+| Ultimo aggiornamento | 08/08/2026 |
 
 ---
 
@@ -39,6 +40,8 @@
 | 0.1 | 27/07/2026 | Prima emissione della Roadmap di Sviluppo |
 | 0.2 | 27/07/2026 | Aggiornamento della roadmap dopo la Sessione S004 |
 | 0.3 | 01/08/2026 | Revisione della struttura documentale e aggiornamento della roadmap |
+| 1.0      | 01/08/2026 | Revisione completa e approvazione della Roadmap di Sviluppo            |
+| 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico e pianificazione delle evoluzioni successive |
 
 ---
 
@@ -116,16 +119,20 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 
 ## 3.3 Motore Agronomico
 
-| Funzionalità | Stato | Note |
-|--------------|:-----:|------|
-| FreeSpaceEngine | ✅ Completato | Calcolo automatico degli spazi liberi nelle aiuole. |
-| SuggestionEngine | ✅ Completato | Individuazione del miglior spazio disponibile mediante algoritmo Best Fit. |
-| Companion Engine | ✅ Completato | Prima versione del motore delle consociazioni. |
-| BedAnalysisService | ✅ Completato | Servizio di coordinamento delle analisi agronomiche delle aiuole. |
-| Bed Companion Analyzer | ✅ Completato | Analisi automatica delle compatibilità tra le colture presenti in un'aiuola. |
-| Decision Engine | ✅ Completato | Interpretazione dei risultati dei motori agronomici e generazione delle decisioni per l'interfaccia utente. |
-| Motore delle Rotazioni | 📋 Pianificato | Verifica delle successioni colturali tra le stagioni. |
-| Sistema di Punteggio Agronomico | 📋 Pianificato | Valutazione complessiva delle aiuole basata su consociazioni, rotazioni e altri fattori agronomici. |
+| Funzionalità                    |       Stato      | Note                                                                                                        |
+| ------------------------------- | :--------------: | ----------------------------------------------------------------------------------------------------------- |
+| FreeSpaceEngine                 | ✅ Completato    | Calcolo automatico degli spazi liberi nelle aiuole.                                                         |
+| SuggestionEngine                | ✅ Completato    | Generazione dei candidati iniziali sulla base degli spazi disponibili.                                      |
+| Companion Engine                | ✅ Completato    | Prima versione del motore delle consociazioni.                                                              |
+| BedAnalysisService              | ✅ Completato    | Servizio di coordinamento delle analisi agronomiche delle aiuole.                                           |
+| Bed Companion Analyzer          | ✅ Completato    | Analisi automatica delle compatibilità tra le colture presenti in un'aiuola.                               |
+| RecommendationPipeline          | ✅ Completato    | Orchestrazione del processo di raccomandazione e coordinamento dei componenti specializzati.               |
+| Decision Engine                 | ✅ Completato    | Interpretazione delle valutazioni agronomiche e calcolo del punteggio finale delle raccomandazioni.        |
+| DecisionWeights                 | ✅ Completato    | Configurazione e validazione dei pesi applicati ai criteri spazio, rotazione e consociazione.              |
+| Motore delle Rotazioni          | ✅ Completato    | Prima versione operativa integrata nella RecommendationPipeline.                                            |
+| Sistema di Punteggio Agronomico | ✅ Completato    | Prima versione operativa basata su spazio, rotazione e consociazione con pesi configurabili.               |
+| FamilyNeedsEngine               | 🚧 In sviluppo   | Evoluzione prevista dalla S011 per la valutazione delle priorità e dei fabbisogni familiari.               |
+| SuccessionPlanningEngine        | 📋 Pianificato   | Pianificazione temporale delle coltivazioni per distribuire la produzione e ridurre le sovrapproduzioni.   |
 
 ---
 

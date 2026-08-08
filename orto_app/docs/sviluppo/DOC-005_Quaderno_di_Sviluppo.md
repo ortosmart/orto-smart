@@ -4,14 +4,14 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.1  
-**Stato:** In sviluppo  
+**Versione:** 0.3
+**Stato:** In sviluppo
 
-**Autore:** Renzo Siega  
-**Progetto:** Orto Smart  
+**Autore:** Renzo Siega
+**Progetto:** Orto Smart
 
-**Data prima emissione:** 26/07/2026  
-**Ultimo aggiornamento:** 31/07/2026  
+**Data prima emissione:** 26/07/2026
+**Ultimo aggiornamento:** 08/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.1 |
+| Versione | 0.3 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 31/07/2026 |
+| Ultimo aggiornamento | 08/08/2026 |
 
 ---
 
@@ -38,6 +38,7 @@
 |-----------|------------|----------------------------------------------|
 | 0.1 | 26/07/2026 | Prima emissione del Quaderno di Sviluppo |
 | 0.2 | 31/07/2026 | Riorganizzazione della struttura documentale e uniformazione al DOC-001 |
+| 0.3      | 08/08/2026 | Aggiornamento del Quaderno con consolidamento delle Sessioni S009 e S010 |
 
 ---
 
@@ -53,7 +54,8 @@
 | S006 | Luglio 2026 | Da ricostruire | Da aggiornare | Decision Engine e consolidamento del Motore Agronomico | ✅ |
 | S007 | Agosto 2026 | 11 h 00 min* | Da aggiornare | Revisione e consolidamento della documentazione tecnica | ✅ |
 | S008 | Agosto 2026 | 4 h 16 min | 40 h 31 min | Censimento e consolidamento della documentazione residua | ✅ |
-
+| S009     | Agosto 2026 |   5 h 22 min   |   45 h 53 min   | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | ✅ |
+| S010     | Agosto 2026 |   4 h 54 min   |   50 h 47 min   | Configurazione dei pesi del DecisionEngine mediante DecisionWeights | ✅ |
 ---
 
 # Indice
@@ -1189,7 +1191,13 @@ Sostituisce il vecchio SuggestionEngine con RecommendationPipeline
 
 #### Push
 
-Da completare al termine dell'aggiornamento della documentazione e della chiusura della Sessione S009.
+Il push finale della Sessione S009 è stato completato correttamente al termine dell'aggiornamento documentale.
+
+La sessione è stata successivamente consolidata con il commit:
+
+`ea7b653 Consolida tempi e indicatori della Sessione S009`
+
+al termine del quale il repository locale e quello remoto risultavano sincronizzati.
 
 ---
 
@@ -1219,9 +1227,243 @@ Con la conclusione della Sessione S009 l'architettura del nuovo processo di racc
 
 La successiva Sessione S010 sarà dedicata all'evoluzione delle funzionalità del Motore Agronomico previste dalla Roadmap di Sviluppo, proseguendo l'implementazione dei motori specialistici e mantenendo aggiornati il codice, la documentazione tecnica e il registro storico secondo il Workflow Operativo del progetto.
 
+---
 
+---
 
+# Sessione S010 – Configurazione dei pesi del DecisionEngine
 
+**Data:** 08/08/2026
+**Stato:** Completata
+**Tipo:** Sviluppo tecnico / evoluzione del Motore Agronomico
 
+---
 
+### Obiettivo della sessione
 
+La Sessione S010 è stata dedicata al consolidamento del sistema decisionale del Motore Agronomico introdotto nelle sessioni precedenti.
+
+L'obiettivo principale è stato rendere configurabili i pesi dei diversi criteri agronomici utilizzati dal `DecisionEngine`, evitando che tali valori rimanessero incorporati rigidamente nella logica del motore e predisponendo l'architettura all'introduzione futura di ulteriori criteri decisionali.
+
+La configurazione standard definita nella sessione assegna i seguenti pesi:
+
+- spazio: 40%;
+- rotazione: 30%;
+- consociazione: 30%.
+
+---
+
+### Attività svolte
+
+Nel corso della Sessione S010 è stata introdotta una configurazione esplicita dei pesi utilizzati dal processo decisionale del Motore Agronomico.
+
+È stato creato il componente:
+
+- `lib/core/agronomy/scoring/decision_weights.dart`
+
+contenente la classe `DecisionWeights`, responsabile della configurazione dei pesi associati ai criteri agronomici utilizzati dal `DecisionEngine`.
+
+La classe gestisce i seguenti criteri:
+
+- spazio;
+- rotazione;
+- consociazione.
+
+Sono state inoltre introdotte:
+
+- la proprietà `total`, utilizzata per calcolare la somma complessiva dei pesi;
+- la validazione della configurazione;
+- il controllo dell'assenza di valori negativi;
+- la configurazione predefinita `DecisionWeights.standard`.
+
+Il `DecisionEngine` è stato modificato affinché riceva la configurazione dei pesi mediante:
+
+`DecisionEngine({this.weights = DecisionWeights.standard})`
+
+Il motore verifica la validità della configurazione ricevuta e rifiuta configurazioni non valide mediante `ArgumentError`.
+
+La `RecommendationPipeline` è stata adeguata per utilizzare esplicitamente `DecisionWeights.standard` nel processo di generazione delle raccomandazioni.
+
+Questa evoluzione mantiene separata la configurazione dei criteri dalla logica decisionale e consente di modificare in futuro il peso relativo dei diversi fattori senza incorporare tali valori direttamente nel `DecisionEngine`.
+
+---
+
+### Test eseguiti
+
+Nel corso della Sessione S010 sono stati aggiornati e ampliati i test automatici relativi al sistema decisionale del Motore Agronomico.
+
+È stato creato:
+
+- `test/core/agronomy/scoring/decision_weights_test.dart`
+
+con verifiche relative a:
+
+- configurazione standard 40/30/30;
+- configurazione personalizzata valida;
+- somma complessiva diversa da `1.0`;
+- presenza di pesi negativi.
+
+È stato inoltre aggiornato `decision_engine_test.dart` con verifiche relative a:
+
+- generazione delle raccomandazioni;
+- calcolo del punteggio ponderato;
+- ordinamento delle raccomandazioni;
+- motivazioni associate ai risultati;
+- utilizzo di pesi personalizzati;
+- rifiuto di configurazioni dei pesi non valide.
+
+Al termine dello sviluppo sono stati eseguiti i controlli globali:
+
+- `flutter analyze` – nessun errore rilevato;
+- `flutter test` – **78 test automatici superati**.
+
+La baseline di qualità raggiunta al termine della Sessione S010 è pertanto:
+
+**78 test automatici superati e `flutter analyze` senza errori.**
+
+---
+
+### Decisioni architetturali
+
+Nel corso della Sessione S010 non sono state approvate nuove Decisioni Architetturali (ADR).
+
+È stata consolidata l'architettura decisionale già introdotta nelle sessioni precedenti, separando ulteriormente la configurazione dei criteri dalla logica del `DecisionEngine`.
+
+L'introduzione di `DecisionWeights` consente al `DecisionEngine` di utilizzare configurazioni differenti senza modificare direttamente l'algoritmo di calcolo del punteggio.
+
+La `RecommendationPipeline` mantiene il ruolo di orchestrazione del processo e utilizza la configurazione standard dei pesi per il sistema decisionale corrente.
+
+---
+
+### Progettazione delle evoluzioni future
+
+Nella seconda parte della Sessione S010 è stata avviata la progettazione delle successive evoluzioni del Motore Agronomico.
+
+Sono state distinte due responsabilità future:
+
+- `FamilyNeedsEngine`, destinato alla valutazione delle priorità e dei fabbisogni familiari delle colture;
+- `SuccessionPlanningEngine`, destinato alla pianificazione temporale delle coltivazioni e alla distribuzione delle produzioni nel tempo.
+
+La separazione dei due motori ha l'obiettivo di evitare che la valutazione del fabbisogno familiare venga mescolata con la pianificazione delle successioni colturali.
+
+Nel repository risultano già presenti:
+
+- `lib/core/agronomy/engines/family_needs_engine.dart`;
+- `lib/core/agronomy/models/family_recommendation.dart`.
+
+Durante l'analisi è stata individuata in `FamilyRecommendation` un'incoerenza tra il tipo attualmente utilizzato per `cropId` e il tipo adottato dall'architettura corrente per `Crop.id`.
+
+La correzione di tale incoerenza non è stata effettuata nella S010 ed è stata rinviata alla Sessione S011.
+
+Il `FamilyNeedsEngine` e il futuro `SuccessionPlanningEngine` non fanno pertanto parte del flusso operativo della `RecommendationPipeline` consolidato nella S010.
+
+---
+
+### File creati
+
+Nel corso della Sessione S010 è stato creato:
+
+- `lib/core/agronomy/scoring/decision_weights.dart`;
+- `test/core/agronomy/scoring/decision_weights_test.dart`.
+
+---
+
+### File modificati
+
+Nel corso della Sessione S010 sono stati modificati i componenti interessati dalla configurazione dei pesi decisionali, tra cui:
+
+- `lib/core/agronomy/engines/decision_engine.dart`;
+- `lib/services/recommendation_pipeline.dart`;
+- `test/core/agronomy/engines/decision_engine_test.dart`.
+
+---
+
+### Database
+
+Nel corso della Sessione S010 non sono state apportate modifiche alla struttura o ai dati del database Supabase.
+
+Le attività hanno riguardato esclusivamente il Motore Agronomico, la configurazione del sistema decisionale e i relativi test automatici.
+
+---
+
+### Stato del progetto
+
+Al termine dello sviluppo della Sessione S010 il sistema decisionale del Motore Agronomico dispone delle seguenti caratteristiche:
+
+- `RecommendationPipeline` come componente di orchestrazione del processo di raccomandazione;
+- generazione dei candidati affidata al `SuggestionEngine`;
+- valutazioni separate di spazio, rotazione e consociazione;
+- `DecisionEngine` responsabile del calcolo del punteggio finale e dell'ordinamento delle raccomandazioni;
+- `DecisionWeights` responsabile della configurazione dei pesi decisionali;
+- configurazione standard 40% spazio, 30% rotazione e 30% consociazione;
+- possibilità di utilizzare configurazioni personalizzate dei pesi;
+- validazione preventiva della configurazione dei pesi;
+- architettura predisposta all'introduzione futura di ulteriori criteri decisionali;
+- 78 test automatici superati senza regressioni rilevate;
+- `flutter analyze` completato senza errori.
+
+---
+
+### Git
+
+#### Commit sviluppo
+
+```text
+89a0a04 Rende configurabili i pesi del DecisionEngine
+```
+
+Il commit `89a0a04` è stato pubblicato correttamente su GitHub.
+
+Al termine della fase di sviluppo della Sessione S010 il repository locale e quello remoto risultavano sincronizzati e il working tree era pulito.
+
+La documentazione della Sessione S010 viene aggiornata successivamente secondo il Workflow Operativo del progetto.
+
+---
+
+### Tempo di lavoro
+
+| Attività                 |          Tempo |
+| ------------------------ | -------------: |
+| Sviluppo software        |         42 min |
+| Documentazione           |     4 h 12 min |
+| **Totale Sessione S010** | **4 h 54 min** |
+
+Il tempo della Sessione S010 è stato consolidato considerando esclusivamente il lavoro effettivamente svolto.
+
+La pausa pranzo dalle 13:59 alle 14:52, pari a 53 minuti, è stata esclusa integralmente dal conteggio.
+
+---
+
+### Esito della sessione
+
+La Sessione S010 ha consolidato il sistema decisionale del Motore Agronomico introducendo una configurazione esplicita e validata dei pesi utilizzati dal `DecisionEngine`.
+
+La separazione dei pesi dalla logica decisionale rende il sistema più configurabile ed estendibile e prepara l'architettura all'introduzione futura di ulteriori criteri di valutazione.
+
+Lo sviluppo tecnico della sessione si è concluso con `flutter analyze` senza errori e 78 test automatici superati.
+
+---
+
+### Prossimi passi
+
+La Sessione S011 sarà dedicata principalmente all'evoluzione del `FamilyNeedsEngine`.
+
+Gli obiettivi fissati sono:
+
+1. verificare completamente l'implementazione esistente di `FamilyNeedsEngine`;
+2. verificare `FamilyRecommendation` e gli eventuali componenti collegati;
+3. correggere in modo controllato l'incoerenza tra `int cropId` e `String cropId`;
+4. definire formalmente input, output e responsabilità del `FamilyNeedsEngine`;
+5. stabilire una prima versione del modello di fabbisogno familiare;
+6. definire una rappresentazione semplice e sostenibile delle priorità familiari;
+7. predisporre i relativi test automatici;
+8. valutare l'integrazione con `RecommendationPipeline` soltanto dopo la verifica dei test;
+9. mantenere separata la responsabilità del futuro `SuccessionPlanningEngine`;
+10. rinviare la progettazione dettagliata del `SuccessionPlanningEngine` a uno step successivo, salvo la possibilità di definirne preliminarmente l'architettura.
+
+Il checkpoint tecnico di partenza della S011 è:
+
+- commit sviluppo: `89a0a04`;
+- `flutter analyze`: superato;
+- `flutter test`: 78/78;
+- repository sincronizzato al termine dello sviluppo S010.
