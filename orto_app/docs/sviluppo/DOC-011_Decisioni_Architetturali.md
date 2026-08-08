@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 0.1  
-**Stato:** In sviluppo  
+**Versione:** 0.3
+**Stato:** In sviluppo
 
-**Autore:** Renzo Siega  
-**Progetto:** Orto Smart  
+**Autore:** Renzo Siega
+**Progetto:** Orto Smart
 
-**Data prima emissione:** 28/07/2026  
-**Ultimo aggiornamento:** 01/08/2026  
+**Data prima emissione:** 28/07/2026
+**Ultimo aggiornamento:** 08/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-011 |
 | Titolo | Decisioni Architetturali (ADR) |
-| Versione | 0.1 |
+| Versione | 0.3 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 01/08/2026 |
+| Ultimo aggiornamento | 08/08/2026 |
 
 ---
 
@@ -38,6 +38,7 @@
 |-----------|------------|-----------------------------------------------|
 | 0.1 | 28/07/2026 | Prima emissione del documento Decisioni Architetturali |
 | 0.2 | 01/08/2026 | Riorganizzazione della struttura documentale e aggiornamento delle decisioni architetturali |
+| 0.3      | 08/08/2026 | Aggiornamento della DEC-003 con l'evoluzione introdotta nella Sessione S010 mediante DecisionWeights |
 
 ---
 
@@ -218,6 +219,24 @@ Il `DecisionEngine` mantiene il ruolo definito dalla presente decisione architet
 - non invoca direttamente gli altri motori.
 
 La separazione delle responsabilità prevista dalla DEC-003 rimane invariata. La `RecommendationPipeline` ne costituisce l'implementazione operativa e il componente ufficiale di orchestrazione del processo di raccomandazione.
+
+### Evoluzione della decisione – Sessione S010
+
+Nel corso della Sessione S010 l'implementazione della DEC-003 è stata ulteriormente consolidata mediante l'introduzione di `DecisionWeights`.
+
+La configurazione dei pesi utilizzati per il calcolo del punteggio finale è stata separata dalla logica interna del `DecisionEngine`.
+
+La configurazione standard attualmente adottata assegna:
+
+- 40% al criterio spazio;
+- 30% al criterio rotazione;
+- 30% al criterio consociazione.
+
+`DecisionWeights` consente inoltre l'utilizzo di configurazioni personalizzate e ne verifica la validità prima dell'utilizzo da parte del `DecisionEngine`.
+
+Questa evoluzione non modifica la decisione architetturale originaria: il `DecisionEngine` continua a essere responsabile dell'interpretazione delle valutazioni e del calcolo del punteggio finale, mentre la configurazione dei criteri viene mantenuta separata dalla logica decisionale.
+
+La separazione introdotta migliora la configurabilità e l'estendibilità del sistema, preparando il processo decisionale all'eventuale introduzione futura di ulteriori criteri agronomici.
 
 ### Motivazione
 

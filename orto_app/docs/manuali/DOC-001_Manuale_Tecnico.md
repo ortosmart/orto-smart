@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 1.0  
+**Versione:** 1.1
 **Stato:** Approvato  
 
 **Autore:** Renzo Siega  
 **Progetto:** Orto Smart  
 
 **Data prima emissione:** 26/07/2026  
-**Ultimo aggiornamento:** 31/07/2026  
+**Ultimo aggiornamento:** 08/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,25 +23,25 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 1.0 |
+| Versione | 1.1 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 31/07/2026 |
+| Ultimo aggiornamento | 08/08/2026 |
 
 ---
 
 # Cronologia delle revisioni
 
-| Versione | Data | Descrizione |
-|-----------|------------|----------------------------------------------|
-| 0.1 | 26/07/2026 | Prima emissione del Manuale Tecnico |
-| 0.2 | 27/07/2026 | Aggiornamento architettura e struttura documentale |
-| 1.0 | 31/07/2026 | Revisione completa e approvazione del Manuale Tecnico |
-
+| Versione | Data       | Descrizione                                                                                       |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------- |
+| 0.1      | 26/07/2026 | Prima emissione del Manuale Tecnico                                                               |
+| 0.2      | 27/07/2026 | Aggiornamento architettura e struttura documentale                                                |
+| 1.0      | 31/07/2026 | Revisione completa e approvazione del Manuale Tecnico                                             |
+| 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico con RecommendationPipeline, DecisionEngine e DecisionWeights |
 ---
 
 # Indice
@@ -1532,68 +1532,123 @@ L'architettura attualmente implementata può essere rappresentata dal seguente s
 Repository Layer
         │
         ▼
- Modelli Dart
+ Modelli e risultati di analisi
         │
         ▼
-┌──────────────────────────────┐
-│      Motore Agronomico       │
-├──────────────────────────────┤
-│ • PlantingValidator          │
-│ • FreeSpaceEngine            │
-│ • SuggestionEngine           │
-│ • CompanionEngine            │
-└──────────────────────────────┘
+RecommendationPipeline
+        │
+        ├── SuggestionEngine
+        ├── RotationEngine
+        ├── AssociationEngine
+        ├── SpaceScoreCalculator
+        ├── DecisionEngine
+        │       └── DecisionWeights
+        └── RecommendationMapper
         │
         ▼
- Risultati e suggerimenti
+Risultati e raccomandazioni
         │
         ▼
 Flutter UI
 ```
 
-Ogni componente del motore svolge una funzione specifica e può evolvere indipendentemente dagli altri, consentendo l'introduzione di nuove regole agronomiche senza modificare l'architettura generale del sistema.
+La `RecommendationPipeline` costituisce il componente di orchestrazione del processo di raccomandazione.
 
-Questa organizzazione rende il Motore Agronomico facilmente espandibile e costituisce una base solida per l'integrazione di futuri algoritmi di supporto alle decisioni.
+La pipeline coordina i motori e i componenti specializzati, raccoglie le valutazioni agronomiche, demanda al `DecisionEngine` l'interpretazione dei risultati e utilizza `RecommendationMapper` per produrre il modello destinato all'interfaccia utente.
+
+Il `DecisionEngine` applica criteri ponderati mediante `DecisionWeights`, mantenendo separata la configurazione dei pesi dalla logica decisionale.
+
+I singoli componenti rimangono specializzati e indipendenti, consentendo l'evoluzione del Motore Agronomico senza concentrare responsabilità differenti in un unico modulo.
 
 ## 8.3 Componenti principali
 
-Il Motore Agronomico di Orto Smart è composto da un insieme di moduli indipendenti, ciascuno responsabile di uno specifico aspetto della logica agronomica dell'applicazione.
+Il Motore Agronomico di Orto Smart è composto da componenti specializzati che collaborano attraverso la `RecommendationPipeline`.
 
-Questa suddivisione consente di mantenere il codice organizzato, facilmente estendibile e semplice da manutenere, permettendo l'introduzione di nuove funzionalità senza modificare i componenti già esistenti.
-
-I principali moduli attualmente implementati sono i seguenti.
+Ogni componente mantiene una responsabilità specifica, evitando di concentrare nello stesso modulo generazione dei candidati, valutazioni agronomiche, decisione finale e trasformazione dei risultati.
 
 ### PlantingValidator
 
-Il PlantingValidator verifica la validità dei dati relativi a una nuova coltivazione prima che venga registrata nel database.
+Il `PlantingValidator` verifica la validità dei dati relativi alle coltivazioni prima che vengano utilizzati o registrati dall'applicazione.
 
-Effettua controlli sui parametri inseriti dall'utente, individuando eventuali incongruenze e impedendo il salvataggio di informazioni non valide.
+Il componente contribuisce a impedire l'elaborazione di informazioni incomplete o incoerenti.
 
 ### FreeSpaceEngine
 
-Il FreeSpaceEngine analizza la disposizione delle coltivazioni presenti in un'aiuola e individua gli spazi ancora disponibili.
+Il `FreeSpaceEngine` analizza gli spazi occupati e disponibili all'interno delle aiuole.
 
-Le informazioni prodotte da questo modulo costituiscono la base per le successive elaborazioni del Motore Agronomico.
+I risultati prodotti vengono adattati mediante `FreeSpaceAdapter` e utilizzati dal processo di generazione delle raccomandazioni.
 
 ### SuggestionEngine
 
-Il SuggestionEngine utilizza gli spazi liberi individuati dal FreeSpaceEngine per proporre automaticamente il posizionamento di nuove colture.
+Il `SuggestionEngine` costituisce il componente specializzato nella generazione dei candidati iniziali.
 
-L'obiettivo è supportare l'utente nella pianificazione dell'orto, suggerendo configurazioni compatibili con lo spazio disponibile.
+Riceve gli spazi disponibili e le colture analizzabili e produce i `SuggestionCandidate` che verranno successivamente sottoposti alle valutazioni agronomiche.
 
-### CompanionEngine
+Il componente non determina autonomamente la raccomandazione finale.
 
-Il CompanionEngine analizza la compatibilità tra le colture presenti nell'aiuola, applicando le regole di consociazione implementate nel sistema.
+### RotationEngine
 
-Il modulo restituisce indicazioni utili per favorire gli abbinamenti consigliati e segnalare eventuali combinazioni meno favorevoli.
+Il `RotationEngine` valuta il candidato in relazione alla storia delle coltivazioni presenti nell'aiuola e produce un risultato utilizzato nella valutazione agronomica complessiva.
 
-### Collaborazione tra i componenti
+### AssociationEngine
 
-I diversi moduli del Motore Agronomico operano in modo indipendente ma possono collaborare tra loro durante l'elaborazione delle informazioni.
+L'`AssociationEngine` valuta la compatibilità del candidato con le coltivazioni già presenti, utilizzando le informazioni sulle associazioni e sulle colture coinvolte.
 
-Questa architettura modulare consente di combinare più analisi sullo stesso insieme di dati, mantenendo ogni componente focalizzato sul proprio specifico ambito di competenza.
+### SpaceScoreCalculator
 
-L'approccio adottato rende il Motore Agronomico facilmente estendibile e rappresenta una solida base per l'introduzione di nuovi algoritmi e nuove funzionalità nelle future versioni di Orto Smart.
+Lo `SpaceScoreCalculator` calcola il punteggio relativo all'utilizzo dello spazio confrontando la lunghezza richiesta dal candidato con quella disponibile.
+
+### CandidateAgronomicEvaluation
+
+Il modello `CandidateAgronomicEvaluation` raccoglie in una struttura unica:
+
+- candidato;
+- punteggio relativo allo spazio;
+- risultato della rotazione;
+- risultato delle associazioni.
+
+Questa struttura costituisce l'ingresso del processo decisionale.
+
+### DecisionEngine
+
+Il `DecisionEngine` interpreta le valutazioni agronomiche già prodotte dai componenti specializzati.
+
+Non genera i candidati e non richiama direttamente gli altri motori.
+
+Per ciascun candidato calcola un punteggio finale ponderato utilizzando:
+
+- punteggio spazio;
+- punteggio rotazione;
+- punteggio associazione.
+
+Le raccomandazioni vengono successivamente ordinate in modo decrescente in base al punteggio ottenuto.
+
+### DecisionWeights
+
+`DecisionWeights` contiene la configurazione dei pesi utilizzati dal `DecisionEngine`.
+
+La configurazione standard attualmente adottata è:
+
+- spazio: 40%;
+- rotazione: 30%;
+- consociazione: 30%.
+
+La classe consente anche l'utilizzo di configurazioni personalizzate e verifica che:
+
+- nessun peso sia negativo;
+- la somma complessiva dei pesi sia pari a `1.0`.
+
+Il `DecisionEngine` rifiuta configurazioni non valide mediante `ArgumentError`.
+
+### RecommendationMapper
+
+Il `RecommendationMapper` converte la valutazione agronomica e la relativa raccomandazione nel modello utilizzato dall'interfaccia utente.
+
+### RecommendationPipeline
+
+La `RecommendationPipeline` orchestra l'intero processo di generazione delle raccomandazioni.
+
+La pipeline non contiene regole agronomiche proprie, ma coordina i componenti specializzati, costruisce le valutazioni agronomiche, invoca il `DecisionEngine` e utilizza il `RecommendationMapper` per produrre il risultato destinato all'interfaccia.
 
 ## 8.4 Flusso delle elaborazioni
 
@@ -1617,32 +1672,53 @@ Flutter UI
 Repository Layer
    │
    ▼
-Modelli Dart
+BedAnalysisResult
    │
    ▼
-PlantingValidator
-   │
-   ▼
-FreeSpaceEngine
+FreeSpaceAdapter
    │
    ▼
 SuggestionEngine
    │
    ▼
-CompanionEngine
+SuggestionCandidate
    │
-   ▼
-Risultati e suggerimenti
-   │
-   ▼
-Flutter UI
+   ├──────────────┬────────────────┐
+   ▼              ▼                ▼
+RotationEngine  AssociationEngine  SpaceScoreCalculator
+   │              │                │
+   └──────────────┴────────────────┘
+                  │
+                  ▼
+      CandidateAgronomicEvaluation
+                  │
+                  ▼
+            DecisionEngine
+                  │
+                  ▼
+      PlantingRecommendation
+                  │
+                  ▼
+       RecommendationMapper
+                  │
+                  ▼
+          SuggestionResult
+                  │
+                  ▼
+              Flutter UI
 ```
 
-Ogni componente riceve in ingresso informazioni già validate ed elabora esclusivamente gli aspetti di propria competenza.
+La `RecommendationPipeline` coordina questo flusso senza incorporare direttamente le regole agronomiche dei singoli componenti.
 
-L'organizzazione sequenziale delle elaborazioni consente di mantenere il codice semplice, facilmente comprensibile e modulare, permettendo inoltre di inserire nuovi algoritmi senza modificare il funzionamento dei componenti già esistenti.
+Gli spazi disponibili vengono convertiti tramite `FreeSpaceAdapter` nel formato utilizzato dal nucleo agronomico. Il `SuggestionEngine` genera quindi i candidati iniziali.
 
-Questo approccio favorisce la qualità del software, la riutilizzabilità dei moduli e l'evoluzione progressiva del Motore Agronomico.
+Per ogni candidato vengono prodotte separatamente la valutazione della rotazione, la valutazione delle associazioni e il punteggio relativo allo spazio. I risultati vengono raccolti in una `CandidateAgronomicEvaluation`.
+
+Il `DecisionEngine` utilizza queste valutazioni per calcolare il punteggio finale ponderato secondo la configurazione definita da `DecisionWeights` e ordina le raccomandazioni in base al punteggio ottenuto.
+
+Infine, `RecommendationMapper` converte ogni risultato nel formato utilizzato dall'applicazione e la pipeline restituisce il `SuggestionResult` destinato all'interfaccia utente.
+
+La separazione tra generazione dei candidati, valutazioni agronomiche, decisione e mapping mantiene il sistema modulare e permette l'introduzione futura di ulteriori criteri senza concentrare responsabilità differenti nello stesso componente.
 
 ## 8.5 Validazione e controlli
 
@@ -1691,7 +1767,7 @@ Le versioni future di Orto Smart prevedono l'introduzione di nuovi moduli dedica
 
 Tra le principali evoluzioni previste rientrano:
 
-- gestione delle rotazioni colturali;
+- evoluzione dell'analisi delle rotazioni colturali mediante criteri agronomici progressivamente più avanzati;
 - pianificazione delle successioni delle colture;
 - suggerimenti automatici basati sul calendario agronomico;
 - supporto alla gestione dell'irrigazione, integrando le informazioni meteorologiche e lo stato delle coltivazioni;

@@ -4,14 +4,14 @@
 
 # Registro delle modifiche
 
-**Versione:** 1.0  
+**Versione:** 1.1
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
 **Progetto:** Orto Smart
 
-**Data prima emissione:** 27/07/2026  
-**Ultimo aggiornamento:** 01/08/2026
+**Data prima emissione:** 27/07/2026
+**Ultimo aggiornamento:** 08/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 1.0 |
+| Versione | 1.1 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 01/08/2026 |
+| Ultimo aggiornamento | 08/08/2026 |
 
 ---
 
@@ -39,6 +39,7 @@
 | 0.1 | 27/07/2026 | Prima emissione del documento CHANGELOG |
 | 0.2 | 01/08/2026 | Revisione della struttura documentale e allineamento con la documentazione tecnica |
 | 1.0 | 01/08/2026 | Revisione completa e approvazione del CHANGELOG |
+| 1.1      | 08/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.4-alpha e introduzione di DecisionWeights |
 
 ---
 
@@ -53,6 +54,7 @@
 3.2 Versione 0.1.1-alpha  
 3.3 Versione 0.1.2-alpha
 3.4 Versione 0.1.3-alpha
+3.5 Versione 0.1.4-alpha
 
 ## 4. Cronologia versioni
 
@@ -221,6 +223,34 @@ Nessuna modifica.
 
 ---
 
+## 3.5 Versione 0.1.4-alpha
+
+**Data:** 08/08/2026
+
+### Aggiunto
+
+- Introdotto `DecisionWeights` come componente dedicato alla configurazione dei pesi utilizzati dal `DecisionEngine`.
+- Aggiunta la configurazione standard dei criteri decisionali: 40% spazio, 30% rotazione e 30% consociazione.
+- Aggiunta la validazione delle configurazioni personalizzate dei pesi.
+- Aggiunti test automatici dedicati a `DecisionWeights`.
+
+### Modificato
+
+- `DecisionEngine` aggiornato per ricevere una configurazione `DecisionWeights`.
+- `RecommendationPipeline` aggiornata per utilizzare `DecisionWeights.standard`.
+- Resa configurabile la ponderazione dei criteri utilizzati per il calcolo del punteggio finale delle raccomandazioni.
+- Estesi i test automatici del `DecisionEngine` per verificare configurazioni personalizzate e non valide.
+
+### Corretto
+
+- Eliminata la dipendenza del `DecisionEngine` da pesi decisionali incorporati rigidamente nella propria logica.
+
+### Sicurezza
+
+Nessuna modifica.
+
+---
+
 # 4. Cronologia versioni
 
 | Versione | Data | Stato | Note |
@@ -228,7 +258,8 @@ Nessuna modifica.
 | 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto. |
 | 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
 | 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche. |
-| 0.1.3-alpha | 06/08/2026 | Corrente | Introdotta `RecommendationPipeline` come orchestratore del processo di raccomandazione e consolidata la nuova architettura del Motore Agronomico. |
+| 0.1.3-alpha | 06/08/2026 | Archiviata | Introdotta `RecommendationPipeline` come orchestratore del processo di raccomandazione e consolidata la nuova architettura del Motore Agronomico. |
+| 0.1.4-alpha | 08/08/2026 | Corrente   | Introdotto `DecisionWeights` e resa configurabile la ponderazione dei criteri utilizzati dal `DecisionEngine`. |
 
 ---
 
