@@ -5,6 +5,7 @@ import '../core/agronomy/models/candidate_agronomic_evaluation.dart';
 import '../core/agronomy/models/suggestion_candidate.dart';
 import '../core/agronomy/scoring/space_score_calculator.dart';
 import '../core/agronomy/suggestion_engine.dart' as core;
+import '../core/agronomy/scoring/decision_weights.dart';
 
 import 'association_engine.dart';
 import 'rotation_engine.dart';
@@ -44,7 +45,7 @@ class RecommendationPipeline {
       associations: associations,
     );
 
-    const decisionEngine = DecisionEngine();
+    final decisionEngine = DecisionEngine(weights: DecisionWeights.standard);
 
     final recommendations = decisionEngine.evaluateAgronomic(
       evaluations: evaluations,
