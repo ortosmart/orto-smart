@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 0.3
+**Versione:** 0.4
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 08/08/2026
+**Ultimo aggiornamento:** 09/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-011 |
 | Titolo | Decisioni Architetturali (ADR) |
-| Versione | 0.3 |
+| Versione | 0.4 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 08/08/2026 |
+| Ultimo aggiornamento | 09/08/2026 |
 
 ---
 
@@ -39,6 +39,7 @@
 | 0.1 | 28/07/2026 | Prima emissione del documento Decisioni Architetturali |
 | 0.2 | 01/08/2026 | Riorganizzazione della struttura documentale e aggiornamento delle decisioni architetturali |
 | 0.3      | 08/08/2026 | Aggiornamento della DEC-003 con l'evoluzione introdotta nella Sessione S010 mediante DecisionWeights |
+| 0.4      | 09/08/2026 | Introduzione della DEC-005 sulla separazione tra fabbisogno familiare e pianificazione temporale |
 
 ---
 
@@ -49,14 +50,24 @@
 ## 2. Regole di aggiornamento
 
 ## 3. Decisioni Architetturali
+
 3.1 DEC-001 – Standardizzazione degli identificativi delle colture  
 3.2 DEC-002 – Introduzione di BedAnalysisService  
 3.3 DEC-003 – Introduzione del Decision Engine  
 3.4 DEC-004 – Chiusura formale delle sessioni di sviluppo
+3.5 DEC-005 – Separazione tra fabbisogno familiare e pianificazione temporale
 
 ## 4. Registro delle decisioni
 
 ## 5. Considerazioni finali
+
+Il presente documento raccoglie le principali decisioni architetturali che hanno guidato l'evoluzione di Orto Smart, documentandone il contesto, le motivazioni e le conseguenze sull'architettura del progetto.
+
+La registrazione delle decisioni architetturali consente di preservare la conoscenza tecnica maturata durante lo sviluppo, favorendo la comprensione delle scelte progettuali e garantendo continuità nell'evoluzione del software.
+
+Ogni nuova decisione che comporti modifiche significative all'architettura dovrà essere documentata nel presente documento, mantenendolo costantemente allineato con il Manuale Tecnico (DOC-001), il Quaderno di Sviluppo (DOC-005) e gli altri documenti ufficiali del progetto.
+
+Il documento Decisioni Architetturali costituisce pertanto il riferimento ufficiale per la tracciabilità delle principali scelte progettuali adottate nello sviluppo di Orto Smart e rappresenta uno strumento fondamentale per garantirne la coerenza, la manutenibilità e l'evoluzione nel tempo.
 
 ---
 
@@ -310,6 +321,82 @@ Entrambe le alternative sono state scartate perché avrebbero aumentato il risch
 
 ---
 
+## 3.5 DEC-005 – Separazione tra fabbisogno familiare e pianificazione temporale
+
+**Stato:** Approvata
+
+**Data:** 09/08/2026
+
+**Sessione:** S011
+
+### Contesto
+
+Durante la progettazione dell'evoluzione del sistema di raccomandazione di Orto Smart è emersa la necessità di considerare anche le esigenze familiari nella scelta delle colture.
+
+Sono state individuate due responsabilità differenti:
+
+- valutare quanto una determinata coltura sia necessaria o desiderata dalla famiglia;
+- determinare quantità, lotti e distribuzione temporale delle coltivazioni per garantire continuità del raccolto e limitare le sovrapproduzioni.
+
+L'accorpamento di queste responsabilità in un unico componente avrebbe reso più complessa la logica applicativa e avrebbe mescolato la valutazione del fabbisogno con la pianificazione della produzione.
+
+### Decisione
+
+Separare formalmente la valutazione del fabbisogno familiare dalla pianificazione quantitativa e temporale delle coltivazioni.
+
+Il `FamilyNeedsEngine` è responsabile esclusivamente della valutazione delle priorità e dei fabbisogni familiari associati alle colture.
+
+La futura pianificazione delle quantità, dei lotti e della distribuzione temporale delle coltivazioni sarà affidata a un componente distinto denominato `SuccessionPlanningEngine`.
+
+La `RecommendationPipeline` manterrà il ruolo di coordinamento dei diversi componenti del processo di raccomandazione.
+
+La separazione architetturale adottata è:
+
+    FamilyNeedsEngine
+            ↓
+    fabbisogno / priorità familiare
+
+    SuccessionPlanningEngine
+            ↓
+    quantità, lotti e distribuzione temporale
+
+    RecommendationPipeline
+            ↓
+    coordinamento dei motori
+
+Nella prima implementazione il `FamilyNeedsEngine` rimane autonomo e non viene integrato prematuramente nel `DecisionEngine` o nella `RecommendationPipeline`.
+
+La modalità di integrazione del fabbisogno familiare nel sistema complessivo di raccomandazione sarà progettata in una sessione successiva.
+
+### Motivazione
+
+- Separare la valutazione delle esigenze familiari dalla pianificazione della produzione.
+- Evitare l'accumulo di responsabilità differenti nello stesso motore.
+- Mantenere modulari e indipendenti i componenti del Motore Agronomico.
+- Consentire l'evoluzione separata dei criteri familiari e della pianificazione temporale.
+- Preparare il sistema alla gestione futura di semine e trapianti scalari.
+- Ridurre il rischio di sovrapproduzioni concentrate nello stesso periodo.
+- Preservare il ruolo della `RecommendationPipeline` come componente di coordinamento.
+
+### Alternative valutate
+
+- Integrare fabbisogno familiare e pianificazione temporale direttamente nel `FamilyNeedsEngine`.
+- Inserire immediatamente il fabbisogno familiare nel `DecisionEngine`.
+- Integrare immediatamente il `FamilyNeedsEngine` nella `RecommendationPipeline` senza aver prima definito il rapporto tra priorità familiare e criteri agronomici.
+
+Le alternative sono state scartate perché avrebbero aumentato l'accoppiamento tra responsabilità differenti o anticipato decisioni non ancora sufficientemente progettate.
+
+### Conseguenze
+
+- Il `FamilyNeedsEngine` mantiene una responsabilità specifica e limitata.
+- Il futuro `SuccessionPlanningEngine` avrà una responsabilità distinta dedicata alla pianificazione quantitativa e temporale.
+- La `RecommendationPipeline` potrà coordinare i due componenti senza trasferire loro responsabilità improprie.
+- L'integrazione del fabbisogno familiare nel sistema decisionale richiederà una progettazione specifica.
+- Una priorità familiare elevata non dovrà, da sola, rendere consigliabile una coltura agronomicamente inappropriata.
+- L'architettura rimane predisposta alla futura gestione delle produzioni scalari e della continuità del raccolto.
+
+---
+
 # 4. Registro delle decisioni
 
 | ID | Data | Sessione | Titolo | Stato |
@@ -318,6 +405,7 @@ Entrambe le alternative sono state scartate perché avrebbero aumentato il risch
 | DEC-002 | 28/07/2026 | S005 | Introduzione di BedAnalysisService | Approvata |
 | DEC-003 | 29/07/2026 | S006 | Introduzione del Decision Engine | Approvata |
 | DEC-004 | 01/08/2026 | S007 | Chiusura formale delle sessioni di sviluppo | Approvata |
+| DEC-005 | 09/08/2026 | S011 | Separazione tra fabbisogno familiare e pianificazione temporale | Approvata |
 
 ---
 
@@ -330,6 +418,3 @@ La registrazione delle decisioni architetturali consente di preservare la conosc
 Ogni nuova decisione che comporti modifiche significative all'architettura dovrà essere documentata nel presente documento, mantenendolo costantemente allineato con il Manuale Tecnico (DOC-001), il Quaderno di Sviluppo (DOC-005) e gli altri documenti ufficiali del progetto.
 
 Il documento Decisioni Architetturali costituisce pertanto il riferimento ufficiale per la tracciabilità delle principali scelte progettuali adottate nello sviluppo di Orto Smart e rappresenta uno strumento fondamentale per garantirne la coerenza, la manutenibilità e l'evoluzione nel tempo.
-
-
-

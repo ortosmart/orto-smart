@@ -1229,8 +1229,6 @@ La successiva Sessione S010 sarà dedicata all'evoluzione delle funzionalità de
 
 ---
 
----
-
 # Sessione S010 – Configurazione dei pesi del DecisionEngine
 
 **Data:** 08/08/2026
@@ -1467,3 +1465,245 @@ Il checkpoint tecnico di partenza della S011 è:
 - `flutter analyze`: superato;
 - `flutter test`: 78/78;
 - repository sincronizzato al termine dello sviluppo S010.
+
+---
+
+# Sessione S011 – Prima implementazione del FamilyNeedsEngine
+
+**Data:** 08–09/08/2026
+**Stato:** Completata
+**Tipo:** Sviluppo tecnico / evoluzione del Motore Agronomico
+
+---
+
+### Obiettivo della sessione
+
+La Sessione S011 è stata dedicata alla prima implementazione funzionante del `FamilyNeedsEngine`, componente destinato a rappresentare il fabbisogno familiare associato alle diverse colture.
+
+L'obiettivo principale è stato introdurre un modello semplice e autonomo per esprimere la priorità attribuita dalla famiglia a una coltura, mantenendo tale responsabilità separata sia dalla valutazione agronomica sia dalla futura pianificazione temporale delle produzioni.
+
+La sessione è partita dalla baseline tecnica consolidata nella S010:
+
+- commit di riferimento documentale precedente: `128298b`;
+- repository pulito e sincronizzato;
+- `flutter analyze` senza errori;
+- 78 test automatici superati.
+
+---
+
+### Attività svolte
+
+Nel corso della Sessione S011 è stata innanzitutto corretta l'incoerenza individuata nella sessione precedente nel modello `FamilyRecommendation`.
+
+Il campo:
+
+`FamilyRecommendation.cropId`
+
+è stato modificato da `int` a `String`, uniformandolo al tipo utilizzato dall'architettura corrente per gli identificativi delle colture.
+
+È stato successivamente introdotto il modello:
+
+- `FamilyCropNeed`
+
+destinato a rappresentare il fabbisogno familiare associato a una specifica coltura.
+
+È stata inoltre definita l'enumerazione:
+
+- `FamilyNeedPriority.none`;
+- `FamilyNeedPriority.low`;
+- `FamilyNeedPriority.medium`;
+- `FamilyNeedPriority.high`.
+
+Il precedente stub del `FamilyNeedsEngine` è stato trasformato in una prima implementazione funzionante.
+
+Il motore converte le priorità familiari nei seguenti valori numerici:
+
+- `none` → `0.0`;
+- `low` → `0.3`;
+- `medium` → `0.6`;
+- `high` → `1.0`.
+
+Per ogni valutazione vengono inoltre prodotte motivazioni testuali comprensibili, in modo che il risultato non sia rappresentato esclusivamente da un valore numerico.
+
+È stato stabilito che il `FamilyNeedsEngine` conserva l'ordine degli elementi ricevuti in ingresso.
+
+---
+
+### Responsabilità del FamilyNeedsEngine
+
+La responsabilità attuale del `FamilyNeedsEngine` è limitata alla valutazione del fabbisogno o della priorità familiare di una coltura.
+
+Il motore non determina:
+
+- il numero di piante da coltivare;
+- il numero di semine o trapianti;
+- la distribuzione temporale delle coltivazioni;
+- la successione dei lotti;
+- la compatibilità agronomica complessiva della coltura.
+
+Queste responsabilità rimangono separate.
+
+In particolare è stata confermata la distinzione architetturale:
+
+    FamilyNeedsEngine
+            ↓
+    fabbisogno / priorità familiare
+
+    SuccessionPlanningEngine
+            ↓
+    quantità, lotti e distribuzione temporale
+
+    RecommendationPipeline
+            ↓
+    coordinamento dei motori
+
+Il futuro `SuccessionPlanningEngine` sarà destinato alla gestione delle semine e dei trapianti scalari, alla continuità del raccolto e alla prevenzione delle sovrapproduzioni concentrate in un unico periodo.
+
+---
+
+### Integrazione con il sistema decisionale
+
+Nella Sessione S011 il `FamilyNeedsEngine` è stato mantenuto intenzionalmente autonomo.
+
+Non è stato integrato nel:
+
+- `DecisionEngine`;
+- `RecommendationPipeline`.
+
+Questa scelta evita di introdurre prematuramente il fabbisogno familiare nel punteggio complessivo prima di aver definito formalmente il suo rapporto con i criteri agronomici esistenti.
+
+L'integrazione viene pertanto rinviata alla Sessione S012.
+
+---
+
+### Test eseguiti
+
+Per il `FamilyNeedsEngine` sono stati aggiunti **6 nuovi test automatici**.
+
+I test verificano il comportamento della prima implementazione del motore, compresa la gestione delle priorità familiari, la conversione nei relativi valori numerici, le motivazioni prodotte e il mantenimento dell'ordine degli input.
+
+La baseline complessiva dei test è passata da:
+
+**78 → 84 test automatici.**
+
+Al termine dello sviluppo sono stati eseguiti i controlli globali:
+
+- `flutter analyze` – **No issues found**;
+- `flutter test` – **84/84 All tests passed**.
+
+Non sono state rilevate regressioni rispetto alla baseline precedente.
+
+---
+
+### Decisioni architetturali
+
+La Sessione S011 ha consolidato la separazione tra tre responsabilità differenti:
+
+1. valutazione agronomica delle colture;
+2. valutazione del fabbisogno familiare;
+3. futura pianificazione della produzione nel tempo.
+
+Il `FamilyNeedsEngine` rimane pertanto un componente autonomo che fornisce informazioni relative alle esigenze familiari senza modificare direttamente la valutazione agronomica.
+
+È stato inoltre stabilito che un'elevata priorità familiare non dovrà, da sola, rendere consigliabile una coltura agronomicamente inappropriata.
+
+La modalità precisa con cui questa regola verrà applicata nella pipeline sarà oggetto della progettazione della S012.
+
+---
+
+### Database
+
+Nel corso della Sessione S011 non sono state apportate modifiche alla struttura o ai dati del database Supabase.
+
+La prima versione del `FamilyNeedsEngine` riguarda esclusivamente il dominio applicativo e il Motore Agronomico.
+
+La futura persistenza delle preferenze o dei fabbisogni familiari non è stata definita in questa sessione.
+
+---
+
+### Stato del progetto
+
+Al termine della Sessione S011 il Motore Agronomico dispone anche di un primo componente autonomo per la rappresentazione delle esigenze familiari.
+
+Lo stato raggiunto comprende:
+
+- `FamilyRecommendation.cropId` allineato al tipo `String`;
+- modello `FamilyCropNeed`;
+- enumerazione `FamilyNeedPriority`;
+- quattro livelli di priorità familiare;
+- conversione delle priorità in valori numerici;
+- motivazioni testuali associate alle valutazioni;
+- mantenimento dell'ordine degli input;
+- `FamilyNeedsEngine` ancora separato dal sistema decisionale principale;
+- futura pianificazione temporale mantenuta separata nel previsto `SuccessionPlanningEngine`;
+- 84 test automatici complessivi superati;
+- `flutter analyze` senza errori.
+
+---
+
+### Git
+
+#### Commit sviluppo
+
+`e1f741e Implementa la prima versione del FamilyNeedsEngine`
+
+Il commit è stato pubblicato correttamente su GitHub.
+
+Al termine della fase di sviluppo della Sessione S011:
+
+- `main = origin/main`;
+- working tree pulito.
+
+Il repository risultava quindi pulito e sincronizzato.
+
+---
+
+### Tempo di lavoro
+
+|| Attività                 |       Tempo |
+| ------------------------ | ----------: |
+| Sviluppo software        |      37 min |
+| Documentazione           |  1 h 50 min |
+| **Totale Sessione S011** | **2 h 27 min** |
+
+Il tempo di sviluppo comprende esclusivamente il lavoro effettivamente svolto.
+
+La sospensione tra l'8 e il 9 agosto 2026 è stata esclusa integralmente dal conteggio.
+
+Il tempo dedicato alla documentazione è stato registrato separatamente nella sessione Manuali S011 e consolidato alla chiusura.
+
+---
+
+### Esito della sessione
+
+La Sessione S011 ha introdotto la prima versione funzionante del `FamilyNeedsEngine`, trasformando il precedente componente preliminare in un motore dotato di un modello esplicito delle esigenze familiari e coperto da test automatici.
+
+L'architettura mantiene intenzionalmente separati il fabbisogno familiare, la valutazione agronomica e la futura pianificazione temporale delle produzioni.
+
+Lo sviluppo tecnico della sessione si è concluso con `flutter analyze` senza errori e **84 test automatici superati**.
+
+---
+
+### Prossimi passi
+
+La Sessione S012 sarà dedicata principalmente alla progettazione dell'integrazione del fabbisogno familiare nel sistema complessivo di raccomandazione.
+
+Gli obiettivi fissati sono:
+
+1. stabilire dove inserire il `FamilyNeedsEngine` nella `RecommendationPipeline`;
+2. determinare se il fabbisogno familiare debba costituire un quarto fattore del punteggio, un bonus oppure un criterio distinto;
+3. impedire che una forte esigenza familiare possa rendere consigliabile una coltura agronomicamente inappropriata;
+4. valutare l'evoluzione di `DecisionWeights`, attualmente configurato secondo lo schema 40/30/30;
+5. definire il comportamento del sistema quando non sono disponibili informazioni sul fabbisogno familiare;
+6. valutare le eventuali modifiche necessarie a `CandidateAgronomicEvaluation` e `PlantingRecommendation`;
+7. definire i nuovi test necessari prima dell'integrazione;
+8. soltanto dopo queste decisioni, realizzare l'integrazione minima nella `RecommendationPipeline` e verificare l'intera suite.
+
+Il futuro `SuccessionPlanningEngine` non costituisce l'obiettivo principale della S012 e rimane previsto per uno step successivo dedicato alla pianificazione delle colture nel tempo.
+
+Il checkpoint tecnico di partenza della S012 è:
+
+- commit sviluppo: `e1f741e`;
+- `flutter analyze`: superato;
+- `flutter test`: 84/84;
+- repository pulito e sincronizzato al termine dello sviluppo S011.
