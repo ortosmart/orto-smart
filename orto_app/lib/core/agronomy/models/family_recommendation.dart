@@ -6,7 +6,7 @@ class FamilyRecommendation {
   });
 
   /// ID della coltura.
-  final int cropId;
+  final String cropId;
 
   /// Priorità assegnata dal FamilyNeedsEngine.
   /// Valore compreso tra 0.0 e 1.0.
