@@ -4,7 +4,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 1.2
+**Versione:** 1.3
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
@@ -23,7 +23,7 @@
 |--------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 1.2 |
+| Versione | 1.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
@@ -34,13 +34,14 @@
 
 # Cronologia delle revisioni
 
-| Versione | Data | Descrizione |
-|-----------|------------|------------------------------------------------|
-| 0.1 | 27/07/2026 | Prima emissione del documento CHANGELOG |
-| 0.2 | 01/08/2026 | Revisione della struttura documentale e allineamento con la documentazione tecnica |
-| 1.0 | 01/08/2026 | Revisione completa e approvazione del CHANGELOG |
-| 1.1      | 08/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.4-alpha e introduzione di DecisionWeights |
-| 1.2      | 09/08/2026 | Aggiornamento del CHANGELOG con la prima implementazione del FamilyNeedsEngine             |
+| Versione | Data       | Descrizione                                                                                                      |
+| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------- |
+| 0.1      | 27/07/2026 | Prima emissione del documento CHANGELOG                                                                          |
+| 0.2      | 01/08/2026 | Revisione della struttura documentale e allineamento con la documentazione tecnica                               |
+| 1.0      | 01/08/2026 | Revisione completa e approvazione del CHANGELOG                                                                  |
+| 1.1      | 08/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.4-alpha e introduzione di DecisionWeights                        |
+| 1.2      | 09/08/2026 | Aggiornamento del CHANGELOG con la prima implementazione del FamilyNeedsEngine                                   |
+| 1.3      | 09/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.6-alpha e integrazione del FamilyNeedsEngine nella RecommendationPipeline |
 
 ---
 
@@ -252,16 +253,87 @@ Nessuna modifica.
 
 ---
 
+## 3.6 Versione 0.1.5-alpha
+
+**Data:** 09/08/2026
+
+### Aggiunto
+
+- Introdotto `FamilyCropNeed` come modello per rappresentare il fabbisogno familiare associato a una coltura.
+- Introdotta l'enumerazione `FamilyNeedPriority` con i livelli `none`, `low`, `medium` e `high`.
+- Implementata la prima versione funzionante del `FamilyNeedsEngine`.
+- Introdotta la conversione delle priorità familiari nei valori numerici `0.0`, `0.3`, `0.6` e `1.0`.
+- Aggiunte motivazioni testuali associate alle valutazioni del fabbisogno familiare.
+- Aggiunti 6 test automatici dedicati al `FamilyNeedsEngine`.
+
+### Modificato
+
+- `FamilyRecommendation.cropId` modificato da `int` a `String` per uniformarlo al tipo utilizzato dall'architettura corrente per gli identificativi delle colture.
+- Baseline dei test automatici portata da 78 a 84 test superati.
+
+### Corretto
+
+- Corretta l'incoerenza di tipo relativa a `FamilyRecommendation.cropId`.
+
+### Architettura
+
+- Mantenuto il `FamilyNeedsEngine` autonomo rispetto al `DecisionEngine` e alla `RecommendationPipeline`.
+- Confermata la separazione tra valutazione del fabbisogno familiare e futura pianificazione quantitativa e temporale affidata al previsto `SuccessionPlanningEngine`.
+- Rinviata alla S012 la progettazione dell'integrazione del fabbisogno familiare nel sistema complessivo di raccomandazione.
+
+### Sicurezza
+
+Nessuna modifica.
+
+---
+
+## 3.7 Versione 0.1.6-alpha
+
+**Data:** 09/08/2026
+
+### Aggiunto
+
+- Integrato il `FamilyNeedsEngine` nella `RecommendationPipeline`.
+- Aggiunto il parametro opzionale `familyNeeds` alla pipeline.
+- Introdotta l'associazione tra `cropId` e priorità familiare.
+- Introdotta la classificazione interna delle raccomandazioni in fasce agronomiche mediante `_ratingBand()`.
+- Aggiunti 2 test automatici dedicati all'integrazione delle esigenze familiari nella `RecommendationPipeline`.
+
+### Modificato
+
+- Aggiornato l'ordinamento delle raccomandazioni secondo la gerarchia: fascia agronomica, priorità familiare e punteggio agronomico.
+- La priorità familiare può modificare l'ordine delle raccomandazioni soltanto all'interno della stessa fascia agronomica.
+- Baseline dei test automatici portata da 84 a 86 test superati.
+
+### Architettura
+
+- Mantenuto invariato il `DecisionEngine`, il cui punteggio continua a dipendere esclusivamente dai criteri agronomici.
+- Mantenuta invariata la configurazione standard di `DecisionWeights`: 40% spazio, 30% rotazione e 30% consociazione.
+- Esclusa l'introduzione del fabbisogno familiare come quarto peso del `DecisionEngine`.
+- Definito il fabbisogno familiare come criterio gerarchico di ordinamento successivo alla fascia agronomica.
+- Garantito che una priorità familiare elevata non possa rendere preferibile una raccomandazione appartenente a una fascia agronomica inferiore.
+
+### Corretto
+
+Nessuna correzione specifica.
+
+### Sicurezza
+
+Nessuna modifica.
+
+---
+
 # 4. Cronologia versioni
 
-| Versione | Data | Stato | Note |
-|-----------|------------|------------|--------------------------------------------------------------|
-| 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto. |
-| 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
-| 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche. |
-| 0.1.3-alpha | 06/08/2026 | Archiviata | Introdotta `RecommendationPipeline` come orchestratore del processo di raccomandazione e consolidata la nuova architettura del Motore Agronomico. |
-| 0.1.4-alpha | 08/08/2026 | Archiviata   | Introdotto `DecisionWeights` e resa configurabile la ponderazione dei criteri utilizzati dal `DecisionEngine`. |
-| 0.1.5-alpha | 09/08/2026 | Corrente   | Implementata la prima versione del `FamilyNeedsEngine` per la valutazione delle priorità e dei fabbisogni familiari.                             |
+| Versione    | Data       | Stato      | Note                                                                                                                                                                                |
+| ----------- | ---------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto.                                                                                                                                            |
+| 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico.                                                                                                  |
+| 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche.                                                        |
+| 0.1.3-alpha | 06/08/2026 | Archiviata | Introdotta `RecommendationPipeline` come orchestratore del processo di raccomandazione e consolidata la nuova architettura del Motore Agronomico.                                   |
+| 0.1.4-alpha | 08/08/2026 | Archiviata | Introdotto `DecisionWeights` e resa configurabile la ponderazione dei criteri utilizzati dal `DecisionEngine`.                                                                      |
+| 0.1.5-alpha | 09/08/2026 | Archiviata | Implementata la prima versione del `FamilyNeedsEngine` per la valutazione delle priorità e dei fabbisogni familiari.                                                                |
+| 0.1.6-alpha | 09/08/2026 | Corrente   | Integrato il `FamilyNeedsEngine` nella `RecommendationPipeline` mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico.                   |                          |
 
 ---
 

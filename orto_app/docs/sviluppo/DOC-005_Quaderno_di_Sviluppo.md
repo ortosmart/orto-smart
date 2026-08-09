@@ -1707,3 +1707,277 @@ Il checkpoint tecnico di partenza della S012 è:
 - `flutter analyze`: superato;
 - `flutter test`: 84/84;
 - repository pulito e sincronizzato al termine dello sviluppo S011.
+
+---
+
+# Sessione S012 – Integrazione del FamilyNeedsEngine nella RecommendationPipeline
+
+**Data:** 09/08/2026
+**Stato:** Completata
+**Tipo:** Sviluppo tecnico / evoluzione del sistema di raccomandazione
+
+---
+
+### Obiettivo della sessione
+
+La Sessione S012 è stata dedicata all'integrazione della prima versione del `FamilyNeedsEngine` nella `RecommendationPipeline`.
+
+L'obiettivo principale è stato stabilire come utilizzare le esigenze familiari nel processo complessivo di raccomandazione senza compromettere la correttezza agronomica delle valutazioni già prodotte dal sistema.
+
+La sessione è partita dal checkpoint tecnico consolidato nella S011:
+
+- commit sviluppo: `e1f741e`;
+- `flutter analyze`: superato;
+- `flutter test`: 84/84;
+- repository pulito e sincronizzato;
+- `FamilyNeedsEngine` disponibile come componente autonomo ma non ancora integrato nella `RecommendationPipeline`.
+
+---
+
+### Decisione progettuale
+
+Nel corso della S012 è stato stabilito che il fabbisogno familiare non deve diventare un quarto peso del `DecisionEngine`.
+
+Il punteggio agronomico continua pertanto a essere calcolato esclusivamente mediante i tre criteri già definiti:
+
+- spazio: 40%;
+- rotazione: 30%;
+- consociazione: 30%.
+
+Le esigenze familiari intervengono invece successivamente come criterio gerarchico di ordinamento delle raccomandazioni.
+
+L'ordinamento adottato è:
+
+    1. Fascia agronomica
+    2. Priorità familiare
+    3. Punteggio agronomico
+
+Questa soluzione consente di favorire una coltura maggiormente richiesta dalla famiglia soltanto quando le alternative appartengono alla stessa fascia agronomica.
+
+Una priorità familiare elevata non può quindi rendere preferibile una coltura appartenente a una fascia agronomica inferiore.
+
+---
+
+### Attività svolte
+
+La `RecommendationPipeline` è stata estesa introducendo il parametro opzionale:
+
+`familyNeeds`
+
+Il parametro consente alla pipeline di ricevere le informazioni relative alle esigenze familiari senza rendere obbligatoria la presenza di tali dati.
+
+La pipeline utilizza il `FamilyNeedsEngine` per valutare le priorità familiari e associa i risultati alle colture mediante il relativo `cropId`.
+
+È stata introdotta una classificazione interna delle raccomandazioni in fasce agronomiche mediante:
+
+`_ratingBand()`
+
+L'ordinamento finale delle raccomandazioni utilizza quindi, in ordine gerarchico:
+
+1. fascia agronomica;
+2. priorità familiare;
+3. punteggio agronomico.
+
+---
+
+### Integrazione del FamilyNeedsEngine
+
+Il `FamilyNeedsEngine` è ora integrato nella `RecommendationPipeline`.
+
+La sua integrazione non modifica direttamente il punteggio prodotto dal `DecisionEngine`.
+
+Il processo può essere rappresentato sinteticamente come:
+
+    Motori agronomici
+            ↓
+    DecisionEngine
+            ↓
+    punteggio e fascia agronomica
+            ↓
+    FamilyNeedsEngine
+            ↓
+    priorità familiare
+            ↓
+    ordinamento finale della RecommendationPipeline
+
+La `RecommendationPipeline` mantiene pertanto il ruolo di coordinamento del processo complessivo di raccomandazione.
+
+---
+
+### DecisionWeights
+
+La configurazione `DecisionWeights` rimane invariata.
+
+La configurazione standard continua a essere:
+
+- spazio: 40%;
+- rotazione: 30%;
+- consociazione: 30%.
+
+Non è stato introdotto un peso dedicato alle esigenze familiari.
+
+Questa scelta mantiene separati:
+
+- il punteggio agronomico;
+- la priorità familiare.
+
+---
+
+### Protezione della correttezza agronomica
+
+Una delle condizioni fondamentali definite nella S012 è che il fabbisogno familiare non possa annullare o superare una differenza significativa nella qualità agronomica delle raccomandazioni.
+
+Per questo motivo la priorità familiare viene applicata soltanto dopo la classificazione delle raccomandazioni nelle rispettive fasce agronomiche.
+
+L'ordine gerarchico:
+
+    fascia agronomica
+        ↓
+    priorità familiare
+        ↓
+    punteggio agronomico
+
+garantisce che una coltura con priorità familiare elevata possa essere favorita rispetto a un'altra solamente quando entrambe appartengono alla stessa fascia agronomica.
+
+---
+
+### Test eseguiti
+
+Nel corso della Sessione S012 sono stati aggiunti **2 nuovi test automatici** dedicati all'integrazione delle esigenze familiari nella `RecommendationPipeline`.
+
+I test verificano:
+
+1. che la priorità familiare possa modificare l'ordine delle raccomandazioni appartenenti alla stessa fascia agronomica;
+2. che una priorità familiare elevata non possa superare una raccomandazione appartenente a una fascia agronomica superiore.
+
+La baseline complessiva dei test è passata da:
+
+**84 → 86 test automatici.**
+
+Al termine dello sviluppo sono stati eseguiti i controlli globali:
+
+- `flutter analyze` – **No issues found**;
+- `flutter test` – **86/86 All tests passed**.
+
+Non sono state rilevate regressioni rispetto alla baseline precedente.
+
+---
+
+### Decisioni architetturali
+
+La Sessione S012 ha definito formalmente il rapporto tra valutazione agronomica e fabbisogno familiare nel processo di raccomandazione.
+
+Il fabbisogno familiare:
+
+- non modifica direttamente il punteggio agronomico;
+- non viene aggiunto a `DecisionWeights`;
+- viene utilizzato come criterio gerarchico successivo alla fascia agronomica;
+- può modificare l'ordine soltanto tra raccomandazioni appartenenti alla stessa fascia agronomica.
+
+Questa scelta mantiene separata la valutazione tecnica agronomica dalla preferenza familiare e preserva il principio secondo cui una coltura agronomicamente meno appropriata non deve diventare preferibile soltanto perché maggiormente richiesta.
+
+La decisione dovrà essere registrata nel DOC-011 – Decisioni Architetturali.
+
+---
+
+### Database
+
+Nel corso della Sessione S012 non sono state apportate modifiche alla struttura o ai dati del database Supabase.
+
+L'integrazione del `FamilyNeedsEngine` riguarda esclusivamente il dominio applicativo e il processo di raccomandazione.
+
+La persistenza futura delle esigenze familiari rimane una possibilità da progettare in una fase successiva.
+
+---
+
+### Stato del progetto
+
+Al termine della Sessione S012 il sistema di raccomandazione dispone delle seguenti caratteristiche:
+
+- `FamilyNeedsEngine` integrato nella `RecommendationPipeline`;
+- parametro opzionale `familyNeeds`;
+- associazione delle priorità familiari mediante `cropId`;
+- classificazione delle raccomandazioni in fasce agronomiche;
+- ordinamento gerarchico basato su fascia agronomica, priorità familiare e punteggio agronomico;
+- `DecisionWeights` invariato con configurazione 40/30/30;
+- separazione tra punteggio agronomico e priorità familiare;
+- protezione contro il superamento di una fascia agronomica superiore mediante la sola priorità familiare;
+- 86 test automatici complessivi superati;
+- `flutter analyze` senza errori.
+
+---
+
+### Git
+
+#### Commit sviluppo
+
+`bf90a62 Integra le esigenze familiari nella RecommendationPipeline`
+
+Il commit è stato pubblicato correttamente su GitHub.
+
+Al termine della fase di sviluppo della Sessione S012:
+
+- `main = origin/main`;
+- working tree pulito.
+
+Il repository risultava quindi pulito e sincronizzato.
+
+---
+
+### Tempo di lavoro
+
+| Attività                 |      Tempo |
+| ------------------------ | ---------: |
+| Sviluppo software        |     53 min |
+| Documentazione           |     49 min |
+| **Totale Sessione S012** | **1 h 42 min** |
+
+Il tempo indicato comprende esclusivamente il lavoro effettivamente svolto.
+
+La documentazione della Sessione S012 è stata svolta in due tranche:
+
+- 09/08/2026 dalle 20:38 alle 20:53: 15 min;
+- 10/08/2026 dalle 00:03 alle 00:37: 34 min.
+
+La sospensione dalle 20:53 alle 00:03 è stata esclusa integralmente dal conteggio.
+
+---
+
+### Esito della sessione
+
+La Sessione S012 ha completato la prima integrazione del `FamilyNeedsEngine` nella `RecommendationPipeline`.
+
+La soluzione adottata mantiene invariato il punteggio agronomico e utilizza le esigenze familiari come criterio gerarchico di ordinamento, preservando la priorità della correttezza agronomica.
+
+Lo sviluppo tecnico della sessione si è concluso con `flutter analyze` senza errori e **86 test automatici superati**.
+
+---
+
+### Prossimi passi
+
+La Sessione S013 sarà dedicata al consolidamento dell'integrazione appena introdotta e alla progettazione del modo in cui il criterio familiare verrà esposto al resto dell'applicazione e all'utente.
+
+Gli obiettivi preliminari sono:
+
+1. verificare come rappresentare e fornire le esigenze familiari al livello applicativo;
+2. stabilire come consentire all'utente di definire o modificare le priorità familiari;
+3. mantenere separata la logica di priorità dalla futura gestione delle quantità;
+4. preparare il passaggio dal concetto di priorità familiare al concetto di fabbisogno quantitativo;
+5. progettare successivamente il collegamento con la pianificazione scalare delle coltivazioni.
+
+L'evoluzione prevista rimane:
+
+    FamilyNeedsEngine
+            ↓
+    priorità / fabbisogno familiare
+            ↓
+    quantità familiari
+            ↓
+    pianificazione scalare delle colture
+
+Il checkpoint tecnico di partenza della S013 è:
+
+- commit sviluppo: `bf90a62`;
+- `flutter analyze`: superato;
+- `flutter test`: 86/86;
+- repository pulito e sincronizzato al termine dello sviluppo S012.

@@ -131,7 +131,7 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | DecisionWeights                 | ✅ Completato    | Configurazione e validazione dei pesi applicati ai criteri spazio, rotazione e consociazione.              |
 | Motore delle Rotazioni          | ✅ Completato    | Prima versione operativa integrata nella RecommendationPipeline.                                            |
 | Sistema di Punteggio Agronomico | ✅ Completato    | Prima versione operativa basata su spazio, rotazione e consociazione con pesi configurabili.               |
-| FamilyNeedsEngine               | ✅ Prima versione | Prima implementazione completata nella S011: priorità familiari, punteggi e motivazioni; integrazione nella RecommendationPipeline prevista dalla S012. |
+| FamilyNeedsEngine                | ✅ Integrato      | Prima versione completata nella S011 e integrata nella RecommendationPipeline nella S012 mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
 | SuccessionPlanningEngine        | 📋 Pianificato   | Pianificazione temporale delle coltivazioni per distribuire la produzione e ridurre le sovrapproduzioni.   |
 
 ---
