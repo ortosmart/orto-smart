@@ -6,6 +6,8 @@ import '../core/agronomy/models/suggestion_candidate.dart';
 import '../core/agronomy/scoring/space_score_calculator.dart';
 import '../core/agronomy/suggestion_engine.dart' as core;
 import '../core/agronomy/scoring/decision_weights.dart';
+import '../core/agronomy/engines/family_needs_engine.dart';
+import '../core/agronomy/models/family_crop_need.dart';
 
 import 'association_engine.dart';
 import 'rotation_engine.dart';
@@ -30,6 +32,7 @@ class RecommendationPipeline {
     required Map<String, Crop> cropsById,
     required List<CropAssociation> associations,
     required BedAnalysisResult bedAnalysis,
+    List<FamilyCropNeed> familyNeeds = const [],
   }) {
     final freeSpaces = FreeSpaceAdapter.fromLegacyList(bedAnalysis.freeSpaces);
 
@@ -50,6 +53,39 @@ class RecommendationPipeline {
     final recommendations = decisionEngine.evaluateAgronomic(
       evaluations: evaluations,
     );
+
+    final familyRecommendations = const FamilyNeedsEngine().analyze(
+      needs: familyNeeds,
+    );
+
+    final familyPriorityByCropId = {
+      for (final recommendation in familyRecommendations)
+        recommendation.cropId: recommendation.priority,
+    };
+
+    recommendations.sort((a, b) {
+      final aBand = _ratingBand(a.score);
+      final bBand = _ratingBand(b.score);
+
+      final bandComparison = bBand.compareTo(aBand);
+
+      if (bandComparison != 0) {
+        return bandComparison;
+      }
+
+      final aFamilyPriority =
+          familyPriorityByCropId[a.candidate.crop.id] ?? 0.0;
+      final bFamilyPriority =
+          familyPriorityByCropId[b.candidate.crop.id] ?? 0.0;
+
+      final familyComparison = bFamilyPriority.compareTo(aFamilyPriority);
+
+      if (familyComparison != 0) {
+        return familyComparison;
+      }
+
+      return b.score.compareTo(a.score);
+    });
 
     final evaluationsByCandidate = {
       for (final evaluation in evaluations) evaluation.candidate: evaluation,
@@ -120,5 +156,21 @@ class RecommendationPipeline {
     }
 
     return evaluations;
+  }
+
+  static int _ratingBand(double score) {
+    if (score >= 85) {
+      return 3;
+    }
+
+    if (score >= 70) {
+      return 2;
+    }
+
+    if (score >= 50) {
+      return 1;
+    }
+
+    return 0;
   }
 }
