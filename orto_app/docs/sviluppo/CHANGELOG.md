@@ -4,14 +4,14 @@
 
 # Registro delle modifiche
 
-**Versione:** 1.1
+**Versione:** 1.2
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 08/08/2026
+**Ultimo aggiornamento:** 09/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 1.1 |
+| Versione | 1.2 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 08/08/2026 |
+| Ultimo aggiornamento | 09/08/2026 |
 
 ---
 
@@ -40,6 +40,7 @@
 | 0.2 | 01/08/2026 | Revisione della struttura documentale e allineamento con la documentazione tecnica |
 | 1.0 | 01/08/2026 | Revisione completa e approvazione del CHANGELOG |
 | 1.1      | 08/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.4-alpha e introduzione di DecisionWeights |
+| 1.2      | 09/08/2026 | Aggiornamento del CHANGELOG con la prima implementazione del FamilyNeedsEngine             |
 
 ---
 
@@ -259,7 +260,8 @@ Nessuna modifica.
 | 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
 | 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche. |
 | 0.1.3-alpha | 06/08/2026 | Archiviata | Introdotta `RecommendationPipeline` come orchestratore del processo di raccomandazione e consolidata la nuova architettura del Motore Agronomico. |
-| 0.1.4-alpha | 08/08/2026 | Corrente   | Introdotto `DecisionWeights` e resa configurabile la ponderazione dei criteri utilizzati dal `DecisionEngine`. |
+| 0.1.4-alpha | 08/08/2026 | Archiviata   | Introdotto `DecisionWeights` e resa configurabile la ponderazione dei criteri utilizzati dal `DecisionEngine`. |
+| 0.1.5-alpha | 09/08/2026 | Corrente   | Implementata la prima versione del `FamilyNeedsEngine` per la valutazione delle priorità e dei fabbisogni familiari.                             |
 
 ---
 
@@ -270,3 +272,39 @@ Il presente CHANGELOG documenta in modo sintetico l'evoluzione di Orto Smart, re
 La separazione tra CHANGELOG, Quaderno di Sviluppo (DOC-005) e Manuale Tecnico (DOC-001) consente di distinguere chiaramente la cronologia delle versioni, il dettaglio delle attività di sviluppo e l'architettura del progetto, mantenendo la documentazione ordinata e facilmente consultabile.
 
 Il CHANGELOG deve essere aggiornato ad ogni rilascio di una nuova versione significativa dell'applicazione, garantendo la tracciabilità delle principali evoluzioni del software e mantenendo la coerenza con gli altri documenti ufficiali del progetto.
+
+---
+
+## 3.6 Versione 0.1.5-alpha
+
+**Data:** 09/08/2026
+
+### Aggiunto
+
+- Introdotto `FamilyCropNeed` come modello per rappresentare il fabbisogno familiare associato a una coltura.
+- Introdotta l'enumerazione `FamilyNeedPriority` con i livelli `none`, `low`, `medium` e `high`.
+- Implementata la prima versione funzionante del `FamilyNeedsEngine`.
+- Introdotta la conversione delle priorità familiari nei valori numerici `0.0`, `0.3`, `0.6` e `1.0`.
+- Aggiunte motivazioni testuali associate alle valutazioni del fabbisogno familiare.
+- Aggiunti 6 test automatici dedicati al `FamilyNeedsEngine`.
+
+### Modificato
+
+- `FamilyRecommendation.cropId` modificato da `int` a `String` per uniformarlo al tipo utilizzato dall'architettura corrente per gli identificativi delle colture.
+- Baseline dei test automatici portata da 78 a 84 test superati.
+
+### Corretto
+
+- Corretta l'incoerenza di tipo relativa a `FamilyRecommendation.cropId`.
+
+### Architettura
+
+- Mantenuto il `FamilyNeedsEngine` autonomo rispetto al `DecisionEngine` e alla `RecommendationPipeline`.
+- Confermata la separazione tra valutazione del fabbisogno familiare e futura pianificazione quantitativa e temporale affidata al previsto `SuccessionPlanningEngine`.
+- Rinviata alla S012 la progettazione dell'integrazione del fabbisogno familiare nel sistema complessivo di raccomandazione.
+
+### Sicurezza
+
+Nessuna modifica.
+
+---

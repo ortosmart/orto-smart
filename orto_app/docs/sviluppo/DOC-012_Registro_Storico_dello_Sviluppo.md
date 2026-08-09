@@ -4,14 +4,14 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 2.1
+**Versione:** 2.2
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 08/08/2026
+**Ultimo aggiornamento:** 09/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 2.1 |
+| Versione | 2.2 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 08/08/2026 |
+| Ultimo aggiornamento | 09/08/2026 |
 
 ---
 
@@ -39,6 +39,7 @@
 | 1.0 | 29/07/2026 | Prima emissione del documento |
 | 2.0 | 05/08/2026 | Revisione strutturale del documento, trasformazione del Registro Storico in cruscotto dell'evoluzione del progetto e uniformazione allo Standard Documentale |
 | 2.1 | 08/08/2026 | Aggiornamento del Registro Storico con la Sessione S010 e consolidamento dell'evoluzione del sistema decisionale del Motore Agronomico |
+| 2.2 | 09/08/2026 | Aggiornamento del Registro Storico con la Sessione S011 e introduzione della prima versione del FamilyNeedsEngine |
 
 ---
 
@@ -92,13 +93,13 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 | Indicatore                          | Valore                                            |
 | ----------------------------------- | ------------------------------------------------- |
-| Sessioni completate                 | 10                                                |
-| Tempo complessivo di sviluppo       | 40 h 37 min*                                      |
-| Tempo complessivo di documentazione | 10 h 10 min                                       |
-| Tempo complessivo progetto          | 50 h 47 min                                       |
+| Sessioni completate                 | 11                                                |
+| Tempo complessivo di sviluppo       | 41 h 14 min*                                      |
+| Tempo complessivo di documentazione | 12 h 00 min                                       |
+| Tempo complessivo progetto          | 53 h 14 min                                       |
 | Prima sessione                      | S001                                              |
-| Ultima sessione                     | S010                                              |
-| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S010 |
+| Ultima sessione                     | S011                                              |
+| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S011  |
 
 \* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
@@ -120,6 +121,7 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo di svilupp
 | **S008** | Censimento e consolidamento della documentazione residua | **4 h 16 min** | **40 h 31 min** |
 | **S009** | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | **5 h 22 min** | **45 h 53 min** |
 | **S010** | Configurazione dei pesi del DecisionEngine mediante DecisionWeights | **4 h 54 min** | **50 h 47 min** |
+| **S011** | Prima implementazione del FamilyNeedsEngine per la valutazione delle priorità e dei fabbisogni familiari | **2 h 27 min** | **53 h 14 min** |
 
 ---
 
@@ -154,6 +156,7 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S008** | Consolidamento del sistema documentale del progetto | Completata la revisione della documentazione ufficiale del progetto, definito il ruolo di ciascun documento e consolidato il sistema documentale di Orto Smart. |
 | **S009** | RecommendationPipeline | Completata la nuova architettura del processo di raccomandazione mediante l'introduzione della RecommendationPipeline come componente di orchestrazione del Motore Agronomico. |
 | **S010** | DecisionWeights | Introduzione della configurazione separata e validata dei pesi del DecisionEngine, rendendo il sistema decisionale configurabile e predisposto all'integrazione futura di ulteriori criteri agronomici. |
+| **S011** | FamilyNeedsEngine | Prima implementazione del motore dedicato alla valutazione delle priorità e dei fabbisogni familiari, mantenuto separato dalla futura pianificazione quantitativa e temporale delle coltivazioni. |
 
 ---
 
@@ -173,13 +176,13 @@ Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e
 
 | Indicatore                    | Valore attuale |
 | ----------------------------- | -------------- |
-| Sessioni completate           | 10             |
-| Ore di sviluppo consolidate   | 40 h 37 min    |
-| Ore di documentazione         | 10 h 10 min    |
-| Totale ore progetto           | 50 h 47 min    |
+| Sessioni completate           | 11             |
+| Ore di sviluppo consolidate   | 41 h 14 min    |
+| Ore di documentazione         | 12 h 00 min    |
+| Totale ore progetto           | 53 h 14 min    |
 | Motori agronomici completati  | 4              |
 | Documenti ufficiali approvati | 10             |
-| Ultima sessione completata    | S010           |
+| Ultima sessione completata    | S011           |
 | Sessione in corso             | Nessuna        |
 
 Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.

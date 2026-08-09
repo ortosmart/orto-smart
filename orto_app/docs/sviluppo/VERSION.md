@@ -3,9 +3,9 @@
 | Campo | Valore |
 |--------|--------|
 | Progetto | Orto Smart |
-| Versione corrente | 0.1.4-alpha |
-| Stato | Alpha |
-| Data versione | 08/08/2026 |
+| Versione corrente | 0.1.5-alpha          |
+| Stato             | Alpha                |
+| Data versione     | 09/08/2026           |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase |
 | Repository | ortosmart/orto-smart |
@@ -86,6 +86,7 @@ Il presente documento riporta esclusivamente la versione corrente del software e
 | 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotti BedAnalysisService, BedCompanionAnalyzer e consolidata l'architettura del Motore Agronomico. |
 | 0.1.3-alpha | 06/08/2026 | Archiviata | Introdotta RecommendationPipeline e consolidata la nuova architettura del Motore Agronomico. |
 | 0.1.4-alpha | 08/08/2026 | Corrente   | Introdotto DecisionWeights e resa configurabile la ponderazione dei criteri utilizzati dal DecisionEngine. |
+| 0.1.5-alpha | 09/08/2026 | Corrente   | Implementata la prima versione del FamilyNeedsEngine per la valutazione delle priorità e dei fabbisogni familiari. |
 
 ---
 

@@ -1640,6 +1640,68 @@ La classe consente anche l'utilizzo di configurazioni personalizzate e verifica 
 
 Il `DecisionEngine` rifiuta configurazioni non valide mediante `ArgumentError`.
 
+### FamilyNeedsEngine
+
+Il `FamilyNeedsEngine` è il componente responsabile della valutazione del fabbisogno familiare associato alle diverse colture.
+
+Il motore è stato introdotto come componente autonomo e, nella versione attuale, non modifica direttamente il punteggio agronomico prodotto dal `DecisionEngine`.
+
+La sua responsabilità è limitata alla rappresentazione della priorità familiare attribuita a una coltura.
+
+Il modello di ingresso utilizza `FamilyCropNeed`, mentre la priorità è rappresentata mediante l'enumerazione `FamilyNeedPriority`.
+
+Sono attualmente previsti quattro livelli:
+
+- `none`;
+- `low`;
+- `medium`;
+- `high`.
+
+Il motore converte tali priorità nei seguenti valori numerici:
+
+- `none` → `0.0`;
+- `low` → `0.3`;
+- `medium` → `0.6`;
+- `high` → `1.0`.
+
+Il risultato viene restituito mediante `FamilyRecommendation`.
+
+Il campo `cropId` utilizza il tipo `String`, coerentemente con il modello degli identificativi delle colture utilizzato nel resto dell'architettura.
+
+Oltre al valore numerico, il motore produce una motivazione testuale comprensibile associata alla valutazione.
+
+Il `FamilyNeedsEngine` mantiene l'ordine degli elementi ricevuti in ingresso.
+
+Nella versione attuale il motore non determina:
+
+- il numero di piante da coltivare;
+- il numero di semine o trapianti;
+- la distribuzione temporale delle colture;
+- la successione dei lotti;
+- la compatibilità agronomica complessiva.
+
+Queste responsabilità restano separate.
+
+In particolare, la pianificazione quantitativa e temporale delle colture sarà affidata al futuro `SuccessionPlanningEngine`.
+
+La separazione architetturale prevista è:
+
+    FamilyNeedsEngine
+            ↓
+    fabbisogno / priorità familiare
+
+    SuccessionPlanningEngine
+            ↓
+    quantità, lotti e distribuzione temporale
+
+    RecommendationPipeline
+            ↓
+    coordinamento dei motori
+
+Il `FamilyNeedsEngine` non è ancora integrato nella `RecommendationPipeline` né nel `DecisionEngine`.
+
+La futura integrazione dovrà garantire che una priorità familiare elevata non possa rendere consigliabile una coltura agronomicamente inappropriata.
+
 ### RecommendationMapper
 
 Il `RecommendationMapper` converte la valutazione agronomica e la relativa raccomandazione nel modello utilizzato dall'interfaccia utente.
