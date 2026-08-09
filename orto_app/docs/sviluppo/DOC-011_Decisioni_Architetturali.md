@@ -4,7 +4,7 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 0.4
+**Versione:** 0.5
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
@@ -23,7 +23,7 @@
 |--------|--------|
 | Documento | DOC-011 |
 | Titolo | Decisioni Architetturali (ADR) |
-| Versione | 0.4 |
+| Versione | 0.5 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
@@ -34,12 +34,13 @@
 
 # Cronologia delle revisioni
 
-| Versione | Data | Descrizione |
-|-----------|------------|-----------------------------------------------|
-| 0.1 | 28/07/2026 | Prima emissione del documento Decisioni Architetturali |
-| 0.2 | 01/08/2026 | Riorganizzazione della struttura documentale e aggiornamento delle decisioni architetturali |
-| 0.3      | 08/08/2026 | Aggiornamento della DEC-003 con l'evoluzione introdotta nella Sessione S010 mediante DecisionWeights |
-| 0.4      | 09/08/2026 | Introduzione della DEC-005 sulla separazione tra fabbisogno familiare e pianificazione temporale |
+| Versione | Data       | Descrizione                                                                                                         |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------- |
+| 0.1      | 28/07/2026 | Prima emissione del documento Decisioni Architetturali                                                              |
+| 0.2      | 01/08/2026 | Riorganizzazione della struttura documentale e aggiornamento delle decisioni architetturali                         |
+| 0.3      | 08/08/2026 | Aggiornamento della DEC-003 con l'evoluzione introdotta nella Sessione S010 mediante DecisionWeights                |
+| 0.4      | 09/08/2026 | Introduzione della DEC-005 sulla separazione tra fabbisogno familiare e pianificazione temporale                    |
+| 0.5      | 09/08/2026 | Introduzione della DEC-006 sull'integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione     |
 
 ---
 
@@ -51,23 +52,16 @@
 
 ## 3. Decisioni Architetturali
 
-3.1 DEC-001 – Standardizzazione degli identificativi delle colture  
-3.2 DEC-002 – Introduzione di BedAnalysisService  
-3.3 DEC-003 – Introduzione del Decision Engine  
+3.1 DEC-001 – Standardizzazione degli identificativi delle colture
+3.2 DEC-002 – Introduzione di BedAnalysisService
+3.3 DEC-003 – Introduzione del Decision Engine
 3.4 DEC-004 – Chiusura formale delle sessioni di sviluppo
 3.5 DEC-005 – Separazione tra fabbisogno familiare e pianificazione temporale
+3.6 DEC-006 – Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione
 
 ## 4. Registro delle decisioni
 
 ## 5. Considerazioni finali
-
-Il presente documento raccoglie le principali decisioni architetturali che hanno guidato l'evoluzione di Orto Smart, documentandone il contesto, le motivazioni e le conseguenze sull'architettura del progetto.
-
-La registrazione delle decisioni architetturali consente di preservare la conoscenza tecnica maturata durante lo sviluppo, favorendo la comprensione delle scelte progettuali e garantendo continuità nell'evoluzione del software.
-
-Ogni nuova decisione che comporti modifiche significative all'architettura dovrà essere documentata nel presente documento, mantenendolo costantemente allineato con il Manuale Tecnico (DOC-001), il Quaderno di Sviluppo (DOC-005) e gli altri documenti ufficiali del progetto.
-
-Il documento Decisioni Architetturali costituisce pertanto il riferimento ufficiale per la tracciabilità delle principali scelte progettuali adottate nello sviluppo di Orto Smart e rappresenta uno strumento fondamentale per garantirne la coerenza, la manutenibilità e l'evoluzione nel tempo.
 
 ---
 
@@ -397,15 +391,99 @@ Le alternative sono state scartate perché avrebbero aumentato l'accoppiamento t
 
 ---
 
+## 3.6 DEC-006 – Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione
+
+**Stato:** Approvata
+
+**Data:** 09/08/2026
+
+**Sessione:** S012
+
+### Contesto
+
+Con la prima implementazione del `FamilyNeedsEngine` è emersa la necessità di stabilire come integrare le esigenze familiari nel sistema complessivo di raccomandazione senza compromettere la correttezza delle valutazioni agronomiche.
+
+Il sistema decisionale dispone già di un punteggio agronomico calcolato dal `DecisionEngine` mediante i criteri:
+
+- spazio;
+- rotazione;
+- consociazione.
+
+La configurazione standard di `DecisionWeights` assegna:
+
+- 40% allo spazio;
+- 30% alla rotazione;
+- 30% alla consociazione.
+
+L'introduzione delle esigenze familiari ha reso necessario decidere se tali informazioni dovessero diventare un quarto peso del `DecisionEngine` oppure essere utilizzate secondo una logica distinta.
+
+### Decisione
+
+Non introdurre il fabbisogno familiare come quarto peso del `DecisionEngine`.
+
+Il punteggio agronomico continua a essere determinato esclusivamente dai criteri agronomici già definiti mediante `DecisionWeights`.
+
+Le esigenze familiari vengono integrate nella `RecommendationPipeline` come criterio gerarchico di ordinamento.
+
+L'ordine adottato è:
+
+    1. Fascia agronomica
+    2. Priorità familiare
+    3. Punteggio agronomico
+
+La `RecommendationPipeline` classifica le raccomandazioni nelle rispettive fasce agronomiche e applica successivamente la priorità familiare.
+
+La priorità familiare può modificare l'ordine delle raccomandazioni soltanto quando queste appartengono alla stessa fascia agronomica.
+
+Una raccomandazione appartenente a una fascia agronomica superiore mantiene pertanto la precedenza anche in presenza di una priorità familiare inferiore.
+
+### Motivazione
+
+- Preservare la correttezza agronomica come criterio prioritario del sistema.
+- Evitare che una preferenza familiare possa compensare una valutazione agronomica significativamente peggiore.
+- Mantenere separati il punteggio agronomico e il fabbisogno familiare.
+- Evitare di modificare inutilmente `DecisionWeights`.
+- Conservare il ruolo del `DecisionEngine` come componente responsabile esclusivamente della valutazione agronomica.
+- Utilizzare la `RecommendationPipeline` come punto di coordinamento dei diversi criteri del processo di raccomandazione.
+- Rendere il sistema più leggibile, modulare ed estendibile.
+
+Principio adottato:
+
+> **La correttezza agronomica stabilisce la fascia; il fabbisogno familiare ordina le alternative equivalenti dal punto di vista agronomico.**
+
+### Alternative valutate
+
+- Introdurre il fabbisogno familiare come quarto peso del `DecisionEngine`.
+- Modificare la configurazione `DecisionWeights` per includere direttamente la priorità familiare.
+- Applicare un bonus numerico al punteggio agronomico in funzione delle esigenze familiari.
+- Consentire alla priorità familiare di ordinare globalmente tutte le raccomandazioni indipendentemente dalla fascia agronomica.
+
+Le alternative sono state scartate perché avrebbero mescolato criteri agronomici e familiari nello stesso punteggio oppure avrebbero consentito alle preferenze familiari di superare valutazioni agronomiche qualitativamente superiori.
+
+### Conseguenze
+
+- `DecisionWeights` rimane configurato sui soli criteri agronomici 40/30/30.
+- Il `DecisionEngine` continua a produrre il punteggio agronomico senza dipendere dalle esigenze familiari.
+- Il `FamilyNeedsEngine` viene integrato nella `RecommendationPipeline`.
+- La `RecommendationPipeline` gestisce l'ordinamento gerarchico delle raccomandazioni.
+- La fascia agronomica ha priorità rispetto alle esigenze familiari.
+- La priorità familiare interviene soltanto all'interno della stessa fascia agronomica.
+- Il punteggio agronomico viene utilizzato come criterio successivo nell'ordinamento.
+- Una priorità familiare elevata non può rendere preferibile una raccomandazione appartenente a una fascia agronomica inferiore.
+- L'architettura rimane predisposta alla futura introduzione di quantità familiari e pianificazione scalare delle coltivazioni.
+
+---
+
 # 4. Registro delle decisioni
 
-| ID | Data | Sessione | Titolo | Stato |
-|----|------------|----------|---------------------------------------------------------|-----------|
-| DEC-001 | 28/07/2026 | S005 | Standardizzazione degli identificativi delle colture | Approvata |
-| DEC-002 | 28/07/2026 | S005 | Introduzione di BedAnalysisService | Approvata |
-| DEC-003 | 29/07/2026 | S006 | Introduzione del Decision Engine | Approvata |
-| DEC-004 | 01/08/2026 | S007 | Chiusura formale delle sessioni di sviluppo | Approvata |
-| DEC-005 | 09/08/2026 | S011 | Separazione tra fabbisogno familiare e pianificazione temporale | Approvata |
+| ID      | Data       | Sessione | Titolo                                                                     | Stato     |
+| ------- | ---------- | -------- | -------------------------------------------------------------------------- | --------- |
+| DEC-001 | 28/07/2026 | S005     | Standardizzazione degli identificativi delle colture                       | Approvata |
+| DEC-002 | 28/07/2026 | S005     | Introduzione di BedAnalysisService                                         | Approvata |
+| DEC-003 | 29/07/2026 | S006     | Introduzione del Decision Engine                                           | Approvata |
+| DEC-004 | 01/08/2026 | S007     | Chiusura formale delle sessioni di sviluppo                                | Approvata |
+| DEC-005 | 09/08/2026 | S011     | Separazione tra fabbisogno familiare e pianificazione temporale            | Approvata |
+| DEC-006 | 09/08/2026 | S012     | Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione | Approvata |
 
 ---
 

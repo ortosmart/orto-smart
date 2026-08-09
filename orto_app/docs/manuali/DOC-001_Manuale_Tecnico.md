@@ -1644,9 +1644,7 @@ Il `DecisionEngine` rifiuta configurazioni non valide mediante `ArgumentError`.
 
 Il `FamilyNeedsEngine` è il componente responsabile della valutazione del fabbisogno familiare associato alle diverse colture.
 
-Il motore è stato introdotto come componente autonomo e, nella versione attuale, non modifica direttamente il punteggio agronomico prodotto dal `DecisionEngine`.
-
-La sua responsabilità è limitata alla rappresentazione della priorità familiare attribuita a una coltura.
+La sua responsabilità è limitata alla rappresentazione della priorità familiare attribuita a una coltura e rimane separata dal calcolo del punteggio agronomico prodotto dal `DecisionEngine`.
 
 Il modello di ingresso utilizza `FamilyCropNeed`, mentre la priorità è rappresentata mediante l'enumerazione `FamilyNeedPriority`.
 
@@ -1684,23 +1682,47 @@ Queste responsabilità restano separate.
 
 In particolare, la pianificazione quantitativa e temporale delle colture sarà affidata al futuro `SuccessionPlanningEngine`.
 
-La separazione architetturale prevista è:
+A partire dalla Sessione S012, il `FamilyNeedsEngine` è integrato nella `RecommendationPipeline`.
 
-    FamilyNeedsEngine
+Le esigenze familiari non costituiscono un quarto criterio ponderato del `DecisionEngine` e non modificano direttamente il punteggio agronomico.
+
+La configurazione `DecisionWeights` rimane pertanto basata esclusivamente su:
+
+- spazio: 40%;
+- rotazione: 30%;
+- consociazione: 30%.
+
+La priorità familiare viene utilizzata dalla `RecommendationPipeline` come criterio gerarchico di ordinamento successivo alla fascia agronomica.
+
+L'ordine applicato è:
+
+    1. Fascia agronomica
+    2. Priorità familiare
+    3. Punteggio agronomico
+
+Questa gerarchia garantisce che una coltura maggiormente richiesta dalla famiglia possa essere favorita rispetto a un'altra soltanto quando entrambe appartengono alla stessa fascia agronomica.
+
+Una priorità familiare elevata non può pertanto rendere preferibile una coltura appartenente a una fascia agronomica inferiore.
+
+La separazione architetturale attuale può essere rappresentata come:
+
+    Motori agronomici
             ↓
-    fabbisogno / priorità familiare
-
-    SuccessionPlanningEngine
+    DecisionEngine
             ↓
-    quantità, lotti e distribuzione temporale
-
+    punteggio agronomico
+            ↓
     RecommendationPipeline
             ↓
-    coordinamento dei motori
+    classificazione della fascia agronomica
+            ↓
+    FamilyNeedsEngine
+            ↓
+    priorità familiare
+            ↓
+    ordinamento gerarchico finale
 
-Il `FamilyNeedsEngine` non è ancora integrato nella `RecommendationPipeline` né nel `DecisionEngine`.
-
-La futura integrazione dovrà garantire che una priorità familiare elevata non possa rendere consigliabile una coltura agronomicamente inappropriata.
+Il futuro `SuccessionPlanningEngine` rimane separato da questo processo e sarà responsabile della pianificazione quantitativa e temporale delle coltivazioni, comprese quantità, lotti e distribuzione delle produzioni nel tempo.
 
 ### RecommendationMapper
 
@@ -1711,6 +1733,38 @@ Il `RecommendationMapper` converte la valutazione agronomica e la relativa racco
 La `RecommendationPipeline` orchestra l'intero processo di generazione delle raccomandazioni.
 
 La pipeline non contiene regole agronomiche proprie, ma coordina i componenti specializzati, costruisce le valutazioni agronomiche, invoca il `DecisionEngine` e utilizza il `RecommendationMapper` per produrre il risultato destinato all'interfaccia.
+
+A partire dalla Sessione S012, la pipeline integra anche le informazioni prodotte dal `FamilyNeedsEngine`.
+
+Le esigenze familiari vengono fornite mediante il parametro opzionale `familyNeeds`.
+
+Il `FamilyNeedsEngine` valuta tali esigenze e la pipeline associa la priorità familiare risultante alla relativa coltura mediante `cropId`.
+
+La priorità familiare non modifica direttamente il punteggio calcolato dal `DecisionEngine`.
+
+La `RecommendationPipeline` applica invece un ordinamento gerarchico basato su:
+
+1. fascia agronomica;
+2. priorità familiare;
+3. punteggio agronomico.
+
+La classificazione delle raccomandazioni nelle rispettive fasce agronomiche viene gestita internamente mediante `_ratingBand()`.
+
+La fascia agronomica costituisce il criterio prioritario dell'ordinamento. La priorità familiare può quindi modificare l'ordine delle raccomandazioni soltanto all'interno della stessa fascia agronomica.
+
+Il punteggio agronomico viene utilizzato come criterio successivo quando i criteri precedenti non determinano un ordine differente.
+
+Questa struttura mantiene separati il giudizio agronomico e le esigenze familiari e impedisce che una priorità familiare elevata renda preferibile una raccomandazione appartenente a una fascia agronomica inferiore.
+
+Il processo di ordinamento può essere sintetizzato come:
+
+    Fascia agronomica
+            ↓
+    Priorità familiare
+            ↓
+    Punteggio agronomico
+            ↓
+    Raccomandazione finale
 
 ## 8.4 Flusso delle elaborazioni
 
