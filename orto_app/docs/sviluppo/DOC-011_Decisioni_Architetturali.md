@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 0.5
+**Versione:** 0.6
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 09/08/2026
+**Ultimo aggiornamento:** 10/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -19,28 +19,29 @@
 
 # Informazioni sul documento
 
-| Campo | Valore |
-|--------|--------|
-| Documento | DOC-011 |
-| Titolo | Decisioni Architetturali (ADR) |
-| Versione | 0.5 |
-| Stato | In sviluppo |
-| Progetto | Orto Smart |
-| Repository | ortosmart/orto-smart |
-| Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 09/08/2026 |
+| Campo                | Valore                         |
+| -------------------- | ------------------------------ |
+| Documento            | DOC-011                        |
+| Titolo               | Decisioni Architetturali (ADR) |
+| Versione             | 0.6                            |
+| Stato                | In sviluppo                    |
+| Progetto             | Orto Smart                     |
+| Repository           | ortosmart/orto-smart           |
+| Prima emissione      | 28/07/2026                     |
+| Ultimo aggiornamento | 10/08/2026                     |
 
 ---
 
 # Cronologia delle revisioni
 
-| Versione | Data       | Descrizione                                                                                                         |
-| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------- |
-| 0.1      | 28/07/2026 | Prima emissione del documento Decisioni Architetturali                                                              |
-| 0.2      | 01/08/2026 | Riorganizzazione della struttura documentale e aggiornamento delle decisioni architetturali                         |
-| 0.3      | 08/08/2026 | Aggiornamento della DEC-003 con l'evoluzione introdotta nella Sessione S010 mediante DecisionWeights                |
-| 0.4      | 09/08/2026 | Introduzione della DEC-005 sulla separazione tra fabbisogno familiare e pianificazione temporale                    |
-| 0.5      | 09/08/2026 | Introduzione della DEC-006 sull'integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione     |
+| Versione | Data       | Descrizione                                                                                                                |
+| -------- | ---------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 0.1      | 28/07/2026 | Prima emissione del documento Decisioni Architetturali                                                                     |
+| 0.2      | 01/08/2026 | Riorganizzazione della struttura documentale e aggiornamento delle decisioni architetturali                                |
+| 0.3      | 08/08/2026 | Aggiornamento della DEC-003 con l'evoluzione introdotta nella Sessione S010 mediante DecisionWeights                       |
+| 0.4      | 09/08/2026 | Introduzione della DEC-005 sulla separazione tra fabbisogno familiare e pianificazione temporale                           |
+| 0.5      | 09/08/2026 | Introduzione della DEC-006 sull'integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione            |
+| 0.6      | 10/08/2026 | Introduzione della DEC-007 sulla separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato           |
 
 ---
 
@@ -58,6 +59,7 @@
 3.4 DEC-004 – Chiusura formale delle sessioni di sviluppo
 3.5 DEC-005 – Separazione tra fabbisogno familiare e pianificazione temporale
 3.6 DEC-006 – Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione
+3.7 DEC-007 – Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato
 
 ## 4. Registro delle decisioni
 
@@ -474,16 +476,132 @@ Le alternative sono state scartate perché avrebbero mescolato criteri agronomic
 
 ---
 
+## 3.7 DEC-007 – Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato
+
+**Stato:** Approvata
+
+**Data:** 10/08/2026
+
+**Sessione:** S013
+
+### Contesto
+
+Con l'integrazione del `FamilyNeedsEngine` nel sistema di raccomandazione è stata completata la prima gestione della priorità attribuita dalla famiglia alle diverse colture.
+
+La preparazione del futuro `SuccessionPlanningEngine` ha però reso necessario rappresentare un'informazione differente: non soltanto quanto una coltura sia desiderata, ma quale quantità debba essere disponibile e con quale periodicità.
+
+È inoltre necessario mantenere distinta tale esigenza dal lotto operativo che il futuro sistema di pianificazione dovrà generare.
+
+Sono state pertanto individuate tre responsabilità differenti:
+
+- rappresentare la priorità qualitativa attribuita dalla famiglia a una coltura;
+- rappresentare quantitativamente quanto prodotto è necessario e con quale periodicità;
+- rappresentare il singolo lotto di coltivazione pianificato nel tempo.
+
+L'accorpamento di questi concetti avrebbe reso ambigua la responsabilità dei modelli e aumentato l'accoppiamento tra esigenze familiari e pianificazione operativa.
+
+### Decisione
+
+Mantenere formalmente separati priorità familiare, fabbisogno quantitativo-periodico e lotto di coltivazione pianificato.
+
+La separazione adottata è:
+
+```text
+FamilyCropNeed
+        ↓
+priorità familiare
+
+FamilyConsumptionNeed
+        ↓
+quantità necessaria nel tempo
+
+PlannedPlantingBatch
+        ↓
+lotto operativo pianificato
+
+SuccessionPlanningEngine
+        ↓
+distribuzione temporale dei lotti
+```
+
+`FamilyCropNeed` continua a rappresentare la priorità qualitativa attribuita dalla famiglia a una coltura.
+
+`FamilyConsumptionNeed` rappresenta invece il fabbisogno quantitativo e periodico mediante:
+
+- `cropId`;
+- `quantity`;
+- `unit`;
+- `intervalDays`.
+
+`PlannedPlantingBatch` rappresenta il lotto operativo pianificato che sarà utilizzato dal futuro sistema di pianificazione.
+
+Le regole di validità dei nuovi modelli vengono mantenute separate mediante `FamilyConsumptionNeedValidator` e `PlannedPlantingBatchValidator`.
+
+Il `SuccessionPlanningEngine` rimane un componente distinto e sarà responsabile della trasformazione dei fabbisogni quantitativi e periodici in una sequenza temporale di lotti pianificati.
+
+Nella Sessione S013 vengono introdotte esclusivamente le fondamenta dati e di validazione; il `SuccessionPlanningEngine` non è ancora implementato.
+
+### Modalità operative
+
+La futura pianificazione dovrà contemplare quattro modalità operative:
+
+1. acquisto di piantine e trapianto;
+2. semina in semenzaio seguita da trapianto;
+3. semina diretta a file nell'aiuola;
+4. semina diretta a spaglio nell'aiuola.
+
+Per la semina diretta a file, il riferimento della pianificazione dovrà essere costituito dal numero di piante finali previste e non dalla sola quantità di seme utilizzata.
+
+Per la semina diretta a spaglio, il sistema dovrà invece poter utilizzare come riferimento l'area coltivata prevista.
+
+La quantità di seme rimane un'informazione operativa utile, ma non viene considerata equivalente alla produzione finale.
+
+### Motivazione
+
+- Distinguere una preferenza qualitativa da un fabbisogno quantitativo.
+- Rappresentare esplicitamente la periodicità del consumo familiare.
+- Evitare che `FamilyCropNeed` accumuli responsabilità non appartenenti alla gestione delle priorità.
+- Separare il fabbisogno familiare dal lotto operativo prodotto dalla pianificazione.
+- Preparare un'interfaccia dati chiara per il futuro `SuccessionPlanningEngine`.
+- Mantenere separate le regole di validazione dalla rappresentazione dei modelli.
+- Consentire al futuro pianificatore di gestire modalità di coltivazione differenti.
+- Evitare di utilizzare la quantità di seme come sostituto improprio della produzione finale prevista.
+- Preparare il sistema alla distribuzione scalare delle coltivazioni e alla riduzione delle sovrapproduzioni concentrate.
+
+### Alternative valutate
+
+- Estendere `FamilyCropNeed` aggiungendo direttamente quantità e periodicità.
+- Affidare al `FamilyNeedsEngine` anche la pianificazione quantitativa delle coltivazioni.
+- Utilizzare direttamente la quantità di seme come misura della produzione pianificata.
+- Rappresentare fabbisogno familiare e lotto pianificato mediante un unico modello.
+- Implementare immediatamente il `SuccessionPlanningEngine` senza introdurre preventivamente modelli e validatori dedicati.
+
+Le alternative sono state scartate perché avrebbero mescolato responsabilità differenti, reso meno esplicito il dominio applicativo oppure introdotto prematuramente logiche di pianificazione senza una base dati sufficientemente definita.
+
+### Conseguenze
+
+- `FamilyCropNeed` rimane dedicato alla priorità familiare.
+- `FamilyConsumptionNeed` rappresenta quantità, unità e periodicità del fabbisogno.
+- `PlannedPlantingBatch` rappresenta separatamente il lotto operativo pianificato.
+- `FamilyConsumptionNeedValidator` e `PlannedPlantingBatchValidator` mantengono separate le rispettive regole di validità.
+- Il futuro `SuccessionPlanningEngine` dispone delle fondamenta necessarie per ricevere fabbisogni quantitativi e generare lotti pianificati.
+- Le diverse modalità di coltivazione potranno essere trattate secondo criteri appropriati alla loro natura.
+- La quantità di seme rimane distinta dalla produzione finale prevista.
+- L'architettura rimane predisposta alla futura pianificazione scalare e alla continuità delle produzioni.
+
+---
+
 # 4. Registro delle decisioni
 
-| ID      | Data       | Sessione | Titolo                                                                     | Stato     |
-| ------- | ---------- | -------- | -------------------------------------------------------------------------- | --------- |
-| DEC-001 | 28/07/2026 | S005     | Standardizzazione degli identificativi delle colture                       | Approvata |
-| DEC-002 | 28/07/2026 | S005     | Introduzione di BedAnalysisService                                         | Approvata |
-| DEC-003 | 29/07/2026 | S006     | Introduzione del Decision Engine                                           | Approvata |
-| DEC-004 | 01/08/2026 | S007     | Chiusura formale delle sessioni di sviluppo                                | Approvata |
-| DEC-005 | 09/08/2026 | S011     | Separazione tra fabbisogno familiare e pianificazione temporale            | Approvata |
-| DEC-006 | 09/08/2026 | S012     | Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione | Approvata |
+| ID      | Data       | Sessione | Titolo                                                                                | Stato     |
+| ------- | ---------- | -------- | ------------------------------------------------------------------------------------- | --------- |
+| DEC-001 | 28/07/2026 | S005     | Standardizzazione degli identificativi delle colture                                  | Approvata |
+| DEC-002 | 28/07/2026 | S005     | Introduzione di BedAnalysisService                                                    | Approvata |
+| DEC-003 | 29/07/2026 | S006     | Introduzione del Decision Engine                                                      | Approvata |
+| DEC-004 | 01/08/2026 | S007     | Chiusura formale delle sessioni di sviluppo                                           | Approvata |
+| DEC-005 | 09/08/2026 | S011     | Separazione tra fabbisogno familiare e pianificazione temporale                       | Approvata |
+| DEC-006 | 09/08/2026 | S012     | Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione       | Approvata |
+| DEC-007 | 10/08/2026 | S013     | Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato       | Approvata |
 
 ---
 

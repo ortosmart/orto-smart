@@ -119,20 +119,26 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 
 ## 3.3 Motore Agronomico
 
-| Funzionalità                    |       Stato      | Note                                                                                                        |
-| ------------------------------- | :--------------: | ----------------------------------------------------------------------------------------------------------- |
-| FreeSpaceEngine                 | ✅ Completato    | Calcolo automatico degli spazi liberi nelle aiuole.                                                         |
-| SuggestionEngine                | ✅ Completato    | Generazione dei candidati iniziali sulla base degli spazi disponibili.                                      |
-| Companion Engine                | ✅ Completato    | Prima versione del motore delle consociazioni.                                                              |
-| BedAnalysisService              | ✅ Completato    | Servizio di coordinamento delle analisi agronomiche delle aiuole.                                           |
-| Bed Companion Analyzer          | ✅ Completato    | Analisi automatica delle compatibilità tra le colture presenti in un'aiuola.                               |
-| RecommendationPipeline          | ✅ Completato    | Orchestrazione del processo di raccomandazione e coordinamento dei componenti specializzati.               |
-| Decision Engine                 | ✅ Completato    | Interpretazione delle valutazioni agronomiche e calcolo del punteggio finale delle raccomandazioni.        |
-| DecisionWeights                 | ✅ Completato    | Configurazione e validazione dei pesi applicati ai criteri spazio, rotazione e consociazione.              |
-| Motore delle Rotazioni          | ✅ Completato    | Prima versione operativa integrata nella RecommendationPipeline.                                            |
-| Sistema di Punteggio Agronomico | ✅ Completato    | Prima versione operativa basata su spazio, rotazione e consociazione con pesi configurabili.               |
-| FamilyNeedsEngine                | ✅ Integrato      | Prima versione completata nella S011 e integrata nella RecommendationPipeline nella S012 mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
-| SuccessionPlanningEngine        | 📋 Pianificato   | Pianificazione temporale delle coltivazioni per distribuire la produzione e ridurre le sovrapproduzioni.   |
+## 3.3 Motore Agronomico
+
+| Funzionalità                       |       Stato       | Note                                                                                                                                                                                       |
+| ---------------------------------- | :---------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| FreeSpaceEngine                    |   ✅ Completato    | Calcolo automatico degli spazi liberi nelle aiuole.                                                                                                                                        |
+| SuggestionEngine                   |   ✅ Completato    | Generazione dei candidati iniziali sulla base degli spazi disponibili.                                                                                                                     |
+| Companion Engine                   |   ✅ Completato    | Prima versione del motore delle consociazioni.                                                                                                                                             |
+| BedAnalysisService                 |   ✅ Completato    | Servizio di coordinamento delle analisi agronomiche delle aiuole.                                                                                                                          |
+| Bed Companion Analyzer             |   ✅ Completato    | Analisi automatica delle compatibilità tra le colture presenti in un'aiuola.                                                                                                               |
+| RecommendationPipeline             |   ✅ Completato    | Orchestrazione del processo di raccomandazione e coordinamento dei componenti specializzati.                                                                                               |
+| Decision Engine                    |   ✅ Completato    | Interpretazione delle valutazioni agronomiche e calcolo del punteggio finale delle raccomandazioni.                                                                                        |
+| DecisionWeights                    |   ✅ Completato    | Configurazione e validazione dei pesi applicati ai criteri spazio, rotazione e consociazione.                                                                                              |
+| Motore delle Rotazioni             |   ✅ Completato    | Prima versione operativa integrata nella RecommendationPipeline.                                                                                                                           |
+| Sistema di Punteggio Agronomico    |   ✅ Completato    | Prima versione operativa basata su spazio, rotazione e consociazione con pesi configurabili.                                                                                               |
+| FamilyNeedsEngine                  |    ✅ Integrato    | Prima versione completata nella S011 e integrata nella RecommendationPipeline nella S012 mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
+| FamilyConsumptionNeed              |   ✅ Completato    | Modello quantitativo introdotto nella S013 per rappresentare quantità, unità e periodicità del fabbisogno familiare.                                                                       |
+| FamilyConsumptionNeedValidator     |   ✅ Completato    | Validazione dei fabbisogni quantitativi familiari introdotta nella S013.                                                                                                                   |
+| PlannedPlantingBatch               |   ✅ Completato    | Modello introdotto nella S013 per rappresentare un lotto di coltivazione pianificato nel tempo.                                                                                            |
+| PlannedPlantingBatchValidator      |   ✅ Completato    | Validazione dei dati necessari alla rappresentazione dei lotti di coltivazione pianificati.                                                                                                |
+| SuccessionPlanningEngine           |  📋 Pianificato    | Fondamenta dati e validazione predisposte nella S013; prima implementazione deterministica e testabile prevista per la S014.                                                               |
 
 ---
 

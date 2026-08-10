@@ -1981,3 +1981,297 @@ Il checkpoint tecnico di partenza della S013 è:
 - `flutter analyze`: superato;
 - `flutter test`: 86/86;
 - repository pulito e sincronizzato al termine dello sviluppo S012.
+
+---
+
+# Sessione S013 – Fabbisogni quantitativi e lotti di coltivazione pianificati
+
+**Data:** 10/08/2026
+**Stato:** Completata
+**Tipo:** Sviluppo tecnico / preparazione del SuccessionPlanningEngine
+
+### Obiettivo della sessione
+
+La Sessione S013 è stata dedicata alla preparazione delle fondamenta dati e di validazione necessarie alla futura implementazione del `SuccessionPlanningEngine`.
+
+L'obiettivo principale è stato introdurre i modelli necessari per rappresentare quantitativamente il fabbisogno familiare nel tempo e i relativi lotti di coltivazione pianificati, mantenendo separate le responsabilità già definite nell'architettura del Motore Agronomico.
+
+La sessione è partita dalla baseline tecnica consolidata nella S012:
+
+- commit sviluppo: `bf90a62`;
+- `flutter analyze`: superato;
+- `flutter test`: 86/86;
+- repository pulito e sincronizzato.
+
+### Attività svolte
+
+Nel corso della Sessione S013 sono stati introdotti quattro nuovi componenti principali.
+
+#### PlannedPlantingBatch
+
+È stato introdotto il modello `PlannedPlantingBatch`, destinato a rappresentare un lotto di coltivazione pianificato nel tempo.
+
+Il modello costituisce la futura unità operativa prodotta dal `SuccessionPlanningEngine` e permette di mantenere distinta la pianificazione temporale dalle informazioni relative al fabbisogno familiare.
+
+#### PlannedPlantingBatchValidator
+
+È stato introdotto `PlannedPlantingBatchValidator`, responsabile della validazione dei dati necessari alla rappresentazione dei lotti pianificati.
+
+La presenza di un validatore dedicato consente di mantenere separate la struttura dei dati e le relative regole di validità.
+
+#### FamilyConsumptionNeed
+
+È stato introdotto il modello `FamilyConsumptionNeed`, separato da `FamilyCropNeed`.
+
+`FamilyCropNeed` continua a rappresentare la priorità attribuita dalla famiglia a una coltura, mentre `FamilyConsumptionNeed` descrive quantitativamente il consumo familiare nel tempo.
+
+Il modello comprende:
+
+- `cropId`;
+- `quantity`;
+- `unit`;
+- `intervalDays`.
+
+Sono previste inizialmente le seguenti unità:
+
+- pezzi;
+- grammi;
+- chilogrammi.
+
+Questa distinzione permette di rappresentare separatamente concetti differenti quali:
+
+- quanto una coltura sia desiderata dalla famiglia;
+- quale quantità della coltura sia necessaria;
+- con quale periodicità tale quantità debba essere disponibile.
+
+#### FamilyConsumptionNeedValidator
+
+È stato introdotto `FamilyConsumptionNeedValidator`, responsabile della validazione dei fabbisogni quantitativi familiari.
+
+Il validatore impedisce in particolare la definizione di fabbisogni caratterizzati da:
+
+- coltura non specificata;
+- quantità minore o uguale a zero;
+- intervallo minore o uguale a zero.
+
+### Separazione delle responsabilità
+
+La Sessione S013 ha ulteriormente precisato la separazione delle responsabilità relative alle esigenze familiari e alla futura pianificazione temporale.
+
+L'architettura prevista è:
+
+    FamilyCropNeed
+            ↓
+    priorità familiare
+
+    FamilyConsumptionNeed
+            ↓
+    quantità necessaria nel tempo
+
+    PlannedPlantingBatch
+            ↓
+    lotto operativo pianificato
+
+    SuccessionPlanningEngine
+            ↓
+    distribuzione temporale dei lotti
+
+`FamilyCropNeed` e `FamilyConsumptionNeed` rappresentano pertanto due informazioni differenti e non devono essere sovrapposti.
+
+Il primo esprime una priorità qualitativa, mentre il secondo introduce il fabbisogno quantitativo e periodico necessario alla futura pianificazione delle produzioni.
+
+### Modalità operative di coltivazione
+
+Durante la progettazione della futura pianificazione sono state individuate quattro modalità operative che il sistema dovrà progressivamente contemplare:
+
+1. acquisto di piantine e successivo trapianto;
+2. semina in semenzaio seguita da trapianto;
+3. semina diretta a file nell'aiuola;
+4. semina diretta a spaglio nell'aiuola.
+
+Queste modalità richiedono criteri di pianificazione differenti.
+
+Per la semina diretta a file, la pianificazione dovrà essere basata sul numero di **piante finali previste**, anziché sulla sola quantità di seme utilizzata.
+
+La quantità di seme costituisce infatti un'informazione operativa, ma non rappresenta direttamente la quantità di prodotto che sarà resa disponibile alla famiglia.
+
+Per la semina diretta a spaglio, la pianificazione dovrà invece poter utilizzare l'**area coltivata prevista** come riferimento operativo.
+
+La quantità di seme rimane anche in questo caso un dato utile alla gestione della coltivazione, ma non deve essere considerata equivalente alla produzione finale.
+
+### Relazione con il SuccessionPlanningEngine
+
+Nella Sessione S013 non è stato ancora implementato il `SuccessionPlanningEngine`.
+
+Sono state invece realizzate le strutture necessarie affinché la sua prima implementazione possa operare su dati espliciti, separati e validati.
+
+Il flusso concettuale previsto è:
+
+    fabbisogno familiare quantitativo
+            +
+    caratteristiche produttive della coltura o varietà
+            +
+    periodo di consumo desiderato
+            ↓
+    SuccessionPlanningEngine
+            ↓
+    serie di PlannedPlantingBatch
+
+La prima versione del motore dovrà essere deterministica e testabile.
+
+Le successive evoluzioni potranno progressivamente considerare ulteriori fattori quali:
+
+- giorni al raccolto;
+- resa prevista della varietà;
+- metodo di impianto;
+- spazio disponibile;
+- rotazioni;
+- consociazioni;
+- stagionalità;
+- condizioni meteorologiche.
+
+### Test eseguiti
+
+La Sessione S013 è partita da una baseline di **86 test automatici**.
+
+Sono stati aggiunti:
+
+- 3 test per `PlannedPlantingBatch`;
+- 7 test per `PlannedPlantingBatchValidator`;
+- 2 test per `FamilyConsumptionNeed`;
+- 6 test per `FamilyConsumptionNeedValidator`.
+
+Sono stati quindi introdotti complessivamente **18 nuovi test automatici**.
+
+La baseline complessiva è passata da:
+
+**86 → 104 test automatici.**
+
+Al termine dello sviluppo sono stati eseguiti i controlli globali:
+
+- `flutter analyze` – **No issues found**;
+- `flutter test` – **104/104 All tests passed**.
+
+Non sono state rilevate regressioni rispetto alla baseline precedente.
+
+### Decisioni progettuali
+
+La Sessione S013 ha consolidato i seguenti principi:
+
+1. la priorità familiare e il fabbisogno quantitativo familiare rappresentano concetti distinti;
+2. `FamilyCropNeed` continua a rappresentare la priorità familiare;
+3. `FamilyConsumptionNeed` rappresenta quantità e periodicità del consumo;
+4. `PlannedPlantingBatch` rappresenta il lotto operativo pianificato;
+5. la quantità di seme non deve essere considerata equivalente alla produzione finale;
+6. la semina diretta a file dovrà essere pianificata considerando le piante finali previste;
+7. la semina a spaglio dovrà poter essere pianificata considerando l'area coltivata prevista;
+8. il futuro `SuccessionPlanningEngine` rimane responsabile della distribuzione temporale dei lotti.
+
+### Database
+
+Nel corso della Sessione S013 non sono state indicate modifiche alla struttura o ai dati del database Supabase.
+
+I nuovi componenti riguardano il dominio applicativo e la preparazione del futuro sistema di pianificazione.
+
+L'eventuale persistenza dei fabbisogni quantitativi e dei lotti pianificati dovrà essere definita separatamente quando tale necessità verrà affrontata.
+
+### Stato del progetto
+
+Al termine della Sessione S013 Orto Smart dispone delle prime strutture esplicite necessarie alla futura pianificazione quantitativa e temporale delle coltivazioni.
+
+Lo stato raggiunto comprende:
+
+- modello `PlannedPlantingBatch`;
+- `PlannedPlantingBatchValidator`;
+- modello `FamilyConsumptionNeed`;
+- `FamilyConsumptionNeedValidator`;
+- separazione tra priorità familiare e fabbisogno quantitativo;
+- rappresentazione della periodicità mediante `intervalDays`;
+- prime unità quantitative: pezzi, grammi e chilogrammi;
+- definizione delle quattro modalità operative di coltivazione da considerare nella futura pianificazione;
+- distinzione tra quantità di seme e produzione finale prevista;
+- predisposizione architetturale per il futuro `SuccessionPlanningEngine`;
+- 104 test automatici complessivi superati;
+- `flutter analyze` senza errori.
+
+### Git
+
+#### Commit sviluppo
+
+`9dfbcf6 Introduce fabbisogni quantitativi e lotti pianificati`
+
+Il commit comprende:
+
+- 8 file modificati;
+- 398 inserimenti.
+
+Il commit è stato pubblicato correttamente su GitHub.
+
+Al termine dello sviluppo della Sessione S013:
+
+- `main = origin/main`;
+- working tree pulito.
+
+### Tempo di lavoro
+
+| Attività                 |      Tempo |
+| ------------------------ | ---------: |
+| Sviluppo software        | 1 h 23 min |
+| Documentazione           |     44 min |
+| **Totale Sessione S013** | **2 h 07 min** |
+
+Il tempo indicato comprende esclusivamente il lavoro effettivamente svolto.
+
+La fase di sviluppo della S013 si è svolta il 10/08/2026 dalle 10:44 alle 12:20, con una pausa dalle 10:50 alle 11:03 esclusa integralmente dal conteggio.
+
+La Sessione Manuali S013 si è svolta il 10/08/2026 dalle 12:23 alle 13:07, senza pause dichiarate.
+
+Il tempo complessivo effettivo della Sessione S013 è pertanto pari a 2 h 07 min.
+
+### Esito della sessione
+
+La Sessione S013 ha predisposto le fondamenta dati e di validazione necessarie alla futura pianificazione scalare delle coltivazioni.
+
+La distinzione tra `FamilyCropNeed` e `FamilyConsumptionNeed` consente ora di separare chiaramente la priorità qualitativa attribuita a una coltura dalla quantità effettivamente necessaria alla famiglia nel tempo.
+
+L'introduzione di `PlannedPlantingBatch` fornisce inoltre il modello destinato a rappresentare i singoli lotti prodotti dal futuro sistema di pianificazione.
+
+Lo sviluppo tecnico della sessione si è concluso con `flutter analyze` senza errori e **104 test automatici superati**.
+
+### Prossimi passi
+
+La Sessione S014 sarà dedicata alla prima implementazione del `SuccessionPlanningEngine`.
+
+L'obiettivo principale sarà realizzare una prima versione deterministica e testabile capace di trasformare un fabbisogno familiare quantitativo e periodico in una sequenza temporale validata di `PlannedPlantingBatch`.
+
+Il flusso iniziale previsto è:
+
+    fabbisogno familiare
+            +
+    caratteristiche produttive della coltura/varietà
+            +
+    periodo di consumo desiderato
+            ↓
+    SuccessionPlanningEngine
+            ↓
+    serie di PlannedPlantingBatch
+
+La prima implementazione dovrà concentrarsi sulla generazione deterministica dei lotti senza anticipare l'intero sistema agronomico futuro.
+
+Le evoluzioni successive potranno integrare progressivamente:
+
+- giorni al raccolto;
+- resa prevista della varietà;
+- metodo di impianto;
+- spazio disponibile;
+- rotazioni;
+- consociazioni;
+- stagionalità;
+- condizioni meteorologiche.
+
+Il checkpoint tecnico di partenza della S014 è:
+
+- commit sviluppo: `9dfbcf6`;
+- `flutter analyze`: superato;
+- `flutter test`: 104/104;
+- repository pulito e sincronizzato al termine dello sviluppo S013.

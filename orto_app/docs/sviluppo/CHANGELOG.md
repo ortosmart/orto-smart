@@ -4,14 +4,14 @@
 
 # Registro delle modifiche
 
-**Versione:** 1.3
+**Versione:** 1.4
 **Stato:** Approvato
 
-**Autore:** Renzo Siega  
+**Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 09/08/2026
+**Ultimo aggiornamento:** 10/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -19,29 +19,30 @@
 
 # Informazioni sul documento
 
-| Campo | Valore |
-|--------|--------|
-| Documento | CHANGELOG |
-| Titolo | Registro delle modifiche |
-| Versione | 1.3 |
-| Stato | Approvato |
-| Progetto | Orto Smart |
-| Repository | ortosmart/orto-smart |
-| Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 09/08/2026 |
+| Campo                | Valore                   |
+| -------------------- | ------------------------ |
+| Documento            | CHANGELOG                |
+| Titolo               | Registro delle modifiche |
+| Versione             | 1.4                      |
+| Stato                | Approvato                |
+| Progetto             | Orto Smart               |
+| Repository           | ortosmart/orto-smart     |
+| Prima emissione      | 27/07/2026               |
+| Ultimo aggiornamento | 10/08/2026               |
 
 ---
 
 # Cronologia delle revisioni
 
-| Versione | Data       | Descrizione                                                                                                      |
-| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------- |
-| 0.1      | 27/07/2026 | Prima emissione del documento CHANGELOG                                                                          |
-| 0.2      | 01/08/2026 | Revisione della struttura documentale e allineamento con la documentazione tecnica                               |
-| 1.0      | 01/08/2026 | Revisione completa e approvazione del CHANGELOG                                                                  |
-| 1.1      | 08/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.4-alpha e introduzione di DecisionWeights                        |
-| 1.2      | 09/08/2026 | Aggiornamento del CHANGELOG con la prima implementazione del FamilyNeedsEngine                                   |
+| Versione | Data       | Descrizione                                                                                                               |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 0.1      | 27/07/2026 | Prima emissione del documento CHANGELOG                                                                                   |
+| 0.2      | 01/08/2026 | Revisione della struttura documentale e allineamento con la documentazione tecnica                                        |
+| 1.0      | 01/08/2026 | Revisione completa e approvazione del CHANGELOG                                                                           |
+| 1.1      | 08/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.4-alpha e introduzione di DecisionWeights                                 |
+| 1.2      | 09/08/2026 | Aggiornamento del CHANGELOG con la prima implementazione del FamilyNeedsEngine                                            |
 | 1.3      | 09/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.6-alpha e integrazione del FamilyNeedsEngine nella RecommendationPipeline |
+| 1.4      | 10/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.7-alpha e introduzione dei fabbisogni quantitativi e dei lotti pianificati |
 
 ---
 
@@ -323,17 +324,58 @@ Nessuna modifica.
 
 ---
 
+## 3.8 Versione 0.1.7-alpha
+
+**Data:** 10/08/2026
+
+### Aggiunto
+
+- Introdotto `PlannedPlantingBatch` come modello destinato a rappresentare un lotto di coltivazione pianificato nel tempo.
+- Introdotto `PlannedPlantingBatchValidator` per la validazione dei dati necessari alla rappresentazione dei lotti pianificati.
+- Introdotto `FamilyConsumptionNeed` come modello quantitativo, separato da `FamilyCropNeed`, per rappresentare il fabbisogno familiare nel tempo.
+- Introdotti in `FamilyConsumptionNeed` i dati `cropId`, `quantity`, `unit` e `intervalDays`.
+- Previste inizialmente le unità pezzi, grammi e chilogrammi.
+- Introdotto `FamilyConsumptionNeedValidator` per la validazione dei fabbisogni quantitativi familiari.
+- Aggiunti complessivamente 18 nuovi test automatici dedicati ai nuovi modelli e validator.
+
+### Modificato
+
+- Baseline dei test automatici portata da 86 a 104 test superati.
+- Evoluta la rappresentazione delle esigenze familiari distinguendo la priorità qualitativa dal fabbisogno quantitativo e periodico.
+
+### Architettura
+
+- Mantenuta separata la responsabilità di `FamilyCropNeed`, dedicato alla priorità familiare, da quella di `FamilyConsumptionNeed`, dedicato alla quantità necessaria nel tempo.
+- Definito `PlannedPlantingBatch` come futura unità operativa della pianificazione temporale delle coltivazioni.
+- Predisposte le fondamenta dati e di validazione necessarie alla futura implementazione del `SuccessionPlanningEngine`.
+- Individuate quattro modalità operative da contemplare nella futura pianificazione: acquisto di piantine e trapianto, semina in semenzaio seguita da trapianto, semina diretta a file e semina diretta a spaglio.
+- Stabilito che la semina diretta a file dovrà essere pianificata considerando il numero di piante finali previste.
+- Stabilito che la semina diretta a spaglio dovrà poter essere pianificata considerando l'area coltivata prevista.
+- Mantenuta distinta la quantità di seme dalla produzione finale prevista.
+- Rinviata alla S014 la prima implementazione deterministica e testabile del `SuccessionPlanningEngine`.
+
+### Corretto
+
+Nessuna correzione specifica.
+
+### Sicurezza
+
+Nessuna modifica.
+
+---
+
 # 4. Cronologia versioni
 
-| Versione    | Data       | Stato      | Note                                                                                                                                                                                |
-| ----------- | ---------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto.                                                                                                                                            |
-| 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico.                                                                                                  |
-| 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche.                                                        |
-| 0.1.3-alpha | 06/08/2026 | Archiviata | Introdotta `RecommendationPipeline` come orchestratore del processo di raccomandazione e consolidata la nuova architettura del Motore Agronomico.                                   |
-| 0.1.4-alpha | 08/08/2026 | Archiviata | Introdotto `DecisionWeights` e resa configurabile la ponderazione dei criteri utilizzati dal `DecisionEngine`.                                                                      |
-| 0.1.5-alpha | 09/08/2026 | Archiviata | Implementata la prima versione del `FamilyNeedsEngine` per la valutazione delle priorità e dei fabbisogni familiari.                                                                |
-| 0.1.6-alpha | 09/08/2026 | Corrente   | Integrato il `FamilyNeedsEngine` nella `RecommendationPipeline` mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico.                   |                          |
+| Versione    | Data       | Stato      | Note                                                                                                                                                              |
+| ----------- | ---------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto.                                                                                                                          |
+| 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico.                                                                                |
+| 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche.                                      |
+| 0.1.3-alpha | 06/08/2026 | Archiviata | Introdotta `RecommendationPipeline` come orchestratore del processo di raccomandazione e consolidata la nuova architettura del Motore Agronomico.                 |
+| 0.1.4-alpha | 08/08/2026 | Archiviata | Introdotto `DecisionWeights` e resa configurabile la ponderazione dei criteri utilizzati dal `DecisionEngine`.                                                    |
+| 0.1.5-alpha | 09/08/2026 | Archiviata | Implementata la prima versione del `FamilyNeedsEngine` per la valutazione delle priorità e dei fabbisogni familiari.                                              |
+| 0.1.6-alpha | 09/08/2026 | Archiviata | Integrato il `FamilyNeedsEngine` nella `RecommendationPipeline` mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
+| 0.1.7-alpha | 10/08/2026 | Corrente   | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro `SuccessionPlanningEngine`.                           |
 
 ---
 
