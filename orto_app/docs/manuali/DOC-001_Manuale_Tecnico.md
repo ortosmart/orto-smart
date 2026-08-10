@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 1.1
-**Stato:** Approvato  
+**Versione:** 1.2
+**Stato:** Approvato
 
-**Autore:** Renzo Siega  
-**Progetto:** Orto Smart  
+**Autore:** Renzo Siega
+**Progetto:** Orto Smart
 
-**Data prima emissione:** 26/07/2026  
-**Ultimo aggiornamento:** 08/08/2026
+**Data prima emissione:** 26/07/2026
+**Ultimo aggiornamento:** 10/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,25 +23,29 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 1.1 |
+| Versione | 1.2 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 08/08/2026 |
+| Ultimo aggiornamento | 10/08/2026 |
 
 ---
 
 # Cronologia delle revisioni
 
-| Versione | Data       | Descrizione                                                                                       |
-| -------- | ---------- | ------------------------------------------------------------------------------------------------- |
-| 0.1      | 26/07/2026 | Prima emissione del Manuale Tecnico                                                               |
-| 0.2      | 27/07/2026 | Aggiornamento architettura e struttura documentale                                                |
-| 1.0      | 31/07/2026 | Revisione completa e approvazione del Manuale Tecnico                                             |
-| 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico con RecommendationPipeline, DecisionEngine e DecisionWeights |
+# Cronologia delle revisioni
+
+| Versione | Data       | Descrizione                                                                                                                                                            |
+| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1      | 26/07/2026 | Prima emissione del Manuale Tecnico                                                                                                                                    |
+| 0.2      | 27/07/2026 | Aggiornamento architettura e struttura documentale                                                                                                                     |
+| 1.0      | 31/07/2026 | Revisione completa e approvazione del Manuale Tecnico                                                                                                                  |
+| 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico con RecommendationPipeline, DecisionEngine e DecisionWeights                                                                       |
+| 1.2      | 10/08/2026 | Consolidamento dell'evoluzione del Motore Agronomico con FamilyNeedsEngine, integrazione delle priorità familiari e fondamenta dati e di validazione del futuro SuccessionPlanningEngine |
+
 ---
 
 # Indice
@@ -1532,7 +1536,7 @@ L'architettura attualmente implementata può essere rappresentata dal seguente s
 Repository Layer
         │
         ▼
- Modelli e risultati di analisi
+Modelli e risultati di analisi
         │
         ▼
 RecommendationPipeline
@@ -1543,6 +1547,7 @@ RecommendationPipeline
         ├── SpaceScoreCalculator
         ├── DecisionEngine
         │       └── DecisionWeights
+        ├── FamilyNeedsEngine
         └── RecommendationMapper
         │
         ▼
@@ -1554,9 +1559,36 @@ Flutter UI
 
 La `RecommendationPipeline` costituisce il componente di orchestrazione del processo di raccomandazione.
 
-La pipeline coordina i motori e i componenti specializzati, raccoglie le valutazioni agronomiche, demanda al `DecisionEngine` l'interpretazione dei risultati e utilizza `RecommendationMapper` per produrre il modello destinato all'interfaccia utente.
+La pipeline coordina i motori e i componenti specializzati, raccoglie le valutazioni agronomiche, demanda al `DecisionEngine` il calcolo del punteggio agronomico, integra la priorità familiare prodotta dal `FamilyNeedsEngine` e utilizza `RecommendationMapper` per produrre il modello destinato all'interfaccia utente.
 
 Il `DecisionEngine` applica criteri ponderati mediante `DecisionWeights`, mantenendo separata la configurazione dei pesi dalla logica decisionale.
+
+Il `FamilyNeedsEngine` rimane separato dal punteggio agronomico e interviene nella `RecommendationPipeline` secondo l'ordinamento gerarchico definito dal sistema di raccomandazione.
+
+A partire dalla Sessione S013 sono inoltre presenti le fondamenta dati e di validazione per il futuro sistema di pianificazione temporale delle coltivazioni:
+
+```text
+FamilyConsumptionNeed
+        │
+        ├── FamilyConsumptionNeedValidator
+        │
+        ▼
+fabbisogno quantitativo e periodico
+        │
+        ▼
+futuro SuccessionPlanningEngine
+        │
+        ▼
+PlannedPlantingBatch
+        │
+        └── PlannedPlantingBatchValidator
+```
+
+`FamilyConsumptionNeed` rappresenta il fabbisogno quantitativo e periodico della famiglia, mentre `PlannedPlantingBatch` rappresenta il lotto operativo pianificato.
+
+I relativi validator mantengono separate le regole di validità dalla rappresentazione dei dati e dalla futura logica di pianificazione.
+
+Il `SuccessionPlanningEngine` non è ancora implementato e viene riportato nello schema esclusivamente come componente futuro verso il quale convergono le strutture introdotte nella S013.
 
 I singoli componenti rimangono specializzati e indipendenti, consentendo l'evoluzione del Motore Agronomico senza concentrare responsabilità differenti in un unico modulo.
 
@@ -1723,6 +1755,122 @@ La separazione architetturale attuale può essere rappresentata come:
     ordinamento gerarchico finale
 
 Il futuro `SuccessionPlanningEngine` rimane separato da questo processo e sarà responsabile della pianificazione quantitativa e temporale delle coltivazioni, comprese quantità, lotti e distribuzione delle produzioni nel tempo.
+
+### FamilyConsumptionNeed
+
+`FamilyConsumptionNeed` è il modello destinato a rappresentare quantitativamente il fabbisogno familiare di una coltura nel tempo.
+
+È distinto da `FamilyCropNeed`, che continua a rappresentare la priorità qualitativa attribuita dalla famiglia a una coltura.
+
+Il modello comprende:
+
+- `cropId`;
+- `quantity`;
+- `unit`;
+- `intervalDays`.
+
+`quantity` rappresenta la quantità richiesta dalla famiglia, mentre `intervalDays` esprime l'intervallo temporale con cui tale quantità deve essere resa disponibile.
+
+Sono inizialmente previste le seguenti unità:
+
+- pezzi;
+- grammi;
+- chilogrammi.
+
+La separazione tra i due modelli può essere sintetizzata come:
+
+    FamilyCropNeed
+            ↓
+    priorità familiare
+
+    FamilyConsumptionNeed
+            ↓
+    quantità necessaria nel tempo
+
+`FamilyConsumptionNeed` costituisce una delle informazioni di ingresso previste per il futuro `SuccessionPlanningEngine`.
+
+Il modello non determina autonomamente il numero di lotti, le date di coltivazione o la quantità di seme necessaria.
+
+### FamilyConsumptionNeedValidator
+
+`FamilyConsumptionNeedValidator` è il componente responsabile della validazione dei dati rappresentati da `FamilyConsumptionNeed`.
+
+La validazione impedisce la definizione di fabbisogni quantitativi non validi, in particolare quando:
+
+- la coltura non è specificata;
+- la quantità è minore o uguale a zero;
+- l'intervallo temporale è minore o uguale a zero.
+
+La validazione viene mantenuta separata dal modello e dalla futura logica di pianificazione.
+
+### PlannedPlantingBatch
+
+`PlannedPlantingBatch` è il modello destinato a rappresentare un lotto di coltivazione pianificato nel tempo.
+
+Il modello costituisce la futura unità operativa prodotta dal `SuccessionPlanningEngine`.
+
+La separazione concettuale adottata è:
+
+    FamilyConsumptionNeed
+            ↓
+    quantità necessaria nel tempo
+
+    PlannedPlantingBatch
+            ↓
+    lotto operativo pianificato
+
+    SuccessionPlanningEngine
+            ↓
+    distribuzione temporale dei lotti
+
+Nella Sessione S013 è stato introdotto il modello necessario alla rappresentazione dei lotti, mentre il `SuccessionPlanningEngine` non è ancora implementato.
+
+La futura pianificazione dovrà contemplare differenti modalità operative:
+
+1. acquisto di piantine e trapianto;
+2. semina in semenzaio seguita da trapianto;
+3. semina diretta a file nell'aiuola;
+4. semina diretta a spaglio nell'aiuola.
+
+Per la semina diretta a file, la pianificazione dovrà utilizzare come riferimento il numero di piante finali previste e non considerare la quantità di seme come equivalente alla produzione finale.
+
+Per la semina diretta a spaglio, il sistema dovrà invece poter utilizzare come riferimento l'area coltivata prevista.
+
+La quantità di seme rimane un'informazione operativa distinta dalla produzione finale attesa.
+
+### PlannedPlantingBatchValidator
+
+`PlannedPlantingBatchValidator` è il componente responsabile della validazione dei dati necessari alla rappresentazione di un `PlannedPlantingBatch`.
+
+La presenza di un validatore dedicato mantiene separate:
+
+- la rappresentazione del lotto pianificato;
+- le regole che ne determinano la validità;
+- la futura logica che genererà e distribuirà temporalmente i lotti.
+
+Il validatore costituisce quindi una delle fondamenta necessarie alla futura implementazione del `SuccessionPlanningEngine`.
+
+### SuccessionPlanningEngine
+
+Il `SuccessionPlanningEngine` è un componente pianificato e non ancora implementato.
+
+La sua responsabilità sarà trasformare il fabbisogno familiare quantitativo e periodico in una sequenza temporale di lotti di coltivazione pianificati.
+
+Il flusso previsto è:
+
+    fabbisogno familiare quantitativo
+            +
+    caratteristiche produttive della coltura o varietà
+            +
+    periodo di consumo desiderato
+            ↓
+    SuccessionPlanningEngine
+            ↓
+    serie di PlannedPlantingBatch
+
+La prima implementazione prevista dovrà essere deterministica e testabile.
+
+Le evoluzioni successive potranno considerare progressivamente fattori quali giorni al raccolto, resa prevista, metodo di impianto, spazio disponibile, rotazioni, consociazioni, stagionalità e condizioni meteorologiche.
 
 ### RecommendationMapper
 
