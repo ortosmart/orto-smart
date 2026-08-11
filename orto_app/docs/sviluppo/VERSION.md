@@ -3,9 +3,9 @@
 | Campo             | Valore               |
 | ----------------- | -------------------- |
 | Progetto          | Orto Smart           |
-| Versione corrente | 0.1.7-alpha          |
+| Versione corrente | 0.1.8-alpha          |
 | Stato             | Alpha                |
-| Data versione     | 10/08/2026           |
+| Data versione     | 11/08/2026           |
 | Linguaggio        | Flutter / Dart       |
 | Backend           | Supabase             |
 | Repository        | ortosmart/orto-smart |
@@ -18,7 +18,7 @@ Orto Smart è attualmente in fase **Alpha**.
 
 L'architettura principale dell'applicazione è stata definita e il motore agronomico dispone dei componenti fondamentali per l'analisi delle aiuole e la generazione delle raccomandazioni.
 
-A partire dalla versione `0.1.7-alpha` sono inoltre disponibili le prime strutture dati e di validazione necessarie alla futura pianificazione quantitativa e temporale delle coltivazioni.
+A partire dalla versione `0.1.8-alpha` è inoltre disponibile la prima versione del `SuccessionPlanningEngine`, che utilizza le strutture dati e di validazione introdotte nella versione precedente per generare una sequenza temporale validata di lotti di coltivazione pianificati.
 
 Lo sviluppo prosegue con l'introduzione delle funzionalità agronomiche previste dalla Roadmap di Sviluppo.
 
@@ -59,8 +59,7 @@ Lo sviluppo prosegue con l'introduzione delle funzionalità agronomiche previste
 - FamilyConsumptionNeedValidator
 - PlannedPlantingBatch
 - PlannedPlantingBatchValidator
-
-Il `SuccessionPlanningEngine` non è ancora implementato. La versione `0.1.7-alpha` ne predispone le fondamenta dati e di validazione attraverso `FamilyConsumptionNeed`, `FamilyConsumptionNeedValidator`, `PlannedPlantingBatch` e `PlannedPlantingBatchValidator`.
+- SuccessionPlanningEngine
 
 ## Backend
 
@@ -100,6 +99,7 @@ Il presente documento riporta esclusivamente la versione corrente del software e
 | 0.1.5-alpha | 09/08/2026 | Archiviata | Implementata la prima versione del FamilyNeedsEngine per la valutazione delle priorità e dei fabbisogni familiari.                                            |
 | 0.1.6-alpha | 09/08/2026 | Archiviata | Integrato il FamilyNeedsEngine nella RecommendationPipeline mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
 | 0.1.7-alpha | 10/08/2026 | Corrente   | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro SuccessionPlanningEngine.                         |
+| 0.1.8-alpha | 11/08/2026 | Corrente   | Implementata la prima versione del SuccessionPlanningEngine per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
 
 ---
 

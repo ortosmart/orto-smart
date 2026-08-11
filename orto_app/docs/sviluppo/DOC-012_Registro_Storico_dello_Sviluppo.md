@@ -4,14 +4,14 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 2.4
+**Versione:** 2.5
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 10/08/2026
+**Ultimo aggiornamento:** 11/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 2.4 |
+| Versione | 2.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 10/08/2026 |
+| Ultimo aggiornamento | 11/08/2026 |
 
 ---
 
@@ -42,6 +42,7 @@
 | 2.2      | 09/08/2026 | Aggiornamento del Registro Storico con la Sessione S011 e introduzione della prima versione del FamilyNeedsEngine                                            |
 | 2.3      | 09/08/2026 | Aggiornamento del Registro Storico con la Sessione S012 e integrazione del FamilyNeedsEngine nella RecommendationPipeline                                    |
 | 2.4      | 10/08/2026 | Aggiornamento del Registro Storico con la Sessione S013 e predisposizione delle fondamenta del futuro SuccessionPlanningEngine                               |
+| 2.5      | 11/08/2026 | Aggiornamento del Registro Storico con la Sessione S014 e prima implementazione del SuccessionPlanningEngine                                                      |
 
 ---
 
@@ -95,13 +96,13 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 | Indicatore                          | Valore                                           |
 | ----------------------------------- | ------------------------------------------------ |
-| Sessioni completate                 | 13                                               |
-| Tempo complessivo di sviluppo       | 43 h 30 min\*                                    |
-| Tempo complessivo di documentazione | 13 h 33 min                                      |
-| Tempo complessivo progetto          | 57 h 03 min                                      |
+| Sessioni completate                 | 14                                               |
+| Tempo complessivo di sviluppo       | 45 h 02 min\*                                    |
+| Tempo complessivo di documentazione | 14 h 47 min                                      |
+| Tempo complessivo progetto          | 59 h 49 min                                      |
 | Prima sessione                      | S001                                             |
-| Ultima sessione                     | S013                                             |
-| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S013 |
+| Ultima sessione                     | S014                                             |
+| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S014 |
 
 \* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
@@ -126,6 +127,7 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo di svilupp
 | **S011** | Prima implementazione del FamilyNeedsEngine per la valutazione delle priorità e dei fabbisogni familiari | **2 h 27 min** | **53 h 14 min** |
 | **S012** | Integrazione del FamilyNeedsEngine nella RecommendationPipeline mediante ordinamento gerarchico delle raccomandazioni | **1 h 42 min** | **54 h 56 min** |
 | **S013** | Introduzione dei fabbisogni quantitativi familiari e dei lotti pianificati come fondamenta del futuro SuccessionPlanningEngine | **2 h 07 min** | **57 h 03 min** |
+| **S014** | Prima implementazione del SuccessionPlanningEngine per la generazione temporale validata dei lotti di coltivazione | **1 h 32 min** | **59 h 49 min** |
 
 ---
 
@@ -163,6 +165,7 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S011** | FamilyNeedsEngine | Prima implementazione del motore dedicato alla valutazione delle priorità e dei fabbisogni familiari, mantenuto separato dalla futura pianificazione quantitativa e temporale delle coltivazioni. |
 | **S012** | Integrazione FamilyNeedsEngine nella RecommendationPipeline | Integrazione delle esigenze familiari nel processo di raccomandazione mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico, mantenendo invariato il punteggio agronomico del DecisionEngine. |
 | **S013** | Fondamenta del SuccessionPlanningEngine | Introduzione di `FamilyConsumptionNeed`, `FamilyConsumptionNeedValidator`, `PlannedPlantingBatch` e `PlannedPlantingBatchValidator` come fondamenta dati e di validazione per la futura pianificazione quantitativa e temporale delle coltivazioni. |
+| **S014** | Prima versione del SuccessionPlanningEngine                | Implementazione della prima versione deterministica del `SuccessionPlanningEngine`, capace di trasformare un `FamilyConsumptionNeed` in una sequenza temporale validata di `PlannedPlantingBatch`, rifiutando le conversioni tra fabbisogno familiare e quantità di impianto non supportate dai dati agronomici disponibili. |
 
 ---
 
@@ -182,13 +185,13 @@ Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e
 
 | Indicatore                    | Valore attuale |
 | ----------------------------- | -------------- |
-| Sessioni completate           | 13             |
-| Ore di sviluppo consolidate   | 43 h 30 min    |
-| Ore di documentazione         | 13 h 33 min    |
-| Totale ore progetto           | 57 h 03 min    |
-| Motori agronomici completati  | 4              |
+| Sessioni completate           | 14             |
+| Ore di sviluppo consolidate   | 45 h 02 min    |
+| Ore di documentazione         | 14 h 47 min    |
+| Totale ore progetto           | 59 h 49 min    |
+| Motori agronomici completati  | 5              |
 | Documenti ufficiali approvati | 10             |
-| Ultima sessione completata    | S013           |
+| Ultima sessione completata    | S014           |
 | Sessione in corso             | Nessuna        |
 
 Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.

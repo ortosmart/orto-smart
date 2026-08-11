@@ -2275,3 +2275,295 @@ Il checkpoint tecnico di partenza della S014 è:
 - `flutter analyze`: superato;
 - `flutter test`: 104/104;
 - repository pulito e sincronizzato al termine dello sviluppo S013.
+
+---
+
+# Sessione S014 – Prima implementazione del SuccessionPlanningEngine
+
+**Data:** 10–11/08/2026
+**Stato:** Completata
+**Tipo:** Sviluppo tecnico / pianificazione temporale delle coltivazioni
+
+### Obiettivo della sessione
+
+La Sessione S014 è stata dedicata alla prima implementazione del `SuccessionPlanningEngine`, utilizzando le fondamenta dati e di validazione predisposte nella Sessione S013.
+
+L'obiettivo principale è stato realizzare una prima versione deterministica e testabile capace di trasformare un `FamilyConsumptionNeed` in una sequenza temporale di `PlannedPlantingBatch`, mantenendo esplicite e controllate le conversioni tra fabbisogno familiare e quantità di impianto.
+
+La sessione è partita dalla baseline tecnica consolidata nella S013:
+
+- commit sviluppo: `9dfbcf6`;
+- `flutter analyze`: superato;
+- `flutter test`: 104/104;
+- repository pulito e sincronizzato.
+
+### Attività svolte
+
+Nel corso della Sessione S014 è stata implementata la prima versione del `SuccessionPlanningEngine`.
+
+Il nuovo componente è stato creato in:
+
+```text
+lib/core/agronomy/engines/succession_planning_engine.dart
+```
+
+con relativo file di test:
+
+```text
+test/core/agronomy/engines/succession_planning_engine_test.dart
+```
+
+### SuccessionPlanningEngine V1
+
+La prima versione del `SuccessionPlanningEngine` trasforma un fabbisogno familiare quantitativo e periodico in una sequenza temporale di lotti pianificati.
+
+Il motore:
+
+- valida il `FamilyConsumptionNeed` mediante `FamilyConsumptionNeedValidator`;
+- rifiuta intervalli nei quali `startDate > endDate`;
+- genera il primo lotto alla data iniziale;
+- genera i lotti successivi secondo `intervalDays`;
+- include un lotto soltanto se la relativa data rimane entro `endDate`;
+- propaga il `cropId`;
+- supporta un `varietyId` opzionale;
+- valida ogni lotto mediante `PlannedPlantingBatchValidator`;
+- impedisce combinazioni incoerenti tra metodo di avvio e tipo di quantità.
+
+La validazione di `intervalDays` impedisce inoltre valori minori o uguali a zero, evitando che la generazione temporale possa produrre un ciclo infinito.
+
+Il comportamento temporale della V1 può essere rappresentato come:
+
+```text
+FamilyConsumptionNeed
+        +
+startDate
+        +
+endDate
+        ↓
+SuccessionPlanningEngine
+        ↓
+PlannedPlantingBatch 1
+        ↓ intervalDays
+PlannedPlantingBatch 2
+        ↓ intervalDays
+PlannedPlantingBatch 3
+        ↓
+...
+fino a endDate
+```
+
+### Regola sulle conversioni
+
+Durante la Sessione S014 è stato stabilito un principio fondamentale per l'evoluzione del sistema:
+
+> Il `SuccessionPlanningEngine` non deve inventare conversioni tra fabbisogno familiare e quantità di impianto quando non dispone delle informazioni agronomiche necessarie.
+
+Nella V1 viene pertanto ammessa esclusivamente la conversione:
+
+```text
+pieces → plants
+```
+
+Sono invece esplicitamente rifiutate conversioni quali:
+
+```text
+pieces → areaSquareCm
+kilograms → plants
+```
+
+e, più in generale, tutte le conversioni che richiederebbero informazioni agronomiche non ancora disponibili.
+
+Ad esempio, un fabbisogno familiare di 5 kg di pomodori non può essere interpretato automaticamente come 5 piante di pomodoro.
+
+Analogamente, un fabbisogno espresso in pezzi non può essere trasformato arbitrariamente in una determinata superficie da seminare.
+
+Questa regola mantiene espliciti i limiti conoscitivi del motore ed evita di introdurre assunzioni agronomiche non supportate dai dati.
+
+### Evoluzione temporale e agronomica
+
+La Sessione S014 ha inoltre chiarito che la semplice successione temporale dei lotti non sarà sufficiente per la versione evoluta del sistema.
+
+Occorrerà distinguere almeno quattro momenti concettualmente differenti:
+
+```text
+quando la famiglia desidera il prodotto
+        ↓
+quando dovrebbe essere disponibile il raccolto
+        ↓
+quando occorre seminare o trapiantare
+        ↓
+se quella data è agronomicamente possibile
+```
+
+Il `SuccessionPlanningEngine` V1 genera attualmente una successione temporale deterministica.
+
+La futura evoluzione dovrà invece permettere di verificare la compatibilità delle date teoriche con le caratteristiche agronomiche della coltura.
+
+Tra i fattori che dovranno essere progressivamente considerati rientrano:
+
+- finestra di semina in semenzaio;
+- finestra di semina diretta;
+- finestra di trapianto;
+- periodo di raccolta;
+- temperature minime;
+- rischio di gelo;
+- localizzazione climatica dell'orto.
+
+La futura architettura non dovrà dipendere esclusivamente da una classificazione rigida Nord/Centro/Sud.
+
+Tale classificazione potrà eventualmente costituire una prima indicazione, ma il sistema dovrà rimanere predisposto all'utilizzo della posizione reale dell'orto e dei dati meteorologici locali.
+
+### Test eseguiti
+
+La Sessione S014 è partita da una baseline di **104 test automatici**.
+
+Sono stati aggiunti:
+
+- 8 test dedicati al `SuccessionPlanningEngine`.
+
+La baseline complessiva è quindi passata da:
+
+**104 → 112 test automatici.**
+
+Al termine dello sviluppo sono stati eseguiti i controlli globali:
+
+- `flutter analyze` – **No issues found!**
+- `flutter test` – **112/112 All tests passed**.
+
+Non sono state rilevate regressioni rispetto alla baseline precedente.
+
+### Decisioni progettuali
+
+La Sessione S014 ha consolidato i seguenti principi:
+
+1. il `SuccessionPlanningEngine` deve produrre una sequenza temporale deterministica di `PlannedPlantingBatch`;
+2. il fabbisogno ricevuto deve essere validato prima della pianificazione;
+3. ogni lotto prodotto deve essere validato;
+4. il motore non deve inventare conversioni non supportate da informazioni agronomiche disponibili;
+5. nella V1 è ammessa esclusivamente la conversione `pieces → plants`;
+6. conversioni che richiedono informazioni produttive o agronomiche aggiuntive devono essere rifiutate;
+7. la successione temporale deve rimanere distinta dalla futura verifica della compatibilità agronomica delle date;
+8. la futura gestione della stagionalità dovrà essere predisposta all'utilizzo della localizzazione reale e dei dati meteorologici locali.
+
+### Database
+
+Nel corso della Sessione S014 non sono state introdotte modifiche alla struttura o ai dati del database Supabase.
+
+Il nuovo `SuccessionPlanningEngine` opera nel dominio applicativo sui modelli già predisposti nella Sessione S013.
+
+La persistenza dei fabbisogni quantitativi e dei lotti pianificati rimane una responsabilità da progettare separatamente quando necessaria.
+
+### Stato del progetto
+
+Al termine della Sessione S014 Orto Smart dispone della prima versione operativa del `SuccessionPlanningEngine`.
+
+Lo stato raggiunto comprende:
+
+- `SuccessionPlanningEngine` V1;
+- generazione deterministica dei lotti secondo `intervalDays`;
+- gestione dell'intervallo `startDate`–`endDate`;
+- propagazione di `cropId`;
+- supporto del `varietyId` opzionale;
+- validazione del fabbisogno in ingresso;
+- validazione dei lotti generati;
+- controllo delle combinazioni tra metodo di avvio e tipo di quantità;
+- principio di non introduzione di conversioni agronomiche arbitrarie;
+- conversione V1 `pieces → plants`;
+- predisposizione concettuale alla futura validazione delle finestre agronomiche;
+- 112 test automatici complessivi superati;
+- `flutter analyze` senza errori.
+
+### Git
+
+#### Commit sviluppo
+
+`e19ae1a Implementa la prima versione del SuccessionPlanningEngine`
+
+Il commit comprende:
+
+- 2 file aggiunti;
+- 231 inserimenti.
+
+Il commit è stato pubblicato correttamente su GitHub.
+
+Al termine dello sviluppo della Sessione S014:
+
+- `main = origin/main`;
+- working tree pulito.
+
+### Tempo di lavoro
+
+| Attività                 |      Tempo |
+| ------------------------ | ---------: |
+| Sviluppo software        | 1 h 32 min |
+| Documentazione           | 1 h 14 min |
+| **Totale Sessione S014** | **2 h 46 min** |
+
+Il tempo indicato comprende esclusivamente il lavoro effettivamente svolto.
+
+La fase di sviluppo della S014 è iniziata il 10/08/2026 alle 16:13 ed è stata sospesa alle 16:33.
+
+La sessione è ripresa l'11/08/2026 alle 09:25 e la fase di sviluppo si è conclusa alle 10:37.
+
+La sospensione dalle 16:33 del 10/08/2026 alle 09:25 dell'11/08/2026 è stata esclusa integralmente dal conteggio.
+
+Il tempo effettivo di sviluppo della Sessione S014 è pertanto pari a 1 h 32 min.
+
+La Sessione Manuali S014 si è svolta l'11/08/2026 dalle 10:50 alle 12:04, senza pause dichiarate.
+
+Il tempo effettivo di documentazione è pari a 1 h 14 min.
+
+Il tempo complessivo effettivo della Sessione S014 è pertanto pari a 2 h 46 min.
+
+### Esito della sessione
+
+La Sessione S014 ha raggiunto l'obiettivo previsto introducendo la prima versione deterministica e testabile del `SuccessionPlanningEngine`.
+
+Il sistema è ora in grado di trasformare un fabbisogno familiare quantitativo e periodico compatibile con le regole della V1 in una sequenza temporale validata di `PlannedPlantingBatch`.
+
+La scelta di rifiutare conversioni non supportate impedisce al motore di introdurre assunzioni arbitrarie sulla relazione tra quantità consumata e quantità da coltivare.
+
+Lo sviluppo tecnico della sessione si è concluso con `flutter analyze` senza errori e **112 test automatici superati**.
+
+### Prossimi passi
+
+La Sessione S015 sarà dedicata alla progettazione e alla prima implementazione del sistema di finestre agronomiche.
+
+Prima di definire nuovi modelli o motori dovrà essere verificato quali dati di calendario colturale siano già disponibili nei modelli e nel database di Orto Smart.
+
+L'obiettivo preliminare è separare le date teoriche prodotte dalla pianificazione dalla verifica della loro effettiva compatibilità con il ciclo colturale.
+
+Il flusso concettuale previsto è:
+
+```text
+SuccessionPlanningEngine
+        ↓
+date teoriche
+        ↓
+PlantingWindow / SeasonalityEngine
+        ↓
+date agronomicamente ammissibili
+```
+
+La prima evoluzione dovrà considerare progressivamente:
+
+- finestre di semina in semenzaio;
+- finestre di semina diretta;
+- finestre di trapianto;
+- periodo di raccolta.
+
+Le successive evoluzioni potranno integrare:
+
+- temperature minime;
+- rischio di gelo;
+- localizzazione reale dell'orto;
+- dati meteorologici locali.
+
+Non dovranno essere introdotte prematuramente regole rigide Nord/Centro/Sud senza aver prima analizzato i dati colturali già disponibili.
+
+Il checkpoint tecnico di partenza della S015 è:
+
+- commit sviluppo: `e19ae1a`;
+- `flutter analyze`: superato;
+- `flutter test`: 112/112;
+- repository pulito e sincronizzato al termine dello sviluppo S014.

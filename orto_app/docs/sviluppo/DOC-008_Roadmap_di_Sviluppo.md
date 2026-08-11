@@ -138,7 +138,8 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | FamilyConsumptionNeedValidator     |   ✅ Completato    | Validazione dei fabbisogni quantitativi familiari introdotta nella S013.                                                                                                                   |
 | PlannedPlantingBatch               |   ✅ Completato    | Modello introdotto nella S013 per rappresentare un lotto di coltivazione pianificato nel tempo.                                                                                            |
 | PlannedPlantingBatchValidator      |   ✅ Completato    | Validazione dei dati necessari alla rappresentazione dei lotti di coltivazione pianificati.                                                                                                |
-| SuccessionPlanningEngine           |  📋 Pianificato    | Fondamenta dati e validazione predisposte nella S013; prima implementazione deterministica e testabile prevista per la S014.                                                               |
+| SuccessionPlanningEngine           | ✅ V1 completata | Prima versione deterministica implementata nella S014: trasforma `FamilyConsumptionNeed` in una sequenza temporale validata di `PlannedPlantingBatch`, senza introdurre conversioni agronomiche non supportate. |
+| Sistema di finestre agronomiche    | 📋 Pianificato  | Prima progettazione prevista nella S015: verifica della compatibilità delle date teoriche di semina o trapianto con il periodo colturale, mantenendo separata questa responsabilità dal `SuccessionPlanningEngine`. |
 
 ---
 

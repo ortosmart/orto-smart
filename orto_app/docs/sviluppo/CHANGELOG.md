@@ -4,14 +4,14 @@
 
 # Registro delle modifiche
 
-**Versione:** 1.4
+**Versione:** 1.5
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 10/08/2026
+**Ultimo aggiornamento:** 11/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------ |
 | Documento            | CHANGELOG                |
 | Titolo               | Registro delle modifiche |
-| Versione             | 1.4                      |
+| Versione             | 1.5                      |
 | Stato                | Approvato                |
 | Progetto             | Orto Smart               |
 | Repository           | ortosmart/orto-smart     |
 | Prima emissione      | 27/07/2026               |
-| Ultimo aggiornamento | 10/08/2026               |
+| Ultimo aggiornamento | 11/08/2026               |
 
 ---
 
@@ -43,6 +43,7 @@
 | 1.2      | 09/08/2026 | Aggiornamento del CHANGELOG con la prima implementazione del FamilyNeedsEngine                                            |
 | 1.3      | 09/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.6-alpha e integrazione del FamilyNeedsEngine nella RecommendationPipeline |
 | 1.4      | 10/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.7-alpha e introduzione dei fabbisogni quantitativi e dei lotti pianificati |
+| 1.5      | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.8-alpha e prima implementazione del SuccessionPlanningEngine               |
 
 ---
 
@@ -364,6 +365,47 @@ Nessuna modifica.
 
 ---
 
+## 3.9 Versione 0.1.8-alpha
+
+**Data:** 11/08/2026
+
+### Aggiunto
+
+- Implementata la prima versione del `SuccessionPlanningEngine`.
+- Introdotta la generazione deterministica di una sequenza temporale di `PlannedPlantingBatch` a partire da un `FamilyConsumptionNeed`.
+- Aggiunta la validazione del `FamilyConsumptionNeed` mediante `FamilyConsumptionNeedValidator` prima della pianificazione.
+- Aggiunta la validazione di ogni lotto generato mediante `PlannedPlantingBatchValidator`.
+- Introdotto il supporto al `varietyId` opzionale nella pianificazione.
+- Aggiunti 8 nuovi test automatici dedicati al `SuccessionPlanningEngine`.
+
+### Modificato
+
+- Baseline dei test automatici portata da 104 a 112 test superati.
+- La pianificazione genera il primo lotto alla data iniziale e i lotti successivi secondo `intervalDays`.
+- La generazione dei lotti viene limitata all'intervallo compreso tra `startDate` ed `endDate`.
+- Il `cropId` viene propagato dal fabbisogno familiare ai lotti pianificati.
+- Le combinazioni incoerenti tra metodo di avvio e tipo di quantità vengono rifiutate.
+
+### Architettura
+
+- Trasformato il `SuccessionPlanningEngine` da componente pianificato a prima versione operativa e testabile.
+- Mantenuta separata la pianificazione temporale dalla futura verifica della compatibilità agronomica delle date.
+- Stabilito che il `SuccessionPlanningEngine` non deve inventare conversioni tra fabbisogno familiare e quantità di impianto in assenza delle informazioni agronomiche necessarie.
+- Ammessa nella V1 esclusivamente la conversione `pieces → plants`.
+- Rifiutate conversioni non supportate, come `pieces → areaSquareCm` e `kilograms → plants`.
+- Mantenuta distinta la quantità richiesta dalla famiglia dalla quantità di impianto quando la conversione richiede informazioni produttive o agronomiche non ancora disponibili.
+- Predisposta l'evoluzione futura verso un sistema separato di verifica delle finestre agronomiche di semina e trapianto.
+
+### Corretto
+
+Nessuna correzione specifica.
+
+### Sicurezza
+
+Nessuna modifica.
+
+---
+
 # 4. Cronologia versioni
 
 | Versione    | Data       | Stato      | Note                                                                                                                                                              |
@@ -375,7 +417,8 @@ Nessuna modifica.
 | 0.1.4-alpha | 08/08/2026 | Archiviata | Introdotto `DecisionWeights` e resa configurabile la ponderazione dei criteri utilizzati dal `DecisionEngine`.                                                    |
 | 0.1.5-alpha | 09/08/2026 | Archiviata | Implementata la prima versione del `FamilyNeedsEngine` per la valutazione delle priorità e dei fabbisogni familiari.                                              |
 | 0.1.6-alpha | 09/08/2026 | Archiviata | Integrato il `FamilyNeedsEngine` nella `RecommendationPipeline` mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
-| 0.1.7-alpha | 10/08/2026 | Corrente   | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro `SuccessionPlanningEngine`.                           |
+| 0.1.7-alpha | 10/08/2026 | Archiviata | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro `SuccessionPlanningEngine`. |
+| 0.1.8-alpha | 11/08/2026 | Corrente   | Implementata la prima versione del `SuccessionPlanningEngine` per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
 
 ---
 
