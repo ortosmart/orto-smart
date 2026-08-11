@@ -4,7 +4,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 1.5
+**Versione:** 1.6
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
@@ -23,7 +23,7 @@
 | -------------------- | ------------------------ |
 | Documento            | CHANGELOG                |
 | Titolo               | Registro delle modifiche |
-| Versione             | 1.5                      |
+| Versione             | 1.6                      |
 | Stato                | Approvato                |
 | Progetto             | Orto Smart               |
 | Repository           | ortosmart/orto-smart     |
@@ -44,6 +44,7 @@
 | 1.3      | 09/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.6-alpha e integrazione del FamilyNeedsEngine nella RecommendationPipeline |
 | 1.4      | 10/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.7-alpha e introduzione dei fabbisogni quantitativi e dei lotti pianificati |
 | 1.5      | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.8-alpha e prima implementazione del SuccessionPlanningEngine               |
+| 1.6      | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.9-alpha e prima implementazione delle finestre agronomiche                 |
 
 ---
 
@@ -54,11 +55,17 @@
 ## 2. Regole di aggiornamento
 
 ## 3. Registro delle versioni
-3.1 Versione 0.1.0-alpha  
-3.2 Versione 0.1.1-alpha  
+
+3.1 Versione 0.1.0-alpha
+3.2 Versione 0.1.1-alpha
 3.3 Versione 0.1.2-alpha
 3.4 Versione 0.1.3-alpha
 3.5 Versione 0.1.4-alpha
+3.6 Versione 0.1.5-alpha
+3.7 Versione 0.1.6-alpha
+3.8 Versione 0.1.7-alpha
+3.9 Versione 0.1.8-alpha
+3.10 Versione 0.1.9-alpha
 
 ## 4. Cronologia versioni
 
@@ -406,6 +413,46 @@ Nessuna modifica.
 
 ---
 
+## 3.10 Versione 0.1.9-alpha
+
+**Data:** 11/08/2026
+
+### Aggiunto
+
+- Introdotto `AgronomicWindow` come modello per rappresentare una finestra agronomica annuale associata a uno specifico `PlannedPlantingStartMethod`.
+- Introdotto `AgronomicWindowValidator` per la validazione strutturale delle finestre agronomiche.
+- Introdotto `AgronomicWindowEngine` per la verifica della compatibilità temporale delle date pianificate.
+- Aggiunto il supporto alle finestre che attraversano il cambio dell'anno.
+- Aggiunta la verifica diretta della compatibilità di un `PlannedPlantingBatch` mediante metodo di avvio e data pianificata.
+- Aggiunti complessivamente 19 nuovi test automatici dedicati a `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`.
+
+### Modificato
+
+- Baseline dei test automatici portata da 112 a 131 test superati.
+- La verifica della stagionalità viene mantenuta separata dalla generazione temporale dei lotti.
+- Gli estremi iniziale e finale delle finestre agronomiche vengono considerati inclusivi.
+- Il confronto stagionale utilizza mese e giorno e mantiene la finestra indipendente da uno specifico anno.
+
+### Architettura
+
+- Mantenuto invariato il `SuccessionPlanningEngine`, che continua a produrre date e lotti teorici.
+- Separata formalmente la pianificazione temporale dalla verifica della compatibilità agronomica.
+- Affidata ad `AgronomicWindowEngine` la responsabilità della verifica temporale delle finestre agronomiche.
+- Stabilito che la compatibilità di un lotto richiede contemporaneamente la corrispondenza del `PlannedPlantingStartMethod` e l'appartenenza della `plannedDate` alla finestra agronomica.
+- Mantenuta la stagionalità V1 separata dalle future correzioni climatiche e meteorologiche.
+- Rinviata alla S016 l'associazione delle finestre agronomiche alle colture e alle varietà.
+- Mantenuta l'architettura predisposta all'utilizzo futuro della localizzazione reale dell'orto, delle temperature, del rischio di gelo e dei dati meteorologici locali, senza introdurre una dipendenza rigida da classificazioni Nord/Centro/Sud.
+
+### Corretto
+
+Nessuna correzione specifica.
+
+### Sicurezza
+
+Nessuna modifica.
+
+---
+
 # 4. Cronologia versioni
 
 | Versione    | Data       | Stato      | Note                                                                                                                                                              |
@@ -418,7 +465,8 @@ Nessuna modifica.
 | 0.1.5-alpha | 09/08/2026 | Archiviata | Implementata la prima versione del `FamilyNeedsEngine` per la valutazione delle priorità e dei fabbisogni familiari.                                              |
 | 0.1.6-alpha | 09/08/2026 | Archiviata | Integrato il `FamilyNeedsEngine` nella `RecommendationPipeline` mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
 | 0.1.7-alpha | 10/08/2026 | Archiviata | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro `SuccessionPlanningEngine`. |
-| 0.1.8-alpha | 11/08/2026 | Corrente   | Implementata la prima versione del `SuccessionPlanningEngine` per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
+| 0.1.8-alpha | 11/08/2026 | Archiviata   | Implementata la prima versione del `SuccessionPlanningEngine` per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
+| 0.1.9-alpha | 11/08/2026 | Corrente   | Introdotte le finestre agronomiche mediante `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`, mantenendo separata la compatibilità agronomica dalla pianificazione temporale del `SuccessionPlanningEngine`. |
 
 ---
 
@@ -429,39 +477,3 @@ Il presente CHANGELOG documenta in modo sintetico l'evoluzione di Orto Smart, re
 La separazione tra CHANGELOG, Quaderno di Sviluppo (DOC-005) e Manuale Tecnico (DOC-001) consente di distinguere chiaramente la cronologia delle versioni, il dettaglio delle attività di sviluppo e l'architettura del progetto, mantenendo la documentazione ordinata e facilmente consultabile.
 
 Il CHANGELOG deve essere aggiornato ad ogni rilascio di una nuova versione significativa dell'applicazione, garantendo la tracciabilità delle principali evoluzioni del software e mantenendo la coerenza con gli altri documenti ufficiali del progetto.
-
----
-
-## 3.6 Versione 0.1.5-alpha
-
-**Data:** 09/08/2026
-
-### Aggiunto
-
-- Introdotto `FamilyCropNeed` come modello per rappresentare il fabbisogno familiare associato a una coltura.
-- Introdotta l'enumerazione `FamilyNeedPriority` con i livelli `none`, `low`, `medium` e `high`.
-- Implementata la prima versione funzionante del `FamilyNeedsEngine`.
-- Introdotta la conversione delle priorità familiari nei valori numerici `0.0`, `0.3`, `0.6` e `1.0`.
-- Aggiunte motivazioni testuali associate alle valutazioni del fabbisogno familiare.
-- Aggiunti 6 test automatici dedicati al `FamilyNeedsEngine`.
-
-### Modificato
-
-- `FamilyRecommendation.cropId` modificato da `int` a `String` per uniformarlo al tipo utilizzato dall'architettura corrente per gli identificativi delle colture.
-- Baseline dei test automatici portata da 78 a 84 test superati.
-
-### Corretto
-
-- Corretta l'incoerenza di tipo relativa a `FamilyRecommendation.cropId`.
-
-### Architettura
-
-- Mantenuto il `FamilyNeedsEngine` autonomo rispetto al `DecisionEngine` e alla `RecommendationPipeline`.
-- Confermata la separazione tra valutazione del fabbisogno familiare e futura pianificazione quantitativa e temporale affidata al previsto `SuccessionPlanningEngine`.
-- Rinviata alla S012 la progettazione dell'integrazione del fabbisogno familiare nel sistema complessivo di raccomandazione.
-
-### Sicurezza
-
-Nessuna modifica.
-
----

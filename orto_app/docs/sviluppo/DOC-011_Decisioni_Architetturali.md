@@ -4,7 +4,7 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 0.7
+**Versione:** 0.8
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
@@ -23,7 +23,7 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 0.7                            |
+| Versione             | 0.8                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
@@ -43,6 +43,7 @@
 | 0.5      | 09/08/2026 | Introduzione della DEC-006 sull'integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione            |
 | 0.6      | 10/08/2026 | Introduzione della DEC-007 sulla separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato           |
 | 0.7      | 11/08/2026 | Introduzione della DEC-008 sul divieto di conversioni implicite non supportate nella pianificazione                        |
+| 0.8      | 11/08/2026 | Introduzione della DEC-009 sulla separazione tra pianificazione temporale e compatibilità agronomica                       |
 
 ---
 
@@ -62,6 +63,7 @@
 3.6 DEC-006 – Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione
 3.7 DEC-007 – Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato
 3.8 DEC-008 – Divieto di conversioni implicite non supportate nella pianificazione
+3.9 DEC-009 – Separazione tra pianificazione temporale e compatibilità agronomica
 
 ## 4. Registro delle decisioni
 
@@ -715,6 +717,175 @@ Le alternative sono state scartate perché avrebbero introdotto assunzioni non s
 
 ---
 
+## 3.9 DEC-009 – Separazione tra pianificazione temporale e compatibilità agronomica
+
+**Stato:** Approvata
+
+**Data:** 11/08/2026
+
+**Sessione:** S015
+
+### Contesto
+
+Con la prima implementazione del `SuccessionPlanningEngine` nella Sessione S014, Orto Smart è diventato in grado di trasformare un `FamilyConsumptionNeed` in una sequenza temporale teorica di `PlannedPlantingBatch`.
+
+La pianificazione deterministica basata su `intervalDays` stabilisce quando generare i diversi lotti, ma non determina se le date ottenute siano effettivamente compatibili con il ciclo agronomico della coltura.
+
+Una data teoricamente corretta dal punto di vista della successione temporale può infatti risultare inadatta per:
+
+- semina in semenzaio;
+- semina diretta;
+- trapianto;
+- altre future modalità operative;
+
+in funzione del periodo dell'anno e, nelle evoluzioni successive, delle caratteristiche della coltura, della varietà, del clima e delle condizioni meteorologiche.
+
+Integrare direttamente tali verifiche nel `SuccessionPlanningEngine` avrebbe progressivamente aumentato le responsabilità del componente, mescolando la generazione temporale dei lotti con la valutazione della loro ammissibilità agronomica.
+
+### Decisione
+
+Mantenere formalmente separate la pianificazione temporale teorica dei lotti e la verifica della loro compatibilità agronomica.
+
+La separazione adottata è:
+
+```text
+FamilyConsumptionNeed
+        ↓
+SuccessionPlanningEngine
+        ↓
+PlannedPlantingBatch
+        ↓
+verifica agronomica separata
+        ↓
+AgronomicWindowEngine
+```
+
+Il `SuccessionPlanningEngine` mantiene la responsabilità di generare la sequenza temporale teorica dei `PlannedPlantingBatch`.
+
+La compatibilità agronomica viene verificata separatamente mediante l'infrastruttura introdotta nella Sessione S015:
+
+```text
+AgronomicWindow
+        ↓
+AgronomicWindowValidator
+        ↓
+AgronomicWindowEngine
+```
+
+`AgronomicWindow` rappresenta una finestra annuale associata a uno specifico `PlannedPlantingStartMethod`.
+
+`AgronomicWindowValidator` verifica la validità strutturale della finestra.
+
+`AgronomicWindowEngine` verifica l'appartenenza temporale di una data alla finestra e la compatibilità di un `PlannedPlantingBatch`.
+
+La compatibilità di un lotto richiede contemporaneamente:
+
+```text
+batch.startMethod == window.startMethod
+```
+
+e:
+
+```text
+batch.plannedDate ∈ AgronomicWindow
+```
+
+Il `SuccessionPlanningEngine` non viene quindi modificato per incorporare direttamente le regole relative alle finestre agronomiche.
+
+### Rappresentazione annuale delle finestre
+
+Le finestre agronomiche vengono rappresentate indipendentemente da uno specifico anno mediante:
+
+- mese iniziale;
+- giorno iniziale;
+- mese finale;
+- giorno finale.
+
+Questa rappresentazione consente di descrivere una stagionalità ricorrente annualmente.
+
+Sono supportate sia finestre comprese nello stesso anno solare:
+
+```text
+15 marzo → 30 settembre
+```
+
+sia finestre che attraversano il cambio dell'anno:
+
+```text
+1 ottobre → 28 febbraio
+```
+
+Gli estremi sono considerati inclusivi.
+
+Il confronto temporale utilizza quindi mese e giorno della data senza rendere la finestra dipendente dall'anno specifico del `PlannedPlantingBatch`.
+
+### Separazione dalla futura correzione climatica e meteorologica
+
+La prima versione delle finestre agronomiche rappresenta esclusivamente una compatibilità stagionale di base.
+
+Non vengono ancora incorporate direttamente informazioni relative a:
+
+- temperature;
+- rischio di gelo;
+- localizzazione geografica;
+- condizioni meteorologiche;
+- dati della stazione meteorologica;
+- adattamento dinamico delle finestre.
+
+L'evoluzione prevista mantiene distinti i diversi livelli:
+
+```text
+pianificazione temporale teorica
+        ↓
+compatibilità stagionale di base
+        ↓
+future correzioni climatiche e meteorologiche
+```
+
+La futura valutazione non dovrà dipendere rigidamente da classificazioni generiche Nord/Centro/Sud.
+
+L'architettura dovrà rimanere predisposta all'utilizzo della localizzazione reale dell'orto e delle informazioni meteorologiche locali.
+
+### Motivazione
+
+- Mantenere il `SuccessionPlanningEngine` dedicato alla pianificazione temporale.
+- Evitare l'accumulo di responsabilità agronomiche nel pianificatore.
+- Separare una data teoricamente pianificata dalla sua effettiva ammissibilità agronomica.
+- Rendere indipendente e testabile la logica delle finestre agronomiche.
+- Consentire l'evoluzione delle regole stagionali senza modificare il motore di successione.
+- Gestire correttamente finestre che attraversano il cambio dell'anno.
+- Distinguere la compatibilità del metodo di avvio dalla sola appartenenza temporale.
+- Preparare l'associazione futura delle finestre a colture e varietà.
+- Preparare l'integrazione futura di temperatura, gelo, localizzazione e meteo reale.
+- Evitare una dipendenza architetturale rigida da classificazioni climatiche generiche.
+
+### Alternative valutate
+
+- Integrare direttamente le finestre agronomiche nel `SuccessionPlanningEngine`.
+- Rendere il `SuccessionPlanningEngine` responsabile sia della generazione sia della correzione delle date.
+- Associare la compatibilità esclusivamente alla data ignorando il metodo di avvio.
+- Rappresentare le finestre mediante intervalli legati a uno specifico anno.
+- Introdurre immediatamente nel motore delle finestre anche temperatura, gelo e dati meteorologici.
+- Utilizzare fin dalla prima versione una classificazione climatica rigida Nord/Centro/Sud.
+
+Le alternative sono state scartate perché avrebbero aumentato l'accoppiamento tra responsabilità differenti, limitato la riutilizzabilità dei componenti o introdotto prematuramente criteri climatici e meteorologici non ancora modellati.
+
+### Conseguenze
+
+- Il `SuccessionPlanningEngine` rimane invariato e continua a produrre lotti teorici.
+- `AgronomicWindow` rappresenta separatamente le finestre agronomiche annuali.
+- `AgronomicWindowValidator` mantiene separate le regole di validità strutturale.
+- `AgronomicWindowEngine` verifica la compatibilità temporale.
+- La compatibilità di un lotto richiede sia metodo di avvio sia data compatibili.
+- Le finestre possono attraversare il cambio dell'anno.
+- Gli estremi delle finestre sono inclusivi.
+- La stagionalità V1 rimane separata da clima e meteo.
+- Le finestre non sono ancora associate direttamente a `Crop` o `CropVariety`.
+- La futura associazione delle finestre alle colture e alle varietà potrà essere introdotta senza modificare la responsabilità del `SuccessionPlanningEngine`.
+- Le future correzioni climatiche e meteorologiche potranno essere aggiunte come livello separato della valutazione agronomica.
+
+---
+
 # 4. Registro delle decisioni
 
 | ID      | Data       | Sessione | Titolo                                                                                | Stato     |
@@ -727,6 +898,7 @@ Le alternative sono state scartate perché avrebbero introdotto assunzioni non s
 | DEC-006 | 09/08/2026 | S012     | Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione       | Approvata |
 | DEC-007 | 10/08/2026 | S013     | Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato       | Approvata |
 | DEC-008 | 11/08/2026 | S014     | Divieto di conversioni implicite non supportate nella pianificazione                      | Approvata |
+| DEC-009 | 11/08/2026 | S015     | Separazione tra pianificazione temporale e compatibilità agronomica                | Approvata |
 
 ---
 
