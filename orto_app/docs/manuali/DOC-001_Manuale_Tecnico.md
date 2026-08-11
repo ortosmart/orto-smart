@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 1.2
+**Versione:** 1.3
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 10/08/2026
+**Ultimo aggiornamento:** 11/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,14 +23,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 1.2 |
+| Versione | 1.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 10/08/2026 |
+| Ultimo aggiornamento | 11/08/2026 |
 
 ---
 
@@ -45,6 +45,7 @@
 | 1.0      | 31/07/2026 | Revisione completa e approvazione del Manuale Tecnico                                                                                                                  |
 | 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico con RecommendationPipeline, DecisionEngine e DecisionWeights                                                                       |
 | 1.2      | 10/08/2026 | Consolidamento dell'evoluzione del Motore Agronomico con FamilyNeedsEngine, integrazione delle priorità familiari e fondamenta dati e di validazione del futuro SuccessionPlanningEngine |
+| 1.3      | 11/08/2026 | Prima implementazione del SuccessionPlanningEngine, generazione temporale dei lotti e introduzione della regola sulle conversioni supportate |
 
 ---
 
@@ -1565,7 +1566,9 @@ Il `DecisionEngine` applica criteri ponderati mediante `DecisionWeights`, manten
 
 Il `FamilyNeedsEngine` rimane separato dal punteggio agronomico e interviene nella `RecommendationPipeline` secondo l'ordinamento gerarchico definito dal sistema di raccomandazione.
 
-A partire dalla Sessione S013 sono inoltre presenti le fondamenta dati e di validazione per il futuro sistema di pianificazione temporale delle coltivazioni:
+A partire dalla Sessione S013 sono presenti le strutture dati e di validazione dedicate alla pianificazione quantitativa e temporale delle coltivazioni.
+
+Nella Sessione S014 tali fondamenta sono state integrate mediante la prima versione operativa del `SuccessionPlanningEngine`:
 
 ```text
 FamilyConsumptionNeed
@@ -1576,19 +1579,21 @@ FamilyConsumptionNeed
 fabbisogno quantitativo e periodico
         │
         ▼
-futuro SuccessionPlanningEngine
+SuccessionPlanningEngine
         │
         ▼
-PlannedPlantingBatch
+sequenza temporale di PlannedPlantingBatch
         │
         └── PlannedPlantingBatchValidator
 ```
 
-`FamilyConsumptionNeed` rappresenta il fabbisogno quantitativo e periodico della famiglia, mentre `PlannedPlantingBatch` rappresenta il lotto operativo pianificato.
+`FamilyConsumptionNeed` rappresenta il fabbisogno quantitativo e periodico della famiglia, mentre `PlannedPlantingBatch` rappresenta il singolo lotto operativo pianificato.
 
-I relativi validator mantengono separate le regole di validità dalla rappresentazione dei dati e dalla futura logica di pianificazione.
+I relativi validator mantengono separate le regole di validità dalla rappresentazione dei dati e dalla logica di pianificazione.
 
-Il `SuccessionPlanningEngine` non è ancora implementato e viene riportato nello schema esclusivamente come componente futuro verso il quale convergono le strutture introdotte nella S013.
+Il `SuccessionPlanningEngine`, implementato nella sua prima versione nella Sessione S014, utilizza tali componenti per generare una sequenza temporale deterministica e validata di lotti pianificati.
+
+La V1 mantiene separata la pianificazione temporale dalla futura verifica della compatibilità agronomica delle date e non introduce conversioni tra fabbisogno familiare e quantità di impianto quando queste richiedono informazioni agronomiche non ancora disponibili.
 
 I singoli componenti rimangono specializzati e indipendenti, consentendo l'evoluzione del Motore Agronomico senza concentrare responsabilità differenti in un unico modulo.
 
@@ -1807,34 +1812,40 @@ La validazione viene mantenuta separata dal modello e dalla futura logica di pia
 
 `PlannedPlantingBatch` è il modello destinato a rappresentare un lotto di coltivazione pianificato nel tempo.
 
-Il modello costituisce la futura unità operativa prodotta dal `SuccessionPlanningEngine`.
+Il modello costituisce l'unità operativa prodotta dal `SuccessionPlanningEngine`.
 
 La separazione concettuale adottata è:
 
-    FamilyConsumptionNeed
-            ↓
-    quantità necessaria nel tempo
+```text
+FamilyConsumptionNeed
+        ↓
+quantità necessaria nel tempo
 
-    PlannedPlantingBatch
-            ↓
-    lotto operativo pianificato
+SuccessionPlanningEngine
+        ↓
+distribuzione temporale dei lotti
 
-    SuccessionPlanningEngine
-            ↓
-    distribuzione temporale dei lotti
+PlannedPlantingBatch
+        ↓
+lotto operativo pianificato
+```
 
-Nella Sessione S013 è stato introdotto il modello necessario alla rappresentazione dei lotti, mentre il `SuccessionPlanningEngine` non è ancora implementato.
+Nella Sessione S013 è stato introdotto il modello necessario alla rappresentazione dei lotti.
 
-La futura pianificazione dovrà contemplare differenti modalità operative:
+Nella Sessione S014 è stata implementata la prima versione del `SuccessionPlanningEngine`, che utilizza `PlannedPlantingBatch` per rappresentare i lotti generati dalla pianificazione temporale.
+
+Ogni lotto prodotto viene validato mediante `PlannedPlantingBatchValidator`.
+
+La pianificazione deve contemplare differenti modalità operative:
 
 1. acquisto di piantine e trapianto;
 2. semina in semenzaio seguita da trapianto;
 3. semina diretta a file nell'aiuola;
 4. semina diretta a spaglio nell'aiuola.
 
-Per la semina diretta a file, la pianificazione dovrà utilizzare come riferimento il numero di piante finali previste e non considerare la quantità di seme come equivalente alla produzione finale.
+Per la semina diretta a file, la pianificazione deve utilizzare come riferimento il numero di piante finali previste e non considerare la quantità di seme come equivalente alla produzione finale.
 
-Per la semina diretta a spaglio, il sistema dovrà invece poter utilizzare come riferimento l'area coltivata prevista.
+Per la semina diretta a spaglio, il sistema deve invece poter utilizzare come riferimento l'area coltivata prevista.
 
 La quantità di seme rimane un'informazione operativa distinta dalla produzione finale attesa.
 
@@ -1852,25 +1863,117 @@ Il validatore costituisce quindi una delle fondamenta necessarie alla futura imp
 
 ### SuccessionPlanningEngine
 
-Il `SuccessionPlanningEngine` è un componente pianificato e non ancora implementato.
+Il `SuccessionPlanningEngine` è il componente responsabile della pianificazione temporale dei lotti di coltivazione a partire da un fabbisogno familiare quantitativo e periodico.
 
-La sua responsabilità sarà trasformare il fabbisogno familiare quantitativo e periodico in una sequenza temporale di lotti di coltivazione pianificati.
+La prima versione del motore è stata implementata nella Sessione S014.
 
-Il flusso previsto è:
+Il componente opera su `FamilyConsumptionNeed` e produce una sequenza temporale di `PlannedPlantingBatch`.
 
-    fabbisogno familiare quantitativo
-            +
-    caratteristiche produttive della coltura o varietà
-            +
-    periodo di consumo desiderato
-            ↓
-    SuccessionPlanningEngine
-            ↓
-    serie di PlannedPlantingBatch
+Il flusso attualmente implementato è:
 
-La prima implementazione prevista dovrà essere deterministica e testabile.
+```text
+FamilyConsumptionNeed
+        +
+intervallo startDate – endDate
+        +
+metodo di avvio
+        +
+tipo di quantità
+        ↓
+SuccessionPlanningEngine
+        ↓
+sequenza di PlannedPlantingBatch
+```
 
-Le evoluzioni successive potranno considerare progressivamente fattori quali giorni al raccolto, resa prevista, metodo di impianto, spazio disponibile, rotazioni, consociazioni, stagionalità e condizioni meteorologiche.
+La V1 applica una pianificazione deterministica basata su `intervalDays`.
+
+Il primo lotto viene generato alla data iniziale indicata e i lotti successivi vengono distribuiti nel tempo secondo l'intervallo definito dal fabbisogno familiare.
+
+La generazione prosegue esclusivamente finché la data del lotto rimane compresa entro `endDate`.
+
+Prima della pianificazione il motore valida il `FamilyConsumptionNeed` mediante `FamilyConsumptionNeedValidator`.
+
+Ogni `PlannedPlantingBatch` prodotto viene inoltre verificato mediante `PlannedPlantingBatchValidator`.
+
+Il motore:
+
+- rifiuta un intervallo nel quale `startDate > endDate`;
+- rifiuta fabbisogni non validi;
+- genera il primo lotto alla data iniziale;
+- genera i lotti successivi secondo `intervalDays`;
+- non genera lotti oltre `endDate`;
+- propaga il `cropId`;
+- supporta il `varietyId` opzionale;
+- verifica la validità di ogni lotto prodotto;
+- impedisce combinazioni incoerenti tra metodo di avvio e tipo di quantità.
+
+La validazione di `intervalDays` impedisce valori minori o uguali a zero e previene quindi anche la possibilità di una generazione temporale senza termine.
+
+#### Regola sulle conversioni
+
+Il `SuccessionPlanningEngine` non deve introdurre automaticamente conversioni tra fabbisogno familiare e quantità di impianto quando non dispone delle informazioni agronomiche necessarie per determinarle correttamente.
+
+Nella V1 è ammessa esclusivamente la conversione:
+
+```text
+pieces → plants
+```
+
+Sono invece rifiutate conversioni quali:
+
+```text
+pieces → areaSquareCm
+kilograms → plants
+```
+
+e, più in generale, tutte le conversioni che richiederebbero informazioni produttive o agronomiche non ancora disponibili.
+
+Un fabbisogno espresso, ad esempio, come 5 kg di pomodori non può quindi essere interpretato automaticamente come 5 piante di pomodoro.
+
+Analogamente, un fabbisogno espresso in pezzi non può essere trasformato arbitrariamente in una superficie da seminare.
+
+Questa scelta impedisce al motore di introdurre assunzioni non supportate dai dati e mantiene esplicita la distinzione tra:
+
+```text
+quantità richiesta dalla famiglia
+        ↓
+conversione agronomicamente supportata
+        ↓
+quantità di impianto
+```
+
+#### Limiti della V1
+
+La prima versione del `SuccessionPlanningEngine` produce una successione temporale teorica e non determina ancora se le date generate siano agronomicamente compatibili con il ciclo della coltura.
+
+Il sistema dovrà in futuro distinguere:
+
+```text
+quando la famiglia desidera il prodotto
+        ↓
+quando dovrebbe essere disponibile il raccolto
+        ↓
+quando occorre seminare o trapiantare
+        ↓
+se la data è agronomicamente ammissibile
+```
+
+La verifica della compatibilità agronomica delle date rimarrà separata dalla responsabilità del `SuccessionPlanningEngine`.
+
+Le evoluzioni successive potranno considerare progressivamente:
+
+- finestre di semina in semenzaio;
+- finestre di semina diretta;
+- finestre di trapianto;
+- periodo di raccolta;
+- giorni necessari al raccolto;
+- resa prevista della coltura o varietà;
+- temperature minime;
+- rischio di gelo;
+- localizzazione reale dell'orto;
+- dati meteorologici locali.
+
+L'architettura futura non dovrà dipendere esclusivamente da classificazioni climatiche rigide, ma dovrà rimanere predisposta all'utilizzo delle caratteristiche effettive dell'orto e delle informazioni meteorologiche locali.
 
 ### RecommendationMapper
 

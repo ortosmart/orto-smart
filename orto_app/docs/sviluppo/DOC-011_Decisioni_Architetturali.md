@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 0.6
+**Versione:** 0.7
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 10/08/2026
+**Ultimo aggiornamento:** 11/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 0.6                            |
+| Versione             | 0.7                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
 | Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 10/08/2026                     |
+| Ultimo aggiornamento | 11/08/2026                     |
 
 ---
 
@@ -42,6 +42,7 @@
 | 0.4      | 09/08/2026 | Introduzione della DEC-005 sulla separazione tra fabbisogno familiare e pianificazione temporale                           |
 | 0.5      | 09/08/2026 | Introduzione della DEC-006 sull'integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione            |
 | 0.6      | 10/08/2026 | Introduzione della DEC-007 sulla separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato           |
+| 0.7      | 11/08/2026 | Introduzione della DEC-008 sul divieto di conversioni implicite non supportate nella pianificazione                        |
 
 ---
 
@@ -60,6 +61,7 @@
 3.5 DEC-005 – Separazione tra fabbisogno familiare e pianificazione temporale
 3.6 DEC-006 – Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione
 3.7 DEC-007 – Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato
+3.8 DEC-008 – Divieto di conversioni implicite non supportate nella pianificazione
 
 ## 4. Registro delle decisioni
 
@@ -591,6 +593,128 @@ Le alternative sono state scartate perché avrebbero mescolato responsabilità d
 
 ---
 
+## 3.8 DEC-008 – Divieto di conversioni implicite non supportate nella pianificazione
+
+**Stato:** Approvata
+
+**Data:** 11/08/2026
+
+**Sessione:** S014
+
+### Contesto
+
+Con la prima implementazione del `SuccessionPlanningEngine` è diventato necessario trasformare un `FamilyConsumptionNeed` in una sequenza temporale di `PlannedPlantingBatch`.
+
+Il fabbisogno familiare può essere espresso mediante unità differenti, tra cui:
+
+- pezzi;
+- grammi;
+- chilogrammi.
+
+La quantità necessaria alla famiglia non coincide però necessariamente con la quantità di impianto richiesta per ottenere quella produzione.
+
+Ad esempio:
+
+- 5 kg di pomodori necessari alla famiglia non equivalgono automaticamente a 5 piante di pomodoro;
+- un fabbisogno espresso in pezzi non determina automaticamente una superficie da seminare;
+- una quantità espressa in peso richiede informazioni sulla resa produttiva della coltura o della varietà prima di poter essere trasformata in un numero di piante.
+
+L'introduzione automatica di tali conversioni senza dati agronomici sufficienti produrrebbe risultati apparentemente precisi ma tecnicamente non affidabili.
+
+### Decisione
+
+Il `SuccessionPlanningEngine` non deve inventare conversioni tra fabbisogno familiare e quantità di impianto quando il sistema non dispone delle informazioni agronomiche necessarie per determinarle correttamente.
+
+La prima versione del motore ammette esclusivamente la conversione:
+
+```text
+pieces → plants
+```
+
+Sono invece esplicitamente rifiutate conversioni quali:
+
+```text
+pieces → areaSquareCm
+kilograms → plants
+```
+
+e, più in generale, tutte le conversioni che richiedono dati produttivi o agronomici non ancora disponibili.
+
+La relazione adottata è pertanto:
+
+```text
+fabbisogno familiare
+        ↓
+conversione esplicitamente supportata
+        ↓
+quantità di impianto
+        ↓
+PlannedPlantingBatch
+```
+
+Se una conversione non è esplicitamente supportata, la pianificazione deve essere rifiutata anziché produrre un valore stimato arbitrariamente.
+
+### Separazione delle responsabilità
+
+La decisione mantiene distinti:
+
+```text
+FamilyConsumptionNeed
+        ↓
+quantità richiesta dalla famiglia
+
+SuccessionPlanningEngine
+        ↓
+pianificazione temporale
+
+informazioni agronomiche future
+        ↓
+conversione tra produzione richiesta e quantità di impianto
+```
+
+Il `SuccessionPlanningEngine` mantiene quindi la responsabilità della distribuzione temporale dei lotti, senza assumere autonomamente conoscenze relative alla resa produttiva delle colture.
+
+Le conversioni future potranno essere introdotte soltanto quando saranno disponibili dati sufficienti, ad esempio:
+
+- resa media per pianta;
+- resa prevista della varietà;
+- densità di coltivazione;
+- superficie necessaria;
+- metodo di impianto;
+- caratteristiche produttive specifiche della coltura.
+
+### Motivazione
+
+- Evitare conversioni agronomicamente arbitrarie.
+- Impedire che valori espressi in unità differenti vengano trattati come equivalenti.
+- Mantenere espliciti i limiti conoscitivi del sistema.
+- Evitare risultati numericamente validi ma agronomicamente errati.
+- Mantenere separata la pianificazione temporale dalla stima della resa produttiva.
+- Consentire l'introduzione futura di conversioni soltanto quando supportate da dati reali.
+- Rendere il comportamento del motore deterministico e verificabile mediante test.
+- Preservare la modularità del `SuccessionPlanningEngine`.
+
+### Alternative valutate
+
+- Convertire direttamente la quantità richiesta nel numero di piante utilizzando lo stesso valore numerico.
+- Utilizzare conversioni predefinite indipendenti dalla coltura o dalla varietà.
+- Stimare automaticamente superfici o quantità di impianto anche in assenza di dati produttivi.
+- Integrare immediatamente nel `SuccessionPlanningEngine` regole di resa non ancora disponibili nel dominio applicativo.
+
+Le alternative sono state scartate perché avrebbero introdotto assunzioni non supportate dai dati e reso il risultato della pianificazione potenzialmente fuorviante.
+
+### Conseguenze
+
+- La V1 del `SuccessionPlanningEngine` supporta esclusivamente `pieces → plants`.
+- Le conversioni non supportate vengono rifiutate.
+- Il motore non interpreta automaticamente una quantità espressa in peso come numero di piante.
+- Il motore non trasforma automaticamente un fabbisogno espresso in pezzi in una superficie da coltivare.
+- La futura conversione tra fabbisogno e quantità di impianto richiederà informazioni agronomiche dedicate.
+- La pianificazione temporale rimane separata dalla futura stima della resa produttiva.
+- L'architettura resta predisposta all'introduzione progressiva di conversioni esplicitamente definite e testabili.
+
+---
+
 # 4. Registro delle decisioni
 
 | ID      | Data       | Sessione | Titolo                                                                                | Stato     |
@@ -602,6 +726,7 @@ Le alternative sono state scartate perché avrebbero mescolato responsabilità d
 | DEC-005 | 09/08/2026 | S011     | Separazione tra fabbisogno familiare e pianificazione temporale                       | Approvata |
 | DEC-006 | 09/08/2026 | S012     | Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione       | Approvata |
 | DEC-007 | 10/08/2026 | S013     | Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato       | Approvata |
+| DEC-008 | 11/08/2026 | S014     | Divieto di conversioni implicite non supportate nella pianificazione                      | Approvata |
 
 ---
 
