@@ -139,7 +139,10 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | PlannedPlantingBatch               |   ✅ Completato    | Modello introdotto nella S013 per rappresentare un lotto di coltivazione pianificato nel tempo.                                                                                            |
 | PlannedPlantingBatchValidator      |   ✅ Completato    | Validazione dei dati necessari alla rappresentazione dei lotti di coltivazione pianificati.                                                                                                |
 | SuccessionPlanningEngine           | ✅ V1 completata | Prima versione deterministica implementata nella S014: trasforma `FamilyConsumptionNeed` in una sequenza temporale validata di `PlannedPlantingBatch`, senza introdurre conversioni agronomiche non supportate. |
-| Sistema di finestre agronomiche    | 📋 Pianificato  | Prima progettazione prevista nella S015: verifica della compatibilità delle date teoriche di semina o trapianto con il periodo colturale, mantenendo separata questa responsabilità dal `SuccessionPlanningEngine`. |
+| AgronomicWindow                    | ✅ Completato    | Modello annuale introdotto nella S015 per rappresentare finestre agronomiche associate a uno specifico metodo di avvio, con supporto degli intervalli che attraversano il cambio dell'anno. |
+| AgronomicWindowValidator           | ✅ Completato    | Validazione strutturale delle finestre agronomiche introdotta nella S015, comprese le combinazioni mese/giorno e il supporto del 29 febbraio. |
+| AgronomicWindowEngine              | ✅ V1 completata | Prima versione implementata nella S015 per verificare l'appartenenza temporale alle finestre e la compatibilità dei `PlannedPlantingBatch` in base a metodo di avvio e data. |
+| Stagionalità di colture e varietà | 📋 Pianificato  | Obiettivo S016: associare le finestre agronomiche a colture e varietà e introdurre la prima verifica della stagionalità reale dei lotti pianificati, mantenendo separate le future correzioni climatiche e meteorologiche. |
 
 ---
 

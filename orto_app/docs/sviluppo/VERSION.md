@@ -3,7 +3,7 @@
 | Campo             | Valore               |
 | ----------------- | -------------------- |
 | Progetto          | Orto Smart           |
-| Versione corrente | 0.1.8-alpha          |
+| Versione corrente | 0.1.9-alpha          |
 | Stato             | Alpha                |
 | Data versione     | 11/08/2026           |
 | Linguaggio        | Flutter / Dart       |
@@ -18,7 +18,9 @@ Orto Smart è attualmente in fase **Alpha**.
 
 L'architettura principale dell'applicazione è stata definita e il motore agronomico dispone dei componenti fondamentali per l'analisi delle aiuole e la generazione delle raccomandazioni.
 
-A partire dalla versione `0.1.8-alpha` è inoltre disponibile la prima versione del `SuccessionPlanningEngine`, che utilizza le strutture dati e di validazione introdotte nella versione precedente per generare una sequenza temporale validata di lotti di coltivazione pianificati.
+A partire dalla versione `0.1.9-alpha` è inoltre disponibile la prima infrastruttura dedicata alle finestre agronomiche, costituita da `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`.
+
+Questi componenti consentono di rappresentare finestre stagionali annuali e di verificare separatamente la compatibilità dei lotti pianificati in base al metodo di avvio e alla data, mantenendo invariata la responsabilità del `SuccessionPlanningEngine`.
 
 Lo sviluppo prosegue con l'introduzione delle funzionalità agronomiche previste dalla Roadmap di Sviluppo.
 
@@ -60,6 +62,9 @@ Lo sviluppo prosegue con l'introduzione delle funzionalità agronomiche previste
 - PlannedPlantingBatch
 - PlannedPlantingBatchValidator
 - SuccessionPlanningEngine
+- AgronomicWindow
+- AgronomicWindowValidator
+- AgronomicWindowEngine
 
 ## Backend
 
@@ -98,8 +103,9 @@ Il presente documento riporta esclusivamente la versione corrente del software e
 | 0.1.4-alpha | 08/08/2026 | Archiviata | Introdotto DecisionWeights e resa configurabile la ponderazione dei criteri utilizzati dal DecisionEngine.                                                    |
 | 0.1.5-alpha | 09/08/2026 | Archiviata | Implementata la prima versione del FamilyNeedsEngine per la valutazione delle priorità e dei fabbisogni familiari.                                            |
 | 0.1.6-alpha | 09/08/2026 | Archiviata | Integrato il FamilyNeedsEngine nella RecommendationPipeline mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
-| 0.1.7-alpha | 10/08/2026 | Corrente   | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro SuccessionPlanningEngine.                         |
-| 0.1.8-alpha | 11/08/2026 | Corrente   | Implementata la prima versione del SuccessionPlanningEngine per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
+| 0.1.7-alpha | 10/08/2026 | Archiviata   | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro SuccessionPlanningEngine.                         |
+| 0.1.8-alpha | 11/08/2026 | Archiviata   | Implementata la prima versione del SuccessionPlanningEngine per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
+| 0.1.9-alpha | 11/08/2026 | Corrente   | Introdotti AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per rappresentare le finestre agronomiche e verificare separatamente la compatibilità temporale dei lotti pianificati. |
 
 ---
 

@@ -4,7 +4,7 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 1.3
+**Versione:** 1.4
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
@@ -23,7 +23,7 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 1.3 |
+| Versione | 1.4 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
@@ -36,8 +36,6 @@
 
 # Cronologia delle revisioni
 
-# Cronologia delle revisioni
-
 | Versione | Data       | Descrizione                                                                                                                                                            |
 | -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0.1      | 26/07/2026 | Prima emissione del Manuale Tecnico                                                                                                                                    |
@@ -46,6 +44,7 @@
 | 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico con RecommendationPipeline, DecisionEngine e DecisionWeights                                                                       |
 | 1.2      | 10/08/2026 | Consolidamento dell'evoluzione del Motore Agronomico con FamilyNeedsEngine, integrazione delle priorità familiari e fondamenta dati e di validazione del futuro SuccessionPlanningEngine |
 | 1.3      | 11/08/2026 | Prima implementazione del SuccessionPlanningEngine, generazione temporale dei lotti e introduzione della regola sulle conversioni supportate |
+| 1.4      | 11/08/2026 | Introduzione di AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per la prima verifica separata della compatibilità agronomica dei lotti pianificati |
 
 ---
 
@@ -1944,9 +1943,9 @@ quantità di impianto
 
 #### Limiti della V1
 
-La prima versione del `SuccessionPlanningEngine` produce una successione temporale teorica e non determina ancora se le date generate siano agronomicamente compatibili con il ciclo della coltura.
+La prima versione del `SuccessionPlanningEngine` produce una successione temporale teorica e non determina direttamente se le date generate siano agronomicamente compatibili con il ciclo della coltura.
 
-Il sistema dovrà in futuro distinguere:
+Il sistema distingue quindi:
 
 ```text
 quando la famiglia desidera il prodotto
@@ -1955,16 +1954,35 @@ quando dovrebbe essere disponibile il raccolto
         ↓
 quando occorre seminare o trapiantare
         ↓
-se la data è agronomicamente ammissibile
+verifica separata della compatibilità agronomica
 ```
 
-La verifica della compatibilità agronomica delle date rimarrà separata dalla responsabilità del `SuccessionPlanningEngine`.
+A partire dalla Sessione S015 è stata introdotta la prima infrastruttura dedicata alla verifica delle finestre agronomiche mediante `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`.
+
+Il `SuccessionPlanningEngine` è rimasto deliberatamente invariato e continua a essere responsabile esclusivamente della generazione temporale teorica dei lotti.
+
+La separazione attuale è:
+
+```text
+FamilyConsumptionNeed
+        ↓
+SuccessionPlanningEngine
+        ↓
+PlannedPlantingBatch
+        ↓
+verifica agronomica separata
+        ↓
+AgronomicWindowEngine
+```
+
+La V1 delle finestre agronomiche non associa ancora dati stagionali reali alle singole colture o varietà.
 
 Le evoluzioni successive potranno considerare progressivamente:
 
-- finestre di semina in semenzaio;
-- finestre di semina diretta;
-- finestre di trapianto;
+- associazione delle finestre a colture e varietà;
+- finestre reali di semina in semenzaio;
+- finestre reali di semina diretta;
+- finestre reali di trapianto;
 - periodo di raccolta;
 - giorni necessari al raccolto;
 - resa prevista della coltura o varietà;
@@ -1973,7 +1991,264 @@ Le evoluzioni successive potranno considerare progressivamente:
 - localizzazione reale dell'orto;
 - dati meteorologici locali.
 
-L'architettura futura non dovrà dipendere esclusivamente da classificazioni climatiche rigide, ma dovrà rimanere predisposta all'utilizzo delle caratteristiche effettive dell'orto e delle informazioni meteorologiche locali.
+L'architettura non dovrà dipendere esclusivamente da classificazioni climatiche rigide, ma dovrà rimanere predisposta all'utilizzo delle caratteristiche effettive dell'orto e delle informazioni meteorologiche locali.
+
+### AgronomicWindow
+
+`AgronomicWindow` è il modello introdotto nella Sessione S015 per rappresentare una finestra agronomica annuale associata a uno specifico metodo di avvio della coltivazione.
+
+Il modello è definito in:
+
+```text
+lib/core/agronomy/models/agronomic_window.dart
+```
+
+La finestra è rappresentata mediante:
+
+- `startMethod`;
+- `startMonth`;
+- `startDay`;
+- `endMonth`;
+- `endDay`.
+
+`startMethod` identifica il `PlannedPlantingStartMethod` al quale la finestra si riferisce.
+
+La finestra non contiene un anno specifico.
+
+Questa scelta consente di rappresentare un periodo stagionale ricorrente annualmente e di confrontare le date utilizzando mese e giorno.
+
+Sono supportate sia finestre comprese nello stesso anno solare:
+
+```text
+15 marzo → 30 settembre
+```
+
+sia finestre che attraversano il cambio dell'anno:
+
+```text
+1 ottobre → 28 febbraio
+```
+
+Gli estremi della finestra sono inclusivi.
+
+Una data coincidente con `startMonth`/`startDay` oppure con `endMonth`/`endDay` appartiene quindi alla finestra.
+
+La prima versione del modello non contiene ancora:
+
+- associazione diretta a `Crop`;
+- associazione diretta a `CropVariety`;
+- informazioni climatiche;
+- informazioni meteorologiche;
+- temperature;
+- rischio di gelo.
+
+Tali responsabilità rimangono separate e potranno essere integrate nelle evoluzioni successive.
+
+### AgronomicWindowValidator
+
+`AgronomicWindowValidator` è il componente responsabile della validazione strutturale di `AgronomicWindow`.
+
+Il validatore è definito in:
+
+```text
+lib/core/agronomy/agronomic_window_validator.dart
+```
+
+La validazione verifica:
+
+- mese iniziale;
+- giorno iniziale;
+- mese finale;
+- giorno finale;
+- validità delle combinazioni mese/giorno.
+
+Sono pertanto rifiutate combinazioni impossibili, ad esempio:
+
+```text
+31 aprile
+```
+
+mentre viene accettata:
+
+```text
+29 febbraio
+```
+
+Per verificare tecnicamente la validità delle combinazioni mese/giorno viene utilizzato l'anno `2000`, scelto in quanto anno bisestile.
+
+Il validatore non impone la condizione:
+
+```text
+inizio <= fine
+```
+
+Una finestra come:
+
+```text
+1 ottobre → 28 febbraio
+```
+
+è infatti deliberatamente valida perché rappresenta un intervallo stagionale che attraversa il cambio dell'anno.
+
+`AgronomicWindowValidator` mantiene quindi separata la validità strutturale dei dati dalla successiva verifica temporale effettuata da `AgronomicWindowEngine`.
+
+### AgronomicWindowEngine
+
+`AgronomicWindowEngine` è il componente introdotto nella Sessione S015 per verificare la compatibilità temporale delle date e dei lotti pianificati rispetto alle finestre agronomiche.
+
+Il motore è definito in:
+
+```text
+lib/core/agronomy/engines/agronomic_window_engine.dart
+```
+
+La prima versione espone due responsabilità principali:
+
+- `contains()`;
+- `isBatchCompatible()`.
+
+#### contains()
+
+`contains()` determina se una `DateTime` appartiene a una determinata `AgronomicWindow`.
+
+Poiché la finestra rappresenta una stagionalità annuale e non un intervallo riferito a uno specifico anno, il confronto considera mese e giorno.
+
+Il metodo gestisce:
+
+- finestre standard;
+- finestre che attraversano il cambio dell'anno;
+- estremo iniziale incluso;
+- estremo finale incluso.
+
+Per una finestra:
+
+```text
+15 marzo → 30 settembre
+```
+
+sono considerate appartenenti alla finestra tutte le date comprese tra i due estremi inclusi.
+
+Per una finestra:
+
+```text
+1 ottobre → 28 febbraio
+```
+
+sono considerate appartenenti alla finestra le date comprese tra ottobre e dicembre e quelle comprese tra gennaio e febbraio.
+
+#### isBatchCompatible()
+
+`isBatchCompatible()` verifica direttamente la compatibilità tra un `PlannedPlantingBatch` e una `AgronomicWindow`.
+
+La compatibilità richiede contemporaneamente:
+
+```text
+batch.startMethod == window.startMethod
+```
+
+e:
+
+```text
+batch.plannedDate ∈ AgronomicWindow
+```
+
+Il comportamento può essere sintetizzato come:
+
+```text
+metodo corretto + data nella finestra
+        ↓
+compatibile
+
+metodo diverso + data nella finestra
+        ↓
+non compatibile
+
+metodo corretto + data fuori finestra
+        ↓
+non compatibile
+```
+
+Il solo fatto che una data appartenga temporalmente alla finestra non è quindi sufficiente.
+
+La finestra deve essere riferita anche allo stesso metodo di avvio utilizzato dal lotto pianificato.
+
+### Separazione tra pianificazione temporale e compatibilità agronomica
+
+La Sessione S015 consolida la separazione tra generazione temporale dei lotti e verifica della loro compatibilità agronomica.
+
+L'architettura risultante è:
+
+```text
+FamilyConsumptionNeed
+        ↓
+SuccessionPlanningEngine
+        ↓
+PlannedPlantingBatch
+        ↓
+AgronomicWindowEngine
+        ↓
+verifica di metodo + data
+```
+
+Il `SuccessionPlanningEngine` non contiene regole relative alle finestre agronomiche.
+
+`AgronomicWindowEngine` non genera lotti e non modifica la pianificazione temporale.
+
+I due componenti mantengono quindi responsabilità distinte:
+
+```text
+SuccessionPlanningEngine
+        ↓
+quando pianificare teoricamente i lotti
+
+AgronomicWindowEngine
+        ↓
+se metodo e data del lotto sono compatibili
+```
+
+Questa separazione consente di evolvere progressivamente la verifica agronomica senza trasformare il pianificatore temporale in un componente monolitico.
+
+### Limiti attuali delle finestre agronomiche
+
+La prima versione introdotta nella Sessione S015 costituisce l'infrastruttura di base per la verifica della stagionalità, ma non contiene ancora i calendari reali delle colture.
+
+Non sono ancora implementati:
+
+- associazione delle finestre a `Crop`;
+- associazione delle finestre a `CropVariety`;
+- dati stagionali reali delle singole colture o varietà;
+- persistenza delle finestre in Supabase;
+- utilizzo dinamico delle temperature;
+- rischio di gelo;
+- correzione in base alla posizione geografica;
+- utilizzo dei dati meteorologici locali;
+- integrazione diretta nella `RecommendationPipeline`.
+
+La successiva evoluzione dovrà associare le finestre agronomiche alle colture e alle varietà, consentendo di iniziare a verificare la stagionalità reale dei `PlannedPlantingBatch`.
+
+Le future correzioni climatiche e meteorologiche dovranno rimanere separate dalla stagionalità agronomica di base.
+
+Il flusso evolutivo previsto è:
+
+```text
+finestra agronomica di base
+        +
+coltura o varietà
+        ↓
+compatibilità stagionale del lotto
+        ↓
+future correzioni
+        +
+localizzazione reale dell'orto
+        +
+temperature
+        +
+rischio di gelo
+        +
+dati meteorologici locali
+```
+
+L'architettura rimane pertanto predisposta a utilizzare in futuro le caratteristiche reali dell'orto e le informazioni meteorologiche locali senza dipendere rigidamente da classificazioni generiche Nord/Centro/Sud.
 
 ### RecommendationMapper
 
