@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 1.4
+**Versione:** 1.5
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 11/08/2026
+**Ultimo aggiornamento:** 12/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,14 +23,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 1.4 |
+| Versione | 1.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 11/08/2026 |
+| Ultimo aggiornamento | 12/08/2026 |
 
 ---
 
@@ -45,6 +45,7 @@
 | 1.2      | 10/08/2026 | Consolidamento dell'evoluzione del Motore Agronomico con FamilyNeedsEngine, integrazione delle priorità familiari e fondamenta dati e di validazione del futuro SuccessionPlanningEngine |
 | 1.3      | 11/08/2026 | Prima implementazione del SuccessionPlanningEngine, generazione temporale dei lotti e introduzione della regola sulle conversioni supportate |
 | 1.4      | 11/08/2026 | Introduzione di AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per la prima verifica separata della compatibilità agronomica dei lotti pianificati |
+| 1.5      | 12/08/2026 | Associazione delle finestre agronomiche a colture e varietà mediante CropAgronomicWindowRule, AgronomicWindowResolver, AgronomicWindowEvaluation e AgronomicWindowService |
 
 ---
 
@@ -2249,6 +2250,342 @@ dati meteorologici locali
 ```
 
 L'architettura rimane pertanto predisposta a utilizzare in futuro le caratteristiche reali dell'orto e le informazioni meteorologiche locali senza dipendere rigidamente da classificazioni generiche Nord/Centro/Sud.
+
+### CropAgronomicWindowRule
+
+`CropAgronomicWindowRule` è il modello introdotto nella Sessione S016 per associare una finestra agronomica a una coltura e, opzionalmente, a una specifica varietà.
+
+Il modello è definito in:
+
+```text
+lib/core/agronomy/models/crop_agronomic_window_rule.dart
+```
+
+La regola contiene l'associazione tra:
+
+- `cropId`;
+- `varietyId` opzionale;
+- `AgronomicWindow`.
+
+La semantica adottata è:
+
+```text
+varietyId == null
+        ↓
+regola generale della coltura
+
+varietyId != null
+        ↓
+regola specifica della varietà
+```
+
+Questa struttura consente di mantenere una regola generale per la coltura e introdurre override specifici per le varietà soltanto quando necessari.
+
+Il principio adottato riduce la duplicazione dei dati e prepara la futura persistenza secondo una struttura compatta:
+
+```text
+dato generale della coltura
+        +
+override specifico della varietà solo quando necessario
+```
+
+La Sessione S016 mantiene nel dominio agronomico gli identificativi `cropId` e `varietyId` come `String`.
+
+Rimane tuttavia da risolvere, nella futura progettazione della persistenza, la differenza esistente con:
+
+- `CropVariety`, che utilizza attualmente identificativi `int`;
+- Supabase, dove `crops.id`, `crop_varieties.id` e `crop_varieties.crop_id` sono attualmente `bigint`.
+
+Questa differenza non è stata affrontata nella S016 per evitare un refactoring trasversale non necessario prima della definizione dello schema persistente.
+
+### AgronomicWindowResolver
+
+`AgronomicWindowResolver` è il componente responsabile della selezione della finestra agronomica applicabile a una determinata coltura, varietà e metodo di avvio.
+
+Il resolver è definito in:
+
+```text
+lib/core/agronomy/engines/agronomic_window_resolver.dart
+```
+
+La selezione utilizza:
+
+- `cropId`;
+- `varietyId`;
+- `PlannedPlantingStartMethod`.
+
+La gerarchia adottata è:
+
+```text
+regola specifica della varietà
+        ↓
+regola generale della coltura
+        ↓
+nessuna regola
+```
+
+Il comportamento è quindi:
+
+1. viene cercata una regola specifica della varietà per il metodo richiesto;
+2. in assenza della regola varietale viene utilizzata la regola generale della coltura;
+3. in assenza di entrambe viene restituito `null`.
+
+Il resolver non verifica se la data del lotto appartenga alla finestra selezionata.
+
+Questa responsabilità rimane separata e appartiene ad `AgronomicWindowEngine`.
+
+È inoltre disponibile:
+
+```text
+resolveForBatch(...)
+```
+
+che consente di ricevere direttamente un `PlannedPlantingBatch` e utilizzare automaticamente:
+
+- `cropId`;
+- `varietyId`;
+- `startMethod`.
+
+La separazione adottata è:
+
+```text
+AgronomicWindowResolver
+        ↓
+quale finestra utilizzare
+
+AgronomicWindowEngine
+        ↓
+la data appartiene alla finestra?
+```
+
+### AgronomicWindowEvaluation
+
+`AgronomicWindowEvaluation` rappresenta il risultato strutturato della valutazione agronomica di un lotto rispetto alle finestre disponibili.
+
+Il modello è definito in:
+
+```text
+lib/core/agronomy/models/agronomic_window_evaluation.dart
+```
+
+La Sessione S016 ha deliberatamente evitato di rappresentare il risultato mediante un semplice valore booleano.
+
+Sono stati introdotti tre stati distinti:
+
+- `compatible`;
+- `incompatible`;
+- `unknown`.
+
+La distinzione fondamentale è:
+
+```text
+unknown != incompatible
+```
+
+`compatible` indica che:
+
+- è stata individuata una regola applicabile;
+- la data del lotto appartiene alla finestra agronomica.
+
+`incompatible` indica che:
+
+- è stata individuata una regola applicabile;
+- la data del lotto non appartiene alla finestra agronomica.
+
+`unknown` indica invece che:
+
+- non è disponibile alcuna regola agronomica applicabile;
+- il sistema non dispone di informazioni sufficienti per esprimere un giudizio.
+
+L'assenza di dati non viene quindi interpretata come incompatibilità.
+
+Il modello contiene inoltre:
+
+- la finestra agronomica utilizzata, quando disponibile;
+- una lista di motivazioni mediante `reasons`;
+- getter dedicati ai diversi stati.
+
+Sono disponibili factory constructor dedicati:
+
+```text
+AgronomicWindowEvaluation.compatible(...)
+AgronomicWindowEvaluation.incompatible(...)
+AgronomicWindowEvaluation.unknown(...)
+```
+
+La struttura segue il pattern già adottato in altri risultati del dominio agronomico, come `RotationResult`.
+
+### AgronomicWindowService
+
+`AgronomicWindowService` è il servizio applicativo introdotto nella Sessione S016 per coordinare la selezione e la valutazione delle finestre agronomiche.
+
+Il servizio è definito in:
+
+```text
+lib/services/agronomic_window_service.dart
+```
+
+Il componente segue il principio già adottato da servizi come `BedAnalysisService`:
+
+> il servizio coordina componenti specializzati senza incorporare direttamente logica agronomica propria.
+
+`AgronomicWindowService` coordina:
+
+- `AgronomicWindowResolver`;
+- `AgronomicWindowEngine`.
+
+Il metodo principale è:
+
+```text
+evaluateBatch(...)
+```
+
+e riceve:
+
+- un insieme di `CropAgronomicWindowRule`;
+- un `PlannedPlantingBatch`.
+
+Il flusso applicativo è:
+
+```text
+PlannedPlantingBatch
+        ↓
+AgronomicWindowResolver
+        ↓
+selezione della finestra
+        ↓
+AgronomicWindowEngine
+        ↓
+AgronomicWindowEvaluation
+```
+
+Il risultato può essere:
+
+```text
+compatible
+        ↓
+regola trovata
++
+data nella finestra
+
+incompatible
+        ↓
+regola trovata
++
+data fuori finestra
+
+unknown
+        ↓
+nessuna regola applicabile
+```
+
+Il servizio conserva inoltre automaticamente il fallback:
+
+```text
+varietà specifica
+        ↓
+coltura generale
+        ↓
+unknown
+```
+
+### Architettura della valutazione stagionale
+
+Con la Sessione S016 il flusso delle finestre agronomiche evolve da una semplice verifica temporale a una valutazione applicativa completa.
+
+L'architettura risultante è:
+
+```text
+PlannedPlantingBatch
+        ↓
+AgronomicWindowResolver
+        ↓
+CropAgronomicWindowRule
+        ↓
+AgronomicWindow
+        ↓
+AgronomicWindowEngine
+        ↓
+AgronomicWindowEvaluation
+```
+
+A livello applicativo:
+
+```text
+AgronomicWindowService
+        ↓
+coordina Resolver + Engine
+```
+
+Le responsabilità rimangono separate:
+
+- `SuccessionPlanningEngine` genera temporalmente i lotti;
+- `CropAgronomicWindowRule` associa le finestre a colture e varietà;
+- `AgronomicWindowResolver` seleziona la finestra applicabile;
+- `AgronomicWindowEngine` verifica la compatibilità temporale;
+- `AgronomicWindowEvaluation` rappresenta il risultato;
+- `AgronomicWindowService` coordina l'intero flusso applicativo.
+
+Questa separazione evita che il `SuccessionPlanningEngine` acquisisca responsabilità relative a:
+
+- selezione delle regole;
+- stagionalità;
+- interpretazione del risultato;
+- persistenza.
+
+### Persistenza delle regole agronomiche
+
+La Sessione S016 non introduce ancora la persistenza delle finestre agronomiche in Supabase.
+
+La scelta è deliberata.
+
+Il principio adottato è:
+
+```text
+prima dominio stabile e testato
+        ↓
+poi progettazione della persistenza
+```
+
+La futura struttura persistente dovrà adattarsi al dominio applicativo e non imporre prematuramente vincoli al modello.
+
+Dovrà supportare almeno:
+
+- regola generale della coltura;
+- regola specifica della varietà;
+- metodo di avvio;
+- mese e giorno iniziale;
+- mese e giorno finale;
+- possibilità da verificare di più finestre agronomiche per la stessa coltura e metodo;
+- futura estensione delle informazioni agronomiche senza duplicazioni inutili.
+
+La futura architettura dovrà mantenere il flusso:
+
+```text
+Supabase
+        ↓
+Repository
+        ↓
+dominio
+        ↓
+AgronomicWindowResolver
+        ↓
+AgronomicWindowEngine
+        ↓
+AgronomicWindowService
+        ↓
+AgronomicWindowEvaluation
+```
+
+La progettazione dello schema persistente viene rinviata alla Sessione S017.
+
+Prima di qualsiasi migration dovranno essere verificati:
+
+- schema reale di `crops`;
+- schema reale di `crop_varieties`;
+- vincoli e foreign key esistenti;
+- differenza tra identificativi `String`, `int` e `bigint`;
+- eventuale necessità di più finestre per coltura e metodo nello stesso anno.
 
 ### RecommendationMapper
 

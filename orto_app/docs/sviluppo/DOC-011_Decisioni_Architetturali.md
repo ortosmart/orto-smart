@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 0.8
+**Versione:** 0.9
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 11/08/2026
+**Ultimo aggiornamento:** 12/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 0.8                            |
+| Versione             | 0.9                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
 | Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 11/08/2026                     |
+| Ultimo aggiornamento | 12/08/2026                     |
 
 ---
 
@@ -44,6 +44,7 @@
 | 0.6      | 10/08/2026 | Introduzione della DEC-007 sulla separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato           |
 | 0.7      | 11/08/2026 | Introduzione della DEC-008 sul divieto di conversioni implicite non supportate nella pianificazione                        |
 | 0.8      | 11/08/2026 | Introduzione della DEC-009 sulla separazione tra pianificazione temporale e compatibilità agronomica                       |
+| 0.9      | 12/08/2026 | Introduzione della DEC-010 sulla risoluzione gerarchica delle regole agronomiche e sulla distinzione tra assenza di conoscenza e incompatibilità |
 
 ---
 
@@ -64,6 +65,7 @@
 3.7 DEC-007 – Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato
 3.8 DEC-008 – Divieto di conversioni implicite non supportate nella pianificazione
 3.9 DEC-009 – Separazione tra pianificazione temporale e compatibilità agronomica
+3.10 DEC-010 – Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza
 
 ## 4. Registro delle decisioni
 
@@ -886,6 +888,300 @@ Le alternative sono state scartate perché avrebbero aumentato l'accoppiamento t
 
 ---
 
+## 3.10 DEC-010 – Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza
+
+**Stato:** Approvata
+
+**Data:** 12/08/2026
+
+**Sessione:** S016
+
+### Contesto
+
+La Sessione S015 ha introdotto `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`, separando formalmente la pianificazione temporale dei lotti dalla verifica della loro compatibilità agronomica.
+
+Le finestre introdotte nella S015 erano tuttavia ancora astratte e non risultavano associate direttamente alle colture o alle varietà.
+
+Per rendere utilizzabile la stagionalità nel dominio applicativo è diventato necessario stabilire:
+
+- come associare una finestra agronomica a una coltura;
+- come rappresentare eventuali regole specifiche di una varietà;
+- quale regola utilizzare quando sono disponibili sia una regola generale sia una specifica;
+- come rappresentare l'assenza di una regola;
+- quale componente debba selezionare la regola;
+- quale componente debba verificarne la compatibilità temporale;
+- come coordinare l'intero processo senza aumentare le responsabilità del `SuccessionPlanningEngine`.
+
+Era inoltre necessario evitare che l'assenza di informazioni agronomiche venisse interpretata automaticamente come incompatibilità.
+
+Una coltura per la quale Orto Smart non possiede ancora una regola stagionale non può infatti essere considerata agronomicamente incompatibile: il sistema dispone semplicemente di informazioni insufficienti per formulare il giudizio.
+
+### Decisione
+
+Associare le finestre agronomiche alle colture e alle varietà mediante un modello dedicato denominato `CropAgronomicWindowRule`.
+
+Una regola può essere:
+
+```text
+varietyId == null
+        ↓
+regola generale della coltura
+
+varietyId != null
+        ↓
+regola specifica della varietà
+```
+
+Quando viene valutato un `PlannedPlantingBatch`, la selezione della regola deve seguire una gerarchia deterministica:
+
+```text
+regola specifica della varietà
+        ↓
+regola generale della coltura
+        ↓
+nessuna regola disponibile
+```
+
+La regola specifica della varietà ha quindi precedenza sulla regola generale della coltura.
+
+In assenza di una regola varietale applicabile, il sistema utilizza automaticamente la regola generale della coltura.
+
+Se non è disponibile alcuna regola applicabile, il sistema non deve classificare il lotto come incompatibile.
+
+Il risultato deve invece essere:
+
+```text
+unknown
+```
+
+Viene pertanto formalizzato il principio:
+
+```text
+unknown != incompatible
+```
+
+### Separazione delle responsabilità
+
+La selezione della regola e la verifica della compatibilità temporale devono rimanere responsabilità distinte.
+
+L'architettura adottata è:
+
+```text
+PlannedPlantingBatch
+        ↓
+AgronomicWindowResolver
+        ↓
+CropAgronomicWindowRule
+        ↓
+AgronomicWindow
+        ↓
+AgronomicWindowEngine
+        ↓
+AgronomicWindowEvaluation
+```
+
+Le responsabilità sono assegnate nel seguente modo.
+
+`CropAgronomicWindowRule`:
+
+- associa una finestra a una coltura;
+- può specializzare la regola per una varietà;
+- non valuta la data del lotto.
+
+`AgronomicWindowResolver`:
+
+- riceve le regole disponibili;
+- considera coltura, varietà e metodo di avvio;
+- privilegia la regola specifica della varietà;
+- utilizza in fallback la regola generale della coltura;
+- restituisce l'assenza di una regola quando nessuna corrispondenza è disponibile;
+- non verifica la compatibilità temporale.
+
+`AgronomicWindowEngine`:
+
+- riceve la finestra selezionata;
+- verifica la compatibilità del metodo di avvio;
+- verifica l'appartenenza temporale della data alla finestra;
+- non decide quale regola utilizzare.
+
+`AgronomicWindowEvaluation`:
+
+- rappresenta il risultato strutturato della valutazione;
+- distingue `compatible`, `incompatible` e `unknown`;
+- conserva la finestra utilizzata quando disponibile;
+- può fornire le motivazioni del risultato.
+
+`AgronomicWindowService`:
+
+- coordina `AgronomicWindowResolver` e `AgronomicWindowEngine`;
+- produce `AgronomicWindowEvaluation`;
+- non introduce logica agronomica propria.
+
+Il `SuccessionPlanningEngine` rimane responsabile esclusivamente della generazione temporale dei lotti e non viene modificato per incorporare la selezione o la valutazione delle regole stagionali.
+
+### Stati della valutazione
+
+Il risultato della valutazione non viene rappresentato mediante un semplice valore booleano.
+
+Sono definiti tre stati:
+
+```text
+compatible
+incompatible
+unknown
+```
+
+`compatible` significa:
+
+```text
+regola disponibile
+        +
+data e metodo compatibili
+```
+
+`incompatible` significa:
+
+```text
+regola disponibile
+        +
+data o metodo non compatibili
+```
+
+`unknown` significa:
+
+```text
+nessuna regola applicabile
+        ↓
+conoscenza agronomica insufficiente
+```
+
+Questa distinzione impedisce che una mancanza di dati venga trasformata in un giudizio agronomico negativo.
+
+### Principio di generalizzazione e override varietale
+
+La struttura delle regole deve privilegiare il dato generale della coltura e introdurre informazioni specifiche della varietà soltanto quando realmente necessarie.
+
+Il principio è:
+
+```text
+regola generale della coltura
+        +
+override della varietà solo quando necessario
+```
+
+Questo approccio consente di:
+
+- ridurre la duplicazione dei dati;
+- mantenere compatta la futura struttura persistente;
+- rappresentare eccezioni varietali senza replicare tutte le informazioni della coltura;
+- mantenere un comportamento di fallback deterministico.
+
+### Persistenza
+
+La Sessione S016 non introduce ancora la persistenza delle regole agronomiche in Supabase.
+
+La persistenza viene deliberatamente rinviata fino alla stabilizzazione del dominio e del comportamento applicativo.
+
+Il principio adottato è:
+
+```text
+dominio
+        ↓
+comportamento verificato mediante test
+        ↓
+contratto stabile
+        ↓
+progettazione della persistenza
+```
+
+La futura struttura Supabase dovrà quindi adattarsi al dominio consolidato e non determinare prematuramente la struttura dei componenti applicativi.
+
+Prima della progettazione dello schema persistente dovranno essere verificati:
+
+- struttura reale di `crops`;
+- struttura reale di `crop_varieties`;
+- foreign key e vincoli esistenti;
+- differenza tra gli identificativi `String` utilizzati dal dominio agronomico, gli identificativi `int` attualmente utilizzati da `CropVariety` e i `bigint` presenti in Supabase;
+- possibilità che una coltura e uno stesso metodo di avvio possiedano più finestre agronomiche nello stesso anno.
+
+### Separazione dalle future correzioni climatiche e meteorologiche
+
+La S016 consolida la stagionalità di base delle colture e delle varietà ma non introduce ancora correzioni dinamiche basate sul clima o sul meteo.
+
+Rimane valida la separazione:
+
+```text
+pianificazione temporale teorica
+        ↓
+stagionalità di base della coltura o varietà
+        ↓
+compatibilità del lotto
+        ↓
+future correzioni climatiche e meteorologiche
+```
+
+Restano quindi fuori dalla responsabilità dei componenti introdotti nella S016:
+
+- temperatura reale;
+- rischio di gelo;
+- localizzazione geografica;
+- condizioni meteorologiche correnti;
+- dati della stazione meteorologica locale;
+- adattamento dinamico delle finestre.
+
+Questi elementi potranno essere introdotti successivamente come livello separato senza modificare la responsabilità fondamentale del sistema di risoluzione delle finestre.
+
+### Motivazione
+
+- Associare le finestre agronomiche alle effettive colture e varietà.
+- Consentire override varietali senza duplicare inutilmente le regole generali.
+- Definire un fallback deterministico tra varietà e coltura.
+- Distinguere chiaramente assenza di conoscenza e incompatibilità.
+- Evitare falsi giudizi agronomici negativi in presenza di dati mancanti.
+- Separare la selezione della regola dalla verifica temporale.
+- Mantenere il `SuccessionPlanningEngine` indipendente dalla stagionalità.
+- Rendere ogni componente autonomamente testabile.
+- Mantenere il servizio applicativo privo di logica agronomica propria.
+- Stabilizzare il dominio prima di progettare la persistenza.
+- Ridurre la futura duplicazione dei dati.
+- Preparare l'integrazione successiva con Supabase.
+- Preservare la separazione dalle future correzioni climatiche e meteorologiche.
+
+### Alternative valutate
+
+- Associare direttamente le finestre a `Crop` e `CropVariety` modificando immediatamente i modelli esistenti.
+- Duplicare tutte le regole della coltura per ogni varietà.
+- Utilizzare esclusivamente regole specifiche delle varietà.
+- Utilizzare esclusivamente regole generali delle colture.
+- Integrare la selezione della regola direttamente nell'`AgronomicWindowEngine`.
+- Integrare l'intero processo nel `SuccessionPlanningEngine`.
+- Rappresentare il risultato mediante un semplice booleano.
+- Interpretare l'assenza di una regola come incompatibilità.
+- Creare immediatamente le tabelle Supabase prima della stabilizzazione del dominio.
+- Integrare già nella S016 temperatura, gelo, localizzazione e meteo reale.
+
+Le alternative sono state scartate perché avrebbero aumentato l'accoppiamento tra responsabilità differenti, introdotto duplicazioni, prodotto giudizi non supportati dai dati oppure vincolato prematuramente il dominio alla persistenza.
+
+### Conseguenze
+
+- Le finestre agronomiche possono essere associate a colture e varietà mediante `CropAgronomicWindowRule`.
+- Le regole generali della coltura possono essere specializzate mediante override varietali.
+- `AgronomicWindowResolver` seleziona la regola applicabile.
+- La regola specifica della varietà ha precedenza sulla regola generale della coltura.
+- In assenza della regola varietale viene utilizzata la regola generale della coltura.
+- In assenza di qualsiasi regola applicabile il risultato è `unknown`.
+- `unknown` rimane semanticamente distinto da `incompatible`.
+- `AgronomicWindowEngine` mantiene la responsabilità della verifica temporale.
+- `AgronomicWindowEvaluation` rappresenta il risultato mediante tre stati.
+- `AgronomicWindowService` coordina resolver ed engine senza introdurre logica agronomica propria.
+- Il `SuccessionPlanningEngine` rimane separato dalla valutazione stagionale.
+- La persistenza Supabase non viene ancora introdotta.
+- La progettazione della persistenza viene rinviata alla sessione successiva.
+- La futura struttura dati dovrà privilegiare regole generali con override varietali quando necessari.
+- Le correzioni climatiche e meteorologiche rimangono un livello evolutivo successivo e separato.
+
+---
+
 # 4. Registro delle decisioni
 
 | ID      | Data       | Sessione | Titolo                                                                                | Stato     |
@@ -899,6 +1195,7 @@ Le alternative sono state scartate perché avrebbero aumentato l'accoppiamento t
 | DEC-007 | 10/08/2026 | S013     | Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato       | Approvata |
 | DEC-008 | 11/08/2026 | S014     | Divieto di conversioni implicite non supportate nella pianificazione                      | Approvata |
 | DEC-009 | 11/08/2026 | S015     | Separazione tra pianificazione temporale e compatibilità agronomica                | Approvata |
+| DEC-010 | 12/08/2026 | S016     | Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza | Approvata |
 
 ---
 

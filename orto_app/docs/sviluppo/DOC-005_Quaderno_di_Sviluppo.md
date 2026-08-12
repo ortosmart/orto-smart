@@ -3063,3 +3063,490 @@ Il checkpoint tecnico di partenza della S016 è:
 - `flutter analyze`: superato;
 - `flutter test`: 131/131;
 - repository pulito e sincronizzato al termine dello sviluppo S015.
+
+---
+
+# Sessione S016 – Associazione delle finestre agronomiche a colture e varietà
+
+**Data:** 11/08/2026
+
+**Orario sviluppo:** 19:11–20:17
+
+**Tempo effettivo di sviluppo:** 1 h 06 min
+
+**Pause:** nessuna
+
+## Obiettivo della sessione
+
+L'obiettivo della Sessione S016 è stato proseguire il lavoro iniziato nella S015 sulle finestre agronomiche, definendo come associare una finestra agronomica a una coltura o a una specifica varietà e costruendo il primo flusso applicativo capace di valutare la compatibilità stagionale di un lotto pianificato.
+
+La scelta architetturale principale della sessione è stata quella di consolidare prima il modello di dominio e il comportamento applicativo, rimandando la persistenza delle regole in Supabase a una fase successiva.
+
+## Stato iniziale
+
+All'apertura della Sessione S016:
+
+- repository `main` sincronizzato con `origin/main`;
+- working tree pulito;
+- ultimo commit: `44b481f Aggiorna documentazione Sessione S015`;
+- `flutter analyze`: nessun problema;
+- `flutter test`: 131 test superati.
+
+La S015 aveva già introdotto:
+
+- `AgronomicWindow`;
+- `AgronomicWindowValidator`;
+- `AgronomicWindowEngine`;
+- gestione delle finestre che attraversano la fine dell'anno;
+- verifica della compatibilità tra finestra e `PlannedPlantingBatch`.
+
+Mancava però il collegamento tra le finestre agronomiche e le effettive colture e varietà.
+
+## Analisi preliminare
+
+Prima dell'implementazione è stata verificata la struttura esistente di `Crop`, `CropVariety`, `Planting`, repository e motori agronomici.
+
+È emersa una differenza già presente nel progetto nella rappresentazione degli identificativi:
+
+- gran parte del dominio agronomico utilizza `String` per `cropId` e `varietyId`;
+- `CropVariety` utilizza ancora `int` per `id` e `cropId`;
+- in Supabase `crops.id`, `crop_varieties.id` e `crop_varieties.crop_id` sono attualmente `bigint`.
+
+Per evitare una modifica trasversale non necessaria durante la S016, il nuovo dominio delle finestre agronomiche continua a utilizzare identificativi `String`, coerentemente con `PlannedPlantingBatch` e con gli altri componenti del motore agronomico.
+
+È stata inoltre valutata la possibilità di modificare immediatamente Supabase.
+
+Si è deciso deliberatamente di non farlo nella S016: prima viene definito e verificato il comportamento del dominio; successivamente verrà progettato il modello persistente sulla base di un contratto ormai stabile.
+
+## Implementazione
+
+### CropAgronomicWindowRule
+
+È stato creato:
+
+`lib/core/agronomy/models/crop_agronomic_window_rule.dart`
+
+Il modello rappresenta l'associazione tra una finestra agronomica e:
+
+- una coltura;
+- opzionalmente una specifica varietà.
+
+La semantica definita è:
+
+```text
+varietyId == null
+        ↓
+regola generale della coltura
+
+varietyId != null
+        ↓
+regola specifica della varietà
+```
+
+Questo permette di mantenere una regola generale e introdurre eccezioni varietali soltanto quando necessarie, evitando duplicazioni inutili dei dati.
+
+Sono stati creati i relativi test:
+
+`test/core/agronomy/models/crop_agronomic_window_rule_test.dart`
+
+### AgronomicWindowResolver
+
+È stato creato:
+
+`lib/core/agronomy/engines/agronomic_window_resolver.dart`
+
+Il resolver seleziona la finestra agronomica applicabile in base a:
+
+- `cropId`;
+- `varietyId`;
+- `PlannedPlantingStartMethod`.
+
+È stata definita la seguente gerarchia:
+
+```text
+regola specifica della varietà
+        ↓
+regola generale della coltura
+        ↓
+nessuna regola
+```
+
+Il comportamento previsto è pertanto:
+
+1. se esiste una regola specifica per la varietà e per il metodo di impianto richiesto, viene utilizzata quella;
+2. in assenza della regola varietale viene utilizzata la regola generale della coltura;
+3. se non esiste alcuna regola applicabile viene restituito `null`.
+
+Il resolver non valuta la data del lotto. Questa responsabilità rimane nell'`AgronomicWindowEngine`.
+
+È stato inoltre introdotto:
+
+`resolveForBatch(...)`
+
+che permette al resolver di ricevere direttamente un `PlannedPlantingBatch`, estraendo:
+
+- `cropId`;
+- `varietyId`;
+- `startMethod`.
+
+Sono stati creati i relativi test:
+
+`test/core/agronomy/engines/agronomic_window_resolver_test.dart`
+
+Al termine della sessione il resolver dispone di **8 test dedicati**.
+
+### AgronomicWindowEvaluation
+
+È stato creato:
+
+`lib/core/agronomy/models/agronomic_window_evaluation.dart`
+
+È stato deciso di non rappresentare il risultato della valutazione mediante un semplice valore booleano.
+
+Sono stati introdotti tre stati:
+
+- `compatible`;
+- `incompatible`;
+- `unknown`.
+
+La distinzione è intenzionale:
+
+```text
+unknown != incompatible
+```
+
+`unknown` significa che Orto Smart non possiede una regola agronomica sufficiente per esprimere un giudizio.
+
+`incompatible` significa invece che una regola è disponibile, ma la data pianificata non rientra nella finestra prevista.
+
+Il modello contiene inoltre:
+
+- la finestra agronomica utilizzata, quando disponibile;
+- una lista di motivazioni (`reasons`);
+- getter per identificare rapidamente i tre stati.
+
+Sono stati introdotti factory constructor dedicati:
+
+- `AgronomicWindowEvaluation.compatible(...)`;
+- `AgronomicWindowEvaluation.incompatible(...)`;
+- `AgronomicWindowEvaluation.unknown(...)`.
+
+La struttura segue il pattern già utilizzato nel progetto da risultati come `RotationResult`.
+
+Sono stati creati i relativi test:
+
+`test/core/agronomy/models/agronomic_window_evaluation_test.dart`
+
+Test dedicati: **4**.
+
+### AgronomicWindowService
+
+È stato creato:
+
+`lib/services/agronomic_window_service.dart`
+
+Il servizio segue il pattern già presente in `BedAnalysisService`.
+
+Non contiene logica agronomica propria, ma coordina:
+
+- `AgronomicWindowResolver`;
+- `AgronomicWindowEngine`.
+
+Il metodo:
+
+`evaluateBatch(...)`
+
+riceve:
+
+- un insieme di `CropAgronomicWindowRule`;
+- un `PlannedPlantingBatch`.
+
+Il flusso risultante è:
+
+```text
+PlannedPlantingBatch
+        ↓
+AgronomicWindowResolver
+        ↓
+selezione della finestra
+        ↓
+AgronomicWindowEngine
+        ↓
+AgronomicWindowEvaluation
+```
+
+Il risultato finale può essere:
+
+**compatible**
+
+- regola trovata;
+- data del lotto dentro la finestra.
+
+**incompatible**
+
+- regola trovata;
+- data del lotto fuori dalla finestra.
+
+**unknown**
+
+- nessuna regola applicabile disponibile.
+
+Il servizio conserva automaticamente il fallback:
+
+```text
+varietà specifica
+        ↓
+coltura generale
+        ↓
+unknown
+```
+
+Sono stati creati i relativi test:
+
+`test/services/agronomic_window_service_test.dart`
+
+Test dedicati: **4**.
+
+## Separazione delle responsabilità
+
+La Sessione S016 ha consolidato la seguente architettura:
+
+```text
+PlannedPlantingBatch
+        ↓
+AgronomicWindowResolver
+        ↓
+AgronomicWindow
+        ↓
+AgronomicWindowEngine
+        ↓
+AgronomicWindowEvaluation
+```
+
+Le responsabilità rimangono separate:
+
+- `AgronomicWindowResolver` decide **quale finestra applicare**;
+- `AgronomicWindowEngine` decide **se la data del lotto è compatibile con quella finestra**;
+- `AgronomicWindowService` coordina resolver ed engine e produce il risultato applicativo;
+- `SuccessionPlanningEngine` rimane responsabile della generazione temporale dei lotti.
+
+Questa separazione evita di concentrare nel `SuccessionPlanningEngine` conoscenze relative alla stagionalità, alla selezione delle regole e alla persistenza.
+
+## Persistenza Supabase
+
+Durante la S016 non sono state apportate modifiche a Supabase.
+
+La scelta è intenzionale.
+
+Il dominio delle finestre agronomiche viene prima stabilizzato e testato indipendentemente dalla persistenza.
+
+La futura struttura Supabase dovrà adattarsi al dominio e non viceversa.
+
+In particolare dovrà supportare:
+
+- regole generali per coltura;
+- regole specifiche per varietà;
+- differenti metodi di impianto;
+- una o eventualmente più finestre agronomiche;
+- futura estensione delle informazioni agronomiche senza duplicazioni inutili.
+
+Rimane valido il principio generale di efficienza dei dati adottato nel progetto:
+
+```text
+dato generale della coltura
+        +
+override specifico della varietà solo quando necessario
+```
+
+Questa struttura limita le duplicazioni e mantiene compatta la futura rappresentazione persistente.
+
+## Test
+
+La baseline iniziale della Sessione S016 era:
+
+```text
+131 test
+```
+
+Sono stati aggiunti complessivamente **18 nuovi test**:
+
+| Componente                  | Nuovi test |
+| --------------------------- | ---------: |
+| `CropAgronomicWindowRule`   |          2 |
+| `AgronomicWindowResolver`   |          8 |
+| `AgronomicWindowEvaluation` |          4 |
+| `AgronomicWindowService`    |          4 |
+| **Totale**                  |     **18** |
+
+Il controllo mirato finale ha prodotto:
+
+```text
+18/18 All tests passed
+```
+
+La suite completa ha prodotto:
+
+```text
+149/149 All tests passed
+```
+
+La baseline dei test automatici è quindi passata:
+
+```text
+131 → 149 test
+```
+
+L'analisi statica finale ha prodotto:
+
+```text
+flutter analyze
+→ No issues found!
+```
+
+Nessuna regressione è stata rilevata.
+
+## File introdotti
+
+La Sessione S016 ha introdotto 8 nuovi file.
+
+### Implementazione
+
+- `lib/core/agronomy/engines/agronomic_window_resolver.dart`;
+- `lib/core/agronomy/models/agronomic_window_evaluation.dart`;
+- `lib/core/agronomy/models/crop_agronomic_window_rule.dart`;
+- `lib/services/agronomic_window_service.dart`.
+
+### Test
+
+- `test/core/agronomy/engines/agronomic_window_resolver_test.dart`;
+- `test/core/agronomy/models/agronomic_window_evaluation_test.dart`;
+- `test/core/agronomy/models/crop_agronomic_window_rule_test.dart`;
+- `test/services/agronomic_window_service_test.dart`.
+
+Diff complessivo:
+
+```text
+8 file nuovi
+497 inserzioni
+```
+
+## Decisioni progettuali
+
+La Sessione S016 ha consolidato i seguenti principi:
+
+1. Le finestre agronomiche vengono associate a colture e varietà mediante `CropAgronomicWindowRule`.
+2. Una regola può essere generale per una coltura oppure specifica per una varietà.
+3. La regola specifica della varietà ha precedenza sulla regola generale della coltura.
+4. La selezione della finestra e la valutazione temporale rimangono responsabilità distinte.
+5. `AgronomicWindowResolver` determina quale finestra utilizzare.
+6. `AgronomicWindowEngine` determina se la data appartiene alla finestra selezionata.
+7. `AgronomicWindowService` coordina i componenti senza incorporare logica agronomica propria.
+8. L'assenza di una regola non equivale a incompatibilità: `unknown != incompatible`.
+9. La persistenza Supabase viene rimandata consapevolmente fino alla stabilizzazione del dominio.
+10. La futura persistenza dovrà privilegiare il dato generale della coltura con override varietali soltanto quando necessari.
+11. Il dominio delle finestre agronomiche continua a utilizzare identificativi `String`, rinviando la risoluzione dell'attuale differenza con `CropVariety` e con gli identificativi `bigint` di Supabase alla progettazione della persistenza.
+
+## Git
+
+### Commit sviluppo
+
+`3cdf212 Integra la stagionalità dei lotti pianificati`
+
+Il commit comprende:
+
+- 8 nuovi file;
+- 497 inserzioni.
+
+Il commit è stato pubblicato correttamente su GitHub.
+
+Al termine dello sviluppo della Sessione S016:
+
+- `main = origin/main`;
+- working tree pulito.
+
+### Tempo di lavoro
+
+| Attività                 |          Tempo |
+| ------------------------ | -------------: |
+| Sviluppo software        |     1 h 06 min |
+| Documentazione           |         56 min |
+| **Totale Sessione S016** | **2 h 02 min** |
+
+Il tempo indicato comprende esclusivamente il lavoro effettivamente svolto.
+
+La fase di sviluppo della Sessione S016 si è svolta l'11/08/2026 dalle 19:11 alle 20:17, senza pause dichiarate.
+
+Il tempo effettivo di sviluppo della Sessione S016 è pertanto pari a **1 h 06 min**.
+
+La Sessione Manuali S016 si è svolta il 12/08/2026 dalle 14:39 alle 15:35, senza pause dichiarate.
+
+Il tempo effettivo di documentazione della Sessione S016 è pertanto pari a **56 min**.
+
+Il tempo complessivo effettivo della Sessione S016 è pertanto pari a **2 h 02 min**.
+
+## Esito della sessione
+
+La Sessione S016 ha raggiunto l'obiettivo previsto associando le finestre agronomiche alle colture e alle varietà e introducendo il primo flusso applicativo completo per la valutazione della stagionalità dei lotti pianificati.
+
+Il sistema è ora in grado di:
+
+- individuare una regola specifica della varietà;
+- utilizzare in fallback la regola generale della coltura;
+- distinguere l'assenza di informazioni agronomiche da una reale incompatibilità;
+- verificare separatamente la compatibilità temporale del lotto;
+- produrre un risultato applicativo strutturato mediante `AgronomicWindowEvaluation`.
+
+Lo sviluppo tecnico della sessione si è concluso con `flutter analyze` senza errori e **149 test automatici superati**.
+
+La persistenza delle regole agronomiche non è stata introdotta prematuramente e rimane il principale passaggio evolutivo successivo.
+
+## Prossimi passi
+
+La Sessione S017 sarà dedicata alla progettazione della persistenza delle regole delle finestre agronomiche e al collegamento del dominio ormai stabile con Supabase.
+
+La sessione dovrà partire dall'analisi dello schema esistente e non dalla modifica immediata del database.
+
+Dovranno essere verificati:
+
+- schema reale di `crops`;
+- schema reale di `crop_varieties`;
+- vincoli e foreign key coinvolti;
+- differenza tra gli identificativi `String` utilizzati dal dominio agronomico, gli identificativi `int` di `CropVariety` e i `bigint` presenti in Supabase;
+- possibilità che una stessa coltura e uno stesso metodo di impianto possiedano più finestre agronomiche nello stesso anno.
+
+La futura struttura persistente dovrà rappresentare almeno:
+
+- coltura;
+- varietà opzionale;
+- metodo di impianto;
+- mese e giorno iniziale;
+- mese e giorno finale;
+- eventuali metadati agronomici necessari.
+
+Il flusso architetturale da preservare sarà:
+
+```text
+Supabase
+        ↓
+Repository
+        ↓
+dominio
+        ↓
+AgronomicWindowResolver
+        ↓
+AgronomicWindowEngine
+        ↓
+AgronomicWindowService
+        ↓
+AgronomicWindowEvaluation
+```
+
+Solo dopo aver definito e verificato lo schema dovrà essere valutata l'esecuzione della migration Supabase.
+
+Il checkpoint tecnico di partenza della S017 è:
+
+- commit sviluppo: `3cdf212`;
+- `flutter analyze`: superato;
+- `flutter test`: 149/149;
+- fallback: varietà specifica → coltura generale → `unknown`;
+- repository pulito e sincronizzato al termine dello sviluppo S016.
