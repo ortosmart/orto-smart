@@ -4,14 +4,14 @@
 
 # Registro delle modifiche
 
-**Versione:** 1.6
+**Versione:** 1.7
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 11/08/2026
+**Ultimo aggiornamento:** 12/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------ |
 | Documento            | CHANGELOG                |
 | Titolo               | Registro delle modifiche |
-| Versione             | 1.6                      |
+| Versione             | 1.7                      |
 | Stato                | Approvato                |
 | Progetto             | Orto Smart               |
 | Repository           | ortosmart/orto-smart     |
 | Prima emissione      | 27/07/2026               |
-| Ultimo aggiornamento | 11/08/2026               |
+| Ultimo aggiornamento | 12/08/2026               |
 
 ---
 
@@ -45,6 +45,7 @@
 | 1.4      | 10/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.7-alpha e introduzione dei fabbisogni quantitativi e dei lotti pianificati |
 | 1.5      | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.8-alpha e prima implementazione del SuccessionPlanningEngine               |
 | 1.6      | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.9-alpha e prima implementazione delle finestre agronomiche                 |
+| 1.7      | 12/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.10-alpha e associazione delle finestre agronomiche a colture e varietà |
 
 ---
 
@@ -66,6 +67,7 @@
 3.8 Versione 0.1.7-alpha
 3.9 Versione 0.1.8-alpha
 3.10 Versione 0.1.9-alpha
+3.11 Versione 0.1.10-alpha
 
 ## 4. Cronologia versioni
 
@@ -453,6 +455,52 @@ Nessuna modifica.
 
 ---
 
+## 3.11 Versione 0.1.10-alpha
+
+**Data:** 12/08/2026
+
+### Aggiunto
+
+- Introdotto `CropAgronomicWindowRule` per associare una `AgronomicWindow` a una coltura e, opzionalmente, a una specifica varietà.
+- Introdotto `AgronomicWindowResolver` per selezionare la finestra agronomica applicabile in base a coltura, varietà e metodo di avvio.
+- Introdotto `AgronomicWindowEvaluation` come risultato strutturato della valutazione stagionale.
+- Introdotto `AgronomicWindowService` per coordinare `AgronomicWindowResolver` e `AgronomicWindowEngine`.
+- Introdotto il fallback gerarchico tra regola specifica della varietà e regola generale della coltura.
+- Introdotti gli stati `compatible`, `incompatible` e `unknown` per rappresentare distintamente gli esiti della valutazione.
+- Aggiunto `resolveForBatch(...)` per risolvere direttamente la finestra applicabile a un `PlannedPlantingBatch`.
+- Aggiunti complessivamente 18 nuovi test automatici dedicati ai componenti introdotti nella S016.
+
+### Modificato
+
+- Baseline dei test automatici portata da 131 a 149 test superati.
+- Le finestre agronomiche introdotte nella S015 possono ora essere associate a colture e varietà.
+- La regola specifica della varietà ha precedenza sulla regola generale della coltura.
+- In assenza di una regola varietale applicabile viene utilizzata in fallback la regola generale della coltura.
+- L'assenza di una regola applicabile viene distinta da una reale incompatibilità agronomica mediante lo stato `unknown`.
+
+### Architettura
+
+- Introdotto `CropAgronomicWindowRule` come livello di associazione tra dominio delle colture e finestre agronomiche.
+- Separata la selezione della finestra dalla verifica della compatibilità temporale.
+- Affidata ad `AgronomicWindowResolver` la responsabilità di determinare quale finestra applicare.
+- Mantenuta in `AgronomicWindowEngine` la responsabilità della verifica temporale della finestra selezionata.
+- Introdotto `AgronomicWindowService` come coordinatore applicativo privo di logica agronomica propria.
+- Mantenuto invariato il `SuccessionPlanningEngine`, che continua a essere responsabile esclusivamente della generazione temporale dei lotti.
+- Formalizzato il principio `unknown != incompatible`, evitando che l'assenza di conoscenza venga interpretata come giudizio agronomico negativo.
+- Adottato il principio della regola generale della coltura con override varietale soltanto quando necessario, limitando la futura duplicazione dei dati.
+- Rinviata alla S017 la progettazione della persistenza delle regole agronomiche in Supabase.
+- Mantenute separate le future correzioni basate su clima, localizzazione, rischio di gelo e dati meteorologici reali.
+
+### Corretto
+
+Nessuna correzione specifica.
+
+### Sicurezza
+
+Nessuna modifica.
+
+---
+
 # 4. Cronologia versioni
 
 | Versione    | Data       | Stato      | Note                                                                                                                                                              |
@@ -466,7 +514,8 @@ Nessuna modifica.
 | 0.1.6-alpha | 09/08/2026 | Archiviata | Integrato il `FamilyNeedsEngine` nella `RecommendationPipeline` mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
 | 0.1.7-alpha | 10/08/2026 | Archiviata | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro `SuccessionPlanningEngine`. |
 | 0.1.8-alpha | 11/08/2026 | Archiviata   | Implementata la prima versione del `SuccessionPlanningEngine` per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
-| 0.1.9-alpha | 11/08/2026 | Corrente   | Introdotte le finestre agronomiche mediante `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`, mantenendo separata la compatibilità agronomica dalla pianificazione temporale del `SuccessionPlanningEngine`. |
+| 0.1.9-alpha | 11/08/2026 | Archiviata   | Introdotte le finestre agronomiche mediante `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`, mantenendo separata la compatibilità agronomica dalla pianificazione temporale del `SuccessionPlanningEngine`. |
+| 0.1.10-alpha | 12/08/2026 | Corrente   | Associate le finestre agronomiche a colture e varietà mediante `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService`, introducendo il fallback varietà → coltura e la distinzione tra `unknown` e `incompatible`. |
 
 ---
 

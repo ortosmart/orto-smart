@@ -3,9 +3,9 @@
 | Campo             | Valore               |
 | ----------------- | -------------------- |
 | Progetto          | Orto Smart           |
-| Versione corrente | 0.1.9-alpha          |
+| Versione corrente | 0.1.10-alpha          |
 | Stato             | Alpha                |
-| Data versione     | 11/08/2026           |
+| Data versione     | 12/08/2026           |
 | Linguaggio        | Flutter / Dart       |
 | Backend           | Supabase             |
 | Repository        | ortosmart/orto-smart |
@@ -18,9 +18,13 @@ Orto Smart è attualmente in fase **Alpha**.
 
 L'architettura principale dell'applicazione è stata definita e il motore agronomico dispone dei componenti fondamentali per l'analisi delle aiuole e la generazione delle raccomandazioni.
 
-A partire dalla versione `0.1.9-alpha` è inoltre disponibile la prima infrastruttura dedicata alle finestre agronomiche, costituita da `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`.
+A partire dalla versione `0.1.10-alpha` le finestre agronomiche possono essere associate alle colture e, opzionalmente, alle specifiche varietà mediante `CropAgronomicWindowRule`.
 
-Questi componenti consentono di rappresentare finestre stagionali annuali e di verificare separatamente la compatibilità dei lotti pianificati in base al metodo di avvio e alla data, mantenendo invariata la responsabilità del `SuccessionPlanningEngine`.
+La selezione della finestra applicabile viene gestita da `AgronomicWindowResolver` secondo il fallback varietà specifica → coltura generale → nessuna regola, mentre `AgronomicWindowService` coordina la selezione e la verifica temporale producendo un `AgronomicWindowEvaluation`.
+
+La valutazione distingue gli stati `compatible`, `incompatible` e `unknown`, mantenendo esplicito il principio secondo cui l'assenza di una regola agronomica non equivale a incompatibilità.
+
+La persistenza delle regole agronomiche in Supabase non è ancora stata introdotta e sarà progettata separatamente a partire dal dominio consolidato.
 
 Lo sviluppo prosegue con l'introduzione delle funzionalità agronomiche previste dalla Roadmap di Sviluppo.
 
@@ -65,6 +69,10 @@ Lo sviluppo prosegue con l'introduzione delle funzionalità agronomiche previste
 - AgronomicWindow
 - AgronomicWindowValidator
 - AgronomicWindowEngine
+- CropAgronomicWindowRule
+- AgronomicWindowResolver
+- AgronomicWindowEvaluation
+- AgronomicWindowService
 
 ## Backend
 
@@ -105,7 +113,8 @@ Il presente documento riporta esclusivamente la versione corrente del software e
 | 0.1.6-alpha | 09/08/2026 | Archiviata | Integrato il FamilyNeedsEngine nella RecommendationPipeline mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
 | 0.1.7-alpha | 10/08/2026 | Archiviata   | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro SuccessionPlanningEngine.                         |
 | 0.1.8-alpha | 11/08/2026 | Archiviata   | Implementata la prima versione del SuccessionPlanningEngine per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
-| 0.1.9-alpha | 11/08/2026 | Corrente   | Introdotti AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per rappresentare le finestre agronomiche e verificare separatamente la compatibilità temporale dei lotti pianificati. |
+| 0.1.9-alpha | 11/08/2026 | Archiviata   | Introdotti AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per rappresentare le finestre agronomiche e verificare separatamente la compatibilità temporale dei lotti pianificati. |
+| 0.1.10-alpha | 12/08/2026 | Corrente   | Associate le finestre agronomiche a colture e varietà mediante CropAgronomicWindowRule, AgronomicWindowResolver, AgronomicWindowEvaluation e AgronomicWindowService, con fallback varietà → coltura e distinzione tra `unknown` e `incompatible`. |
 
 ---
 

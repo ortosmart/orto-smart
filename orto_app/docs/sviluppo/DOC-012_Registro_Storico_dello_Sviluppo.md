@@ -4,14 +4,14 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 2.6
+**Versione:** 2.7
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 11/08/2026
+**Ultimo aggiornamento:** 12/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 2.6 |
+| Versione | 2.7 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 11/08/2026 |
+| Ultimo aggiornamento | 12/08/2026 |
 
 ---
 
@@ -44,6 +44,7 @@
 | 2.4      | 10/08/2026 | Aggiornamento del Registro Storico con la Sessione S013 e predisposizione delle fondamenta del futuro SuccessionPlanningEngine                               |
 | 2.5      | 11/08/2026 | Aggiornamento del Registro Storico con la Sessione S014 e prima implementazione del SuccessionPlanningEngine                                                      |
 | 2.6      | 11/08/2026 | Aggiornamento del Registro Storico con la Sessione S015 e introduzione della prima infrastruttura delle finestre agronomiche                                                |
+| 2.7      | 12/08/2026 | Aggiornamento del Registro Storico con la Sessione S016 e associazione delle finestre agronomiche a colture e varietà |
 
 ---
 
@@ -97,13 +98,13 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 | Indicatore                          | Valore                                           |
 | ----------------------------------- | ------------------------------------------------ |
-| Sessioni completate                 | 15                                               |
-| Tempo complessivo di sviluppo       | 46 h 02 min                                      |
-| Tempo complessivo di documentazione | 15 h 46 min                                      |
-| Tempo complessivo progetto          | 61 h 48 min                                      |
+| Sessioni completate                 | 16                                               |
+| Tempo complessivo di sviluppo       | 47 h 08 min                                      |
+| Tempo complessivo di documentazione | 16 h 42 min                                      |
+| Tempo complessivo progetto          | 63 h 50 min                                      |
 | Prima sessione                      | S001                                             |
-| Ultima sessione                     | S015                                             |
-| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S015 |
+| Ultima sessione                     | S016                                             |
+| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S016 |
 
 \* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
@@ -130,7 +131,7 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo di svilupp
 | **S013** | Introduzione dei fabbisogni quantitativi familiari e dei lotti pianificati come fondamenta del futuro SuccessionPlanningEngine | **2 h 07 min** | **57 h 03 min** |
 | **S014** | Prima implementazione del SuccessionPlanningEngine per la generazione temporale validata dei lotti di coltivazione | **1 h 32 min** | **59 h 49 min** |
 | **S015** | Prima implementazione delle finestre agronomiche mediante AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine | **1 h 00 min** |    **61 h 48 min** |
-
+| **S016** | Associazione delle finestre agronomiche a colture e varietà e introduzione della valutazione stagionale dei lotti pianificati | **1 h 06 min** | **63 h 50 min** |
 ---
 
 ## 3.1 Lettura della cronologia
@@ -169,6 +170,7 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S013** | Fondamenta del SuccessionPlanningEngine | Introduzione di `FamilyConsumptionNeed`, `FamilyConsumptionNeedValidator`, `PlannedPlantingBatch` e `PlannedPlantingBatchValidator` come fondamenta dati e di validazione per la futura pianificazione quantitativa e temporale delle coltivazioni. |
 | **S014** | Prima versione del SuccessionPlanningEngine                | Implementazione della prima versione deterministica del `SuccessionPlanningEngine`, capace di trasformare un `FamilyConsumptionNeed` in una sequenza temporale validata di `PlannedPlantingBatch`, rifiutando le conversioni tra fabbisogno familiare e quantità di impianto non supportate dai dati agronomici disponibili. |
 | **S015** | Prima infrastruttura delle finestre agronomiche             | Introduzione di `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine` per rappresentare finestre agronomiche annuali e verificare separatamente la compatibilità temporale dei lotti pianificati in base al metodo di avvio e alla data. |
+| **S016** | Stagionalità di colture e varietà | Introduzione di `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService` per associare le finestre agronomiche a colture e varietà, applicare il fallback varietà → coltura e distinguere `compatible`, `incompatible` e `unknown`. |
 
 ---
 
@@ -188,14 +190,14 @@ Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e
 
 | Indicatore                    | Valore attuale |
 | ----------------------------- | -------------- |
-| Sessioni completate           | 15             |
-| Ore di sviluppo consolidate   | 46 h 02 min    |
-| Ore di documentazione         | 15 h 46 min    |
-| Totale ore progetto           | 61 h 48 min    |
+| Sessioni completate           | 16             |
+| Ore di sviluppo consolidate   | 47 h 08 min    |
+| Ore di documentazione         | 16 h 42 min    |
+| Totale ore progetto           | 63 h 50 min    |
 | Motori agronomici completati  | 5              |
 | Documenti ufficiali approvati | 10             |
-| Ultima sessione completata    | S015           |
-| Sessione in corso             | Nessuna        |
+| Ultima sessione completata    | S016           |
+| Sessione in corso             | Nessuna   |
 
 Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.
 
