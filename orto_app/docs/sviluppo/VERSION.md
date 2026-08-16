@@ -3,9 +3,9 @@
 | Campo             | Valore               |
 | ----------------- | -------------------- |
 | Progetto          | Orto Smart           |
-| Versione corrente | 0.1.10-alpha          |
+| Versione corrente | 0.1.11-alpha          |
 | Stato             | Alpha                |
-| Data versione     | 12/08/2026           |
+| Data versione     | 16/08/2026           |
 | Linguaggio        | Flutter / Dart       |
 | Backend           | Supabase             |
 | Repository        | ortosmart/orto-smart |
@@ -18,15 +18,27 @@ Orto Smart è attualmente in fase **Alpha**.
 
 L'architettura principale dell'applicazione è stata definita e il motore agronomico dispone dei componenti fondamentali per l'analisi delle aiuole e la generazione delle raccomandazioni.
 
-A partire dalla versione `0.1.10-alpha` le finestre agronomiche possono essere associate alle colture e, opzionalmente, alle specifiche varietà mediante `CropAgronomicWindowRule`.
+A partire dalla versione `0.1.11-alpha` Orto Smart dispone di una baseline logica e architetturale completa del **Database V1**, progettata e congelata nella Sessione S017.
 
-La selezione della finestra applicabile viene gestita da `AgronomicWindowResolver` secondo il fallback varietà specifica → coltura generale → nessuna regola, mentre `AgronomicWindowService` coordina la selezione e la verifica temporale producendo un `AgronomicWindowEvaluation`.
+La baseline definisce:
 
-La valutazione distingue gli stati `compatible`, `incompatible` e `unknown`, mantenendo esplicito il principio secondo cui l'assenza di una regola agronomica non equivale a incompatibilità.
+- **52 entità di dominio**;
+- la struttura tecnica separata `profile_edit_locks`;
+- ownership e modello di accesso;
+- accesso familiare monoutente nel V1;
+- modello single-writer;
+- temporalità e storicizzazione;
+- invarianti;
+- sicurezza e Row Level Security;
+- strategia di implementazione incrementale in Supabase.
 
-La persistenza delle regole agronomiche in Supabase non è ancora stata introdotta e sarà progettata separatamente a partire dal dominio consolidato.
+Le finestre agronomiche rimangono rappresentate nel dominio mediante `AgronomicWindow`, mentre la conoscenza persistente è prevista in `agronomic_window_rules`.
 
-Lo sviluppo prosegue con l'introduzione delle funzionalità agronomiche previste dalla Roadmap di Sviluppo.
+`AgronomicWindow` rimane un risultato calcolato e non viene introdotta una tabella persistente `agronomic_windows`.
+
+La progettazione Database V1 è completata; la relativa implementazione fisica mediante migration SQL/Supabase deve ancora essere eseguita progressivamente.
+
+Lo sviluppo prosegue secondo le priorità definite nella Roadmap di Sviluppo.
 
 ---
 
@@ -114,7 +126,8 @@ Il presente documento riporta esclusivamente la versione corrente del software e
 | 0.1.7-alpha | 10/08/2026 | Archiviata   | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro SuccessionPlanningEngine.                         |
 | 0.1.8-alpha | 11/08/2026 | Archiviata   | Implementata la prima versione del SuccessionPlanningEngine per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
 | 0.1.9-alpha | 11/08/2026 | Archiviata   | Introdotti AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per rappresentare le finestre agronomiche e verificare separatamente la compatibilità temporale dei lotti pianificati. |
-| 0.1.10-alpha | 12/08/2026 | Corrente   | Associate le finestre agronomiche a colture e varietà mediante CropAgronomicWindowRule, AgronomicWindowResolver, AgronomicWindowEvaluation e AgronomicWindowService, con fallback varietà → coltura e distinzione tra `unknown` e `incompatible`. |
+| 0.1.10-alpha | 12/08/2026 | Archiviata   | Associate le finestre agronomiche a colture e varietà mediante CropAgronomicWindowRule, AgronomicWindowResolver, AgronomicWindowEvaluation e AgronomicWindowService, con fallback varietà → coltura e distinzione tra `unknown` e `incompatible`. |
+| 0.1.11-alpha | 16/08/2026 | Corrente | Completata e congelata nella S017 la progettazione della baseline Database V1: 52 entità di dominio più la struttura tecnica `profile_edit_locks`, con ownership, accesso familiare monoutente, modello single-writer, temporalità, sicurezza, invarianti e strategia di implementazione incrementale in Supabase. |
 
 ---
 
@@ -122,10 +135,12 @@ Il presente documento riporta esclusivamente la versione corrente del software e
 
 - DOC-001 – Manuale Tecnico
 - DOC-005 – Quaderno di Sviluppo
+- DOC-004 – Manuale Database
 - DOC-006 – Linee Guida di Sviluppo
 - DOC-008 – Roadmap di Sviluppo
 - DOC-009 – Workflow Operativo
 - DOC-011 – Decisioni Architetturali
+- DOC-012 – Registro Storico dello Sviluppo
 - CHANGELOG
 
 ---

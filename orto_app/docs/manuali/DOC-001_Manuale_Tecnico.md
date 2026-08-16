@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 1.5
+**Versione:** 1.6
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 12/08/2026
+**Ultimo aggiornamento:** 16/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,14 +23,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 1.5 |
+| Versione | 1.6 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 12/08/2026 |
+| Ultimo aggiornamento | 16/08/2026 |
 
 ---
 
@@ -46,6 +46,7 @@
 | 1.3      | 11/08/2026 | Prima implementazione del SuccessionPlanningEngine, generazione temporale dei lotti e introduzione della regola sulle conversioni supportate |
 | 1.4      | 11/08/2026 | Introduzione di AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per la prima verifica separata della compatibilità agronomica dei lotti pianificati |
 | 1.5      | 12/08/2026 | Associazione delle finestre agronomiche a colture e varietà mediante CropAgronomicWindowRule, AgronomicWindowResolver, AgronomicWindowEvaluation e AgronomicWindowService |
+| 1.6      | 16/08/2026 | Aggiornamento dell'architettura di persistenza con la baseline Database V1 congelata nella Sessione S017: 52 entità di dominio, struttura tecnica `profile_edit_locks`, ownership, accesso familiare monoutente, modello single-writer, sicurezza, integrità e strategia di implementazione incrementale |
 
 ---
 
@@ -892,187 +893,537 @@ Nei Capitoli 5, 6, 7 e 8 verranno approfonditi rispettivamente il database Postg
 
 ## 5.1 Obiettivo
 
-Il database PostgreSQL costituisce il livello di persistenza dei dati di Orto Smart ed è responsabile della memorizzazione permanente di tutte le informazioni gestite dall'applicazione.
+Il database PostgreSQL costituisce il livello di persistenza dei dati di Orto Smart ed è responsabile della memorizzazione permanente delle informazioni che richiedono conservazione, integrità, relazioni e ricostruibilità storica.
 
-L'obiettivo del database è garantire affidabilità, integrità e prestazioni, assicurando che ogni dato venga archiviato in modo coerente e possa essere recuperato in maniera efficiente dalle componenti software.
+Orto Smart utilizza **Supabase** come piattaforma Backend-as-a-Service (BaaS), sfruttando PostgreSQL come database relazionale e i servizi della piattaforma per autenticazione, sicurezza e accesso ai dati.
 
-Orto Smart utilizza Supabase come piattaforma Backend-as-a-Service (BaaS), sfruttando PostgreSQL come database relazionale e i servizi messi a disposizione dalla piattaforma per l'autenticazione, la sicurezza e l'accesso ai dati.
+L'architettura della persistenza distingue esplicitamente:
 
-La progettazione del database segue gli stessi principi adottati per il modello dati e per l'architettura generale dell'applicazione, privilegiando la modularità, la normalizzazione delle informazioni e la facilità di evoluzione nel tempo.
+- il database Supabase attualmente implementato e utilizzato dall'applicazione;
+- la baseline logica e architetturale del **Database V1**, completata e congelata nella Sessione S017;
+- la futura implementazione SQL/Supabase della baseline V1.
 
-Nei paragrafi successivi verranno descritte la struttura del database, le tabelle principali, le relazioni, i vincoli di integrità e le scelte progettuali adottate durante lo sviluppo.
+La progettazione Database V1 definisce **52 entità di dominio** e una struttura tecnica separata, `profile_edit_locks`.
+
+Il completamento della progettazione non implica che tutte queste strutture siano già presenti nel database operativo: le relative migration SQL devono ancora essere implementate e collaudate.
+
+Il riferimento specialistico per struttura, baseline nominale, relazioni, temporalità, ownership, sicurezza, invarianti e strategia di migrazione è il **DOC-004 – Manuale Database**.
+
+Il presente Manuale Tecnico mantiene invece la visione architetturale generale e il rapporto tra database, Repository, dominio applicativo e interfaccia utente.
 
 ## 5.2 Architettura del database
 
-Il database di Orto Smart è basato su PostgreSQL ed è ospitato sulla piattaforma Supabase, che fornisce un ambiente completo per la gestione del backend dell'applicazione.
+Il database di Orto Smart è basato su PostgreSQL ed è ospitato sulla piattaforma Supabase.
 
-L'architettura del database è stata progettata secondo il modello relazionale, nel quale le informazioni sono organizzate in tabelle collegate tra loro mediante chiavi primarie e chiavi esterne.
+L'architettura Database V1 segue un modello relazionale nel quale le informazioni persistenti sono organizzate in entità e relazioni progettate per preservare:
 
-Questa struttura consente di rappresentare in modo efficiente le relazioni tra le diverse entità dell'applicazione, garantendo coerenza dei dati e riducendo le ridondanze.
+- integrità referenziale;
+- ownership verificabile;
+- separazione tra configurazioni e fatti realmente avvenuti;
+- separazione tra pianificazione e realtà;
+- temporalità e storicizzazione;
+- riduzione delle duplicazioni;
+- possibilità di evoluzione incrementale.
 
-L'accesso al database avviene esclusivamente attraverso i Repository dell'applicazione, che utilizzano il client Supabase per eseguire le operazioni di lettura e scrittura dei dati.
+Una distinzione fondamentale dell'architettura è quella tra **struttura persistente** e **logica decisionale del dominio Dart**.
 
-L'applicazione non accede mai direttamente alle tabelle del database, ma opera sempre tramite il livello di astrazione fornito dai Repository, mantenendo separati il livello di persistenza, la logica applicativa e l'interfaccia utente.
+Il database conserva i fatti, le configurazioni e le informazioni che richiedono persistenza. I risultati che possono essere determinati in modo affidabile dal dominio non devono essere trasformati automaticamente in nuove tabelle persistenti.
 
-L'architettura adottata facilita inoltre la manutenzione del sistema, semplifica l'introduzione di nuove funzionalità e consente di evolvere il database mantenendo la compatibilità con il codice esistente.
+Un esempio significativo è `AgronomicWindow`: rimane un risultato calcolato a partire da `agronomic_window_rules` e non corrisponde a una tabella persistente `agronomic_windows`.
 
-Lo schema generale dell'architettura è rappresentato nel diagramma seguente.
+L'accesso applicativo ai dati deve continuare a essere mediato dal Repository Layer, mantenendo separati persistenza, dominio e interfaccia utente.
+
+Il flusso architetturale generale rimane:
 
 ```text
 Flutter UI
-      │
-      ▼
+        ↓
+Application / Domain
+        ↓
 Repository
-      │
-      ▼
+        ↓
 Supabase Client
-      │
-      ▼
-Supabase Platform
-      │
-      ▼
-PostgreSQL Database
+        ↓
+Supabase / PostgreSQL
 ```
+
+La sicurezza non viene affidata al client Flutter. Autenticazione, autorizzazione, Row Level Security, vincoli e operazioni sensibili devono essere protetti anche lato database/server.
+
+Il Database V1 adotta inoltre un modello di accesso **monoutente per Garden nel V1**, con un account/profilo principale e possibilità per i componenti dello stesso nucleo familiare di utilizzare il medesimo accesso. Le persone che svolgono attività nell'orto possono essere rappresentate mediante `workers` senza richiedere account applicativi distinti.
+
+Per il coordinamento delle modifiche concorrenti è previsto un modello **single-writer**, supportato dalla struttura tecnica `profile_edit_locks`.
+
+La multiutenza con account distinti e la condivisione dello stesso Garden sono rinviate a evoluzioni future.
+
+La descrizione completa di questi meccanismi è mantenuta nel **DOC-004 – Manuale Database**.
 
 ## 5.3 Tabelle principali
 
-Il database di Orto Smart è organizzato in un insieme di tabelle relazionate tra loro, ciascuna dedicata alla gestione di uno specifico ambito funzionale dell'applicazione.
+È necessario distinguere le tabelle **attualmente implementate in Supabase** dalla baseline completa del **Database V1 progettato**.
 
-Ogni tabella rappresenta una delle entità descritte nel Capitolo 4 e contiene le informazioni necessarie alla gestione dell'orto e delle funzionalità del sistema.
+### Stato attualmente implementato
 
-Le principali tabelle attualmente implementate nel database sono le seguenti.
+Il nucleo del database operativo attualmente utilizzato dall'applicazione comprende, tra le altre già introdotte nelle precedenti fasi di sviluppo, le seguenti tabelle principali:
 
-### gardens
+### `gardens`
 
 Contiene le informazioni generali relative agli orti gestiti dall'applicazione.
 
-Ogni record identifica un orto e rappresenta il punto di partenza della struttura dati.
+Ogni record identifica un orto e costituisce uno dei riferimenti fondamentali della struttura dati operativa.
 
-### beds
+### `beds`
 
-Contiene le aiuole appartenenti a ciascun orto.
+Contiene le aiuole appartenenti agli orti.
 
-Ogni aiuola è collegata a un record della tabella `gardens` mediante una chiave esterna.
+Nella struttura attualmente implementata le aiuole costituiscono uno degli elementi principali per l'organizzazione fisica delle coltivazioni.
 
-### crops
+### `crops`
 
 Contiene l'anagrafica delle colture.
 
-Per ogni coltura vengono memorizzate le informazioni agronomiche utilizzate dal Motore Agronomico e dall'interfaccia utente.
+Le informazioni relative alle colture vengono utilizzate dall'applicazione e dal Motore Agronomico.
 
-### seasons
+### `seasons`
 
 Contiene le stagioni agricole.
 
-Questa tabella permette di separare le coltivazioni appartenenti a differenti annate, mantenendo disponibile lo storico delle attività.
+Consente di distinguere le coltivazioni appartenenti a differenti annate e di mantenere il relativo contesto temporale.
 
-### plantings
+### `plantings`
 
-Contiene tutte le coltivazioni presenti nelle aiuole.
+Contiene le coltivazioni realmente presenti nelle aiuole.
 
-Ogni record è associato a una specifica aiuola, a una coltura e a una stagione agricola, rappresentando l'elemento centrale della gestione operativa dell'applicazione.
+`plantings` rappresenta un elemento centrale dello stato operativo corrente e rimane presente anche nella baseline Database V1 come rappresentazione della coltivazione realmente eseguita.
 
-Le tabelle sopra descritte costituiscono il nucleo del database attualmente utilizzato da Orto Smart e rappresentano la base per tutte le elaborazioni effettuate dal Motore Agronomico.
+Le tabelle sopra indicate descrivono il **nucleo operativo attualmente implementato** e non devono essere interpretate come l'elenco completo della nuova architettura Database V1.
+
+### Baseline Database V1
+
+Durante la Sessione S017 è stata completata e congelata una baseline composta da:
+
+- **52 entità di dominio**;
+- **1 struttura tecnica separata**, `profile_edit_locks`.
+
+La baseline comprende, oltre alle entità già presenti nel database operativo, strutture dedicate a:
+
+- identità, ownership e stagioni;
+- catalogo agronomico;
+- struttura fisica e geometria dell'orto;
+- configurazioni temporali;
+- fabbisogni e preferenze;
+- pianificazione produttiva;
+- attività e lavoro realmente svolto;
+- raccolti e valorizzazioni;
+- irrigazione;
+- fertilizzazioni e trattamenti;
+- eventi dell'orto e diario;
+- costi e prezzi di mercato;
+- contesto ambientale.
+
+L'elenco nominale definitivo delle 52 entità, le rispettive relazioni e i principi di progettazione sono documentati nel **DOC-004 – Manuale Database**.
+
+La baseline V1 è attualmente una **specifica progettuale congelata**: non tutte le relative tabelle sono già state create in Supabase.
+
+La successiva fase di sviluppo dovrà tradurre progressivamente questa baseline in migration PostgreSQL/Supabase, mantenendo la compatibilità con il codice e con i dati esistenti.
 
 ## 5.4 Relazioni e vincoli
 
-Le tabelle del database sono collegate tra loro mediante chiavi primarie (Primary Key) e chiavi esterne (Foreign Key), che garantiscono la coerenza delle informazioni e l'integrità referenziale del sistema.
+Le entità del Database V1 sono collegate mediante relazioni esplicite, chiavi primarie, chiavi esterne e vincoli progettati per preservare la coerenza del dominio.
 
-Ogni tabella possiede una chiave primaria univoca che identifica in modo inequivocabile ciascun record.
+Le relazioni non vengono incorporate automaticamente nelle entità principali quando possiedono una propria semantica, devono essere storicizzate oppure possono cambiare nel tempo.
 
-Le relazioni tra le tabelle vengono realizzate attraverso chiavi esterne, che consentono di collegare logicamente le diverse entità del database senza duplicare le informazioni.
+Per questo motivo la baseline V1 introduce, dove necessario, entità relazionali dedicate, ad esempio per:
 
-L'utilizzo dei vincoli di integrità permette di impedire l'inserimento di dati non coerenti, assicurando che ogni riferimento tra le tabelle sia sempre valido.
+- associazioni tra aree e aiuole;
+- assegnazioni di dispositivi;
+- collegamenti tra dispositivi;
+- configurazioni delle zone irrigue;
+- collegamenti tra fonti idriche;
+- target delle zone irrigue;
+- target di task, work log ed eventi.
 
-Tra i principali vincoli adottati nel database si possono citare:
+Quando una configurazione possiede validità temporale, il modello può utilizzare intervalli del tipo:
 
-- identificazione univoca dei record mediante chiavi primarie;
-- collegamento tra le tabelle attraverso chiavi esterne;
-- obbligatorietà dei campi essenziali mediante vincoli `NOT NULL`;
-- mantenimento della coerenza referenziale tra le entità.
+```text
+[valid_from, valid_to)
+```
 
-Questa struttura garantisce un'elevata affidabilità del database e costituisce la base per il corretto funzionamento dell'applicazione e del Motore Agronomico.
+In questo modo una nuova configurazione non sovrascrive retroattivamente quella storicamente valida.
+
+Un principio fondamentale riguarda inoltre la separazione tra **configurazione** ed **evento realmente avvenuto**.
+
+Ad esempio:
+
+```text
+configurazione irrigua
+        ≠
+irrigation_event
+```
+
+La configurazione descrive come il sistema è organizzato; l'evento registra ciò che è realmente accaduto.
+
+Lo stesso principio viene applicato alla distinzione tra pianificazione e realtà:
+
+```text
+planned_plantings
+        ↓
+plantings
+```
+
+e:
+
+```text
+tasks
+        ↓
+work_logs
+```
+
+Una pianificazione non viene trasformata implicitamente in un fatto realmente avvenuto.
+
+Le relazioni verso target eterogenei vengono rappresentate mediante strutture dedicate quando questo consente di mantenere il modello più coerente e verificabile, evitando di duplicare inutilmente informazioni nelle entità principali.
+
+I vincoli del database devono inoltre impedire, quando tecnicamente appropriato:
+
+- riferimenti a record inesistenti;
+- relazioni incompatibili con l'ownership;
+- intervalli temporali non validi;
+- sovrapposizioni temporali vietate;
+- quantità semanticamente impossibili;
+- configurazioni incompatibili con gli invarianti del dominio.
+
+La definizione dettagliata delle relazioni e degli invarianti del Database V1 è mantenuta nel **DOC-004 – Manuale Database**.
 
 ## 5.5 Integrità dei dati
 
-L'integrità dei dati rappresenta uno degli aspetti fondamentali dell'architettura del database di Orto Smart.
+L'integrità dei dati costituisce un requisito architetturale del Database V1 e non viene affidata esclusivamente alla logica applicativa Flutter.
 
-L'obiettivo è garantire che tutte le informazioni archiviate siano corrette, coerenti e affidabili durante l'intero ciclo di vita dell'applicazione.
+Le regole fondamentali che devono rimanere valide indipendentemente dal client vengono protette, quando tecnicamente appropriato, mediante strumenti PostgreSQL quali:
 
-Per raggiungere questo risultato vengono adottati diversi meccanismi di controllo, implementati sia a livello di database sia a livello applicativo.
+- `PRIMARY KEY`;
+- `FOREIGN KEY`;
+- `UNIQUE`;
+- `NOT NULL`;
+- `CHECK`;
+- vincoli temporali;
+- indici univoci;
+- transazioni;
+- funzioni o procedure server-side per le operazioni che richiedono atomicità.
 
-A livello di database, PostgreSQL utilizza vincoli di integrità, chiavi primarie, chiavi esterne e restrizioni sui campi per impedire l'inserimento di dati non validi o incoerenti.
+Il principio generale adottato è:
 
-A livello applicativo, ulteriori verifiche vengono eseguite dai Repository e dal Motore Agronomico prima del salvataggio delle informazioni, riducendo il rischio di errori e mantenendo elevata la qualità dei dati.
+```text
+integrità del dominio
+        ↓
+protezione nel database
+        ↓
+validazione applicativa aggiuntiva
+```
 
-Questa doppia strategia di validazione consente di garantire la consistenza delle informazioni, preservando l'affidabilità del sistema anche durante la sua evoluzione.
+La validazione eseguita dall'applicazione migliora l'esperienza utente e consente di intercettare anticipatamente gli errori, ma non sostituisce i vincoli necessari nel livello persistente.
+
+Tra gli invarianti individuati nella progettazione V1 rientrano, a seconda delle entità coinvolte:
+
+- integrità referenziale;
+- coerenza dell'ownership;
+- validità degli intervalli temporali;
+- controllo delle sovrapposizioni temporali quando non ammesse;
+- identità stabile delle aiuole rispetto alla loro geometria storica;
+- separazione tra pianificazione e fatti realmente avvenuti;
+- validità delle quantità;
+- coerenza dei target e delle relazioni;
+- separazione tra configurazione irrigua ed eventi di irrigazione;
+- coerenza delle regole agronomiche;
+- preservazione degli eventi storici;
+- idempotenza delle operazioni automatiche quando richiesta;
+- rispetto del modello single-writer;
+- coerenza degli snapshot ambientali.
+
+Le correzioni di informazioni storiche non devono distruggere arbitrariamente la ricostruibilità degli eventi realmente avvenuti.
+
+Analogamente, un dato sconosciuto non deve essere sostituito automaticamente con un valore neutro che ne modifichi il significato.
+
+Il principio architetturale adottato è quindi quello di privilegiare **l'integrità e la correttezza del dato rispetto alla comodità del client**.
+
+La definizione dettagliata degli invarianti e delle relative strategie di protezione è mantenuta nel **DOC-004 – Manuale Database**.
 
 ## 5.6 Prestazioni e ottimizzazione
 
-La progettazione del database di Orto Smart tiene conto non solo della correttezza dei dati, ma anche delle prestazioni e dell'efficienza nell'utilizzo delle risorse.
+La progettazione del Database V1 privilegia innanzitutto correttezza, integrità e chiarezza del modello dati. Le ottimizzazioni devono essere introdotte sulla base di esigenze reali e misurabili, evitando complessità premature.
 
-Fin dalle prime fasi di sviluppo è stata adottata una struttura dati normalizzata, con l'obiettivo di ridurre le ridondanze, semplificare la manutenzione e ottimizzare lo spazio di archiviazione.
+Un principio fondamentale è la riduzione delle duplicazioni.
 
-Le principali strategie adottate comprendono:
+Un'informazione non deve essere memorizzata più volte quando può essere ricostruita in modo affidabile attraverso relazioni, fatti persistenti o logica applicativa.
 
-- utilizzo di chiavi primarie per l'identificazione univoca dei record;
-- impiego di chiavi esterne per evitare duplicazioni delle informazioni;
-- organizzazione delle tabelle secondo criteri di normalizzazione;
-- separazione tra dati operativi e logica applicativa;
-- utilizzo di query mirate attraverso i Repository dell'applicazione.
+Il principio generale è:
 
-Particolare attenzione è inoltre dedicata alla crescita futura del progetto. Le nuove funzionalità verranno progettate privilegiando il riutilizzo delle strutture esistenti e limitando la memorizzazione di dati ridondanti.
+```text
+dato persistente necessario
+        +
+dato derivabile
+        ↓
+persistenza minima sufficiente
+```
 
-Questo approccio consente di mantenere il database efficiente, facilmente scalabile e compatibile con le esigenze operative dell'applicazione nel lungo periodo.
+Questo criterio consente di:
+
+- ridurre l'occupazione dello storage;
+- evitare incoerenze tra copie dello stesso dato;
+- semplificare gli aggiornamenti;
+- preservare una fonte autorevole per ciascuna informazione;
+- mantenere più chiara la separazione tra fatti e risultati calcolati.
+
+I risultati derivabili non vengono quindi persistiti automaticamente.
+
+Ad esempio, `AgronomicWindow` rimane un risultato calcolato dalle regole persistenti e non richiede una tabella `agronomic_windows`.
+
+Lo stesso principio viene applicato alla pianificazione: avanzamenti, scostamenti e quantità realmente eseguite devono essere derivati dai fatti reali quando questo è possibile in modo affidabile, invece di essere duplicati senza necessità.
+
+Per il contesto meteorologico, Orto Smart non deve duplicare in Supabase un archivio grezzo completo delle osservazioni già disponibili attraverso le fonti meteorologiche autorevoli. Nel Database V1 vengono conservati soltanto snapshot, collegamenti, sintesi o informazioni ambientali necessarie alla ricostruzione delle decisioni e degli eventi agronomicamente rilevanti.
+
+Gli indici devono essere introdotti in funzione delle effettive modalità di accesso ai dati, con particolare attenzione a:
+
+- chiavi esterne;
+- campi utilizzati frequentemente nei filtri;
+- intervalli temporali;
+- ordinamenti ricorrenti;
+- vincoli di unicità;
+- relazioni utilizzate frequentemente dal Repository Layer.
+
+La normalizzazione rimane il criterio predefinito. Eventuali denormalizzazioni potranno essere introdotte soltanto quando motivate da esigenze prestazionali concrete e dopo aver valutato il rischio di incoerenza.
+
+La progettazione deve inoltre mantenere attenzione all'efficienza dello storage e delle query, evitando strutture ridondanti o dati persistenti privi di un'utilità applicativa reale.
+
+Le ottimizzazioni future dovranno essere guidate da misurazioni e casi d'uso effettivi, senza compromettere gli invarianti definiti nella baseline Database V1.
+
+Il dettaglio delle convenzioni di persistenza e della strategia di implementazione è mantenuto nel **DOC-004 – Manuale Database**.
 
 ## 5.7 Sicurezza
 
-La sicurezza del database rappresenta un elemento fondamentale dell'architettura di Orto Smart ed è affidata alle funzionalità offerte da Supabase e PostgreSQL.
+La sicurezza del Database V1 segue un principio **deny-by-default**: l'accesso ai dati non deve essere consentito implicitamente, ma soltanto quando esiste una regola esplicita che lo autorizza.
 
-L'accesso ai dati avviene esclusivamente tramite il client Supabase utilizzato dall'applicazione, evitando connessioni dirette al database da parte dell'interfaccia utente.
+L'autenticazione dell'utente viene gestita tramite Supabase Auth, mentre l'autorizzazione ai dati deve essere applicata anche lato database.
 
-Per garantire la protezione delle informazioni archiviate vengono utilizzati i seguenti meccanismi:
+Il client Flutter è considerato un **client non fidato**.
 
-- autenticazione degli utenti tramite Supabase Authentication;
-- controllo degli accessi mediante Row Level Security (RLS);
-- definizione di policy di accesso per le tabelle del database;
-- utilizzo di connessioni protette tra applicazione e backend.
+Questo significa che controlli eseguiti esclusivamente nell'interfaccia utente o nel codice Dart non costituiscono una protezione sufficiente per i dati persistenti.
 
-La Row Level Security (RLS) costituisce uno dei principali strumenti di protezione del database. Essa consente di definire regole che stabiliscono quali record possono essere letti, modificati o eliminati da ciascun utente, impedendo accessi non autorizzati ai dati.
+Il principio architetturale è:
 
-La configurazione delle policy RLS viene gestita direttamente all'interno del database PostgreSQL tramite Supabase, mantenendo separata la logica di sicurezza dal codice dell'applicazione.
+```text
+Flutter
+        ↓
+richiesta
+        ↓
+autorizzazione server-side
+        ↓
+RLS / vincoli / operazione protetta
+        ↓
+PostgreSQL
+```
 
-L'adozione di questi meccanismi consente di realizzare un sistema sicuro, affidabile e facilmente estendibile anche con l'introduzione di nuove funzionalità.
+### Row Level Security
+
+Le tabelle esposte attraverso Supabase devono utilizzare **Row Level Security (RLS)** quando necessario per impedire accessi non autorizzati.
+
+Le policy devono essere progettate in funzione dell'ownership effettiva dei dati e non semplicemente della possibilità tecnica del client di conoscere un identificativo.
+
+Nel Database V1 l'ownership applicativa ha come radice il `profile`, mentre il `garden` costituisce il principale confine operativo dei dati dell'orto.
+
+Le relazioni devono permettere al database di verificare che un record appartenga effettivamente al profilo autorizzato, direttamente oppure attraverso il Garden e le altre relazioni previste dal modello.
+
+### Modello di accesso familiare
+
+Nel V1 viene adottato un modello monoutente: un solo account/profilo applicativo rappresenta l'accesso principale al Garden.
+
+I componenti dello stesso nucleo familiare possono utilizzare il medesimo accesso.
+
+Le persone che partecipano ai lavori dell'orto possono essere rappresentate mediante `workers`, senza che questo comporti automaticamente la creazione di ulteriori account autenticati.
+
+La multiutenza con account distinti e la condivisione dello stesso Garden sono rinviate a evoluzioni future.
+
+### Single-writer
+
+Per evitare modifiche concorrenti incompatibili, il Database V1 prevede un modello **single-writer**.
+
+La struttura tecnica:
+
+```text
+profile_edit_locks
+```
+
+è destinata al coordinamento del writer e rimane separata dalle 52 entità di dominio.
+
+Il lock non sostituisce autenticazione, autorizzazione, RLS o vincoli di integrità: costituisce un ulteriore meccanismo di coordinamento delle operazioni di modifica.
+
+### Operazioni sensibili
+
+Le operazioni che richiedono controllo atomico, verifiche di ownership o modifica coordinata di più strutture non devono essere affidate a sequenze non protette eseguite dal client.
+
+Quando necessario devono essere utilizzati strumenti server-side e transazioni PostgreSQL in modo che:
+
+```text
+verifica
+        +
+modifica
+        =
+operazione atomica
+```
+
+Le credenziali privilegiate e i segreti server-side non devono essere incorporati nel client Flutter.
+
+Eventuali dispositivi automatici futuri, come componenti destinati all'irrigazione, dovranno utilizzare un'identità tecnica e autorizzazioni appropriate senza riutilizzare impropriamente le credenziali dell'utente.
+
+Gli eventi generati automaticamente dovranno inoltre essere progettati, quando necessario, con meccanismi di idempotenza per evitare registrazioni duplicate dovute a retry o ripetizioni della stessa operazione.
+
+### Sicurezza e migration
+
+La sicurezza costituisce parte integrante dell'implementazione del database.
+
+La creazione di una nuova struttura persistente non deve quindi essere considerata completa senza aver valutato contestualmente:
+
+- ownership;
+- RLS;
+- policy;
+- vincoli;
+- operazioni sensibili;
+- eventuale necessità di transazioni;
+- test di accesso autorizzato e non autorizzato.
+
+La definizione specialistica del modello di sicurezza Database V1 è mantenuta nel **DOC-004 – Manuale Database**.
 
 ## 5.8 Evoluzione del database
 
-Il database di Orto Smart è stato progettato seguendo un approccio incrementale, in modo da poter accompagnare la crescita dell'applicazione senza richiedere modifiche sostanziali alla struttura esistente.
+La Sessione S017 ha completato e congelato la progettazione logica e architetturale del **Database V1**.
 
-Le tabelle attualmente implementate costituiscono il nucleo operativo del sistema e sono sufficienti a supportare le funzionalità oggi disponibili.
+La baseline approvata costituisce pertanto il riferimento ufficiale per le successive modifiche della persistenza e comprende:
 
-Con l'evoluzione del progetto verranno progressivamente introdotte nuove tabelle e nuove relazioni per supportare funzionalità aggiuntive, tra cui:
+- **52 entità di dominio**;
+- **1 struttura tecnica separata**, `profile_edit_locks`;
+- ownership e modello di accesso;
+- modello familiare monoutente;
+- coordinamento single-writer;
+- relazioni e configurazioni temporali;
+- temporalità e storicizzazione;
+- convenzioni dei dati;
+- sicurezza e Row Level Security;
+- invarianti e integrità;
+- strategia di implementazione e migrazione.
 
-- gestione completa delle attività agricole;
-- registrazione degli eventi di irrigazione;
-- gestione delle fertilizzazioni e dei trattamenti;
-- monitoraggio dei raccolti;
-- analisi statistiche e reportistica;
-- gestione economica dell'orto;
-- integrazione con nuovi moduli del Motore Agronomico.
+Il controllo nominale finale della S017 ha inoltre stabilito che:
 
-Ogni evoluzione del database verrà progettata mantenendo la compatibilità con le strutture esistenti, limitando le modifiche invasive e preservando l'integrità dei dati già memorizzati.
+- `AgronomicWindow` rimane un risultato calcolato e `agronomic_windows` non appartiene alle tabelle persistenti V1;
+- `irrigation_zone_target_assignments` è il nome SQL definitivo della relativa entità;
+- `profile_edit_locks` è infrastruttura tecnica e non appartiene al conteggio delle 52 entità di dominio.
 
-Questo approccio consente di far evolvere il progetto in modo ordinato, mantenendo elevata la qualità dell'architettura e semplificando le future attività di manutenzione.
+Il completamento della progettazione non equivale al completamento dell'implementazione fisica.
+
+Lo stato evolutivo deve quindi essere letto come:
+
+```text
+Database operativo attuale
+        ↓
+baseline Database V1 congelata
+        ↓
+migration incrementali
+        ↓
+Database V1 implementato
+```
+
+La fase successiva non dovrà riprogettare liberamente il database, ma tradurre progressivamente la baseline congelata in strutture PostgreSQL/Supabase verificabili.
+
+L'implementazione dovrà procedere in modo incrementale e secondo l'ordine delle dipendenze, evitando una migrazione unica di tipo big bang.
+
+Ogni incremento dovrà considerare congiuntamente:
+
+- schema SQL;
+- chiavi e relazioni;
+- vincoli;
+- ownership;
+- RLS e policy;
+- indici necessari;
+- eventuali funzioni o transazioni server-side;
+- compatibilità con il Repository Layer;
+- compatibilità con il dominio Dart;
+- migrazione degli eventuali dati esistenti;
+- test tecnici e applicativi.
+
+Il principio operativo è:
+
+```text
+piccola migration
+        ↓
+verifica database
+        ↓
+adeguamento Repository / dominio
+        ↓
+flutter analyze
+        ↓
+test
+        ↓
+incremento successivo
+```
+
+Le migration dovranno essere tracciabili e versionate nel repository in modo da poter ricostruire l'evoluzione dello schema.
+
+Prima delle modifiche che possano interessare dati esistenti dovrà essere valutata la disponibilità di un adeguato meccanismo di backup e recupero.
+
+Il codice applicativo non dovrà essere adattato mediante scorciatoie che compromettano la separazione tra Repository, dominio e persistenza. Il Repository Layer rimane il confine principale attraverso il quale l'applicazione accede al database.
+
+Le funzionalità esplicitamente escluse dal V1 non devono essere introdotte durante l'implementazione della baseline salvo una nuova decisione architetturale approvata e documentata.
+
+Tra le principali esclusioni V1 rientrano:
+
+- inventario e magazzino;
+- lotti di scorta;
+- ammortamenti;
+- contabilità avanzata;
+- GIS/PostGIS;
+- multi-writer completo;
+- multiutenza avanzata con account distinti e condivisione dello stesso Garden;
+- duplicazione in Supabase dell'archivio meteorologico grezzo;
+- automazione irrigua completa;
+- correzione climatica e meteorologica avanzata.
+
+Eventuali modifiche future alla baseline congelata dovranno essere motivate da esigenze emerse durante l'implementazione o da nuove decisioni di progetto e dovranno essere registrate nella documentazione architetturale.
+
+Il riferimento ufficiale per la baseline congelata e per la strategia dettagliata di implementazione e migrazione è il **DOC-004 – Manuale Database**.
 
 ## 5.9 Considerazioni finali
 
-Il database PostgreSQL rappresenta il componente centrale per la gestione delle informazioni di Orto Smart e costituisce il punto di riferimento per tutte le funzionalità dell'applicazione.
+Il Database V1 di Orto Smart dispone, al termine della Sessione S017, di una **baseline logica e architetturale completa, approvata e congelata**.
 
-La progettazione relazionale, l'utilizzo di Supabase, i meccanismi di sicurezza e l'organizzazione modulare delle tabelle garantiscono un'infrastruttura affidabile, scalabile e facilmente estendibile.
+La progettazione definisce il modello persistente necessario a sostenere l'evoluzione dell'applicazione mantenendo separati:
 
-L'adozione di criteri di normalizzazione, l'impiego dei Repository come livello di accesso ai dati e l'integrazione con il Motore Agronomico consentono di mantenere separati i diversi livelli dell'applicazione, facilitandone l'evoluzione e la manutenzione.
+- dati persistenti e risultati calcolati;
+- pianificazione e fatti realmente avvenuti;
+- configurazioni ed eventi;
+- identità stabile e configurazioni variabili nel tempo;
+- ownership applicativa e partecipazione dei `workers`;
+- sicurezza del database e controlli del client.
 
-Nei Capitoli 6, 7 e 8 verranno approfonditi rispettivamente il Repository Layer, l'Interfaccia Utente e il Motore Agronomico, completando la descrizione dell'architettura software di Orto Smart.
+La baseline comprende **52 entità di dominio** e la struttura tecnica separata `profile_edit_locks`.
+
+Questa baseline non coincide ancora con lo schema fisicamente implementato in Supabase.
+
+Il database operativo esistente rappresenta il punto di partenza dal quale dovrà avvenire la futura implementazione incrementale mediante migration controllate e verificabili.
+
+L'evoluzione della persistenza dovrà preservare i principi stabiliti durante la progettazione S017:
+
+- integrità prima della comodità del client;
+- ownership verificabile;
+- sicurezza deny-by-default;
+- Row Level Security;
+- modello familiare monoutente nel V1;
+- coordinamento single-writer;
+- storicizzazione delle configurazioni che cambiano nel tempo;
+- riduzione delle duplicazioni;
+- persistenza soltanto delle informazioni necessarie;
+- separazione tra database, Repository Layer e dominio applicativo;
+- implementazione incrementale senza migrazioni big bang.
+
+Il **DOC-004 – Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo all'interno dell'architettura complessiva di Orto Smart.
+
+Le future modifiche strutturali al Database V1 dovranno mantenere allineati schema, sicurezza, codice applicativo e documentazione, ed eventuali variazioni della baseline congelata dovranno essere motivate e formalmente tracciate.
 
 # 6. Repository Layer
 

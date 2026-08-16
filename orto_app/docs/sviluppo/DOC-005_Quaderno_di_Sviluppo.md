@@ -4,14 +4,14 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.3
+**Versione:** 0.4
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 08/08/2026
+**Ultimo aggiornamento:** 16/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.3 |
+| Versione | 0.4 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 08/08/2026 |
+| Ultimo aggiornamento | 16/08/2026 |
 
 ---
 
@@ -39,6 +39,7 @@
 | 0.1 | 26/07/2026 | Prima emissione del Quaderno di Sviluppo |
 | 0.2 | 31/07/2026 | Riorganizzazione della struttura documentale e uniformazione al DOC-001 |
 | 0.3      | 08/08/2026 | Aggiornamento del Quaderno con consolidamento delle Sessioni S009 e S010 |
+| 0.4 | 16/08/2026 | Riallineamento strutturale del Quaderno fino alla S017 e documentazione della progettazione e del congelamento del Database V1 |
 
 ---
 
@@ -56,6 +57,14 @@
 | S008 | Agosto 2026 | 4 h 16 min | 40 h 31 min | Censimento e consolidamento della documentazione residua | ✅ |
 | S009     | Agosto 2026 |   5 h 22 min   |   45 h 53 min   | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | ✅ |
 | S010     | Agosto 2026 |   4 h 54 min   |   50 h 47 min   | Configurazione dei pesi del DecisionEngine mediante DecisionWeights | ✅ |
+| S011 | 09/08/2026 | 2 h 27 min | 53 h 14 min | Prima implementazione del FamilyNeedsEngine | ✅ |
+| S012 | 09/08/2026 | 1 h 42 min | 54 h 56 min | Integrazione del FamilyNeedsEngine nella RecommendationPipeline | ✅ |
+| S013 | 10/08/2026 | 2 h 07 min | 57 h 03 min | Fabbisogni quantitativi e lotti di coltivazione pianificati | ✅ |
+| S014 | 11/08/2026 | 2 h 46 min | 59 h 49 min | Prima implementazione del SuccessionPlanningEngine | ✅ |
+| S015 | 11/08/2026 | 1 h 59 min | 61 h 48 min | Prima implementazione delle finestre agronomiche | ✅ |
+| S016 | 11–12/08/2026 | 2 h 02 min | 63 h 50 min | Associazione delle finestre agronomiche a colture e varietà | ✅ |
+| S017 | 12–16/08/2026 | 25 h 14 min | 89 h 04 min | Progettazione e congelamento del Database V1 | ✅ |
+
 ---
 
 # Indice
@@ -78,6 +87,14 @@
 3.7 S007
 3.8 S008
 3.9 S009
+3.10 S010
+3.11 S011
+3.12 S012
+3.13 S013
+3.14 S014
+3.15 S015
+3.16 S016
+3.17 S017
 
 ## 4. Considerazioni finali
 
@@ -3550,3 +3567,695 @@ Il checkpoint tecnico di partenza della S017 è:
 - `flutter test`: 149/149;
 - fallback: varietà specifica → coltura generale → `unknown`;
 - repository pulito e sincronizzato al termine dello sviluppo S016.
+
+---
+
+---
+
+# Sessione S017 – Progettazione e congelamento del Database V1
+
+**Periodo sviluppo:** 12/08/2026 – 15/08/2026
+**Apertura sviluppo:** 12/08/2026, ore 16:04
+**Chiusura sviluppo:** 15/08/2026, ore 23:37
+**Tempo sviluppo effettivo:** circa **20 h 24 min**
+
+> Nota timing: l'unico dato approssimativo della ricostruzione temporale è la ripresa del 14/08/2026, registrata intorno alle 14:15.
+
+## Obiettivo iniziale
+
+La Sessione S017 era stata inizialmente pianificata come prosecuzione diretta della S016.
+
+L'obiettivo previsto era progettare la persistenza delle regole delle finestre agronomiche e collegare il dominio ormai consolidato a Supabase senza trasferire nel database la logica decisionale degli engine Dart.
+
+Il punto di partenza era:
+
+```text
+Supabase
+        ↓
+Repository
+        ↓
+CropAgronomicWindowRule
+        ↓
+AgronomicWindowResolver
+        ↓
+AgronomicWindowEngine
+        ↓
+AgronomicWindowService
+```
+
+La sessione doveva verificare in particolare:
+
+- schema reale di `crops`;
+- schema reale di `crop_varieties`;
+- foreign key e vincoli esistenti;
+- differenze tra gli identificativi utilizzati dal dominio Dart e quelli presenti in Supabase;
+- possibilità di rappresentare più finestre agronomiche per la stessa coltura, varietà e metodo di impianto;
+- struttura persistente necessaria per `agronomic_window_rules`.
+
+Non era previsto, all'apertura della sessione, di riprogettare integralmente il database di Orto Smart.
+
+## Evoluzione iniziale della sessione
+
+Durante la prima fase della S017 è emerso che una coltura o varietà può possedere **più finestre agronomiche nello stesso anno** per uno stesso metodo di avvio.
+
+Il modello introdotto nella S016 restava valido nei suoi principi fondamentali:
+
+```text
+regola specifica della varietà
+        ↓
+fallback
+        ↓
+regola generale della coltura
+        ↓
+assenza di conoscenza
+```
+
+ma l'ipotesi di risolvere una sola `AgronomicWindow` non risultava sufficiente per rappresentare correttamente tutti i casi agronomici.
+
+Sono state quindi avviate modifiche tecniche a:
+
+- `lib/core/agronomy/engines/agronomic_window_resolver.dart`;
+- `lib/core/agronomy/models/agronomic_window_evaluation.dart`;
+- `lib/services/agronomic_window_service.dart`;
+- `test/core/agronomy/engines/agronomic_window_resolver_test.dart`;
+- `test/core/agronomy/models/agronomic_window_evaluation_test.dart`;
+- `test/services/agronomic_window_service_test.dart`.
+
+Le modifiche evolvono il contratto da una singola finestra:
+
+```text
+AgronomicWindow?
+```
+
+verso la possibilità di gestire:
+
+```text
+List<AgronomicWindow>
+```
+
+preservando il principio:
+
+```text
+finestre specifiche della varietà
+        ↓
+se presenti, vengono utilizzate
+
+altrimenti
+        ↓
+finestre generali della coltura
+
+assenza di regole
+        ↓
+nessuna conoscenza disponibile
+```
+
+Queste modifiche sono state effettuate durante la S017 ma **non sono state completate, verificate e committate** prima del successivo cambio di scala della sessione.
+
+Al termine dello sviluppo S017 risultano ancora presenti nel working tree come lavoro tecnico aperto e non devono essere interpretate né come scarto né come implementazione completata.
+
+## Cambio di scala della S017
+
+L'analisi necessaria per persistere correttamente le regole agronomiche ha evidenziato che lo schema Supabase esistente era cresciuto progressivamente insieme all'applicazione e non rappresentava più in modo organico il dominio maturato.
+
+È stato quindi deciso di interrompere temporaneamente l'implementazione incrementale e svolgere un **censimento completo del dominio e del database**.
+
+Da questo censimento è emersa la necessità di progettare una vera baseline:
+
+> **DATABASE V1 DI ORTO SMART**
+
+La sessione ha quindi cambiato obiettivo operativo.
+
+Il nuovo obiettivo è diventato:
+
+> progettare completamente il Database V1 prima di qualsiasi nuova migration SQL/Supabase, definendo entità, relazioni, cardinalità, temporalità, ownership, sicurezza, invarianti e strategia di migrazione.
+
+È stato esplicitamente stabilito di **non iniziare SQL** fino al completamento della progettazione logica e architetturale.
+
+---
+
+## STEP 34 – Progettazione del Database V1
+
+La riprogettazione è stata condotta in modo sistematico, evitando di trasformare immediatamente ogni requisito in una nuova tabella.
+
+Per ogni area del dominio sono stati analizzati:
+
+- concetto rappresentato;
+- necessità effettiva nel V1;
+- distinzione tra dato persistente e dato calcolato;
+- relazioni con le entità già individuate;
+- necessità di storicizzazione;
+- ownership;
+- implicazioni di sicurezza;
+- possibilità di rinviare la funzionalità a una fase futura.
+
+L'obiettivo non era massimizzare il numero di tabelle, ma ottenere una struttura sufficientemente completa da sostenere il V1 senza trasformare il database in un sistema inutilmente complesso.
+
+### Aree di dominio analizzate
+
+La progettazione ha esaminato in particolare:
+
+- identità e ownership;
+- orti e stagioni;
+- catalogo agronomico;
+- famiglie botaniche;
+- colture e varietà;
+- consociazioni;
+- finestre e regole agronomiche;
+- struttura fisica dell'orto;
+- aree e aiuole;
+- geometria storica delle aiuole;
+- strutture fisiche;
+- dispositivi;
+- fonti idriche;
+- zone irrigue;
+- preferenze colturali;
+- fabbisogni di consumo;
+- pianificazione stagionale;
+- piantagioni pianificate;
+- piantagioni reali;
+- attività;
+- lavoro effettivamente svolto;
+- raccolte;
+- valorizzazione della produzione;
+- irrigazioni;
+- fertilizzazioni;
+- trattamenti;
+- eventi dell'orto;
+- diario;
+- costi;
+- prezzi di mercato;
+- contesto ambientale;
+- sicurezza e concorrenza.
+
+### Principi consolidati
+
+Durante lo STEP 34 sono stati consolidati alcuni principi trasversali.
+
+#### Persistenza e logica applicativa
+
+Il database deve conservare fatti, configurazioni e conoscenza persistente.
+
+Gli engine Dart continuano invece a essere responsabili della logica decisionale.
+
+Il principio rimane:
+
+```text
+database
+        ↓
+dati e regole persistenti
+
+dominio Dart
+        ↓
+interpretazione e logica agronomica
+```
+
+Non devono essere create tabelle soltanto per materializzare risultati che possono essere correttamente calcolati.
+
+#### Pianificazione e realtà
+
+La pianificazione non deve essere confusa con ciò che avviene realmente.
+
+La catena produttiva V1 è stata consolidata come:
+
+```text
+consumption_needs
+        ↓
+season_crop_plans
+        ↓
+planned_plantings
+        ↓
+plantings
+        ↓
+harvest_events
+```
+
+Una `PlannedPlanting` può generare **0..N Plantings**.
+
+La quantità realmente eseguita e lo scostamento dal piano devono essere ricostruibili dai fatti reali senza duplicare inutilmente lo stato.
+
+#### Attività e lavoro
+
+Sono stati mantenuti separati:
+
+```text
+ActivityRule
+        ↓
+Task
+        ↓
+WorkLog
+```
+
+`activity_rules` rappresenta conoscenza operativa.
+
+`tasks` rappresenta ciò che deve essere fatto.
+
+`work_logs` rappresenta ciò che è stato realmente eseguito.
+
+Il futuro comando applicativo **Inizia lavoro** dovrà operare rispettando questa separazione.
+
+#### Temporalità
+
+Le configurazioni che possono cambiare nel tempo non devono sovrascrivere retroattivamente la storia.
+
+Quando applicabile viene adottato l'intervallo:
+
+```text
+[valid_from, valid_to)
+```
+
+È stata inoltre separata l'identità stabile dell'aiuola dalla sua geometria:
+
+```text
+beds
+        ↓
+identità stabile
+
+bed_geometries
+        ↓
+geometria valida nel tempo
+```
+
+#### Regole agronomiche
+
+Le finestre agronomiche vengono derivate da:
+
+```text
+agronomic_window_rules
+        ↓
+motore agronomico
+        ↓
+AgronomicWindow
+```
+
+`AgronomicWindow` rimane quindi un risultato calcolato.
+
+Non viene introdotta nel Database V1 una tabella persistente:
+
+```text
+agronomic_windows
+```
+
+Le regole che possono cambiare semanticamente devono poter essere versionate senza alterare retroattivamente l'interpretazione delle decisioni storiche.
+
+#### Contesto ambientale
+
+È stata confermata la separazione tra archivio meteorologico completo e contesto necessario alle decisioni di Orto Smart.
+
+La stazione Davis/CumulusMX costituisce la fonte primaria/autorevole per le osservazioni meteorologiche locali.
+
+Open-Meteo costituisce la fonte esterna principale per le previsioni e il fallback quando la fonte locale non è disponibile.
+
+Il Database V1 non deve duplicare l'archivio meteorologico grezzo.
+
+Sono previste invece:
+
+```text
+environment_context_snapshots
+environment_context_links
+```
+
+per conservare il contesto ambientale necessario alla ricostruibilità delle decisioni e degli eventi.
+
+### Modello di accesso familiare
+
+Durante la progettazione è stato analizzato esplicitamente il modo in cui il proprietario dell'orto e i componenti della stessa famiglia utilizzeranno l'applicazione.
+
+Per il V1 è stato scelto un modello semplice:
+
+```text
+Supabase Auth
+        ↓
+Profile
+        ↓
+Garden
+```
+
+Il V1 prevede **un account/Profile principale** per il nucleo che utilizza l'orto.
+
+I componenti della stessa famiglia possono utilizzare lo stesso accesso senza richiedere account personali distinti.
+
+Le persone alle quali deve essere attribuito il lavoro sono rappresentate mediante:
+
+```text
+workers
+```
+
+Un `worker` non implica quindi automaticamente un account Supabase.
+
+Rimangono distinti:
+
+```text
+account autenticato
+        ≠
+persona che utilizza materialmente l'app
+        ≠
+worker al quale viene attribuito il lavoro
+```
+
+La multiutenza con account distinti e condivisione dello stesso Garden viene rinviata oltre il V1.
+
+### Modello single-writer
+
+Per evitare scritture concorrenti incontrollate quando lo stesso accesso viene utilizzato da più dispositivi, il V1 adotta un modello **single-writer per Profile**.
+
+È stata prevista:
+
+```text
+profile_edit_locks
+```
+
+come infrastruttura tecnica per il coordinamento del writer.
+
+Questa struttura non rappresenta un concetto agronomico o operativo del dominio e viene quindi mantenuta separata dal conteggio delle entità di dominio.
+
+### Funzionalità valutate e rinviate
+
+Durante lo STEP 34 alcune funzionalità sono state esaminate esplicitamente ma escluse dalla baseline V1.
+
+Tra queste:
+
+- inventario e magazzino;
+- lotti di scorta;
+- ammortamenti;
+- contabilità avanzata;
+- GIS/PostGIS;
+- multi-writer completo;
+- multiutenza avanzata con account distinti e condivisione del Garden;
+- archivio meteorologico grezzo duplicato;
+- automazione irrigua completa;
+- correzione climatica e meteorologica avanzata.
+
+In particolare, la gestione dell'inventario era stata inizialmente valutata come possibile componente minimale del V1.
+
+Una successiva revisione durante lo STEP 34 ha portato alla decisione definitiva di **non introdurre `inventory_items` nel Database V1**.
+
+Acquisti e spese rimangono rappresentabili mediante `cost_events`, mentre fertilizzazioni e trattamenti registrano direttamente le informazioni pertinenti agli eventi realmente avvenuti.
+
+## Baseline nominale finale
+
+Al termine della progettazione è stato eseguito un controllo nominale completo delle entità previste.
+
+Il controllo ha evidenziato inizialmente un'apparente anomalia:
+
+```text
+53 nomi
+        ↓
+52 entità di dominio attese
+```
+
+La verifica ha individuato la causa in `agronomic_windows`.
+
+Poiché `AgronomicWindow` è un risultato calcolato a partire da `agronomic_window_rules`, `agronomic_windows` è stata definitivamente esclusa dalle tabelle persistenti V1.
+
+Il controllo nominale ha inoltre eliminato un'ambiguità nella denominazione:
+
+```text
+zone_target_assignments
+```
+
+è stata sostituita definitivamente da:
+
+```text
+irrigation_zone_target_assignments
+```
+
+Il risultato finale è:
+
+```text
+52 entità di dominio
++
+1 struttura tecnica: profile_edit_locks
+=
+53 strutture fisiche previste
+```
+
+`profile_edit_locks` rimane separata dal conteggio delle 52 perché costituisce infrastruttura tecnica.
+
+Il controllo nominale ufficiale si è quindi concluso con:
+
+> **52/52 entità di dominio verificate.**
+
+## Esito dello STEP 34
+
+Al termine della Sessione S017 risultano completati:
+
+- progettazione logica e architetturale del Database V1;
+- analisi delle aree funzionali;
+- definizione delle 52 entità di dominio;
+- definizione delle relazioni e cardinalità principali;
+- temporalità e storicizzazione;
+- ownership e modello di accesso;
+- modello familiare V1;
+- modello single-writer;
+- principi di sicurezza;
+- invarianti principali;
+- convenzioni dei dati;
+- distinzione tra dati persistenti e dati calcolati;
+- distinzione tra pianificazione e fatti reali;
+- controllo nominale finale 52/52;
+- risoluzione dell'anomalia 53 → 52;
+- verifica dei nomi SQL definitivi.
+
+Pertanto viene dichiarato:
+
+> **STEP 34 – DATABASE V1 COMPLETATO E CONGELATO**
+
+La baseline non deve essere riaperta durante la successiva implementazione salvo l'emersione di un errore concreto nella progettazione.
+
+La descrizione tecnica completa della baseline è riportata nel **DOC-004 – Manuale Database**.
+
+La decisione architetturale di congelamento della baseline è registrata nel **DOC-011 – Decisioni Architetturali**, mediante **DEC-011 – Baseline architetturale del Database V1**.
+
+---
+
+## Decisioni progettuali della Sessione S017
+
+La Sessione S017 ha consolidato le seguenti decisioni principali:
+
+1. Il Database V1 deve essere progettato integralmente prima dell'avvio delle nuove migration SQL/Supabase.
+2. La baseline definitiva comprende **52 entità di dominio**.
+3. `profile_edit_locks` costituisce una struttura tecnica separata e non appartiene al conteggio delle 52 entità.
+4. `AgronomicWindow` rimane un risultato calcolato; non viene introdotta una tabella persistente `agronomic_windows`.
+5. Il nome SQL definitivo dell'assegnazione dei target irrigui è `irrigation_zone_target_assignments`.
+6. Pianificazione e realtà devono rimanere separate.
+7. Task e lavoro realmente svolto devono rimanere separati.
+8. Le configurazioni temporalmente significative devono essere storicizzabili.
+9. L'identità stabile delle aiuole deve essere separata dalla geometria valida nel tempo.
+10. Il V1 utilizza un account/Profile principale per il nucleo che utilizza l'orto.
+11. I componenti della stessa famiglia possono utilizzare lo stesso accesso applicativo.
+12. I `workers` consentono di attribuire il lavoro alle persone senza richiedere account personali distinti.
+13. Il V1 adotta un modello single-writer per Profile.
+14. La multiutenza con account distinti e condivisione dello stesso Garden viene rinviata oltre il V1.
+15. La sicurezza deve essere applicata lato database mediante RLS, ownership verificabile, vincoli e operazioni server-side appropriate.
+16. Il client Flutter non deve costituire l'unica barriera di autorizzazione.
+17. Davis/CumulusMX costituisce la fonte primaria per le osservazioni meteorologiche locali.
+18. Open-Meteo costituisce la fonte esterna principale per le previsioni e il fallback.
+19. L'archivio meteorologico grezzo non deve essere duplicato nel Database V1.
+20. Inventario e magazzino non vengono introdotti nel V1.
+21. Ammortamenti e contabilità avanzata rimangono funzionalità future.
+22. GIS/PostGIS non viene introdotto nel V1.
+23. La baseline congelata deve essere implementata incrementalmente e non mediante una migrazione monolitica.
+24. Schema, sicurezza e verifiche devono procedere insieme durante l'implementazione.
+25. Lo STEP 34 non deve essere riaperto salvo l'emersione di un errore concreto nella progettazione.
+
+La decisione architetturale complessiva è formalizzata nella **DEC-011 – Baseline architetturale del Database V1**.
+
+## Stato del codice al termine dello sviluppo S017
+
+La S017 ha avuto natura prevalentemente progettuale e architetturale.
+
+Durante la fase iniziale erano state avviate modifiche al dominio delle finestre agronomiche per supportare più finestre applicabili.
+
+Al termine dello sviluppo S017 risultano modificati e non ancora committati:
+
+```text
+lib/core/agronomy/engines/agronomic_window_resolver.dart
+lib/core/agronomy/models/agronomic_window_evaluation.dart
+lib/services/agronomic_window_service.dart
+test/core/agronomy/engines/agronomic_window_resolver_test.dart
+test/core/agronomy/models/agronomic_window_evaluation_test.dart
+test/services/agronomic_window_service_test.dart
+```
+
+Queste modifiche costituiscono **lavoro tecnico aperto**.
+
+Non devono essere incluse automaticamente nel commit documentale della S017 e dovranno essere riesaminate nella successiva sessione di sviluppo prima di essere considerate completate.
+
+La progettazione del Database V1 non ha comportato l'esecuzione di migration SQL sulla nuova baseline.
+
+Pertanto, al termine della S017:
+
+```text
+Database V1 progettato e congelato
+        ↓
+documentazione
+        ↓
+implementazione SQL/Supabase ancora da eseguire
+```
+
+## Timing dello sviluppo
+
+Il tempo della Sessione S017 è stato registrato al netto delle pause e delle sospensioni.
+
+### 12/08/2026
+
+| Fascia | Tempo |
+| --- | ---: |
+| 16:04 → 17:10 | 1 h 06 min |
+| 21:51 → 23:08 | 1 h 17 min |
+| **Totale 12/08** | **2 h 23 min** |
+
+### 13/08/2026
+
+| Fascia | Tempo |
+| --- | ---: |
+| 09:35 → 13:23 | 3 h 48 min |
+| 14:18 → 15:13 | 55 min |
+| 17:08 → 17:23 | 15 min |
+| 22:24 → 23:21 | 57 min |
+| **Totale 13/08** | **5 h 55 min** |
+
+### 14/08/2026
+
+| Fascia | Tempo |
+| --- | ---: |
+| 09:50 → 11:52 | 2 h 02 min |
+| ≈14:15 → 15:03 | ≈48 min |
+| 18:25 → 19:05 | 40 min |
+| 20:09 → 20:51 | 42 min |
+| 21:14 → 24:00 | 2 h 46 min |
+| **Totale 14/08** | **6 h 58 min** |
+
+La ripresa delle ore **≈14:15** è l'unico orario approssimativo della ricostruzione temporale della S017.
+
+### 15/08/2026
+
+| Fascia | Tempo |
+| --- | ---: |
+| 00:00 → 00:53 | 53 min |
+| 09:55 → 11:05 | 1 h 10 min |
+| 12:14 → 14:48 | 2 h 34 min |
+| 23:06 → 23:37 | 31 min |
+| **Totale 15/08** | **5 h 08 min** |
+
+### Totale sviluppo S017
+
+```text
+12/08    2 h 23 min
+13/08    5 h 55 min
+14/08    6 h 58 min
+15/08    5 h 08 min
+--------------------
+Totale  20 h 24 min
+```
+
+Il tempo effettivo di **sviluppo** della Sessione S017 è quindi pari a:
+
+> **20 h 24 min**
+
+La fase di sviluppo è iniziata il **12/08/2026 alle 16:04** ed è stata chiusa il **15/08/2026 alle 23:37**.
+
+## Timing della documentazione
+
+La documentazione conclusiva della Sessione S017 è stata svolta il **16/08/2026**, al netto della pausa pranzo.
+
+| Fascia | Tempo |
+| --- | ---: |
+| 10:01 → 13:38 | 3 h 37 min |
+| 14:24 → 15:37 | 1 h 13 min |
+| **Totale documentazione S017** | **4 h 50 min** |
+
+La pausa dalle **13:38 alle 14:50** è esclusa dal conteggio.
+
+Il tempo effettivo di **documentazione** della Sessione S017 è quindi pari a:
+
+> **4 h 50 min**
+
+## Tempo complessivo della Sessione S017
+
+```text
+Sviluppo         20 h 24 min
+Documentazione    4 h 50 min
+----------------------------
+Totale           25 h 14 min
+```
+
+Il tempo complessivo effettivo della **Sessione S017**, comprensivo di sviluppo e documentazione, è quindi pari a:
+
+> **25 h 14 min**
+
+## Esito della Sessione S017
+
+La Sessione S017 ha superato significativamente l'obiettivo iniziale.
+
+L'attività era iniziata con la progettazione della persistenza delle regole agronomiche, ma l'analisi ha evidenziato la necessità di consolidare preventivamente l'intera architettura persistente dell'applicazione.
+
+Il risultato principale della sessione è quindi la definizione di una **baseline Database V1 completa e congelata**.
+
+Sono stati definiti:
+
+- perimetro persistente del V1;
+- 52 entità di dominio;
+- struttura tecnica `profile_edit_locks`;
+- ownership;
+- modello di accesso familiare;
+- modello single-writer;
+- relazioni principali;
+- temporalità;
+- storicizzazione;
+- invarianti;
+- principi di sicurezza;
+- convenzioni dei dati;
+- separazione tra pianificazione e realtà;
+- separazione tra configurazioni ed eventi;
+- strategia per il contesto ambientale;
+- funzionalità esplicitamente rinviate;
+- strategia generale per la futura implementazione e migrazione.
+
+Il controllo nominale conclusivo ha verificato **52/52 entità di dominio**.
+
+L'anomalia iniziale di 53 nomi è stata risolta escludendo `agronomic_windows` dalle strutture persistenti.
+
+È stato inoltre congelato il nome definitivo:
+
+```text
+irrigation_zone_target_assignments
+```
+
+La progettazione dello STEP 34 viene pertanto considerata **completata**.
+
+## Prossimi passi
+
+Prima di iniziare l'implementazione SQL/Supabase devono essere completate le attività documentali della S017 e verificato l'allineamento dei documenti ufficiali.
+
+Successivamente la nuova baseline dovrà essere implementata **incrementalmente**, mantenendo il metodo di lavoro del progetto:
+
+```text
+architettura
+        ↓
+implementazione controllata
+        ↓
+analyze
+        ↓
+test
+        ↓
+documentazione
+        ↓
+commit
+        ↓
+push
+```
+
+La fase successiva dovrà inoltre riesaminare le modifiche Dart ancora presenti nel working tree relative alla gestione di più finestre agronomiche.
+
+Tali modifiche dovranno essere:
+
+1. riesaminate rispetto alla baseline Database V1 congelata;
+2. completate se ancora coerenti;
+3. sottoposte a `flutter analyze`;
+4. sottoposte all'intera suite di test;
+5. committate separatamente soltanto dopo verifica.
+
+L'implementazione del Database V1 dovrà partire dalle dipendenze fondamentali e procedere per piccoli gruppi verificabili, evitando un approccio big bang.
+
+La baseline congelata nel DOC-004 e nella DEC-011 costituisce il riferimento da rispettare durante questa fase.
