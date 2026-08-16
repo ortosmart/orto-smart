@@ -7,7 +7,7 @@ import '../core/agronomy/models/planned_planting_batch.dart';
 /// Coordina la risoluzione e la valutazione delle finestre agronomiche.
 ///
 /// Questa classe non contiene logica agronomica propria:
-/// delega la selezione della finestra al resolver
+/// delega la selezione delle finestre al resolver
 /// e la verifica temporale all'engine.
 class AgronomicWindowService {
   const AgronomicWindowService._();
@@ -19,20 +19,23 @@ class AgronomicWindowService {
     const resolver = AgronomicWindowResolver();
     const engine = AgronomicWindowEngine();
 
-    final window = resolver.resolveForBatch(rules: rules, batch: batch);
+    final windows = resolver.resolveForBatch(rules: rules, batch: batch);
 
-    if (window == null) {
+    if (windows.isEmpty) {
       return AgronomicWindowEvaluation.unknown(
-        reason: 'Non esiste una finestra agronomica applicabile al lotto.',
+        reason: 'Non esistono finestre agronomiche applicabili al lotto.',
       );
     }
 
-    final compatible = engine.isBatchCompatible(window: window, batch: batch);
-
-    if (compatible) {
-      return AgronomicWindowEvaluation.compatible(window: window);
+    for (final window in windows) {
+      if (engine.isBatchCompatible(window: window, batch: batch)) {
+        return AgronomicWindowEvaluation.compatible(
+          matchedWindow: window,
+          evaluatedWindows: windows,
+        );
+      }
     }
 
-    return AgronomicWindowEvaluation.incompatible(window: window);
+    return AgronomicWindowEvaluation.incompatible(evaluatedWindows: windows);
   }
 }

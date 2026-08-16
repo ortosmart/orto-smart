@@ -6,12 +6,20 @@ class AgronomicWindowEvaluation {
   const AgronomicWindowEvaluation({
     required this.status,
     required this.reasons,
-    this.window,
+    required this.evaluatedWindows,
+    this.matchedWindow,
   });
 
   final AgronomicWindowEvaluationStatus status;
   final List<String> reasons;
-  final AgronomicWindow? window;
+
+  /// Finestra che ha reso compatibile il lotto.
+  ///
+  /// È valorizzata solo quando lo stato è [compatible].
+  final AgronomicWindow? matchedWindow;
+
+  /// Tutte le finestre considerate durante la valutazione.
+  final List<AgronomicWindow> evaluatedWindows;
 
   bool get isCompatible => status == AgronomicWindowEvaluationStatus.compatible;
 
@@ -21,23 +29,26 @@ class AgronomicWindowEvaluation {
   bool get isUnknown => status == AgronomicWindowEvaluationStatus.unknown;
 
   factory AgronomicWindowEvaluation.compatible({
-    required AgronomicWindow window,
-    String reason = 'Il lotto rientra nella finestra agronomica prevista.',
+    required AgronomicWindow matchedWindow,
+    required List<AgronomicWindow> evaluatedWindows,
+    String reason = 'Il lotto rientra in una finestra agronomica prevista.',
   }) {
     return AgronomicWindowEvaluation(
       status: AgronomicWindowEvaluationStatus.compatible,
-      window: window,
+      matchedWindow: matchedWindow,
+      evaluatedWindows: List.unmodifiable(evaluatedWindows),
       reasons: List.unmodifiable([reason]),
     );
   }
 
   factory AgronomicWindowEvaluation.incompatible({
-    required AgronomicWindow window,
-    String reason = 'Il lotto non rientra nella finestra agronomica prevista.',
+    required List<AgronomicWindow> evaluatedWindows,
+    String reason =
+        'Il lotto non rientra in nessuna delle finestre agronomiche previste.',
   }) {
     return AgronomicWindowEvaluation(
       status: AgronomicWindowEvaluationStatus.incompatible,
-      window: window,
+      evaluatedWindows: List.unmodifiable(evaluatedWindows),
       reasons: List.unmodifiable([reason]),
     );
   }
@@ -48,6 +59,7 @@ class AgronomicWindowEvaluation {
   }) {
     return AgronomicWindowEvaluation(
       status: AgronomicWindowEvaluationStatus.unknown,
+      evaluatedWindows: const [],
       reasons: List.unmodifiable([reason]),
     );
   }
