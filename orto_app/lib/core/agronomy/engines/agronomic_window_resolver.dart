@@ -5,7 +5,7 @@ import '../models/planned_planting_batch.dart';
 class AgronomicWindowResolver {
   const AgronomicWindowResolver();
 
-  AgronomicWindow? resolve({
+  List<AgronomicWindow> resolve({
     required List<CropAgronomicWindowRule> rules,
     required String cropId,
     String? varietyId,
@@ -16,23 +16,23 @@ class AgronomicWindowResolver {
     );
 
     if (varietyId != null) {
-      for (final rule in applicableRules) {
-        if (rule.varietyId == varietyId) {
-          return rule.window;
-        }
+      final varietyWindows = applicableRules
+          .where((rule) => rule.varietyId == varietyId)
+          .map((rule) => rule.window)
+          .toList();
+
+      if (varietyWindows.isNotEmpty) {
+        return varietyWindows;
       }
     }
 
-    for (final rule in applicableRules) {
-      if (rule.varietyId == null) {
-        return rule.window;
-      }
-    }
-
-    return null;
+    return applicableRules
+        .where((rule) => rule.varietyId == null)
+        .map((rule) => rule.window)
+        .toList();
   }
 
-  AgronomicWindow? resolveForBatch({
+  List<AgronomicWindow> resolveForBatch({
     required List<CropAgronomicWindowRule> rules,
     required PlannedPlantingBatch batch,
   }) {
