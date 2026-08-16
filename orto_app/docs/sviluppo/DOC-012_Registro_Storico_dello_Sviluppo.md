@@ -4,7 +4,7 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 2.8
+**Versione:** 2.9
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
@@ -23,7 +23,7 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 2.8 |
+| Versione | 2.9 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
@@ -46,6 +46,7 @@
 | 2.6      | 11/08/2026 | Aggiornamento del Registro Storico con la Sessione S015 e introduzione della prima infrastruttura delle finestre agronomiche                                                |
 | 2.7      | 12/08/2026 | Aggiornamento del Registro Storico con la Sessione S016 e associazione delle finestre agronomiche a colture e varietà |
 | 2.8      | 16/08/2026 | Aggiornamento del Registro Storico con la Sessione S017, completamento e congelamento della baseline Database V1 e consolidamento dei tempi complessivi di sviluppo e documentazione |
+| 2.9      | 16/08/2026 | Aggiornamento del Registro Storico con la Sessione S018: supporto alle finestre agronomiche multiple, predisposizione dell'ambiente locale Supabase e riallineamento degli indicatori evolutivi |
 
 ---
 
@@ -99,13 +100,13 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 | Indicatore                          | Valore                                           |
 | ----------------------------------- | ------------------------------------------------ |
-| Sessioni completate                 | 17                                               |
-| Tempo complessivo di sviluppo       | 67 h 32 min                                      |
-| Tempo complessivo di documentazione | 21 h 32 min                                      |
-| Tempo complessivo progetto          | 89 h 04 min                                      |
+| Sessioni completate                 | 18                                               |
+| Tempo complessivo di sviluppo       | 70 h 07 min                                      |
+| Tempo complessivo di documentazione | 22 h 53 min                                      |
+| Tempo complessivo progetto          | 93 h 00 min                                      |
 | Prima sessione                      | S001                                             |
-| Ultima sessione                     | S017                                             |
-| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S017 |
+| Ultima sessione                     | S018                                             |
+| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S018 |
 
 \* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
@@ -134,6 +135,8 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo di svilupp
 | **S015** | Prima implementazione delle finestre agronomiche mediante AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine | **1 h 00 min** |    **61 h 48 min** |
 | **S016** | Associazione delle finestre agronomiche a colture e varietà e introduzione della valutazione stagionale dei lotti pianificati | **1 h 06 min** | **63 h 50 min** |
 | **S017** | Progettazione completa e congelamento della baseline Database V1 | **20 h 24 min** | **89 h 04 min** |
+| **S018** | Supporto alle finestre agronomiche multiple e predisposizione dell'ambiente locale Supabase | **3 h 56 min** | **93 h 00 min** |
+
 ---
 
 ## 3.1 Lettura della cronologia
@@ -174,6 +177,7 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S015** | Prima infrastruttura delle finestre agronomiche             | Introduzione di `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine` per rappresentare finestre agronomiche annuali e verificare separatamente la compatibilità temporale dei lotti pianificati in base al metodo di avvio e alla data. |
 | **S016** | Stagionalità di colture e varietà | Introduzione di `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService` per associare le finestre agronomiche a colture e varietà, applicare il fallback varietà → coltura e distinguere `compatible`, `incompatible` e `unknown`. |
 | **S017** | Baseline Database V1 | Completamento e congelamento della progettazione logica e architetturale del Database V1: 52 entità di dominio, struttura tecnica `profile_edit_locks`, ownership, modello di accesso familiare single-writer, temporalità, storicizzazione, invarianti, sicurezza, convenzioni dei dati e strategia di futura implementazione SQL/Supabase. |
+| **S018** | Finestre agronomiche multiple e ambiente Supabase locale | Estensione della valutazione agronomica al supporto di più finestre applicabili, con fallback tra livelli di specificità, e predisposizione dell'ambiente locale WSL 2, Docker Desktop e Supabase CLI per l'implementazione incrementale della baseline Database V1 mediante migration versionate. |
 
 ---
 
@@ -193,14 +197,14 @@ Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e
 
 | Indicatore                    | Valore attuale |
 | ----------------------------- | -------------- |
-| Sessioni completate           | 16             |
-| Ore di sviluppo consolidate   | 47 h 08 min    |
-| Ore di documentazione         | 16 h 42 min    |
-| Totale ore progetto           | 63 h 50 min    |
+| Sessioni completate           | 18             |
+| Ore di sviluppo consolidate   | 70 h 07 min    |
+| Ore di documentazione         | 22 h 53 min    |
+| Totale ore progetto           | 93 h 00 min    |
 | Motori agronomici completati  | 5              |
 | Documenti ufficiali approvati | 10             |
-| Ultima sessione completata    | S016           |
-| Sessione in corso             | Nessuna   |
+| Ultima sessione completata    | S018           |
+| Sessione in corso             | Nessuna        |
 
 Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.
 

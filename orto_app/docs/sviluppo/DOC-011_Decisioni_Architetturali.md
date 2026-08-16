@@ -4,7 +4,7 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 1.0
+**Versione:** 1.1
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
@@ -23,7 +23,7 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 1.0                            |
+| Versione             | 1.1                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
@@ -46,6 +46,7 @@
 | 0.8      | 11/08/2026 | Introduzione della DEC-009 sulla separazione tra pianificazione temporale e compatibilità agronomica                       |
 | 0.9      | 12/08/2026 | Introduzione della DEC-010 sulla risoluzione gerarchica delle regole agronomiche e sulla distinzione tra assenza di conoscenza e incompatibilità |
 | 1.0      | 16/08/2026 | Introduzione della DEC-011 sulla baseline architetturale del Database V1 e congelamento della progettazione S017 |
+| 1.1      | 16/08/2026 | Aggiornamento della DEC-010 con l'evoluzione introdotta nella Sessione S018: supporto a più finestre agronomiche applicabili, fallback tra livelli di specificità e distinzione tra `matchedWindow` ed `evaluatedWindows` |
 
 ---
 
@@ -1168,10 +1169,14 @@ Le alternative sono state scartate perché avrebbero aumentato l'accoppiamento t
 
 - Le finestre agronomiche possono essere associate a colture e varietà mediante `CropAgronomicWindowRule`.
 - Le regole generali della coltura possono essere specializzate mediante override varietali.
-- `AgronomicWindowResolver` seleziona la regola applicabile.
-- La regola specifica della varietà ha precedenza sulla regola generale della coltura.
-- In assenza della regola varietale viene utilizzata la regola generale della coltura.
-- In assenza di qualsiasi regola applicabile il risultato è `unknown`.
+- `AgronomicWindowResolver` determina l'insieme delle regole e delle finestre applicabili.
+- Le regole specifiche della varietà hanno precedenza sulle regole generali della coltura.
+- Se esiste almeno una regola specifica della varietà, vengono utilizzate tutte le relative finestre applicabili.
+- Soltanto in assenza di regole varietali vengono utilizzate le finestre generali della coltura.
+- Il fallback opera quindi tra livelli di specificità e non tra singole finestre.
+- In assenza di qualsiasi finestra applicabile il risultato è `unknown`.
+- A partire dalla S018, `AgronomicWindowEvaluation` distingue `matchedWindow` da `evaluatedWindows`.
+- La valutazione è `compatible` se almeno una finestra applicabile è valida e `incompatible` soltanto se esistono finestre applicabili ma nessuna risulta valida.
 - `unknown` rimane semanticamente distinto da `incompatible`.
 - `AgronomicWindowEngine` mantiene la responsabilità della verifica temporale.
 - `AgronomicWindowEvaluation` rappresenta il risultato mediante tre stati.

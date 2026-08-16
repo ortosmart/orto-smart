@@ -4,7 +4,7 @@
 
 # Manuale Database
 
-**Versione:** 1.0
+**Versione:** 1.1
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
@@ -23,7 +23,7 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 1.0 |
+| Versione | 1.1 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
@@ -37,6 +37,7 @@
 | Versione | Data | Descrizione |
 | --- | --- | --- |
 | 1.0 | 16/08/2026 | Prima emissione del Manuale Database e documentazione della baseline Database V1 progettata nella Sessione S017 |
+| 1.1 | 16/08/2026 | Aggiornamento con la Sessione S018: predisposizione dell'ambiente locale Supabase, inizializzazione della struttura per migration versionate, conservazione dello schema sperimentale come `database_legacy_initial.sql`, verifica di PostgreSQL 17.6 e definizione del punto di avvio della futura baseline SQL Database V1 |
 
 ---
 
@@ -2681,10 +2682,12 @@ Questi principi devono essere preservati durante la futura implementazione SQL/S
 
 ## 13.2 Stato raggiunto
 
-Al termine della progettazione S017 il Database V1 è:
+Con la Sessione S018 il progetto è passato dalla sola progettazione della baseline alla **predisposizione concreta dell'ambiente necessario alla sua futura implementazione**, senza modificare il database remoto.
+
+Lo stato raggiunto è:
 
 ```text
-progettato
+Database V1 progettato
         ✓
 
 controllato nominalmente
@@ -2696,43 +2699,155 @@ congelato
 documentato
         ✓
 
-completamente implementato in Supabase
+ambiente locale Supabase predisposto
+        ✓
+
+struttura per migration versionate inizializzata
+        ✓
+
+prima migration Database V1 creata
+        ✗
+
+baseline Database V1 implementata in Supabase
         ✗
 ```
 
 La presenza della baseline nel presente manuale non deve quindi essere confusa con lo stato fisico del database operativo.
 
-Le 52 entità non sono ancora tutte presenti in Supabase e le relative migration, policy RLS, funzioni server-side, invarianti e verifiche devono essere implementate progressivamente.
+Durante la Sessione S018 è stato predisposto l'ambiente locale composto da:
+
+- WSL 2 `2.7.11.0`;
+- Ubuntu `24.04.4 LTS`;
+- Docker Desktop con backend WSL 2;
+- Docker Engine/CLI `29.7.2`;
+- Supabase CLI `2.114.0`.
+
+È stato eseguito:
+
+```text
+supabase init
+```
+
+creando nel repository:
+
+```text
+supabase/
+├── .gitignore
+├── config.toml
+└── seed.sql
+```
+
+Il file `supabase/seed.sql` è intenzionalmente vuoto in questa fase.
+
+Il precedente file:
+
+```text
+database/database_v1.sql
+```
+
+appartiene alla prima struttura sperimentale del database e non rappresenta la baseline Database V1 congelata nella S017.
+
+Per conservarne il valore storico senza confonderlo con la nuova baseline è stato rinominato:
+
+```text
+database/database_legacy_initial.sql
+```
+
+La versione PostgreSQL del progetto Supabase remoto è stata verificata mediante una query esclusivamente di lettura:
+
+```sql
+select version();
+```
+
+ottenendo:
+
+```text
+PostgreSQL 17.6
+```
+
+La configurazione locale generata dalla Supabase CLI con:
+
+```text
+major_version = 17
+```
+
+è pertanto coerente con il database remoto.
+
+Durante la Sessione S018 **non è stata effettuata alcuna modifica al database remoto**.
+
+Le 52 entità della baseline non sono ancora tutte presenti in Supabase e devono ancora essere implementati progressivamente:
+
+- migration SQL;
+- relazioni e vincoli;
+- invarianti;
+- policy RLS;
+- eventuali funzioni server-side previste;
+- verifiche e test della nuova struttura.
+
+La prima migration della baseline Database V1 non è stata volutamente creata durante la S018.
 
 ## 13.3 Passaggio alla fase di implementazione
 
-La fase successiva dovrà tradurre la baseline progettuale in PostgreSQL/Supabase secondo il workflow definito nel presente manuale.
+Con la conclusione della Sessione S018 sono stati completati i prerequisiti tecnici necessari per iniziare l'implementazione SQL della baseline Database V1.
 
-Il percorso generale sarà:
+Il punto di ripartenza della Sessione S019 è fissato nello:
+
+```text
+STEP 35.3 – Costruzione baseline SQL Database V1
+```
+
+Dopo i normali controlli iniziali della nuova sessione, la prima operazione prevista sarà la creazione della migration:
+
+```text
+supabase migration new database_v1_baseline
+```
+
+Da quel momento la baseline logica e architetturale congelata nella S017 verrà tradotta progressivamente in PostgreSQL/Supabase.
+
+Il percorso generale diventa:
 
 ```text
 baseline Database V1 congelata
         ↓
-analisi dello schema Supabase esistente
+ambiente Supabase locale predisposto
         ↓
-definizione del primo gruppo coerente di migration
+creazione migration database_v1_baseline
         ↓
-implementazione SQL
+implementazione per gruppi coerenti di tabelle
         ↓
-vincoli e RLS
+relazioni e vincoli
         ↓
-integrazione repository / dominio
+invarianti e sicurezza
         ↓
-test
+RLS e componenti server-side necessari
+        ↓
+test locali
         ↓
 verifica
         ↓
-commit e documentazione
+integrazione repository / dominio
+        ↓
+documentazione
+        ↓
+commit e push
 ```
 
-Non dovrà essere effettuata una trasformazione monolitica dell'intero database.
+L'implementazione non dovrà essere eseguita come trasformazione monolitica dell'intero database.
 
-Ogni incremento dovrà essere sufficientemente piccolo da poter essere verificato prima di procedere al successivo.
+La migration `database_v1_baseline` costituisce il contenitore versionato iniziale della nuova baseline, ma la sua costruzione dovrà procedere **incrementalmente per gruppi coerenti di tabelle e dipendenze**, verificando ogni incremento prima di proseguire.
+
+Durante questa fase valgono le seguenti regole:
+
+- la baseline congelata nella S017 costituisce il riferimento architetturale;
+- non devono essere introdotte nuove entità in modo implicito durante la scrittura SQL;
+- eventuali necessità architetturali emerse durante l'implementazione devono essere prima valutate esplicitamente;
+- le dipendenze tra tabelle devono determinare l'ordine di implementazione;
+- vincoli, ownership e sicurezza devono essere trattati come parte integrante dello schema;
+- i test locali devono precedere, per quanto applicabile, gli interventi sul database remoto;
+- ogni incremento deve rimanere sufficientemente piccolo da poter essere controllato e corretto;
+- l'ambiente Docker/Supabase locale viene utilizzato quando necessario per lo sviluppo e i test della persistenza.
+
+Al termine della S018 nessuna parte della nuova baseline SQL è stata ancora applicata al database remoto.
 
 ## 13.4 Relazione con il dominio applicativo
 

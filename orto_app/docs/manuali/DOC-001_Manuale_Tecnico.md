@@ -4,7 +4,7 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 1.6
+**Versione:** 1.7
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
@@ -23,7 +23,7 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 1.6 |
+| Versione | 1.7 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
@@ -47,6 +47,7 @@
 | 1.4      | 11/08/2026 | Introduzione di AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per la prima verifica separata della compatibilità agronomica dei lotti pianificati |
 | 1.5      | 12/08/2026 | Associazione delle finestre agronomiche a colture e varietà mediante CropAgronomicWindowRule, AgronomicWindowResolver, AgronomicWindowEvaluation e AgronomicWindowService |
 | 1.6      | 16/08/2026 | Aggiornamento dell'architettura di persistenza con la baseline Database V1 congelata nella Sessione S017: 52 entità di dominio, struttura tecnica `profile_edit_locks`, ownership, accesso familiare monoutente, modello single-writer, sicurezza, integrità e strategia di implementazione incrementale |
+| 1.7      | 16/08/2026 | Aggiornamento della S018 con supporto alle finestre agronomiche multiple e predisposizione dell'ambiente locale Supabase mediante WSL 2, Docker Desktop e Supabase CLI per la futura implementazione incrementale della baseline Database V1 |
 
 ---
 
@@ -2651,7 +2652,7 @@ Questa differenza non è stata affrontata nella S016 per evitare un refactoring 
 
 ### AgronomicWindowResolver
 
-`AgronomicWindowResolver` è il componente responsabile della selezione della finestra agronomica applicabile a una determinata coltura, varietà e metodo di avvio.
+`AgronomicWindowResolver` è il componente responsabile della selezione delle finestre agronomiche applicabili a una determinata coltura, varietà e metodo di avvio.
 
 Il resolver è definito in:
 
@@ -2665,33 +2666,40 @@ La selezione utilizza:
 - `varietyId`;
 - `PlannedPlantingStartMethod`.
 
-La gerarchia adottata è:
+A partire dalla Sessione S018 il resolver supporta esplicitamente **più finestre agronomiche applicabili**.
+
+La gerarchia adottata rimane:
 
 ```text
-regola specifica della varietà
+finestre specifiche della varietà
         ↓
-regola generale della coltura
+se presenti, vengono utilizzate tutte
+
+altrimenti
         ↓
-nessuna regola
+finestre generali della coltura
+
+nessuna finestra applicabile
+        ↓
+nessuna conoscenza agronomica disponibile
 ```
 
 Il comportamento è quindi:
 
-1. viene cercata una regola specifica della varietà per il metodo richiesto;
-2. in assenza della regola varietale viene utilizzata la regola generale della coltura;
-3. in assenza di entrambe viene restituito `null`.
+1. vengono ricercate tutte le regole specifiche della varietà per il metodo richiesto;
+2. se esiste almeno una regola varietale, vengono restituite le relative finestre;
+3. soltanto in assenza di regole varietali vengono utilizzate tutte le finestre generali della coltura per il metodo richiesto;
+4. in assenza di entrambe non viene restituita alcuna finestra applicabile.
 
-Il resolver non verifica se la data del lotto appartenga alla finestra selezionata.
+Il fallback opera quindi **tra livelli di specificità**, non tra singole finestre.
+
+Una varietà che dispone di proprie regole agronomiche utilizza il proprio insieme di finestre senza combinarlo con le finestre generali della coltura.
+
+Il resolver non verifica se la data del lotto appartenga alle finestre selezionate.
 
 Questa responsabilità rimane separata e appartiene ad `AgronomicWindowEngine`.
 
-È inoltre disponibile:
-
-```text
-resolveForBatch(...)
-```
-
-che consente di ricevere direttamente un `PlannedPlantingBatch` e utilizzare automaticamente:
+È inoltre disponibile la risoluzione a partire direttamente da un `PlannedPlantingBatch`, utilizzando automaticamente:
 
 - `cropId`;
 - `varietyId`;
@@ -2702,16 +2710,16 @@ La separazione adottata è:
 ```text
 AgronomicWindowResolver
         ↓
-quale finestra utilizzare
+quali finestre sono applicabili?
 
 AgronomicWindowEngine
         ↓
-la data appartiene alla finestra?
+la data appartiene a ciascuna finestra?
 ```
 
 ### AgronomicWindowEvaluation
 
-`AgronomicWindowEvaluation` rappresenta il risultato strutturato della valutazione agronomica di un lotto rispetto alle finestre disponibili.
+`AgronomicWindowEvaluation` rappresenta il risultato strutturato della valutazione agronomica di un lotto rispetto all'insieme delle finestre applicabili.
 
 Il modello è definito in:
 
@@ -2719,42 +2727,46 @@ Il modello è definito in:
 lib/core/agronomy/models/agronomic_window_evaluation.dart
 ```
 
-La Sessione S016 ha deliberatamente evitato di rappresentare il risultato mediante un semplice valore booleano.
-
-Sono stati introdotti tre stati distinti:
+Gli stati rimangono:
 
 - `compatible`;
 - `incompatible`;
 - `unknown`.
 
-La distinzione fondamentale è:
+La distinzione fondamentale rimane:
 
 ```text
 unknown != incompatible
 ```
 
+Con il supporto multi-finestra introdotto nella S018, la semantica è:
+
 `compatible` indica che:
 
-- è stata individuata una regola applicabile;
-- la data del lotto appartiene alla finestra agronomica.
+- esiste almeno una finestra applicabile;
+- almeno una delle finestre valutate contiene la data del lotto.
 
 `incompatible` indica che:
 
-- è stata individuata una regola applicabile;
-- la data del lotto non appartiene alla finestra agronomica.
+- esiste almeno una finestra applicabile;
+- tutte le finestre applicabili sono state valutate;
+- nessuna contiene la data del lotto.
 
 `unknown` indica invece che:
 
-- non è disponibile alcuna regola agronomica applicabile;
-- il sistema non dispone di informazioni sufficienti per esprimere un giudizio.
+- non esiste alcuna finestra agronomica applicabile;
+- il sistema non dispone quindi di informazioni sufficienti per esprimere un giudizio.
 
-L'assenza di dati non viene quindi interpretata come incompatibilità.
+L'assenza di dati continua a non essere interpretata come incompatibilità.
 
-Il modello contiene inoltre:
+Il modello distingue inoltre:
 
-- la finestra agronomica utilizzata, quando disponibile;
-- una lista di motivazioni mediante `reasons`;
+- `matchedWindow`, cioè la finestra compatibile individuata quando il risultato è `compatible`;
+- `evaluatedWindows`, cioè l'insieme delle finestre effettivamente considerate nella valutazione;
+- `reasons`, utilizzato per rappresentare le motivazioni associate al risultato;
 - getter dedicati ai diversi stati.
+
+La distinzione tra `matchedWindow` ed `evaluatedWindows` permette di conservare sia la finestra che ha prodotto un esito positivo sia il contesto completo della valutazione multi-finestra.
 
 Sono disponibili factory constructor dedicati:
 
@@ -2764,11 +2776,11 @@ AgronomicWindowEvaluation.incompatible(...)
 AgronomicWindowEvaluation.unknown(...)
 ```
 
-La struttura segue il pattern già adottato in altri risultati del dominio agronomico, come `RotationResult`.
+La struttura continua a seguire il pattern adottato negli altri risultati del dominio agronomico.
 
 ### AgronomicWindowService
 
-`AgronomicWindowService` è il servizio applicativo introdotto nella Sessione S016 per coordinare la selezione e la valutazione delle finestre agronomiche.
+`AgronomicWindowService` è il servizio applicativo responsabile del coordinamento della selezione e della valutazione delle finestre agronomiche.
 
 Il servizio è definito in:
 
@@ -2776,7 +2788,7 @@ Il servizio è definito in:
 lib/services/agronomic_window_service.dart
 ```
 
-Il componente segue il principio già adottato da servizi come `BedAnalysisService`:
+Il componente continua a seguire il principio già adottato da servizi come `BedAnalysisService`:
 
 > il servizio coordina componenti specializzati senza incorporare direttamente logica agronomica propria.
 
@@ -2796,66 +2808,79 @@ e riceve:
 - un insieme di `CropAgronomicWindowRule`;
 - un `PlannedPlantingBatch`.
 
-Il flusso applicativo è:
+A partire dalla Sessione S018 il flusso applicativo supporta esplicitamente la valutazione di **più finestre agronomiche applicabili**:
 
 ```text
 PlannedPlantingBatch
         ↓
 AgronomicWindowResolver
         ↓
-selezione della finestra
+insieme delle finestre applicabili
         ↓
 AgronomicWindowEngine
+        ↓
+valutazione di tutte le finestre
         ↓
 AgronomicWindowEvaluation
 ```
 
-Il risultato può essere:
+La semantica del risultato è:
 
 ```text
+almeno una finestra compatibile
+        ↓
 compatible
-        ↓
-regola trovata
-+
-data nella finestra
 
+finestre presenti
++
+nessuna finestra compatibile
+        ↓
 incompatible
-        ↓
-regola trovata
-+
-data fuori finestra
 
-unknown
+nessuna finestra applicabile
         ↓
-nessuna regola applicabile
+unknown
 ```
 
-Il servizio conserva inoltre automaticamente il fallback:
+Il servizio conserva il fallback deterministico:
 
 ```text
-varietà specifica
+finestre specifiche della varietà
         ↓
-coltura generale
+se assenti
+        ↓
+finestre generali della coltura
+        ↓
+se assenti
         ↓
 unknown
 ```
+
+La valutazione multi-finestra non modifica la separazione delle responsabilità:
+
+- il resolver determina **quali finestre** devono essere considerate;
+- l'engine verifica la compatibilità temporale;
+- il service coordina il processo;
+- `AgronomicWindowEvaluation` rappresenta il risultato e conserva le finestre valutate.
 
 ### Architettura della valutazione stagionale
 
-Con la Sessione S016 il flusso delle finestre agronomiche evolve da una semplice verifica temporale a una valutazione applicativa completa.
+Con la Sessione S018 l'architettura introdotta nella S016 viene estesa per supportare esplicitamente **più finestre agronomiche applicabili** alla stessa coltura, varietà e metodo di avvio.
 
-L'architettura risultante è:
+Il flusso risultante è:
 
 ```text
 PlannedPlantingBatch
         ↓
 AgronomicWindowResolver
         ↓
-CropAgronomicWindowRule
+insieme delle CropAgronomicWindowRule applicabili
         ↓
-AgronomicWindow
+insieme delle AgronomicWindow
         ↓
 AgronomicWindowEngine
+        ↓
+valutazione delle finestre applicabili
         ↓
 AgronomicWindowEvaluation
 ```
@@ -2872,10 +2897,28 @@ Le responsabilità rimangono separate:
 
 - `SuccessionPlanningEngine` genera temporalmente i lotti;
 - `CropAgronomicWindowRule` associa le finestre a colture e varietà;
-- `AgronomicWindowResolver` seleziona la finestra applicabile;
+- `AgronomicWindowResolver` determina l'insieme delle finestre applicabili rispettando la priorità varietà → coltura;
 - `AgronomicWindowEngine` verifica la compatibilità temporale;
-- `AgronomicWindowEvaluation` rappresenta il risultato;
+- `AgronomicWindowEvaluation` rappresenta il risultato e conserva `matchedWindow` ed `evaluatedWindows`;
 - `AgronomicWindowService` coordina l'intero flusso applicativo.
+
+La compatibilità complessiva segue la regola:
+
+```text
+almeno una finestra compatibile
+        ↓
+compatible
+
+finestre applicabili presenti
++
+nessuna compatibile
+        ↓
+incompatible
+
+nessuna finestra applicabile
+        ↓
+unknown
+```
 
 Questa separazione evita che il `SuccessionPlanningEngine` acquisisca responsabilità relative a:
 
@@ -2886,31 +2929,31 @@ Questa separazione evita che il `SuccessionPlanningEngine` acquisisca responsabi
 
 ### Persistenza delle regole agronomiche
 
-La Sessione S016 non introduce ancora la persistenza delle finestre agronomiche in Supabase.
+La situazione descritta nella S016, nella quale la progettazione della persistenza era ancora rinviata, è stata superata dalla Sessione S017.
 
-La scelta è deliberata.
+La S017 ha completato e congelato la baseline logica e architetturale del **Database V1**.
 
-Il principio adottato è:
+Per le regole agronomiche la struttura persistente prevista è:
 
 ```text
-prima dominio stabile e testato
-        ↓
-poi progettazione della persistenza
+agronomic_window_rules
 ```
 
-La futura struttura persistente dovrà adattarsi al dominio applicativo e non imporre prematuramente vincoli al modello.
+mentre `AgronomicWindow` rimane un risultato del dominio applicativo e **non corrisponde a una tabella persistente `agronomic_windows`**.
 
-Dovrà supportare almeno:
+La baseline Database V1 costituisce ora il riferimento da rispettare durante l'implementazione SQL/Supabase.
 
-- regola generale della coltura;
-- regola specifica della varietà;
+La gestione deve supportare:
+
+- regole associate alla coltura;
+- eventuale specializzazione per varietà;
 - metodo di avvio;
-- mese e giorno iniziale;
-- mese e giorno finale;
-- possibilità da verificare di più finestre agronomiche per la stessa coltura e metodo;
-- futura estensione delle informazioni agronomiche senza duplicazioni inutili.
+- estremi temporali della finestra;
+- più finestre agronomiche applicabili per la stessa combinazione prevista dal dominio;
+- fallback deterministico varietà → coltura;
+- estensioni future senza duplicazioni non necessarie.
 
-La futura architettura dovrà mantenere il flusso:
+Il flusso architetturale previsto rimane:
 
 ```text
 Supabase
@@ -2928,15 +2971,88 @@ AgronomicWindowService
 AgronomicWindowEvaluation
 ```
 
-La progettazione dello schema persistente viene rinviata alla Sessione S017.
+La Sessione S018 ha inoltre verificato e consolidato a livello applicativo il requisito delle **finestre agronomiche multiple**, eliminando il precedente punto ancora aperto sulla necessità di supportare più finestre per coltura e metodo.
 
-Prima di qualsiasi migration dovranno essere verificati:
+### Preparazione dell'implementazione Supabase
 
-- schema reale di `crops`;
-- schema reale di `crop_varieties`;
-- vincoli e foreign key esistenti;
-- differenza tra identificativi `String`, `int` e `bigint`;
-- eventuale necessità di più finestre per coltura e metodo nello stesso anno.
+La Sessione S018 non ha ancora implementato la baseline Database V1 nel database.
+
+È stata invece predisposta l'infrastruttura locale necessaria per sviluppare e verificare le future migration prima di applicarle al progetto remoto.
+
+L'ambiente verificato comprende:
+
+- WSL 2 `2.7.11.0`;
+- Ubuntu `24.04.4 LTS`;
+- Docker Desktop con backend WSL 2;
+- Docker Engine/CLI `29.7.2`;
+- Supabase CLI `2.114.0`.
+
+È stato eseguito:
+
+```text
+supabase init
+```
+
+creando la struttura locale:
+
+```text
+supabase/
+├── .gitignore
+├── config.toml
+└── seed.sql
+```
+
+`supabase/seed.sql` è intenzionalmente vuoto in questa fase.
+
+Il file SQL sperimentale precedente:
+
+```text
+database/database_v1.sql
+```
+
+è stato conservato come riferimento storico con il nuovo nome:
+
+```text
+database/database_legacy_initial.sql
+```
+
+Il file legacy **non rappresenta la baseline Database V1 congelata nella S017** e non deve essere utilizzato come nuova sorgente autorevole dello schema.
+
+La versione PostgreSQL del progetto Supabase remoto è stata verificata mediante la sola query di lettura:
+
+```sql
+select version();
+```
+
+ottenendo:
+
+```text
+PostgreSQL 17.6
+```
+
+Questo conferma la coerenza della configurazione locale:
+
+```text
+major_version = 17
+```
+
+Durante la Sessione S018 **non è stata eseguita alcuna modifica al database remoto**.
+
+La prima migration della nuova baseline non è stata ancora creata.
+
+L'implementazione SQL inizierà nella futura Sessione S019 dallo:
+
+```text
+STEP 35.3 – Costruzione baseline SQL Database V1
+```
+
+con la creazione prevista della migration:
+
+```text
+supabase migration new database_v1_baseline
+```
+
+La traduzione della baseline congelata dovrà procedere incrementalmente per gruppi coerenti di tabelle e dipendenze, mantenendo verifiche e test prima dell'applicazione al database remoto.
 
 ### RecommendationMapper
 
