@@ -4,7 +4,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 1.8
+**Versione:** 1.9
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
@@ -23,7 +23,7 @@
 | -------------------- | ------------------------ |
 | Documento            | CHANGELOG                |
 | Titolo               | Registro delle modifiche |
-| Versione             | 1.8                      |
+| Versione             | 1.9                      |
 | Stato                | Approvato                |
 | Progetto             | Orto Smart               |
 | Repository           | ortosmart/orto-smart     |
@@ -47,6 +47,7 @@
 | 1.6      | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.9-alpha e prima implementazione delle finestre agronomiche                 |
 | 1.7      | 12/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.10-alpha e associazione delle finestre agronomiche a colture e varietà |
 | 1.8      | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.11-alpha e completamento della progettazione e del congelamento della baseline Database V1 nella Sessione S017 |
+| 1.9      | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.12-alpha: supporto alle finestre agronomiche multiple e predisposizione dell'ambiente Supabase locale per la futura implementazione della baseline Database V1 |
 
 ---
 
@@ -70,6 +71,7 @@
 3.10 Versione 0.1.9-alpha
 3.11 Versione 0.1.10-alpha
 3.12 Versione 0.1.11-alpha
+3.13 Versione 0.1.12-alpha
 
 ## 4. Cronologia versioni
 
@@ -552,6 +554,67 @@ Nessuna correzione specifica.
 
 ---
 
+## 3.13 Versione 0.1.12-alpha
+
+**Data:** 16/08/2026
+
+### Aggiunto
+
+- Introdotto il supporto esplicito a **più finestre agronomiche applicabili** per la stessa coltura, varietà e metodo di avvio.
+- Esteso `AgronomicWindowEvaluation` con la distinzione tra `matchedWindow` ed `evaluatedWindows`.
+- Predisposto l'ambiente locale necessario allo sviluppo e al test delle future migration Supabase mediante WSL 2, Ubuntu, Docker Desktop e Supabase CLI.
+- Inizializzata mediante `supabase init` la struttura locale versionata:
+
+```text
+supabase/
+├── .gitignore
+├── config.toml
+└── seed.sql
+```
+
+- Predisposto `supabase/seed.sql`, intenzionalmente vuoto in questa fase.
+
+### Modificato
+
+- `AgronomicWindowResolver` restituisce l'insieme delle finestre applicabili invece di una singola finestra.
+- Il resolver applica la priorità alle finestre specifiche della varietà e utilizza le finestre generali della coltura soltanto come fallback.
+- `AgronomicWindowService` valuta tutte le finestre applicabili.
+- La valutazione è `compatible` quando almeno una finestra è valida, `incompatible` quando esistono finestre applicabili ma nessuna è valida e `unknown` quando non esistono finestre applicabili.
+- Il precedente `database/database_v1.sql`, relativo allo schema sperimentale iniziale, è stato conservato come `database/database_legacy_initial.sql` per distinguerlo dalla nuova baseline Database V1.
+- Verificata sul progetto Supabase remoto la versione `PostgreSQL 17.6`, coerente con `major_version = 17` della configurazione locale.
+
+### Architettura
+
+- Confermato il supporto multi-finestra come parte del dominio agronomico prima della relativa persistenza.
+- Predisposta l'infrastruttura versionata per implementare progressivamente la baseline Database V1 mediante migration Supabase.
+- Confermato che la baseline logica congelata nella S017 rimane il riferimento architetturale per la futura implementazione SQL.
+- Stabilito come punto di ripartenza della S019 lo **STEP 35.3 – Costruzione baseline SQL Database V1**.
+- La prima migration prevista è `database_v1_baseline`; al termine della S018 non è ancora stata creata.
+
+### Test
+
+- `dart format`: 6 file verificati, 0 modifiche necessarie.
+- `flutter analyze`: nessun problema rilevato.
+- Test mirati sulle modifiche alle finestre agronomiche: **18/18 passati**.
+- Suite completa Flutter: **151/151 test passati**.
+
+### Commit
+
+- `93d6bf6` — `Supporta finestre agronomiche multiple`.
+- `00190ea` — `Prepara ambiente Supabase locale`.
+
+### Corretto
+
+Nessuna correzione specifica separata dalle modifiche descritte sopra.
+
+### Sicurezza
+
+- Verificato prima del commit che `supabase/config.toml` non contenga password, token o chiavi reali versionate.
+- I valori sensibili della configurazione Supabase rimangono riferimenti a variabili d'ambiente.
+- Durante la S018 non è stata effettuata alcuna modifica al database Supabase remoto.
+
+---
+
 # 4. Cronologia versioni
 
 | Versione    | Data       | Stato      | Note                                                                                                                                                              |
@@ -567,7 +630,8 @@ Nessuna correzione specifica.
 | 0.1.8-alpha | 11/08/2026 | Archiviata   | Implementata la prima versione del `SuccessionPlanningEngine` per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
 | 0.1.9-alpha | 11/08/2026 | Archiviata   | Introdotte le finestre agronomiche mediante `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`, mantenendo separata la compatibilità agronomica dalla pianificazione temporale del `SuccessionPlanningEngine`. |
 | 0.1.10-alpha | 12/08/2026 | Archiviata | Associate le finestre agronomiche a colture e varietà mediante `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService`, introducendo il fallback varietà → coltura e la distinzione tra `unknown` e `incompatible`. |
-| 0.1.11-alpha | 16/08/2026 | Corrente | Completata e congelata nella S017 la progettazione della baseline Database V1: 52 entità di dominio più la struttura tecnica `profile_edit_locks`, con ownership, accesso familiare monoutente, modello single-writer, temporalità, sicurezza, invarianti e strategia di implementazione incrementale in Supabase. |
+| 0.1.11-alpha | 16/08/2026 | Archiviata | Completata e congelata nella S017 la progettazione della baseline Database V1: 52 entità di dominio più la struttura tecnica `profile_edit_locks`, con ownership, accesso familiare monoutente, modello single-writer, temporalità, sicurezza, invarianti e strategia di implementazione incrementale in Supabase. |
+| 0.1.12-alpha | 16/08/2026 | Corrente | Introdotto il supporto alle finestre agronomiche multiple e predisposto l'ambiente Supabase locale versionato per la futura implementazione incrementale della baseline Database V1; verificati 151/151 test e mantenuto invariato il database remoto. |
 
 ---
 

@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 1.2
+**Versione:** 1.3
 **Stato:** Approvato
 
 **Autore:** Renzo
@@ -24,7 +24,7 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 1.2 |
+| Versione | 1.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
@@ -43,6 +43,7 @@
 | 1.0      | 01/08/2026 | Revisione completa e approvazione della Roadmap di Sviluppo            |
 | 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico e pianificazione delle evoluzioni successive |
 | 1.2      | 16/08/2026 | Aggiornamento della roadmap dopo la Sessione S017: completamento e congelamento della progettazione Database V1, pianificazione dell'implementazione incrementale in Supabase e riallineamento delle priorità di sviluppo |
+| 1.3 | 16/08/2026 | Aggiornamento dopo la Sessione S018: completamento dei prerequisiti locali Supabase, consolidamento delle finestre agronomiche multiple e definizione dello STEP 35.3 come punto di avvio della baseline SQL Database V1 |
 
 ---
 
@@ -148,6 +149,7 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | AgronomicWindowEvaluation | ✅ Completato | Risultato strutturato introdotto nella S016 per distinguere gli stati `compatible`, `incompatible` e `unknown`, evitando di interpretare l'assenza di dati come incompatibilità. |
 | AgronomicWindowService | ✅ V1 completata | Servizio introdotto nella S016 per coordinare `AgronomicWindowResolver` e `AgronomicWindowEngine` nella valutazione stagionale dei `PlannedPlantingBatch`. |
 | Progettazione della persistenza delle regole agronomiche | ✅ Completato | Obiettivo iniziale S017 completato ed esteso alla progettazione dell'intero Database V1. Le regole saranno persistite mediante `agronomic_window_rules`; `AgronomicWindow` rimane un risultato calcolato e non viene introdotta una tabella persistente `agronomic_windows`. L'implementazione SQL/Supabase resta da eseguire incrementalmente. |
+| 1.3 | 16/08/2026 | Aggiornamento dopo la Sessione S018: completamento dei prerequisiti locali Supabase, consolidamento delle finestre agronomiche multiple e definizione dello STEP 35.3 come punto di avvio della baseline SQL Database V1 |
 
 ---
 
@@ -232,9 +234,32 @@ Le attività riportate in questa sezione rappresentano le principali direttrici 
 
 L'ordine di realizzazione potrà variare in funzione delle esigenze del progetto e delle decisioni architetturali adottate durante lo sviluppo.
 
+## Stato dopo la Sessione S018
+
+La Sessione S018 ha completato i prerequisiti tecnici necessari per avviare l'implementazione SQL della baseline Database V1.
+
+Sono stati completati:
+
+- consolidamento del supporto alle finestre agronomiche multiple;
+- predisposizione dell'ambiente locale mediante WSL 2, Ubuntu, Docker Desktop e Supabase CLI;
+- inizializzazione della struttura `supabase/`;
+- conservazione dello schema sperimentale precedente come `database/database_legacy_initial.sql`;
+- verifica del database remoto PostgreSQL 17.6;
+- preparazione del repository per migration Supabase versionate.
+
+Durante la S018 non è stata ancora creata la prima migration della nuova baseline e non è stata effettuata alcuna modifica al database remoto.
+
+La successiva Sessione S019 partirà dallo:
+
+STEP 35.3 – Costruzione baseline SQL Database V1
+
+con la creazione prevista della migration:
+
+supabase migration new database_v1_baseline
+
 ## Priorità attuali
 
-- implementazione incrementale della baseline Database V1 in Supabase mediante migration tracciabili e verificabili;
+- avvio dello STEP 35.3 con creazione e costruzione incrementale della migration `database_v1_baseline`;
 - riallineamento progressivo del Repository Layer e del dominio applicativo alla nuova persistenza;
 - consolidamento e ampliamento del Motore Agronomico sulla base della nuova architettura dati;
 - evoluzione della gestione dell'irrigazione;

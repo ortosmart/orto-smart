@@ -4,7 +4,7 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.4
+**Versione:** 0.5
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
@@ -23,7 +23,7 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.4 |
+| Versione | 0.5 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
@@ -40,6 +40,7 @@
 | 0.2 | 31/07/2026 | Riorganizzazione della struttura documentale e uniformazione al DOC-001 |
 | 0.3      | 08/08/2026 | Aggiornamento del Quaderno con consolidamento delle Sessioni S009 e S010 |
 | 0.4 | 16/08/2026 | Riallineamento strutturale del Quaderno fino alla S017 e documentazione della progettazione e del congelamento del Database V1 |
+| 0.5 | 16/08/2026 | Aggiornamento del Quaderno con la Sessione S018: supporto alle finestre agronomiche multiple, preparazione dell'ambiente Supabase locale e predisposizione della futura baseline SQL Database V1 |
 
 ---
 
@@ -64,6 +65,7 @@
 | S015 | 11/08/2026 | 1 h 59 min | 61 h 48 min | Prima implementazione delle finestre agronomiche | ✅ |
 | S016 | 11–12/08/2026 | 2 h 02 min | 63 h 50 min | Associazione delle finestre agronomiche a colture e varietà | ✅ |
 | S017 | 12–16/08/2026 | 25 h 14 min | 89 h 04 min | Progettazione e congelamento del Database V1 | ✅ |
+| S018 | 16/08/2026 | 3 h 56 min | 93 h 00 min | Finestre agronomiche multiple e preparazione ambiente Supabase locale | ✅ |
 
 ---
 
@@ -95,6 +97,7 @@
 3.15 S015
 3.16 S016
 3.17 S017
+3.18 S018
 
 ## 4. Considerazioni finali
 
@@ -4165,7 +4168,7 @@ La documentazione conclusiva della Sessione S017 è stata svolta il **16/08/2026
 | 14:24 → 15:37 | 1 h 13 min |
 | **Totale documentazione S017** | **4 h 50 min** |
 
-La pausa dalle **13:38 alle 14:50** è esclusa dal conteggio.
+La pausa dalle **13:38 alle 14:24** è esclusa dal conteggio.
 
 Il tempo effettivo di **documentazione** della Sessione S017 è quindi pari a:
 
@@ -4259,3 +4262,259 @@ Tali modifiche dovranno essere:
 L'implementazione del Database V1 dovrà partire dalle dipendenze fondamentali e procedere per piccoli gruppi verificabili, evitando un approccio big bang.
 
 La baseline congelata nel DOC-004 e nella DEC-011 costituisce il riferimento da rispettare durante questa fase.
+
+---
+
+# Sessione S018 – Finestre agronomiche multiple e preparazione ambiente Supabase locale
+
+**Data sviluppo:** 16/08/2026
+**Apertura sviluppo:** 15:57
+**Chiusura sviluppo:** 18:32
+**Tempo sviluppo effettivo:** **2 h 35 min**
+
+## Obiettivo della sessione
+
+La Sessione S018 ha avuto come obiettivo la ripresa ordinata dello sviluppo dopo la revisione completa del Database V1 svolta nella S017.
+
+In particolare, la sessione doveva:
+
+- riesaminare e mettere in sicurezza le modifiche rimaste aperte relative alla gestione di più finestre agronomiche;
+- verificare completamente il comportamento mediante analisi statica e test;
+- predisporre l'infrastruttura locale necessaria per la futura implementazione del Database V1 mediante migration Supabase versionate;
+- mantenere invariato il database remoto fino alla disponibilità di una baseline SQL verificata localmente.
+
+## Finestre agronomiche multiple
+
+Sono state riesaminate le sei modifiche tecniche rimaste nel working tree al termine della S017.
+
+La nuova gestione supporta più finestre agronomiche applicabili alla stessa coltura, varietà e metodo di avvio.
+
+Il comportamento consolidato è:
+
+```text
+finestre specifiche della varietà
+        ↓
+se presenti, vengono utilizzate
+
+altrimenti
+        ↓
+finestre generali della coltura
+
+nessuna finestra applicabile
+        ↓
+unknown
+```
+
+`AgronomicWindowResolver` restituisce quindi più finestre applicabili anziché una singola finestra.
+
+`AgronomicWindowEvaluation` distingue:
+
+```text
+matchedWindow
+```
+
+dalla collezione:
+
+```text
+evaluatedWindows
+```
+
+`AgronomicWindowService` verifica tutte le finestre applicabili secondo la seguente semantica:
+
+- `compatible` se almeno una finestra risulta compatibile;
+- `incompatible` se esistono finestre applicabili ma nessuna risulta compatibile;
+- `unknown` se non esistono finestre applicabili.
+
+### Verifiche
+
+Sono stati eseguiti:
+
+- `dart format` sui 6 file interessati: **6 file, 0 modifiche**;
+- `flutter analyze`: **No issues found**;
+- test mirati: **18/18 passati**;
+- suite completa: **151/151 test passati**.
+
+### Commit
+
+Le modifiche sono state consolidate nel commit:
+
+```text
+93d6bf6  Supporta finestre agronomiche multiple
+```
+
+Il commit è stato pubblicato correttamente sul repository remoto.
+
+## Avvio dell'implementazione Database V1
+
+Dopo il consolidamento delle finestre agronomiche multiple è stata avviata la preparazione tecnica necessaria per tradurre la baseline Database V1 congelata nella S017 in migration PostgreSQL/Supabase versionate.
+
+Prima di creare nuove migration sono stati controllati i file SQL preesistenti:
+
+```text
+database/database_v1.sql
+database/seed.sql
+```
+
+Il precedente `database_v1.sql` rappresentava soltanto il primo schema sperimentale del progetto, contenente un sottoinsieme molto limitato del dominio.
+
+Il file è stato quindi conservato come riferimento storico rinominandolo:
+
+```text
+database/database_legacy_initial.sql
+```
+
+Il controllo del repository ha confermato che nessun riferimento dipendeva dal precedente nome `database_v1.sql`.
+
+## Ambiente locale Supabase
+
+È stato predisposto sul PC un ambiente completo per sviluppare e collaudare localmente il Database V1 prima di intervenire sul progetto Supabase remoto.
+
+La configurazione verificata comprende:
+
+- WSL 2 `2.7.11.0`;
+- kernel WSL `6.18.33.2`;
+- Ubuntu `24.04.4 LTS`;
+- Docker Desktop con backend WSL 2;
+- Docker Engine/CLI `29.7.2`;
+- container Linux;
+- 8 CPU logiche disponibili;
+- circa 3,75 GiB disponibili per Docker/WSL;
+- Scoop `0.5.3`;
+- Supabase CLI `2.114.0`;
+- PATH Windows e Visual Studio Code verificato.
+
+Considerata la disponibilità di circa 8 GB di RAM sul portatile, Docker verrà normalmente mantenuto spento quando non necessario e avviato durante le attività che richiedono l'ambiente Supabase locale.
+
+## Verifica PostgreSQL remoto
+
+Dal SQL Editor del progetto Supabase è stata eseguita esclusivamente la query di lettura:
+
+```sql
+select version();
+```
+
+Il database remoto ha restituito:
+
+```text
+PostgreSQL 17.6
+```
+
+La verifica conferma che:
+
+```text
+major_version = 17
+```
+
+generato dalla Supabase CLI è coerente con il database remoto.
+
+Durante la Sessione S018 **non è stata effettuata alcuna modifica al database remoto**.
+
+## Inizializzazione Supabase locale
+
+È stato eseguito:
+
+```text
+supabase init
+```
+
+La procedura ha creato:
+
+```text
+supabase/
+├── .gitignore
+├── config.toml
+└── seed.sql
+```
+
+`supabase/seed.sql` è intenzionalmente vuoto in questa fase.
+
+Prima del commit è stato verificato `supabase/config.toml`.
+
+Non sono state versionate password, token o chiavi reali; gli eventuali valori sensibili sono gestiti mediante riferimenti a variabili d'ambiente.
+
+### Commit infrastrutturale
+
+La predisposizione dell'ambiente è stata consolidata nel commit:
+
+```text
+00190ea  Prepara ambiente Supabase locale
+```
+
+Il commit è stato pubblicato correttamente sul repository remoto.
+
+## Stato Git finale dello sviluppo S018
+
+Al termine dello sviluppo:
+
+```text
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+
+Pertanto:
+
+```text
+main = origin/main
+working tree clean
+```
+
+La prima migration Database V1 **non è stata volutamente creata durante la S018**.
+
+## Timing dello sviluppo
+
+La fase di sviluppo della Sessione S018 si è svolta il **16/08/2026** senza interruzioni.
+
+| Fascia | Tempo |
+| --- | ---: |
+| 15:57 → 18:32 | 2 h 35 min |
+| **Totale sviluppo S018** | **2 h 35 min** |
+
+Il tempo effettivo di sviluppo della Sessione S018 è pertanto pari a:
+
+> **2 h 35 min**
+
+## Timing della documentazione
+
+La documentazione conclusiva della Sessione S018 si è svolta il **16/08/2026**, al netto della pausa per cena.
+
+| Fascia | Tempo |
+| --- | ---: |
+| 18:39 → 19:30 | 51 min |
+| 21:14 → 21:44 | 30 min |
+| **Totale documentazione S018** | **1 h 21 min** |
+
+La pausa dalle **19:30 alle 21:14** è esclusa dal conteggio.
+
+Il tempo effettivo di **documentazione** della Sessione S018 è quindi pari a:
+
+> **1 h 21 min**
+
+## Tempo complessivo della Sessione S018
+
+Sviluppo: **2 h 35 min**
+Documentazione: **1 h 21 min**
+Totale: **3 h 56 min**
+
+Il tempo complessivo effettivo della **Sessione S018**, comprensivo di sviluppo e documentazione, è quindi pari a:
+
+> **3 h 56 min**
+
+## Punto di ripartenza S019
+
+La futura Sessione S019 Sviluppo ripartirà dallo:
+
+> **STEP 35.3 – Costruzione baseline SQL Database V1**
+
+Dopo i controlli iniziali della nuova sessione, la prima operazione prevista sarà:
+
+```text
+supabase migration new database_v1_baseline
+```
+
+La baseline Database V1 congelata nella S017 verrà tradotta progressivamente in SQL per gruppi coerenti di tabelle e dipendenze.
+
+Durante l'implementazione non dovranno essere introdotte nuove entità in modo implicito.
+
+Eventuali necessità architetturali emerse durante la traduzione SQL dovranno essere valutate esplicitamente prima di modificare la baseline congelata.
