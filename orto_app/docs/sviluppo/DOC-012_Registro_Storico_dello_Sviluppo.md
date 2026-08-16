@@ -4,14 +4,14 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 2.7
+**Versione:** 2.8
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 12/08/2026
+**Ultimo aggiornamento:** 16/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 2.7 |
+| Versione | 2.8 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 12/08/2026 |
+| Ultimo aggiornamento | 16/08/2026 |
 
 ---
 
@@ -45,6 +45,7 @@
 | 2.5      | 11/08/2026 | Aggiornamento del Registro Storico con la Sessione S014 e prima implementazione del SuccessionPlanningEngine                                                      |
 | 2.6      | 11/08/2026 | Aggiornamento del Registro Storico con la Sessione S015 e introduzione della prima infrastruttura delle finestre agronomiche                                                |
 | 2.7      | 12/08/2026 | Aggiornamento del Registro Storico con la Sessione S016 e associazione delle finestre agronomiche a colture e varietà |
+| 2.8      | 16/08/2026 | Aggiornamento del Registro Storico con la Sessione S017, completamento e congelamento della baseline Database V1 e consolidamento dei tempi complessivi di sviluppo e documentazione |
 
 ---
 
@@ -98,13 +99,13 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 | Indicatore                          | Valore                                           |
 | ----------------------------------- | ------------------------------------------------ |
-| Sessioni completate                 | 16                                               |
-| Tempo complessivo di sviluppo       | 47 h 08 min                                      |
-| Tempo complessivo di documentazione | 16 h 42 min                                      |
-| Tempo complessivo progetto          | 63 h 50 min                                      |
+| Sessioni completate                 | 17                                               |
+| Tempo complessivo di sviluppo       | 67 h 32 min                                      |
+| Tempo complessivo di documentazione | 21 h 32 min                                      |
+| Tempo complessivo progetto          | 89 h 04 min                                      |
 | Prima sessione                      | S001                                             |
-| Ultima sessione                     | S016                                             |
-| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S016 |
+| Ultima sessione                     | S017                                             |
+| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S017 |
 
 \* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
@@ -132,6 +133,7 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo di svilupp
 | **S014** | Prima implementazione del SuccessionPlanningEngine per la generazione temporale validata dei lotti di coltivazione | **1 h 32 min** | **59 h 49 min** |
 | **S015** | Prima implementazione delle finestre agronomiche mediante AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine | **1 h 00 min** |    **61 h 48 min** |
 | **S016** | Associazione delle finestre agronomiche a colture e varietà e introduzione della valutazione stagionale dei lotti pianificati | **1 h 06 min** | **63 h 50 min** |
+| **S017** | Progettazione completa e congelamento della baseline Database V1 | **20 h 24 min** | **89 h 04 min** |
 ---
 
 ## 3.1 Lettura della cronologia
@@ -171,6 +173,7 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S014** | Prima versione del SuccessionPlanningEngine                | Implementazione della prima versione deterministica del `SuccessionPlanningEngine`, capace di trasformare un `FamilyConsumptionNeed` in una sequenza temporale validata di `PlannedPlantingBatch`, rifiutando le conversioni tra fabbisogno familiare e quantità di impianto non supportate dai dati agronomici disponibili. |
 | **S015** | Prima infrastruttura delle finestre agronomiche             | Introduzione di `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine` per rappresentare finestre agronomiche annuali e verificare separatamente la compatibilità temporale dei lotti pianificati in base al metodo di avvio e alla data. |
 | **S016** | Stagionalità di colture e varietà | Introduzione di `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService` per associare le finestre agronomiche a colture e varietà, applicare il fallback varietà → coltura e distinguere `compatible`, `incompatible` e `unknown`. |
+| **S017** | Baseline Database V1 | Completamento e congelamento della progettazione logica e architetturale del Database V1: 52 entità di dominio, struttura tecnica `profile_edit_locks`, ownership, modello di accesso familiare single-writer, temporalità, storicizzazione, invarianti, sicurezza, convenzioni dei dati e strategia di futura implementazione SQL/Supabase. |
 
 ---
 

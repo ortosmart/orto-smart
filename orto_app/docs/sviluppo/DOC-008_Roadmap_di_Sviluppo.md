@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 1.1
+**Versione:** 1.2
 **Stato:** Approvato
 
 **Autore:** Renzo
@@ -12,7 +12,7 @@
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 08/08/2026
+**Ultimo aggiornamento:** 16/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -24,12 +24,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 1.1 |
+| Versione | 1.2 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 08/08/2026 |
+| Ultimo aggiornamento | 16/08/2026 |
 
 ---
 
@@ -42,6 +42,7 @@
 | 0.3 | 01/08/2026 | Revisione della struttura documentale e aggiornamento della roadmap |
 | 1.0      | 01/08/2026 | Revisione completa e approvazione della Roadmap di Sviluppo            |
 | 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico e pianificazione delle evoluzioni successive |
+| 1.2      | 16/08/2026 | Aggiornamento della roadmap dopo la Sessione S017: completamento e congelamento della progettazione Database V1, pianificazione dell'implementazione incrementale in Supabase e riallineamento delle priorità di sviluppo |
 
 ---
 
@@ -100,7 +101,8 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | Supabase | ✅ Completato |
 | Repository Pattern | ✅ Completato |
 | Modelli | ✅ Completato |
-| Database | ✅ Completato |
+| Progettazione Database V1 | ✅ Completato |
+| Implementazione Database V1 in Supabase | 📋 Pianificato |
 
 ---
 
@@ -116,8 +118,6 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | Eliminazione colture | 📋 Pianificato |
 
 ---
-
-## 3.3 Motore Agronomico
 
 ## 3.3 Motore Agronomico
 
@@ -147,7 +147,7 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | AgronomicWindowResolver | ✅ V1 completata | Resolver introdotto nella S016 per selezionare la finestra applicabile secondo il fallback varietà specifica → coltura generale → nessuna regola. |
 | AgronomicWindowEvaluation | ✅ Completato | Risultato strutturato introdotto nella S016 per distinguere gli stati `compatible`, `incompatible` e `unknown`, evitando di interpretare l'assenza di dati come incompatibilità. |
 | AgronomicWindowService | ✅ V1 completata | Servizio introdotto nella S016 per coordinare `AgronomicWindowResolver` e `AgronomicWindowEngine` nella valutazione stagionale dei `PlannedPlantingBatch`. |
-| Persistenza delle regole agronomiche | 📋 Pianificato | Obiettivo S017: progettare la persistenza delle regole delle finestre agronomiche partendo dall'analisi dello schema Supabase esistente, dei vincoli e degli identificativi, prima di eseguire eventuali migration. |
+| Progettazione della persistenza delle regole agronomiche | ✅ Completato | Obiettivo iniziale S017 completato ed esteso alla progettazione dell'intero Database V1. Le regole saranno persistite mediante `agronomic_window_rules`; `AgronomicWindow` rimane un risultato calcolato e non viene introdotta una tabella persistente `agronomic_windows`. L'implementazione SQL/Supabase resta da eseguire incrementalmente. |
 
 ---
 
@@ -234,9 +234,9 @@ L'ordine di realizzazione potrà variare in funzione delle esigenze del progetto
 
 ## Priorità attuali
 
-- completamento del Motore delle Rotazioni Colturali;
-- introduzione del Sistema di Punteggio Agronomico;
-- ampliamento del Decision Engine con nuovi motori agronomici;
+- implementazione incrementale della baseline Database V1 in Supabase mediante migration tracciabili e verificabili;
+- riallineamento progressivo del Repository Layer e del dominio applicativo alla nuova persistenza;
+- consolidamento e ampliamento del Motore Agronomico sulla base della nuova architettura dati;
 - evoluzione della gestione dell'irrigazione;
 - sviluppo del modulo Attività e Piano di Lavoro;
 - ampliamento della Dashboard con informazioni agronomiche e meteorologiche.
@@ -253,6 +253,8 @@ La pianificazione dettagliata delle singole sessioni di sviluppo viene documenta
 | 0.2 | 27/07/2026 | Aggiornamento della roadmap dopo la Sessione S004 |
 | 0.3 | 01/08/2026 | Revisione della struttura documentale e aggiornamento della roadmap |
 | 1.0 | 01/08/2026 | Revisione completa e approvazione della Roadmap di Sviluppo |
+| 1.1 | 08/08/2026 | Aggiornamento del Motore Agronomico e pianificazione delle evoluzioni successive |
+| 1.2 | 16/08/2026 | Aggiornamento della roadmap dopo la Sessione S017: completamento e congelamento della progettazione Database V1, pianificazione dell'implementazione incrementale in Supabase e riallineamento delle priorità di sviluppo |
 
 ---
 

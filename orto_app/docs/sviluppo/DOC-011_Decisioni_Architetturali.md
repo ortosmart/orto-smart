@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 0.9
+**Versione:** 1.0
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 12/08/2026
+**Ultimo aggiornamento:** 16/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 0.9                            |
+| Versione             | 1.0                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
 | Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 12/08/2026                     |
+| Ultimo aggiornamento | 16/08/2026                     |
 
 ---
 
@@ -45,6 +45,7 @@
 | 0.7      | 11/08/2026 | Introduzione della DEC-008 sul divieto di conversioni implicite non supportate nella pianificazione                        |
 | 0.8      | 11/08/2026 | Introduzione della DEC-009 sulla separazione tra pianificazione temporale e compatibilità agronomica                       |
 | 0.9      | 12/08/2026 | Introduzione della DEC-010 sulla risoluzione gerarchica delle regole agronomiche e sulla distinzione tra assenza di conoscenza e incompatibilità |
+| 1.0      | 16/08/2026 | Introduzione della DEC-011 sulla baseline architetturale del Database V1 e congelamento della progettazione S017 |
 
 ---
 
@@ -66,6 +67,7 @@
 3.8 DEC-008 – Divieto di conversioni implicite non supportate nella pianificazione
 3.9 DEC-009 – Separazione tra pianificazione temporale e compatibilità agronomica
 3.10 DEC-010 – Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza
+3.11 DEC-011 – Baseline architetturale del Database V1
 
 ## 4. Registro delle decisioni
 
@@ -1182,6 +1184,326 @@ Le alternative sono state scartate perché avrebbero aumentato l'accoppiamento t
 
 ---
 
+## 3.11 DEC-011 – Baseline architetturale del Database V1
+
+**Stato:** Approvata
+
+**Data:** 16/08/2026
+
+**Sessione:** S017
+
+### Contesto
+
+La crescita del dominio applicativo di Orto Smart ha reso necessario riesaminare in modo organico la struttura persistente del progetto prima di procedere con ulteriori implementazioni in Supabase.
+
+Le funzionalità introdotte nelle sessioni precedenti hanno progressivamente ampliato il dominio oltre il nucleo iniziale costituito da orti, aiuole, colture, stagioni e piantagioni.
+
+In particolare, la progettazione deve supportare in modo coerente:
+
+- catalogo agronomico e varietà;
+- regole agronomiche;
+- preferenze e fabbisogni familiari;
+- pianificazione stagionale e scaglionamento delle coltivazioni;
+- attività pianificate e lavoro realmente svolto;
+- raccolte e valorizzazione della produzione;
+- irrigazione;
+- fertilizzazioni e trattamenti;
+- strutture e dispositivi dell'orto;
+- eventi e diario;
+- costi;
+- contesto ambientale;
+- evoluzione temporale delle configurazioni;
+- ownership, accesso e sicurezza dei dati.
+
+La Sessione S017 è stata pertanto dedicata alla progettazione completa del Database V1 prima della sua traduzione in migration SQL/Supabase.
+
+La progettazione ha inoltre richiesto di stabilire esplicitamente quali informazioni debbano essere persistite, quali debbano essere calcolate dal dominio applicativo e quali funzionalità debbano essere rinviate oltre il V1.
+
+### Decisione
+
+Viene adottata e congelata la baseline architetturale del **Database V1 di Orto Smart**, composta da:
+
+- **52 entità di dominio**;
+- **1 struttura tecnica**, `profile_edit_locks`, separata dal dominio;
+- per un totale previsto di **53 strutture fisiche persistenti** una volta completata l'implementazione.
+
+Il controllo nominale finale della Sessione S017 ha verificato **52/52 entità di dominio**.
+
+La baseline congelata costituisce il riferimento ufficiale per la successiva implementazione SQL/Supabase.
+
+#### Ownership e accesso
+
+L'ownership applicativa segue la catena:
+
+```text
+Supabase Auth
+        ↓
+Profile
+        ↓
+Garden
+```
+
+`Profile` costituisce la radice applicativa dell'ownership.
+
+Un Profile può possedere più Garden.
+
+Per il V1 viene adottato un modello con **un account/Profile principale** per il nucleo che utilizza l'orto.
+
+I componenti della stessa famiglia possono utilizzare lo stesso accesso applicativo senza richiedere account Supabase distinti.
+
+Le persone alle quali deve essere attribuito il lavoro svolto nell'orto sono rappresentate mediante `workers`.
+
+La presenza di un `worker` non implica l'esistenza di un account applicativo personale.
+
+Rimangono pertanto distinti i concetti di:
+
+```text
+account autenticato
+        ≠
+persona che utilizza materialmente l'app
+        ≠
+worker al quale viene attribuito il lavoro
+```
+
+La multiutenza con account personali distinti e condivisione dello stesso Garden viene rinviata a una possibile evoluzione futura.
+
+#### Modello single-writer
+
+Per il V1 viene adottato un modello **single-writer per Profile**.
+
+L'utilizzo dello stesso accesso da più dispositivi non deve consentire modifiche concorrenti incontrollate.
+
+`profile_edit_locks` viene prevista come infrastruttura tecnica per il coordinamento delle operazioni di scrittura.
+
+`profile_edit_locks` non costituisce un'entità di dominio e non viene pertanto conteggiata tra le 52 entità della baseline.
+
+L'architettura deve comunque rimanere evolvibile verso un futuro modello multi-writer senza richiedere una riprogettazione completa del dominio.
+
+#### Separazione tra pianificazione e realtà
+
+Il Database V1 mantiene esplicitamente separate le informazioni pianificate dai fatti realmente avvenuti.
+
+In particolare:
+
+```text
+consumption_needs
+        ↓
+season_crop_plans
+        ↓
+planned_plantings
+        ↓
+plantings
+        ↓
+harvest_events
+```
+
+`planned_plantings` rappresenta ciò che si prevede di coltivare.
+
+`plantings` rappresenta ciò che viene realmente coltivato.
+
+Una pianificazione non viene trasformata retroattivamente per simulare la realtà.
+
+Analogamente:
+
+```text
+ActivityRule
+        ↓
+Task
+        ↓
+WorkLog
+```
+
+`Task` rappresenta il lavoro pianificato.
+
+`WorkLog` rappresenta il lavoro realmente svolto.
+
+Le quantità eseguite, gli avanzamenti e gli scostamenti devono essere derivati dai fatti reali quando possibile, evitando duplicazioni non necessarie.
+
+#### Temporalità e storicizzazione
+
+Le entità che rappresentano configurazioni modificabili nel tempo devono preservare la ricostruibilità storica.
+
+Quando applicabile viene adottata la semantica temporale:
+
+```text
+[valid_from, valid_to)
+```
+
+Le modifiche future non devono alterare retroattivamente il significato dei dati storici.
+
+In particolare viene separata l'identità stabile delle aiuole dalla loro geometria:
+
+```text
+beds
+        ↓
+identità stabile
+
+bed_geometries
+        ↓
+geometria valida nel tempo
+```
+
+Lo stesso principio viene applicato alle configurazioni e alle relazioni per le quali la validità temporale costituisce informazione di dominio.
+
+#### Regole agronomiche e dati calcolati
+
+Le regole necessarie alla determinazione delle finestre agronomiche vengono persistite mediante:
+
+```text
+agronomic_window_rules
+```
+
+`AgronomicWindow` rimane invece un risultato calcolato dal motore agronomico.
+
+Non viene pertanto introdotta nel Database V1 una tabella persistente:
+
+```text
+agronomic_windows
+```
+
+Questa scelta mantiene separati:
+
+```text
+conoscenza persistente
+        ≠
+risultato calcolato
+```
+
+Le regole agronomiche devono poter essere versionate semanticamente quando una modifica potrebbe alterare l'interpretazione storica delle decisioni.
+
+#### Irrigazione
+
+La configurazione dell'impianto irriguo viene mantenuta distinta dagli eventi di irrigazione realmente avvenuti.
+
+Le zone, le fonti, i collegamenti e i target configurabili appartengono alla configurazione dell'impianto.
+
+Gli eventi di irrigazione rappresentano invece fatti operativi.
+
+Il nome SQL definitivo dell'entità relativa alle assegnazioni dei target alle zone irrigue è:
+
+```text
+irrigation_zone_target_assignments
+```
+
+La precedente denominazione provvisoria:
+
+```text
+zone_target_assignments
+```
+
+viene abbandonata.
+
+#### Contesto ambientale e meteorologico
+
+Il Database V1 non deve duplicare inutilmente archivi meteorologici grezzi esterni.
+
+Le osservazioni meteorologiche locali possono provenire dalla stazione Davis/CumulusMX, mentre Open-Meteo costituisce la fonte esterna principale per le previsioni e può essere utilizzato come fallback quando la fonte locale non è disponibile.
+
+Il database deve conservare soltanto il contesto ambientale necessario a rendere comprensibili e ricostruibili decisioni o eventi mediante:
+
+```text
+environment_context_snapshots
+environment_context_links
+```
+
+L'archivio meteorologico grezzo completo rimane esterno al Database V1.
+
+#### Sicurezza
+
+La sicurezza del Database V1 deve essere applicata lato database e non affidata esclusivamente al client Flutter.
+
+Flutter viene considerato un client non fidato ai fini dell'autorizzazione.
+
+L'implementazione Supabase dovrà adottare:
+
+- Row Level Security;
+- principio deny-by-default;
+- verifica server-side dell'ownership;
+- vincoli di integrità;
+- operazioni atomiche quando necessarie;
+- protezione delle operazioni sensibili;
+- gestione sicura delle credenziali;
+- idempotenza per i futuri eventi automatici.
+
+Schema e sicurezza devono essere sviluppati e verificati insieme durante le migration.
+
+#### Funzionalità escluse dal V1
+
+Non vengono introdotte nella baseline V1 funzionalità che aumenterebbero inutilmente la complessità iniziale senza essere indispensabili al funzionamento dell'applicazione.
+
+Restano fuori dal V1, tra le altre:
+
+- inventario e gestione di magazzino;
+- lotti di scorta;
+- ammortamenti;
+- contabilità avanzata;
+- GIS/PostGIS;
+- multi-writer completo;
+- multiutenza avanzata con account distinti e condivisione del Garden;
+- duplicazione dell'archivio meteorologico grezzo;
+- automazione irrigua completa;
+- correzioni climatiche e meteorologiche avanzate.
+
+Tali funzionalità potranno essere introdotte successivamente senza modificare la baseline V1 finché non risultino effettivamente necessarie.
+
+### Motivazione
+
+La decisione consente di disporre di una baseline persistente coerente prima di iniziare la realizzazione delle migration SQL.
+
+La progettazione preventiva riduce il rischio di introdurre progressivamente tabelle isolate, duplicazioni, relazioni incoerenti o strutture difficili da evolvere.
+
+La separazione tra configurazioni, pianificazione, fatti reali e dati calcolati permette inoltre di preservare la storia dell'orto e di ricostruire correttamente le decisioni nel tempo.
+
+Il modello di ownership scelto mantiene semplice il V1 e risponde all'utilizzo familiare dell'applicazione senza introdurre prematuramente un sistema completo di condivisione multiutente.
+
+Il modello single-writer limita i problemi di concorrenza derivanti dall'utilizzo dello stesso accesso da dispositivi diversi, mantenendo comunque aperta la possibilità di una futura evoluzione multi-writer.
+
+La scelta di non duplicare l'archivio meteorologico grezzo e di evitare funzionalità di magazzino, contabilità avanzata e GIS contribuisce inoltre a mantenere il Database V1 proporzionato alle esigenze effettive del progetto.
+
+### Alternative valutate
+
+Sono state considerate e scartate o rinviate diverse alternative:
+
+- creare account distinti per ogni componente familiare già nel V1;
+- introdurre immediatamente un modello multi-writer completo;
+- rappresentare ogni persona che svolge un lavoro come utente autenticato;
+- memorizzare `AgronomicWindow` come tabella persistente;
+- utilizzare `zone_target_assignments` come denominazione definitiva;
+- incorporare direttamente nelle entità principali relazioni che richiedono propria temporalità;
+- sovrascrivere le configurazioni precedenti invece di storicizzarle;
+- trattare pianificazione e realtà come un'unica informazione;
+- memorizzare nel database risultati facilmente derivabili dai fatti reali;
+- duplicare nel Database V1 l'archivio meteorologico grezzo;
+- introdurre inventario e gestione di magazzino;
+- introdurre ammortamenti e contabilità avanzata;
+- adottare GIS/PostGIS nel V1;
+- realizzare immediatamente l'automazione irrigua completa.
+
+Queste alternative sono state escluse perché avrebbero aumentato la complessità, introdotto duplicazioni o anticipato funzionalità non necessarie alla prima versione operativa.
+
+### Conseguenze
+
+- La baseline Database V1 viene congelata a **52 entità di dominio**.
+- `profile_edit_locks` rimane una struttura tecnica separata.
+- L'implementazione completa prevede pertanto **52 entità di dominio + 1 struttura tecnica**.
+- Le successive migration SQL devono rispettare la baseline congelata.
+- Eventuali variazioni della baseline richiederanno una motivazione architetturale esplicita.
+- L'ownership parte dal Profile e raggiunge i dati attraverso il Garden.
+- Il V1 utilizza un account/Profile principale condivisibile dal nucleo familiare.
+- I `workers` rimangono indipendenti dagli account autenticati.
+- Il V1 adotta un modello single-writer per Profile.
+- Pianificazione e fatti reali rimangono separati.
+- Le configurazioni temporalmente significative devono essere storicizzabili.
+- `AgronomicWindow` rimane calcolato e `agronomic_windows` non viene introdotta come tabella persistente.
+- `irrigation_zone_target_assignments` costituisce il nome SQL definitivo.
+- Il contesto ambientale viene conservato selettivamente senza duplicare l'archivio meteorologico grezzo.
+- RLS, autorizzazione e invarianti devono essere implementati insieme allo schema.
+- Inventario, contabilità avanzata, GIS, multi-writer completo e altre estensioni non necessarie rimangono fuori dal V1.
+- La progettazione dello STEP 34 viene considerata **completata e congelata**.
+- La fase successiva consiste nella traduzione incrementale della baseline in migration SQL/Supabase, senza riaprire la progettazione salvo l'emersione di un errore concreto.
+
+---
+
 # 4. Registro delle decisioni
 
 | ID      | Data       | Sessione | Titolo                                                                                | Stato     |
@@ -1196,6 +1518,7 @@ Le alternative sono state scartate perché avrebbero aumentato l'accoppiamento t
 | DEC-008 | 11/08/2026 | S014     | Divieto di conversioni implicite non supportate nella pianificazione                      | Approvata |
 | DEC-009 | 11/08/2026 | S015     | Separazione tra pianificazione temporale e compatibilità agronomica                | Approvata |
 | DEC-010 | 12/08/2026 | S016     | Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza | Approvata |
+| DEC-011 | 16/08/2026 | S017     | Baseline architetturale del Database V1                                               | Approvata |
 
 ---
 

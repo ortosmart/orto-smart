@@ -4,14 +4,14 @@
 
 # Registro delle modifiche
 
-**Versione:** 1.7
+**Versione:** 1.8
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 12/08/2026
+**Ultimo aggiornamento:** 16/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------ |
 | Documento            | CHANGELOG                |
 | Titolo               | Registro delle modifiche |
-| Versione             | 1.7                      |
+| Versione             | 1.8                      |
 | Stato                | Approvato                |
 | Progetto             | Orto Smart               |
 | Repository           | ortosmart/orto-smart     |
 | Prima emissione      | 27/07/2026               |
-| Ultimo aggiornamento | 12/08/2026               |
+| Ultimo aggiornamento | 16/08/2026               |
 
 ---
 
@@ -46,6 +46,7 @@
 | 1.5      | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.8-alpha e prima implementazione del SuccessionPlanningEngine               |
 | 1.6      | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.9-alpha e prima implementazione delle finestre agronomiche                 |
 | 1.7      | 12/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.10-alpha e associazione delle finestre agronomiche a colture e varietà |
+| 1.8      | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.11-alpha e completamento della progettazione e del congelamento della baseline Database V1 nella Sessione S017 |
 
 ---
 
@@ -68,6 +69,7 @@
 3.9 Versione 0.1.8-alpha
 3.10 Versione 0.1.9-alpha
 3.11 Versione 0.1.10-alpha
+3.12 Versione 0.1.11-alpha
 
 ## 4. Cronologia versioni
 
@@ -501,6 +503,55 @@ Nessuna modifica.
 
 ---
 
+## 3.12 Versione 0.1.11-alpha
+
+**Data:** 16/08/2026
+
+### Aggiunto
+
+- Definita e congelata la baseline logica e architetturale del Database V1.
+- Definite **52 entità di dominio** previste per il Database V1.
+- Prevista `profile_edit_locks` come struttura tecnica separata per il coordinamento delle modifiche concorrenti, non conteggiata tra le 52 entità di dominio.
+- Definita `agronomic_window_rules` come struttura persistente delle regole agronomiche; `AgronomicWindow` rimane un risultato calcolato e non viene introdotta una tabella persistente `agronomic_windows`.
+- Definito `irrigation_zone_target_assignments` come nome SQL definitivo per le assegnazioni dei target alle zone di irrigazione.
+- Definite le strutture necessarie per ownership, relazioni, temporalità, storicizzazione, target polimorfi controllati e contesto ambientale.
+
+### Modificato
+
+- L'obiettivo iniziale della S017, limitato alla progettazione della persistenza delle regole agronomiche, è stato esteso alla progettazione completa del Database V1.
+- La persistenza delle regole agronomiche è stata integrata nella baseline complessiva del Database V1.
+- Definito un modello di accesso monoutente per Garden nel V1: un account/profilo principale può essere utilizzato dai componenti dello stesso nucleo familiare.
+- Le persone che svolgono lavori nell'orto possono essere rappresentate mediante `workers` senza richiedere account applicativi distinti.
+- La multiutenza con account distinti e la condivisione dello stesso Garden sono state rinviate a evoluzioni future.
+- Definita una strategia di futura implementazione incrementale mediante migration SQL tracciabili e verificabili.
+
+### Architettura
+
+- Separata formalmente la baseline logica Database V1 dallo schema Supabase attualmente implementato.
+- Stabilito che il completamento della progettazione S017 non equivale all'implementazione fisica delle 52 entità in Supabase.
+- Confermata la separazione tra dati persistenti e risultati calcolabili dal dominio applicativo.
+- Definita l'ownership applicativa con `profiles` come radice dell'accesso ai dati e `gardens` come principale aggregato operativo.
+- Adottato un modello **single-writer** per coordinare le modifiche concorrenti.
+- Definiti principi di temporalità e storicizzazione per preservare la ricostruibilità dello stato nel tempo.
+- Definiti invarianti e vincoli di integrità da applicare progressivamente nello schema SQL.
+- Confermato il principio di riduzione delle duplicazioni e di utilizzo efficiente dello storage.
+- Confermato che i dati meteorologici grezzi storici non devono essere duplicati integralmente in Supabase; devono essere persistiti soltanto contesti, sintesi, collegamenti o informazioni utili al dominio.
+- Congelata la baseline nominale Database V1 come riferimento per la successiva implementazione SQL/Supabase.
+
+### Corretto
+
+Nessuna correzione specifica.
+
+### Sicurezza
+
+- Definito un modello di sicurezza **deny-by-default** per il Database V1.
+- Confermato l'utilizzo della Row Level Security come protezione lato database.
+- Stabilito che autorizzazione e ownership non devono dipendere esclusivamente dal client Flutter.
+- Previsto `profile_edit_locks` per supportare il coordinamento single-writer delle operazioni di modifica.
+- Rinviata l'applicazione fisica delle nuove policy e dei nuovi vincoli alle migration incrementali del Database V1.
+
+---
+
 # 4. Cronologia versioni
 
 | Versione    | Data       | Stato      | Note                                                                                                                                                              |
@@ -515,7 +566,8 @@ Nessuna modifica.
 | 0.1.7-alpha | 10/08/2026 | Archiviata | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro `SuccessionPlanningEngine`. |
 | 0.1.8-alpha | 11/08/2026 | Archiviata   | Implementata la prima versione del `SuccessionPlanningEngine` per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
 | 0.1.9-alpha | 11/08/2026 | Archiviata   | Introdotte le finestre agronomiche mediante `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`, mantenendo separata la compatibilità agronomica dalla pianificazione temporale del `SuccessionPlanningEngine`. |
-| 0.1.10-alpha | 12/08/2026 | Corrente   | Associate le finestre agronomiche a colture e varietà mediante `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService`, introducendo il fallback varietà → coltura e la distinzione tra `unknown` e `incompatible`. |
+| 0.1.10-alpha | 12/08/2026 | Archiviata | Associate le finestre agronomiche a colture e varietà mediante `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService`, introducendo il fallback varietà → coltura e la distinzione tra `unknown` e `incompatible`. |
+| 0.1.11-alpha | 16/08/2026 | Corrente | Completata e congelata nella S017 la progettazione della baseline Database V1: 52 entità di dominio più la struttura tecnica `profile_edit_locks`, con ownership, accesso familiare monoutente, modello single-writer, temporalità, sicurezza, invarianti e strategia di implementazione incrementale in Supabase. |
 
 ---
 
