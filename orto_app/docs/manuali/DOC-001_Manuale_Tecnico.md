@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 1.7
+**Versione:** 1.8
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 16/08/2026
+**Ultimo aggiornamento:** 18/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,14 +23,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 1.7 |
+| Versione | 1.8 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 16/08/2026 |
+| Ultimo aggiornamento | 18/08/2026 |
 
 ---
 
@@ -48,6 +48,7 @@
 | 1.5      | 12/08/2026 | Associazione delle finestre agronomiche a colture e varietà mediante CropAgronomicWindowRule, AgronomicWindowResolver, AgronomicWindowEvaluation e AgronomicWindowService |
 | 1.6      | 16/08/2026 | Aggiornamento dell'architettura di persistenza con la baseline Database V1 congelata nella Sessione S017: 52 entità di dominio, struttura tecnica `profile_edit_locks`, ownership, accesso familiare monoutente, modello single-writer, sicurezza, integrità e strategia di implementazione incrementale |
 | 1.7      | 16/08/2026 | Aggiornamento della S018 con supporto alle finestre agronomiche multiple e predisposizione dell'ambiente locale Supabase mediante WSL 2, Docker Desktop e Supabase CLI per la futura implementazione incrementale della baseline Database V1 |
+| 1.8      | 18/08/2026 | Aggiornamento della S019 con prima migration Database V1, implementazione delle Fondazioni, schema `private`, helper autorizzativi, trigger metadata, prima matrice di sicurezza con 13 policy RLS, verifiche locali positive e negative e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
 
 ---
 
@@ -900,13 +901,30 @@ Orto Smart utilizza **Supabase** come piattaforma Backend-as-a-Service (BaaS), s
 
 L'architettura della persistenza distingue esplicitamente:
 
-- il database Supabase attualmente implementato e utilizzato dall'applicazione;
+- il database Supabase remoto attualmente utilizzato dall'applicazione;
 - la baseline logica e architetturale del **Database V1**, completata e congelata nella Sessione S017;
-- la futura implementazione SQL/Supabase della baseline V1.
+- l'implementazione fisica incrementale della baseline V1 mediante migration PostgreSQL/Supabase versionate.
 
 La progettazione Database V1 definisce **52 entità di dominio** e una struttura tecnica separata, `profile_edit_locks`.
 
-Il completamento della progettazione non implica che tutte queste strutture siano già presenti nel database operativo: le relative migration SQL devono ancora essere implementate e collaudate.
+Con la Sessione S019 è iniziata l'implementazione fisica della baseline mediante la prima migration versionata:
+
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
+
+La prima fase implementativa comprende il blocco **Fondazioni** del Database V1:
+
+- `profiles`;
+- `profile_memberships`;
+- `gardens`;
+- `workers`;
+- `seasons`;
+- `profile_edit_locks`.
+
+La migration introduce inoltre lo schema `private`, gli helper autorizzativi necessari alla prima matrice di sicurezza, i trigger per la gestione dei metadata e la prima configurazione Row Level Security.
+
+L'intera baseline V1 non è ancora implementata: la traduzione fisica procede incrementalmente per gruppi coerenti di entità e dipendenze, verificando contestualmente schema, integrità e sicurezza.
 
 Il riferimento specialistico per struttura, baseline nominale, relazioni, temporalità, ownership, sicurezza, invarianti e strategia di migrazione è il **DOC-004 – Manuale Database**.
 
@@ -958,45 +976,25 @@ La multiutenza con account distinti e la condivisione dello stesso Garden sono r
 
 La descrizione completa di questi meccanismi è mantenuta nel **DOC-004 – Manuale Database**.
 
-## 5.3 Tabelle principali
+È necessario distinguere:
 
-È necessario distinguere le tabelle **attualmente implementate in Supabase** dalla baseline completa del **Database V1 progettato**.
+- il database operativo preesistente utilizzato dall'applicazione;
+- la baseline completa del **Database V1**, progettata e congelata nella S017;
+- le strutture della nuova baseline già tradotte in SQL e verificate localmente a partire dalla S019.
 
-### Stato attualmente implementato
+### Database operativo preesistente
 
-Il nucleo del database operativo attualmente utilizzato dall'applicazione comprende, tra le altre già introdotte nelle precedenti fasi di sviluppo, le seguenti tabelle principali:
+Prima dell'avvio della nuova baseline V1, il nucleo operativo dell'applicazione comprendeva già strutture quali:
 
-### `gardens`
+- `gardens`;
+- `beds`;
+- `crops`;
+- `seasons`;
+- `plantings`.
 
-Contiene le informazioni generali relative agli orti gestiti dall'applicazione.
+Queste strutture appartengono alla storia implementativa del progetto e non devono essere confuse con lo stato di avanzamento della nuova baseline Database V1.
 
-Ogni record identifica un orto e costituisce uno dei riferimenti fondamentali della struttura dati operativa.
-
-### `beds`
-
-Contiene le aiuole appartenenti agli orti.
-
-Nella struttura attualmente implementata le aiuole costituiscono uno degli elementi principali per l'organizzazione fisica delle coltivazioni.
-
-### `crops`
-
-Contiene l'anagrafica delle colture.
-
-Le informazioni relative alle colture vengono utilizzate dall'applicazione e dal Motore Agronomico.
-
-### `seasons`
-
-Contiene le stagioni agricole.
-
-Consente di distinguere le coltivazioni appartenenti a differenti annate e di mantenere il relativo contesto temporale.
-
-### `plantings`
-
-Contiene le coltivazioni realmente presenti nelle aiuole.
-
-`plantings` rappresenta un elemento centrale dello stato operativo corrente e rimane presente anche nella baseline Database V1 come rappresentazione della coltivazione realmente eseguita.
-
-Le tabelle sopra indicate descrivono il **nucleo operativo attualmente implementato** e non devono essere interpretate come l'elenco completo della nuova architettura Database V1.
+In particolare, `plantings` continua a rappresentare concettualmente la coltivazione realmente eseguita e rimane prevista anche nella baseline V1.
 
 ### Baseline Database V1
 
@@ -1005,7 +1003,7 @@ Durante la Sessione S017 è stata completata e congelata una baseline composta d
 - **52 entità di dominio**;
 - **1 struttura tecnica separata**, `profile_edit_locks`.
 
-La baseline comprende, oltre alle entità già presenti nel database operativo, strutture dedicate a:
+La baseline comprende strutture dedicate a:
 
 - identità, ownership e stagioni;
 - catalogo agronomico;
@@ -1023,9 +1021,58 @@ La baseline comprende, oltre alle entità già presenti nel database operativo, 
 
 L'elenco nominale definitivo delle 52 entità, le rispettive relazioni e i principi di progettazione sono documentati nel **DOC-004 – Manuale Database**.
 
-La baseline V1 è attualmente una **specifica progettuale congelata**: non tutte le relative tabelle sono già state create in Supabase.
+### Primo incremento SQL della baseline V1
 
-La successiva fase di sviluppo dovrà tradurre progressivamente questa baseline in migration PostgreSQL/Supabase, mantenendo la compatibilità con il codice e con i dati esistenti.
+Con la Sessione S019 la baseline non è più soltanto una specifica progettuale: è iniziata la sua traduzione concreta in PostgreSQL/Supabase mediante migration versionate.
+
+La prima migration è:
+
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
+
+Il primo gruppo implementato, denominato **Fondazioni**, comprende:
+
+- `profiles`;
+- `profile_memberships`;
+- `gardens`;
+- `workers`;
+- `seasons`;
+- `profile_edit_locks`.
+
+La stessa migration introduce inoltre:
+
+- schema `private`;
+- helper autorizzativi;
+- trigger per i metadata;
+- Row Level Security sulle strutture interessate;
+- **13 policy RLS** verificate.
+
+La migration è stata ricostruita da zero nell'ambiente locale mediante:
+
+```text
+supabase db reset
+```
+
+e la struttura effettivamente generata è stata controllata anche mediante un dump diagnostico temporaneo, successivamente eliminato.
+
+Il completamento di questo primo gruppo non equivale al completamento dell'intero Database V1.
+
+Lo stato evolutivo è quindi:
+
+```text
+baseline Database V1 congelata
+        ↓
+Fondazioni implementate e verificate localmente
+        ↓
+successivi gruppi SQL e meccanismi server-side
+        ↓
+Database V1 completo
+```
+
+La verifica locale della S019 non deve inoltre essere confusa con l'applicazione completa della nuova baseline al database operativo remoto.
+
+L'implementazione continuerà progressivamente per gruppi coerenti di entità e dipendenze, verificando insieme struttura, integrità, ownership e sicurezza.
 
 ## 5.4 Relazioni e vincoli
 
@@ -1224,13 +1271,58 @@ PostgreSQL
 
 ### Row Level Security
 
-Le tabelle esposte attraverso Supabase devono utilizzare **Row Level Security (RLS)** quando necessario per impedire accessi non autorizzati.
+Le tabelle esposte attraverso Supabase utilizzano **Row Level Security (RLS)** come uno dei principali meccanismi di protezione contro accessi non autorizzati.
 
-Le policy devono essere progettate in funzione dell'ownership effettiva dei dati e non semplicemente della possibilità tecnica del client di conoscere un identificativo.
+Le policy devono essere progettate in funzione dell'ownership effettiva dei dati, della membership e del ruolo, e non semplicemente della possibilità tecnica del client di conoscere un identificativo.
 
-Nel Database V1 l'ownership applicativa ha come radice il `profile`, mentre il `garden` costituisce il principale confine operativo dei dati dell'orto.
+Nel Database V1 l'ownership applicativa ha come radice il `profile`, mentre il `garden` costituisce uno dei principali confini operativi dei dati dell'orto.
 
-Le relazioni devono permettere al database di verificare che un record appartenga effettivamente al profilo autorizzato, direttamente oppure attraverso il Garden e le altre relazioni previste dal modello.
+Con la Sessione S019 questo principio è stato applicato concretamente al primo gruppo di Fondazioni.
+
+La prima matrice RLS implementata riguarda:
+
+- `profiles`;
+- `profile_memberships`;
+- `gardens`;
+- `workers`;
+- `seasons`;
+- `profile_edit_locks`.
+
+Sono state verificate complessivamente:
+
+> **13 policy RLS**
+
+Le policy sono state sottoposte a test manuali sia positivi sia negativi.
+
+Tra gli scenari verificati rientrano:
+
+- isolamento tra Profile differenti;
+- comportamento dell'owner;
+- comportamento di worker/viewer;
+- membership disabilitata;
+- accesso ai `gardens`;
+- accesso alle `profile_memberships`;
+- accesso a `profile_edit_locks`;
+- accesso alle `seasons`;
+- accesso ai `workers`;
+- tentativi di scrittura non autorizzati;
+- tentativi di eliminazione non autorizzati.
+
+Il principio di verifica adottato è:
+
+```text
+operazione autorizzata
+        ↓
+deve riuscire
+
+operazione non autorizzata
+        ↓
+deve fallire
+```
+
+La verifica negativa costituisce quindi parte integrante del collaudo della sicurezza e non un controllo opzionale successivo.
+
+La prima matrice RLS implementata nella S019 non esaurisce la sicurezza dell'intero Database V1: le successive strutture dovranno essere protette e collaudate progressivamente secondo lo stesso approccio **deny-by-default** e di privilegio minimo.
 
 ### Modello di accesso familiare
 
@@ -1244,7 +1336,7 @@ La multiutenza con account distinti e la condivisione dello stesso Garden sono r
 
 ### Single-writer
 
-Per evitare modifiche concorrenti incompatibili, il Database V1 prevede un modello **single-writer**.
+Per evitare modifiche concorrenti incompatibili, il Database V1 adotta un modello **single-writer**.
 
 La struttura tecnica:
 
@@ -1252,9 +1344,31 @@ La struttura tecnica:
 profile_edit_locks
 ```
 
-è destinata al coordinamento del writer e rimane separata dalle 52 entità di dominio.
+rimane separata dalle 52 entità di dominio ed è stata fisicamente introdotta con la prima migration Database V1 della Sessione S019.
 
-Il lock non sostituisce autenticazione, autorizzazione, RLS o vincoli di integrità: costituisce un ulteriore meccanismo di coordinamento delle operazioni di modifica.
+La tabella costituisce la base persistente per il futuro coordinamento delle modifiche concorrenti sul Profile.
+
+Il lock non sostituisce:
+
+- autenticazione;
+- autorizzazione;
+- Row Level Security;
+- vincoli di integrità;
+- controllo atomico delle operazioni sensibili.
+
+Costituisce invece un ulteriore meccanismo di coordinamento del writer.
+
+Al termine della S019 è stata verificata la protezione RLS di `profile_edit_locks`, ma non sono ancora state implementate le RPC sicure e atomiche destinate a gestire:
+
+- acquisizione del lock;
+- heartbeat e rinnovo;
+- rilascio;
+- scadenza;
+- takeover;
+- concorrenza tra client;
+- controllo di `row_version`.
+
+Queste operazioni dovranno essere realizzate lato server senza consentire al client di modificare direttamente lo stato del lock in modo non controllato.
 
 ### Operazioni sensibili
 
@@ -1265,10 +1379,30 @@ Quando necessario devono essere utilizzati strumenti server-side e transazioni P
 ```text
 verifica
         +
+autorizzazione
+        +
 modifica
         =
 operazione atomica
 ```
+
+La Sessione S019 ha confermato che alcune operazioni delle Fondazioni richiedono un livello di protezione superiore alla sola possibilità di scrivere direttamente sulle tabelle.
+
+In particolare, le future operazioni relative a `profile_edit_locks` e le operazioni amministrative su `profile_memberships` dovranno essere esposte mediante RPC server-side controllate.
+
+Al termine della S019 tali RPC **non sono ancora implementate**.
+
+La loro progettazione dovrà rispettare almeno i seguenti principi:
+
+- privilegio minimo;
+- verifica dell'identità mediante `auth.uid()`;
+- nessuna fiducia nei dati di autorizzazione forniti dal client;
+- utilizzo di `SECURITY DEFINER` soltanto quando realmente necessario;
+- `search_path` esplicito e sicuro;
+- `REVOKE` e `GRANT EXECUTE` espliciti;
+- controllo atomico delle modifiche;
+- test positivi e negativi;
+- verifica dei tentativi di bypass.
 
 Le credenziali privilegiate e i segreti server-side non devono essere incorporati nel client Flutter.
 
@@ -1289,6 +1423,53 @@ La creazione di una nuova struttura persistente non deve quindi essere considera
 - operazioni sensibili;
 - eventuale necessità di transazioni;
 - test di accesso autorizzato e non autorizzato.
+
+La Sessione S019 ha applicato concretamente questo principio alla prima migration Database V1.
+
+La migration:
+
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
+
+è stata verificata mediante ricostruzione completa dell'ambiente locale con:
+
+```text
+supabase db reset
+```
+
+Dopo la ricostruzione sono stati controllati:
+
+- le sei tabelle Fondazioni;
+- lo schema `private`;
+- gli helper autorizzativi;
+- i trigger metadata;
+- l'attivazione della Row Level Security;
+- le **13 policy RLS**;
+- il comportamento degli accessi autorizzati;
+- il comportamento degli accessi non autorizzati.
+
+La verifica della sicurezza comprende quindi sia casi positivi sia casi negativi.
+
+Il principio operativo applicato nella S019 è:
+
+```text
+migration
+        ↓
+ricostruzione da zero
+        ↓
+verifica struttura effettiva
+        ↓
+test accessi consentiti
+        ↓
+test accessi negati
+        ↓
+incremento verificato
+```
+
+La struttura effettivamente generata è stata inoltre controllata mediante un dump diagnostico locale temporaneo, successivamente eliminato.
+
+Questo metodo dovrà essere mantenuto anche per i successivi incrementi del Database V1: schema e sicurezza devono essere sviluppati e verificati insieme.
 
 La definizione specialistica del modello di sicurezza Database V1 è mantenuta nel **DOC-004 – Manuale Database**.
 
@@ -1316,23 +1497,42 @@ Il controllo nominale finale della S017 ha inoltre stabilito che:
 - `irrigation_zone_target_assignments` è il nome SQL definitivo della relativa entità;
 - `profile_edit_locks` è infrastruttura tecnica e non appartiene al conteggio delle 52 entità di dominio.
 
-Il completamento della progettazione non equivale al completamento dell'implementazione fisica.
+Il completamento della progettazione nella S017 non equivale al completamento dell'implementazione fisica.
+
+Con la Sessione S019 è però iniziata concretamente la traduzione della baseline congelata in strutture PostgreSQL/Supabase versionate e verificabili.
+
+Il primo incremento ha introdotto le **Fondazioni**:
+
+- `profiles`;
+- `profile_memberships`;
+- `gardens`;
+- `workers`;
+- `seasons`;
+- `profile_edit_locks`.
 
 Lo stato evolutivo deve quindi essere letto come:
 
 ```text
-Database operativo attuale
+Database operativo preesistente
         ↓
-baseline Database V1 congelata
+baseline Database V1 congelata — S017
         ↓
-migration incrementali
+ambiente locale Supabase predisposto — S018
         ↓
-Database V1 implementato
+prima migration + Fondazioni + prima sicurezza RLS — S019
+        ↓
+RPC sicure/atomiche e successivi gruppi della baseline
+        ↓
+Database V1 completo
 ```
 
-La fase successiva non dovrà riprogettare liberamente il database, ma tradurre progressivamente la baseline congelata in strutture PostgreSQL/Supabase verificabili.
+La S019 rappresenta pertanto il passaggio dalla sola progettazione architetturale alla **prima implementazione fisica verificata** del Database V1.
 
-L'implementazione dovrà procedere in modo incrementale e secondo l'ordine delle dipendenze, evitando una migrazione unica di tipo big bang.
+L'implementazione completa rimane tuttavia in corso: il primo incremento non deve essere interpretato come completamento dell'intera baseline.
+
+Le fasi successive dovranno continuare a tradurre progressivamente la baseline congelata senza riprogettarla liberamente, salvo l'emersione di un errore concreto che richieda una nuova valutazione architetturale.
+
+L'implementazione continuerà in modo incrementale e secondo l'ordine delle dipendenze, evitando una migrazione unica di tipo big bang.
 
 Ogni incremento dovrà considerare congiuntamente:
 
@@ -1391,7 +1591,7 @@ Il riferimento ufficiale per la baseline congelata e per la strategia dettagliat
 
 ## 5.9 Considerazioni finali
 
-Il Database V1 di Orto Smart dispone, al termine della Sessione S017, di una **baseline logica e architetturale completa, approvata e congelata**.
+Il Database V1 di Orto Smart dispone, a partire dalla Sessione S017, di una **baseline logica e architetturale completa, approvata e congelata**.
 
 La progettazione definisce il modello persistente necessario a sostenere l'evoluzione dell'applicazione mantenendo separati:
 
@@ -1404,16 +1604,33 @@ La progettazione definisce il modello persistente necessario a sostenere l'evolu
 
 La baseline comprende **52 entità di dominio** e la struttura tecnica separata `profile_edit_locks`.
 
-Questa baseline non coincide ancora con lo schema fisicamente implementato in Supabase.
+Con la Sessione S019 è iniziata la sua implementazione fisica mediante la prima migration Database V1:
 
-Il database operativo esistente rappresenta il punto di partenza dal quale dovrà avvenire la futura implementazione incrementale mediante migration controllate e verificabili.
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
 
-L'evoluzione della persistenza dovrà preservare i principi stabiliti durante la progettazione S017:
+Il primo incremento implementato comprende le sei tabelle Fondazioni:
+
+- `profiles`;
+- `profile_memberships`;
+- `gardens`;
+- `workers`;
+- `seasons`;
+- `profile_edit_locks`.
+
+Sono stati inoltre introdotti e verificati lo schema `private`, gli helper autorizzativi, i trigger metadata, la prima matrice RLS e **13 policy RLS**.
+
+La baseline completa non coincide ancora con lo schema fisicamente implementato: la S019 rappresenta il **primo incremento verificato** di un processo di implementazione che deve proseguire progressivamente.
+
+L'evoluzione della persistenza deve preservare i principi stabiliti durante la progettazione S017 e applicati concretamente nella S019:
 
 - integrità prima della comodità del client;
 - ownership verificabile;
 - sicurezza deny-by-default;
+- privilegio minimo;
 - Row Level Security;
+- test positivi e negativi delle autorizzazioni;
 - modello familiare monoutente nel V1;
 - coordinamento single-writer;
 - storicizzazione delle configurazioni che cambiano nel tempo;
@@ -1421,6 +1638,10 @@ L'evoluzione della persistenza dovrà preservare i principi stabiliti durante la
 - persistenza soltanto delle informazioni necessarie;
 - separazione tra database, Repository Layer e dominio applicativo;
 - implementazione incrementale senza migrazioni big bang.
+
+Il prossimo incremento tecnico previsto riguarda la progettazione e successiva implementazione delle **RPC sicure e atomiche** necessarie per le operazioni sensibili, con priorità alla gestione di `profile_edit_locks` e alle operazioni amministrative su `profile_memberships`.
+
+Tali RPC non sono ancora implementate e dovranno essere progettate prima del codice, applicando privilegio minimo, controlli server-side, `search_path` sicuro, privilegi `EXECUTE` espliciti e verifiche positive e negative.
 
 Il **DOC-004 – Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo all'interno dell'architettura complessiva di Orto Smart.
 

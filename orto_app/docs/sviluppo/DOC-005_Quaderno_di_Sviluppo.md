@@ -4,14 +4,14 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.5
+**Versione:** 0.6
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 16/08/2026
+**Ultimo aggiornamento:** 18/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.5 |
+| Versione | 0.6 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 16/08/2026 |
+| Ultimo aggiornamento | 18/08/2026 |
 
 ---
 
@@ -41,6 +41,7 @@
 | 0.3      | 08/08/2026 | Aggiornamento del Quaderno con consolidamento delle Sessioni S009 e S010 |
 | 0.4 | 16/08/2026 | Riallineamento strutturale del Quaderno fino alla S017 e documentazione della progettazione e del congelamento del Database V1 |
 | 0.5 | 16/08/2026 | Aggiornamento del Quaderno con la Sessione S018: supporto alle finestre agronomiche multiple, preparazione dell'ambiente Supabase locale e predisposizione della futura baseline SQL Database V1 |
+| 0.6 | 18/08/2026 | Aggiornamento del Quaderno con la Sessione S019: prima migration Database V1, implementazione delle Fondazioni, schema `private`, helper autorizzativi, trigger metadata, prima matrice RLS e verifiche locali di sicurezza |
 
 ---
 
@@ -66,6 +67,7 @@
 | S016 | 11–12/08/2026 | 2 h 02 min | 63 h 50 min | Associazione delle finestre agronomiche a colture e varietà | ✅ |
 | S017 | 12–16/08/2026 | 25 h 14 min | 89 h 04 min | Progettazione e congelamento del Database V1 | ✅ |
 | S018 | 16/08/2026 | 3 h 56 min | 93 h 00 min | Finestre agronomiche multiple e preparazione ambiente Supabase locale | ✅ |
+| S019 | 17–18/08/2026 | 8 h 13 min | 101 h 13 min | Prima migration Database V1, Fondazioni e sicurezza RLS | ✅ |
 
 ---
 
@@ -98,6 +100,7 @@
 3.16 S016
 3.17 S017
 3.18 S018
+3.19 S019
 
 ## 4. Considerazioni finali
 
@@ -4518,3 +4521,389 @@ La baseline Database V1 congelata nella S017 verrà tradotta progressivamente in
 Durante l'implementazione non dovranno essere introdotte nuove entità in modo implicito.
 
 Eventuali necessità architetturali emerse durante la traduzione SQL dovranno essere valutate esplicitamente prima di modificare la baseline congelata.
+
+---
+
+# Sessione S019 – Baseline Database V1 e prima sicurezza RLS
+
+**Data sviluppo:** 17/08/2026
+**Stato:** Sviluppo concluso – documentazione in corso
+**Chiusura sviluppo:** 21:41
+**Tempo sviluppo effettivo:** **6 h 03 min**
+**Pause sviluppo complessive:** **3 h 05 min**
+
+## Obiettivo della sessione
+
+La Sessione S019 ha avuto come obiettivo l'avvio effettivo dell'implementazione SQL della baseline Database V1 definita e congelata nella S017 e preparata tecnicamente nella S018.
+
+Il punto di partenza era lo:
+
+```text
+STEP 35.3 – Costruzione baseline SQL Database V1
+```
+
+La sessione ha inoltre adottato come principio guida:
+
+> **sicurezza prima di tutto**
+
+L'implementazione non è stata quindi limitata alla creazione delle prime strutture dati, ma ha incluso fin dall'inizio ownership, autorizzazione, Row Level Security e verifiche positive e negative della sicurezza.
+
+## Creazione della migration Database V1
+
+È stata creata la prima migration versionata della nuova baseline:
+
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
+
+La migration rappresenta l'avvio concreto della traduzione della baseline architetturale Database V1 in PostgreSQL/Supabase.
+
+L'implementazione è stata mantenuta incrementale e concentrata sul primo gruppo coerente di strutture fondamentali, evitando una trasformazione monolitica dell'intero Database V1.
+
+## Fondazioni Database V1
+
+La prima parte della baseline implementata comprende le seguenti sei tabelle:
+
+```text
+profiles
+profile_memberships
+gardens
+workers
+seasons
+profile_edit_locks
+```
+
+Queste strutture costituiscono le **Fondazioni** del Database V1.
+
+Il primo incremento fornisce la base necessaria per:
+
+- Profile e ownership;
+- membership e ruoli;
+- Garden;
+- rappresentazione dei worker;
+- stagioni;
+- coordinamento single-writer mediante `profile_edit_locks`.
+
+La presenza delle sei tabelle non implica che l'intera baseline Database V1 sia già implementata.
+
+Le restanti strutture continueranno a essere introdotte progressivamente mediante gruppi coerenti e verificabili.
+
+## Schema `private` e helper autorizzativi
+
+La migration introduce anche lo schema:
+
+```text
+private
+```
+
+destinato a contenere componenti interni e helper utilizzati per la sicurezza e l'autorizzazione.
+
+Sono stati predisposti helper autorizzativi necessari alla valutazione dell'identità, dell'appartenenza al Profile e dei permessi, evitando di delegare al client Flutter decisioni di sicurezza.
+
+Il principio applicato è:
+
+```text
+client
+        ↓
+richiesta
+        ↓
+database / server
+        ↓
+verifica identità
+        ↓
+verifica appartenenza e ruolo
+        ↓
+autorizzazione
+```
+
+Il client applicativo rimane pertanto un componente non fidato dal punto di vista dell'autorizzazione.
+
+## Metadata e trigger
+
+Sono stati introdotti i trigger necessari alla gestione coerente dei metadata previsti dalle Fondazioni.
+
+Le strutture e i trigger sono stati verificati dopo la ricostruzione completa del database locale.
+
+La verifica non si è limitata al contenuto nominale della migration, ma ha controllato anche la struttura effettivamente generata dal database.
+
+## Row Level Security
+
+La prima matrice RLS del Database V1 è stata implementata sulle Fondazioni.
+
+Sono state verificate complessivamente:
+
+> **13 policy RLS**
+
+Le policy proteggono l'accesso ai dati secondo ownership, membership, ruolo e contesto del Profile.
+
+La sicurezza mantiene l'approccio:
+
+```text
+deny-by-default
+        +
+privilegio minimo
+```
+
+L'accesso consentito deve essere esplicitamente previsto.
+
+L'assenza di una regola autorizzativa non viene interpretata come un permesso implicito.
+
+La Row Level Security viene quindi considerata parte integrante dello schema Database V1 e non un livello di sicurezza da aggiungere successivamente.
+
+## Verifica locale della migration
+
+È stato eseguito con successo:
+
+```text
+supabase db reset
+```
+
+La ricostruzione locale da zero è stata completata correttamente.
+
+Questo ha verificato che la migration sia riproducibile a partire dall'ambiente Supabase locale predisposto nella S018.
+
+La struttura realmente generata è stata inoltre verificata mediante un dump locale diagnostico.
+
+Il dump è stato utilizzato esclusivamente come strumento temporaneo di verifica della struttura effettivamente prodotta.
+
+Terminato il controllo, il dump diagnostico è stato eliminato e non è stato conservato come artefatto permanente del repository.
+
+## Verifica delle Fondazioni
+
+Dopo la ricostruzione locale sono state verificate le sei tabelle Fondazioni:
+
+```text
+profiles
+profile_memberships
+gardens
+workers
+seasons
+profile_edit_locks
+```
+
+Sono stati inoltre verificati:
+
+- schema `private`;
+- helper autorizzativi;
+- trigger metadata;
+- Row Level Security;
+- policy applicate;
+- comportamento delle autorizzazioni nei principali scenari previsti.
+
+La verifica ha quindi riguardato sia la struttura fisica generata sia il comportamento della prima matrice di sicurezza.
+
+## Test manuali RLS
+
+La verifica della sicurezza non si è limitata ai casi autorizzati.
+
+Sono stati eseguiti test manuali sia **positivi** sia **negativi**, verificando che le operazioni consentite funzionino e che quelle non autorizzate vengano effettivamente bloccate.
+
+Sono stati verificati scenari relativi a:
+
+- isolamento tra Profile differenti;
+- comportamento dell'owner;
+- comportamento di worker/viewer;
+- membership disabilitata;
+- accesso ai `gardens`;
+- accesso alle `profile_memberships`;
+- accesso a `profile_edit_locks`;
+- accesso alle `seasons`;
+- accesso ai `workers`;
+- tentativi di scrittura non autorizzati;
+- tentativi di eliminazione non autorizzati.
+
+I test hanno confermato che la prima matrice RLS delle Fondazioni applica correttamente i vincoli previsti nei casi verificati.
+
+Il metodo di verifica adottato stabilisce inoltre un principio importante per le successive fasi:
+
+> non è sufficiente verificare che un'operazione autorizzata funzioni; deve essere verificato anche che un'operazione non autorizzata fallisca.
+
+I test negativi diventano quindi parte integrante della verifica della sicurezza del Database V1.
+
+## Principi di sicurezza consolidati
+
+La Sessione S019 conferma e concretizza i seguenti principi:
+
+- sicurezza lato database e server;
+- privilegio minimo;
+- approccio deny-by-default;
+- RLS come parte integrante dello schema;
+- nessuna fiducia nell'autorizzazione dichiarata dal client;
+- isolamento tra Profile;
+- distinzione tra owner e ruoli subordinati;
+- membership disabilitata non utilizzabile come autorizzazione valida;
+- controllo dell'identità lato server;
+- operazioni sensibili da realizzare mediante RPC controllate;
+- test negativi obbligatori oltre ai test positivi;
+- schema, autorizzazione e sicurezza sviluppati e verificati insieme.
+
+La sicurezza non viene quindi considerata una fase successiva all'implementazione dello schema.
+
+Il principio operativo consolidato è:
+
+```text
+struttura
+        +
+ownership
+        +
+autorizzazione
+        +
+RLS
+        +
+test positivi
+        +
+test negativi
+        =
+incremento verificato
+```
+
+## Stato del database remoto
+
+Le attività della S019 hanno riguardato la migration versionata e le verifiche nell'ambiente Supabase locale.
+
+La ricostruzione e i test della nuova baseline sono stati eseguiti localmente tramite Supabase CLI.
+
+L'ambiente locale continua quindi a rappresentare il banco di prova della nuova baseline prima delle future operazioni sul database operativo.
+
+## Commit e push
+
+Il lavoro della Sessione S019 è stato consolidato nel commit:
+
+```text
+f5cd6cf  Crea baseline Database V1 e sicurezza RLS
+```
+
+Il commit è stato pubblicato correttamente sul repository remoto.
+
+Al termine della sessione di sviluppo:
+
+```text
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+
+Pertanto:
+
+```text
+main = origin/main
+working tree clean
+```
+
+## Timing dello sviluppo
+
+La Sessione S019 Sviluppo si è svolta il **17/08/2026**.
+
+Il tempo è stato registrato al netto delle sospensioni.
+
+```text
+Tempo effettivo sviluppo    6 h 03 min
+Pause complessive           3 h 05 min
+```
+
+La fase di sviluppo è stata conclusa alle:
+
+> **21:41**
+
+Il tempo effettivo di sviluppo della Sessione S019 è pertanto pari a:
+
+> **6 h 03 min**
+
+## Esito della Sessione S019
+
+La Sessione S019 ha avviato concretamente l'implementazione SQL della baseline Database V1.
+
+Il risultato principale della sessione comprende:
+
+- creazione della prima migration versionata Database V1;
+- implementazione delle prime sei tabelle Fondazioni;
+- introduzione dello schema `private`;
+- introduzione degli helper autorizzativi;
+- introduzione dei trigger metadata;
+- implementazione della prima matrice RLS;
+- verifica di **13 policy RLS**;
+- ricostruzione locale completa mediante `supabase db reset`;
+- verifica della struttura effettivamente generata;
+- utilizzo e successiva eliminazione del dump diagnostico;
+- test manuali positivi e negativi della sicurezza;
+- verifica dell'isolamento tra Profile e dei principali ruoli;
+- commit e push del lavoro;
+- repository finale pulito e sincronizzato.
+
+La baseline Database V1 non è ancora completamente implementata.
+
+La S019 costituisce il **primo incremento SQL verificato** della baseline progettata nella S017.
+
+## Punto di continuità successivo
+
+Il successivo blocco tecnico previsto riguarda la progettazione e l'implementazione delle **RPC sicure e atomiche** necessarie per le operazioni sensibili delle Fondazioni.
+
+La priorità prevista riguarda `profile_edit_locks`, con particolare attenzione a:
+
+- acquisizione del lock;
+- heartbeat e rinnovo;
+- rilascio;
+- scadenza;
+- richiesta di takeover;
+- concorrenza tra dispositivi o client differenti;
+- controllo di `row_version`;
+- impedimento delle modifiche dirette alla tabella.
+
+Un secondo gruppo previsto riguarda le operazioni amministrative su `profile_memberships`, tra cui:
+
+- aggiunta o abilitazione di un membro;
+- eventuale cambio di ruolo;
+- disabilitazione;
+- protezione dell'owner;
+- prevenzione di condizioni che possano lasciare un Profile senza controllo;
+- eliminazione della necessità di scritture dirette dal client.
+
+La progettazione delle RPC dovrà inoltre valutare:
+
+- privilegio minimo;
+- utilizzo di `SECURITY DEFINER` soltanto quando necessario;
+- `search_path` esplicito e sicuro;
+- `REVOKE` e `GRANT EXECUTE` espliciti;
+- verifica dell'identità mediante `auth.uid()`;
+- assenza di fiducia nei dati di autorizzazione forniti dal client;
+- comportamento in presenza di client concorrenti;
+- test positivi;
+- test negativi;
+- tentativi di bypass.
+
+Questi elementi costituiscono il punto di continuità previsto dopo la S019 e **non rappresentano funzionalità già implementate nella presente sessione**.
+
+## Timing della documentazione
+
+La documentazione della Sessione S019 è iniziata il **18/08/2026 alle 11:43**.
+
+Il tempo di documentazione viene registrato al netto delle eventuali sospensioni.
+
+| Fascia | Tempo |
+| --- | ---: |
+| 11:43 → 13:09 | 1 h 26 min |
+| 14:43 → 15:27 | 44 min |
+| **Totale documentazione S019** | **2 h 10 min** |
+
+La pausa pranzo dalle **13:09 alle 14:43** è esclusa dal conteggio.
+
+La documentazione della Sessione S019 si è conclusa il **18/08/2026 alle 15:27**.
+
+## Tempo complessivo della Sessione S019
+
+Sviluppo: **6 h 03 min**
+Documentazione: **2 h 10 min**
+Totale S019: **8 h 13 min**
+
+La Sessione S019 è pertanto conclusa con un tempo effettivo complessivo di **8 h 13 min**, al netto delle sospensioni.
+
+Il totale definitivo della documentazione verrà registrato alla chiusura della Sessione Manuali S019.
+
+## Tempo complessivo della Sessione S019
+
+Sviluppo: **6 h 03 min**
+Documentazione: **in corso**
+Totale S019: **da determinare alla chiusura della documentazione**
+
+Il tempo complessivo definitivo della Sessione S019 verrà consolidato dopo la conclusione della presente sessione Manuali.

@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 1.3
+**Versione:** 1.4
 **Stato:** Approvato
 
 **Autore:** Renzo
@@ -12,7 +12,7 @@
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 16/08/2026
+**Ultimo aggiornamento:** 18/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -24,12 +24,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 1.3 |
+| Versione | 1.4 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 16/08/2026 |
+| Ultimo aggiornamento | 18/08/2026 |
 
 ---
 
@@ -44,6 +44,7 @@
 | 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico e pianificazione delle evoluzioni successive |
 | 1.2      | 16/08/2026 | Aggiornamento della roadmap dopo la Sessione S017: completamento e congelamento della progettazione Database V1, pianificazione dell'implementazione incrementale in Supabase e riallineamento delle priorità di sviluppo |
 | 1.3 | 16/08/2026 | Aggiornamento dopo la Sessione S018: completamento dei prerequisiti locali Supabase, consolidamento delle finestre agronomiche multiple e definizione dello STEP 35.3 come punto di avvio della baseline SQL Database V1 |
+| 1.4 | 18/08/2026 | Aggiornamento dopo la Sessione S019: prima migration Database V1, implementazione e verifica locale delle Fondazioni, prima matrice di 13 policy RLS e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
 
 ---
 
@@ -234,32 +235,53 @@ Le attività riportate in questa sezione rappresentano le principali direttrici 
 
 L'ordine di realizzazione potrà variare in funzione delle esigenze del progetto e delle decisioni architetturali adottate durante lo sviluppo.
 
-## Stato dopo la Sessione S018
+## Stato dopo la Sessione S019
 
-La Sessione S018 ha completato i prerequisiti tecnici necessari per avviare l'implementazione SQL della baseline Database V1.
+La Sessione S019 ha avviato concretamente l'implementazione SQL della baseline Database V1 congelata nella S017.
 
 Sono stati completati:
 
-- consolidamento del supporto alle finestre agronomiche multiple;
-- predisposizione dell'ambiente locale mediante WSL 2, Ubuntu, Docker Desktop e Supabase CLI;
-- inizializzazione della struttura `supabase/`;
-- conservazione dello schema sperimentale precedente come `database/database_legacy_initial.sql`;
-- verifica del database remoto PostgreSQL 17.6;
-- preparazione del repository per migration Supabase versionate.
+- creazione della prima migration versionata:
+  `supabase/migrations/20260817103916_database_v1_baseline.sql`;
+- implementazione del primo blocco **Fondazioni**:
+  - `profiles`;
+  - `profile_memberships`;
+  - `gardens`;
+  - `workers`;
+  - `seasons`;
+  - `profile_edit_locks`;
+- introduzione dello schema `private`;
+- introduzione degli helper autorizzativi;
+- introduzione dei trigger metadata;
+- attivazione della prima matrice Row Level Security;
+- verifica di **13 policy RLS**;
+- ricostruzione completa locale mediante `supabase db reset`;
+- test manuali positivi e negativi della sicurezza;
+- consolidamento del primo incremento fisicamente implementato e verificato del Database V1.
 
-Durante la S018 non è stata ancora creata la prima migration della nuova baseline e non è stata effettuata alcuna modifica al database remoto.
+Lo STEP 35.3 – Costruzione baseline SQL Database V1 è quindi **avviato e parzialmente completato**: la migration `database_v1_baseline` esiste e contiene il primo gruppo coerente della baseline, mentre le restanti strutture devono ancora essere implementate progressivamente.
 
-La successiva Sessione S019 partirà dallo:
+Il prossimo blocco tecnico previsto riguarda la progettazione e la successiva implementazione delle **RPC sicure e atomiche** necessarie a completare la protezione delle Fondazioni.
 
-STEP 35.3 – Costruzione baseline SQL Database V1
+Le priorità immediate riguardano:
 
-con la creazione prevista della migration:
-
-supabase migration new database_v1_baseline
+- gestione sicura di `profile_edit_locks`:
+  - acquisizione;
+  - heartbeat e rinnovo;
+  - rilascio;
+  - scadenza;
+  - takeover;
+  - concorrenza tra client;
+  - controllo di `row_version`;
+- operazioni amministrative protette su `profile_memberships`;
+- applicazione del principio di privilegio minimo;
+- verifica di `SECURITY DEFINER`, `search_path`, `REVOKE` e `GRANT EXECUTE`;
+- test positivi, negativi e tentativi di bypass.
 
 ## Priorità attuali
 
-- avvio dello STEP 35.3 con creazione e costruzione incrementale della migration `database_v1_baseline`;
+- completamento delle operazioni server-side delle Fondazioni mediante RPC sicure e atomiche;
+- prosecuzione incrementale della baseline Database V1 per gruppi coerenti di strutture e dipendenze;
 - riallineamento progressivo del Repository Layer e del dominio applicativo alla nuova persistenza;
 - consolidamento e ampliamento del Motore Agronomico sulla base della nuova architettura dati;
 - evoluzione della gestione dell'irrigazione;
@@ -280,6 +302,8 @@ La pianificazione dettagliata delle singole sessioni di sviluppo viene documenta
 | 1.0 | 01/08/2026 | Revisione completa e approvazione della Roadmap di Sviluppo |
 | 1.1 | 08/08/2026 | Aggiornamento del Motore Agronomico e pianificazione delle evoluzioni successive |
 | 1.2 | 16/08/2026 | Aggiornamento della roadmap dopo la Sessione S017: completamento e congelamento della progettazione Database V1, pianificazione dell'implementazione incrementale in Supabase e riallineamento delle priorità di sviluppo |
+| 1.3 | 16/08/2026 | Aggiornamento dopo la Sessione S018: completamento dei prerequisiti locali Supabase, consolidamento delle finestre agronomiche multiple e definizione dello STEP 35.3 come punto di avvio della baseline SQL Database V1 |
+| 1.4 | 18/08/2026 | Aggiornamento dopo la Sessione S019: prima migration Database V1, implementazione e verifica locale delle Fondazioni, prima matrice di 13 policy RLS e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
 
 ---
 
