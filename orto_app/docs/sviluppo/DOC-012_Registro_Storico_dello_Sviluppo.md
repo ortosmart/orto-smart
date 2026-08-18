@@ -100,13 +100,13 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 | Indicatore                          | Valore                                           |
 | ----------------------------------- | ------------------------------------------------ |
-| Sessioni completate                 | 18                                               |
-| Tempo complessivo di sviluppo       | 70 h 07 min                                      |
-| Tempo complessivo di documentazione | 22 h 53 min                                      |
-| Tempo complessivo progetto          | 93 h 00 min                                      |
+| Sessioni completate                 | 19                                               |
+| Tempo complessivo di sviluppo       | 76 h 10 min                                      |
+| Tempo complessivo di documentazione | 25 h 03 min                                      |
+| Tempo complessivo progetto          | 101 h 13 min                                     |
 | Prima sessione                      | S001                                             |
-| Ultima sessione                     | S018                                             |
-| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S018 |
+| Ultima sessione                     | S019                                             |
+| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S019 |
 
 \* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
@@ -136,6 +136,7 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo di svilupp
 | **S016** | Associazione delle finestre agronomiche a colture e varietà e introduzione della valutazione stagionale dei lotti pianificati | **1 h 06 min** | **63 h 50 min** |
 | **S017** | Progettazione completa e congelamento della baseline Database V1 | **20 h 24 min** | **89 h 04 min** |
 | **S018** | Supporto alle finestre agronomiche multiple e predisposizione dell'ambiente locale Supabase | **3 h 56 min** | **93 h 00 min** |
+| **S019** | Prima migration Database V1, implementazione delle Fondazioni e prima sicurezza RLS | **8 h 13 min** | **101 h 13 min** |
 
 ---
 
@@ -178,6 +179,7 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S016** | Stagionalità di colture e varietà | Introduzione di `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService` per associare le finestre agronomiche a colture e varietà, applicare il fallback varietà → coltura e distinguere `compatible`, `incompatible` e `unknown`. |
 | **S017** | Baseline Database V1 | Completamento e congelamento della progettazione logica e architetturale del Database V1: 52 entità di dominio, struttura tecnica `profile_edit_locks`, ownership, modello di accesso familiare single-writer, temporalità, storicizzazione, invarianti, sicurezza, convenzioni dei dati e strategia di futura implementazione SQL/Supabase. |
 | **S018** | Finestre agronomiche multiple e ambiente Supabase locale | Estensione della valutazione agronomica al supporto di più finestre applicabili, con fallback tra livelli di specificità, e predisposizione dell'ambiente locale WSL 2, Docker Desktop e Supabase CLI per l'implementazione incrementale della baseline Database V1 mediante migration versionate. |
+| **S019** | Primo incremento fisico Database V1 | Creazione della prima migration `20260817103916_database_v1_baseline.sql`, implementazione del blocco Fondazioni (`profiles`, `profile_memberships`, `gardens`, `workers`, `seasons`, `profile_edit_locks`), introduzione dello schema `private`, helper autorizzativi, trigger metadata, prima matrice di 13 policy RLS e verifica locale positiva e negativa della sicurezza. |
 
 ---
 
@@ -197,13 +199,13 @@ Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e
 
 | Indicatore                    | Valore attuale |
 | ----------------------------- | -------------- |
-| Sessioni completate           | 18             |
-| Ore di sviluppo consolidate   | 70 h 07 min    |
-| Ore di documentazione         | 22 h 53 min    |
-| Totale ore progetto           | 93 h 00 min    |
+| Sessioni completate           | 19             |
+| Ore di sviluppo consolidate   | 76 h 10 min    |
+| Ore di documentazione         | 25 h 03 min    |
+| Totale ore progetto           | 101 h 13 min   |
 | Motori agronomici completati  | 5              |
 | Documenti ufficiali approvati | 10             |
-| Ultima sessione completata    | S018           |
+| Ultima sessione completata    | S019           |
 | Sessione in corso             | Nessuna        |
 
 Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.

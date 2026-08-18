@@ -4,14 +4,14 @@
 
 # Registro delle modifiche
 
-**Versione:** 1.9
+**Versione:** 2.0
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 16/08/2026
+**Ultimo aggiornamento:** 18/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------ |
 | Documento            | CHANGELOG                |
 | Titolo               | Registro delle modifiche |
-| Versione             | 1.9                      |
+| Versione             | 2.0                      |
 | Stato                | Approvato                |
 | Progetto             | Orto Smart               |
 | Repository           | ortosmart/orto-smart     |
 | Prima emissione      | 27/07/2026               |
-| Ultimo aggiornamento | 16/08/2026               |
+| Ultimo aggiornamento | 18/08/2026               |
 
 ---
 
@@ -48,6 +48,7 @@
 | 1.7      | 12/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.10-alpha e associazione delle finestre agronomiche a colture e varietà |
 | 1.8      | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.11-alpha e completamento della progettazione e del congelamento della baseline Database V1 nella Sessione S017 |
 | 1.9      | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.12-alpha: supporto alle finestre agronomiche multiple e predisposizione dell'ambiente Supabase locale per la futura implementazione della baseline Database V1 |
+| 2.0      | 18/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.13-alpha: prima migration Database V1, implementazione e verifica locale delle Fondazioni, introduzione della prima sicurezza RLS e consolidamento del primo incremento fisico della baseline |
 
 ---
 
@@ -72,6 +73,7 @@
 3.11 Versione 0.1.10-alpha
 3.12 Versione 0.1.11-alpha
 3.13 Versione 0.1.12-alpha
+3.14 Versione 0.1.13-alpha
 
 ## 4. Cronologia versioni
 
@@ -615,6 +617,70 @@ Nessuna correzione specifica separata dalle modifiche descritte sopra.
 
 ---
 
+## 3.14 Versione 0.1.13-alpha
+
+**Data:** 18/08/2026
+
+### Aggiunto
+
+- Creata la prima migration versionata della baseline Database V1:
+  `supabase/migrations/20260817103916_database_v1_baseline.sql`.
+- Implementato il primo blocco **Fondazioni** del Database V1, comprendente:
+  - `profiles`;
+  - `profile_memberships`;
+  - `gardens`;
+  - `workers`;
+  - `seasons`;
+  - `profile_edit_locks`.
+- Introdotto lo schema PostgreSQL `private` per gli helper autorizzativi non destinati all'accesso diretto del client.
+- Introdotti gli helper server-side necessari alla verifica di ownership e appartenenza ai Profile.
+- Introdotti trigger per la gestione dei metadata previsti dalle Fondazioni.
+- Introdotta la prima matrice di sicurezza composta da **13 policy RLS**.
+
+### Modificato
+
+- Il Database V1 è passato dalla sola baseline progettata e congelata al primo incremento fisicamente implementato e verificato nell'ambiente Supabase locale.
+- L'implementazione della baseline procede ora incrementalmente per gruppi coerenti di strutture e dipendenze.
+- Le Fondazioni costituiscono il primo gruppo dal quale dipenderanno numerose strutture successive del Database V1.
+- Schema, vincoli, ownership e sicurezza vengono sviluppati e verificati congiuntamente invece di rinviare la sicurezza a una fase successiva.
+- Le migration Supabase versionate costituiscono il riferimento riproducibile per l'evoluzione fisica del Database V1.
+
+### Architettura
+
+- Confermata la baseline Database V1 congelata nella S017 come riferimento architetturale dell'implementazione.
+- Confermato l'approccio incrementale senza trasformazione monolitica dell'intero database.
+- Consolidato il modello di ownership basato su `profiles`, `profile_memberships` e `gardens`.
+- Predisposta `profile_edit_locks` come infrastruttura tecnica per il futuro modello single-writer per Profile.
+- Confermato che il possesso del ruolo di writer non potrà essere determinato esclusivamente dal client.
+- Definito come prossimo incremento tecnico il completamento delle operazioni server-side delle Fondazioni, comprese le RPC per lock, concorrenza, `row_version` e gestione amministrativa protetta delle membership.
+
+### Test
+
+- Verificata la migration mediante ricostruzione completa del database locale con `supabase db reset`.
+- Verificata la corretta creazione delle strutture del blocco Fondazioni.
+- Eseguiti test manuali positivi delle policy RLS per verificare le operazioni autorizzate.
+- Eseguiti test manuali negativi delle policy RLS per verificare il rifiuto delle operazioni non autorizzate.
+- Utilizzato un dump diagnostico locale temporaneo per controllare la struttura effettivamente generata; il file diagnostico è stato successivamente eliminato.
+
+### Commit
+
+- `f5cd6cf` — `Crea baseline Database V1 e sicurezza RLS`.
+
+### Corretto
+
+Nessuna correzione specifica separata dalle modifiche descritte sopra.
+
+### Sicurezza
+
+- Abilitata la Row Level Security sulle strutture esposte del primo incremento secondo il modello previsto.
+- Introdotte **13 policy RLS** come prima matrice di sicurezza del Database V1.
+- Verificate sia operazioni autorizzate sia operazioni che devono essere rifiutate.
+- Confermato il principio **deny-by-default** per l'evoluzione progressiva della sicurezza.
+- Confermato che `profile_edit_locks` non dovrà essere direttamente manipolabile dal client per attribuirsi arbitrariamente il ruolo di writer.
+- Le future RPC sensibili dovranno applicare autenticazione, ownership, eventuale lock, invarianti e atomicità lato server.
+
+---
+
 # 4. Cronologia versioni
 
 | Versione    | Data       | Stato      | Note                                                                                                                                                              |
@@ -631,7 +697,8 @@ Nessuna correzione specifica separata dalle modifiche descritte sopra.
 | 0.1.9-alpha | 11/08/2026 | Archiviata   | Introdotte le finestre agronomiche mediante `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`, mantenendo separata la compatibilità agronomica dalla pianificazione temporale del `SuccessionPlanningEngine`. |
 | 0.1.10-alpha | 12/08/2026 | Archiviata | Associate le finestre agronomiche a colture e varietà mediante `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService`, introducendo il fallback varietà → coltura e la distinzione tra `unknown` e `incompatible`. |
 | 0.1.11-alpha | 16/08/2026 | Archiviata | Completata e congelata nella S017 la progettazione della baseline Database V1: 52 entità di dominio più la struttura tecnica `profile_edit_locks`, con ownership, accesso familiare monoutente, modello single-writer, temporalità, sicurezza, invarianti e strategia di implementazione incrementale in Supabase. |
-| 0.1.12-alpha | 16/08/2026 | Corrente | Introdotto il supporto alle finestre agronomiche multiple e predisposto l'ambiente Supabase locale versionato per la futura implementazione incrementale della baseline Database V1; verificati 151/151 test e mantenuto invariato il database remoto. |
+| 0.1.12-alpha | 16/08/2026 | Archiviata | Introdotto il supporto alle finestre agronomiche multiple e predisposto l'ambiente Supabase locale versionato per la futura implementazione incrementale della baseline Database V1; verificati 151/151 test e mantenuto invariato il database remoto. |
+| 0.1.13-alpha | 18/08/2026 | Corrente | Creata la prima migration Database V1 e implementato e verificato localmente il blocco Fondazioni con schema `private`, helper autorizzativi, trigger metadata e 13 policy RLS; consolidato il primo incremento fisico della baseline Database V1. |
 
 ---
 

@@ -3,9 +3,9 @@
 | Campo             | Valore               |
 | ----------------- | -------------------- |
 | Progetto          | Orto Smart           |
-| Versione corrente | 0.1.12-alpha          |
+| Versione corrente | 0.1.13-alpha         |
 | Stato             | Alpha                |
-| Data versione     | 16/08/2026           |
+| Data versione     | 18/08/2026           |
 | Linguaggio        | Flutter / Dart       |
 | Backend           | Supabase             |
 | Repository        | ortosmart/orto-smart |
@@ -36,7 +36,7 @@ Le finestre agronomiche rimangono rappresentate nel dominio mediante `AgronomicW
 
 `AgronomicWindow` rimane un risultato calcolato e non viene introdotta una tabella persistente `agronomic_windows`.
 
-La progettazione Database V1 è completata; la relativa implementazione fisica mediante migration SQL/Supabase deve ancora essere eseguita progressivamente.
+La progettazione Database V1 è completata e congelata; a partire dalla versione `0.1.13-alpha` è iniziata anche la relativa implementazione fisica mediante migration PostgreSQL/Supabase versionate.
 
 A partire dalla versione `0.1.12-alpha`, il dominio agronomico supporta più finestre agronomiche applicabili per la stessa coltura, varietà e metodo di avvio.
 
@@ -46,15 +46,36 @@ A partire dalla versione `0.1.12-alpha`, il dominio agronomico supporta più fin
 
 `AgronomicWindowEvaluation` distingue inoltre `matchedWindow`, cioè la finestra che ha prodotto la compatibilità, da `evaluatedWindows`, cioè l'insieme delle finestre considerate durante la valutazione.
 
-La versione `0.1.12-alpha` predispone inoltre l'ambiente locale necessario alla futura implementazione SQL del Database V1 mediante WSL 2, Ubuntu, Docker Desktop e Supabase CLI.
+La versione `0.1.12-alpha` ha predisposto l'ambiente locale necessario all'implementazione SQL del Database V1 mediante WSL 2, Ubuntu, Docker Desktop e Supabase CLI.
 
-È stata inizializzata mediante `supabase init` la struttura locale versionata `supabase/`, destinata a contenere la configurazione e le future migration del Database V1.
+È stata inizializzata mediante `supabase init` la struttura locale versionata `supabase/`, destinata a contenere configurazione e migration del Database V1.
 
 Il precedente `database/database_v1.sql`, relativo allo schema sperimentale iniziale, è stato conservato con il nuovo nome `database/database_legacy_initial.sql`.
 
 La versione PostgreSQL del progetto Supabase remoto è stata verificata come `17.6`, coerente con `major_version = 17` della configurazione locale.
 
-La prima migration `database_v1_baseline` non è ancora stata creata. Durante la Sessione S018 non è stata effettuata alcuna modifica al database remoto.
+Con la versione `0.1.13-alpha` è stata creata la prima migration Database V1:
+
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
+
+La migration introduce il primo blocco **Fondazioni**:
+
+- `profiles`;
+- `profile_memberships`;
+- `gardens`;
+- `workers`;
+- `seasons`;
+- `profile_edit_locks`.
+
+Sono stati inoltre introdotti lo schema `private`, gli helper autorizzativi, i trigger metadata e la prima matrice composta da **13 policy RLS**.
+
+La migration è stata verificata localmente mediante `supabase db reset` e mediante test manuali positivi e negativi delle autorizzazioni.
+
+La S019 costituisce quindi il **primo incremento fisicamente implementato e verificato** del Database V1; la baseline completa rimane ancora in corso di implementazione.
+
+Le RPC sicure e atomiche necessarie per la gestione di `profile_edit_locks` e delle operazioni amministrative su `profile_memberships` non sono ancora implementate e costituiscono il prossimo incremento tecnico previsto.
 
 Lo sviluppo prosegue secondo le priorità definite nella Roadmap di Sviluppo.
 
@@ -115,6 +136,13 @@ Lo sviluppo prosegue secondo le priorità definite nella Roadmap di Sviluppo.
 - Docker Desktop
 - Supabase CLI
 - Struttura locale per migration Supabase versionate
+- Prima migration Database V1 versionata
+- Blocco Fondazioni Database V1
+- Schema `private` e helper autorizzativi
+- Trigger metadata
+- Prima matrice di **13 policy RLS**
+- Verifica locale mediante `supabase db reset`
+- Test manuali positivi e negativi delle policy RLS
 
 ## Documentazione
 
@@ -152,7 +180,8 @@ Il presente documento riporta esclusivamente la versione corrente del software e
 | 0.1.9-alpha | 11/08/2026 | Archiviata   | Introdotti AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per rappresentare le finestre agronomiche e verificare separatamente la compatibilità temporale dei lotti pianificati. |
 | 0.1.10-alpha | 12/08/2026 | Archiviata   | Associate le finestre agronomiche a colture e varietà mediante CropAgronomicWindowRule, AgronomicWindowResolver, AgronomicWindowEvaluation e AgronomicWindowService, con fallback varietà → coltura e distinzione tra `unknown` e `incompatible`. |
 | 0.1.11-alpha | 16/08/2026 | Archiviata | Completata e congelata nella S017 la progettazione della baseline Database V1: 52 entità di dominio più la struttura tecnica `profile_edit_locks`, con ownership, accesso familiare monoutente, modello single-writer, temporalità, sicurezza, invarianti e strategia di implementazione incrementale in Supabase. |
-| 0.1.12-alpha | 16/08/2026 | Corrente | Introdotto il supporto alle finestre agronomiche multiple e predisposto l'ambiente Supabase locale versionato per la futura implementazione incrementale della baseline Database V1; verificati 151/151 test e mantenuto invariato il database remoto. |
+| 0.1.12-alpha | 16/08/2026 | Archiviata | Introdotto il supporto alle finestre agronomiche multiple e predisposto l'ambiente Supabase locale versionato per la futura implementazione incrementale della baseline Database V1; verificati 151/151 test e mantenuto invariato il database remoto. |
+| 0.1.13-alpha | 18/08/2026 | Corrente | Creata la prima migration Database V1 e implementato e verificato localmente il blocco Fondazioni con schema `private`, helper autorizzativi, trigger metadata e 13 policy RLS; consolidato il primo incremento fisico della baseline Database V1. |
 
 ---
 

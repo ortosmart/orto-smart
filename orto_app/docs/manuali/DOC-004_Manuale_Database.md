@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 1.1
+**Versione:** 1.2
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 16/08/2026
+**Ultimo aggiornamento:** 18/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 1.1 |
+| Versione | 1.2 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 16/08/2026 |
+| Ultimo aggiornamento | 18/08/2026 |
 
 ---
 
@@ -38,6 +38,7 @@
 | --- | --- | --- |
 | 1.0 | 16/08/2026 | Prima emissione del Manuale Database e documentazione della baseline Database V1 progettata nella Sessione S017 |
 | 1.1 | 16/08/2026 | Aggiornamento con la Sessione S018: predisposizione dell'ambiente locale Supabase, inizializzazione della struttura per migration versionate, conservazione dello schema sperimentale come `database_legacy_initial.sql`, verifica di PostgreSQL 17.6 e definizione del punto di avvio della futura baseline SQL Database V1 |
+| 1.2 | 18/08/2026 | Aggiornamento con la Sessione S019: creazione della prima migration Database V1, implementazione e verifica locale delle Fondazioni, introduzione dello schema `private`, helper autorizzativi, trigger metadata, prima matrice di 13 policy RLS, test positivi e negativi e definizione delle RPC sicure e atomiche come successivo incremento tecnico |
 
 ---
 
@@ -65,15 +66,24 @@ Il presente Manuale Database descrive l'architettura, l'organizzazione e i princ
 
 Il documento distingue esplicitamente:
 
-- il database Supabase attualmente implementato e utilizzato dall'applicazione;
+- il database Supabase operativo preesistente utilizzato dall'applicazione;
 - la baseline logica del **Database V1**, progettata e congelata durante la Sessione S017;
-- le attività di implementazione SQL, migrazione, sicurezza e collaudo ancora da eseguire.
+- la prima implementazione fisica della baseline avviata nella Sessione S019;
+- le successive attività di implementazione SQL, sicurezza, collaudo e integrazione ancora da eseguire.
 
-La baseline Database V1 costituisce il riferimento ufficiale per la futura traduzione dello schema in PostgreSQL/Supabase.
+La baseline Database V1 costituisce il riferimento ufficiale per la sua traduzione progressiva in PostgreSQL/Supabase.
 
 La progettazione V1 comprende **52 entità di dominio**. A queste si aggiunge `profile_edit_locks`, prevista come struttura tecnica separata per il controllo della concorrenza e pertanto non conteggiata come 53ª entità di dominio.
 
-Il completamento della progettazione logica non implica che le 52 entità siano già presenti nel database operativo. Al termine della Sessione S017 le relative migration SQL non sono ancora state implementate.
+Con la Sessione S019 è stata creata la prima migration Database V1:
+
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
+
+ed è stato implementato e verificato localmente il primo gruppo coerente della baseline, denominato **Fondazioni**.
+
+L'implementazione fisica dell'intero Database V1 non è ancora completa e dovrà proseguire incrementalmente a partire dalla baseline congelata.
 
 Il presente documento ha inoltre lo scopo di mantenere separati:
 
@@ -141,16 +151,41 @@ e sostituisce la precedente denominazione provvisoria `zone_target_assignments`.
 
 ## 2.3 Stato di implementazione
 
-Al termine della Sessione S017:
+Al termine della Sessione S019 la situazione del Database V1 è la seguente:
 
-- la progettazione del Database V1 è completata;
-- la baseline nominale è congelata;
-- le migration SQL della nuova baseline non sono ancora state realizzate;
-- lo schema Supabase operativo non è ancora stato trasformato integralmente nella nuova struttura;
-- le policy RLS e le altre misure di sicurezza previste dalla nuova architettura devono essere implementate e verificate insieme allo schema;
-- i test di integrazione del nuovo Database V1 devono ancora essere definiti ed eseguiti.
+- la progettazione logica e architetturale completata nella S017 rimane la baseline ufficiale congelata;
+- l'ambiente locale Supabase predisposto nella S018 è operativo per sviluppo e collaudo;
+- è stata creata la prima migration Database V1:
 
-La successiva fase di sviluppo dovrà quindi tradurre la baseline congelata in SQL/Supabase senza riaprire lo STEP 34, salvo l'emersione di un errore concreto nella progettazione.
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
+
+- è stato implementato il primo gruppo coerente della baseline, denominato **Fondazioni**;
+- la migration è ricostruibile localmente mediante `supabase db reset`;
+- la struttura effettivamente generata è stata verificata anche mediante un dump diagnostico locale temporaneo, successivamente eliminato;
+- sono stati introdotti lo schema `private`, gli helper autorizzativi e i trigger metadata;
+- è stata attivata e verificata la prima matrice di Row Level Security;
+- sono presenti e verificate **13 policy RLS**;
+- sono stati eseguiti test manuali sia positivi sia negativi sugli accessi e sulle operazioni protette;
+- il Database V1 completo non è ancora implementato.
+
+Le sei tabelle del blocco Fondazioni attualmente implementate nella nuova baseline sono:
+
+```text
+profiles
+profile_memberships
+gardens
+workers
+seasons
+profile_edit_locks
+```
+
+La S019 rappresenta quindi il passaggio dalla sola progettazione alla **prima implementazione fisica verificata** del Database V1.
+
+Le successive fasi dovranno continuare a tradurre incrementalmente la baseline congelata in SQL/Supabase, senza riaprire lo STEP 34 salvo l'emersione di un errore concreto o di una necessità architetturale esplicitamente valutata.
+
+Il prossimo blocco tecnico previsto riguarda la progettazione e la successiva implementazione delle **RPC sicure e atomiche** necessarie per le operazioni sensibili, con priorità alla gestione di `profile_edit_locks` e alle operazioni amministrative su `profile_memberships`.
 
 ---
 
@@ -1584,9 +1619,26 @@ Questo principio deve essere applicato alle operazioni di:
 
 PostgreSQL Row Level Security costituisce una delle principali barriere di autorizzazione del Database V1.
 
-Le tabelle esposte al client devono essere protette mediante RLS secondo il relativo modello di ownership.
+Con la Sessione S019 questo principio è stato applicato concretamente al primo gruppo implementato della baseline, costituito dalle Fondazioni.
 
-Concettualmente:
+La prima matrice RLS protegge le sei tabelle:
+
+```text
+profiles
+profile_memberships
+gardens
+workers
+seasons
+profile_edit_locks
+```
+
+Sulle strutture interessate sono state definite e verificate complessivamente:
+
+> **13 policy RLS**
+
+Le policy implementate utilizzano l'identità autenticata e le relazioni persistenti per determinare gli accessi consentiti.
+
+Il modello di autorizzazione continua a seguire concettualmente la catena:
 
 ```text
 utente autenticato
@@ -1601,6 +1653,34 @@ risorsa
 Una policy deve poter verificare che la risorsa richiesta appartenga effettivamente al Profile o al Garden autorizzato.
 
 La semplice presenza di un `profile_id`, `garden_id` o altro identificativo nella richiesta del client non costituisce prova di autorizzazione.
+
+La prima matrice RLS è stata collaudata mediante test manuali sia positivi sia negativi, verificando in particolare:
+
+- isolamento tra Profile differenti;
+- distinzione tra owner e worker;
+- comportamento con membership disabilitata;
+- accesso autorizzato e non autorizzato ai `gardens`;
+- protezione delle `profile_memberships`;
+- protezione di `profile_edit_locks`;
+- accesso alle `seasons`;
+- accesso ai `workers`;
+- rifiuto di operazioni di scrittura o eliminazione non autorizzate.
+
+Il criterio di collaudo adottato è:
+
+```text
+operazione autorizzata
+        ↓
+deve riuscire
+
+operazione non autorizzata
+        ↓
+deve fallire
+```
+
+Il superamento dei soli casi positivi non è quindi sufficiente per considerare verificata una policy di sicurezza.
+
+Le **13 policy RLS** implementate nella S019 costituiscono la prima matrice di sicurezza del Database V1 e non rappresentano ancora la protezione definitiva dell'intera baseline: le successive tabelle dovranno essere protette e collaudate progressivamente secondo lo stesso principio deny-by-default.
 
 ## 9.3 Autorizzazione server-side
 
@@ -1684,20 +1764,37 @@ La struttura tecnica:
 profile_edit_locks
 ```
 
-deve essere gestita con controlli server-side sufficienti a impedire che un client possa attribuirsi arbitrariamente il ruolo di writer.
+è stata fisicamente introdotta nella prima migration Database V1 della Sessione S019 e rimane separata dalle 52 entità di dominio.
 
-Il meccanismo deve supportare in modo controllato:
+La tabella costituisce la base persistente per il coordinamento del writer e la relativa protezione RLS è stata verificata durante i test manuali della prima matrice di sicurezza.
 
-- acquisizione del lock;
+Il lock non attribuisce automaticamente autorizzazioni aggiuntive e non sostituisce:
+
+- autenticazione;
+- ownership;
+- membership valida;
+- Row Level Security;
+- invarianti;
+- controlli server-side.
+
+La gestione completa del lock deve supportare in modo controllato:
+
+- acquisizione;
 - verifica del writer corrente;
-- heartbeat;
+- heartbeat e rinnovo;
 - scadenza;
 - rilascio;
-- eventuale takeover consensuale.
+- eventuale takeover;
+- concorrenza tra client;
+- controllo di `row_version`.
 
-Le operazioni che dipendono dal possesso del lock devono verificare server-side che il writer sia effettivamente autorizzato.
+Al termine della S019 le RPC destinate a realizzare queste operazioni **non sono ancora implementate**.
 
-Il single-writer costituisce un meccanismo di coordinamento e non sostituisce RLS o le normali verifiche di ownership.
+Le operazioni che dipendono dal possesso del lock dovranno verificare server-side che il writer sia effettivamente autorizzato e che lo stato del lock sia valido nel momento della modifica.
+
+Il client non dovrà poter modificare direttamente `profile_edit_locks` in modo da attribuirsi arbitrariamente il ruolo di writer.
+
+Il single-writer costituisce quindi un meccanismo di coordinamento e non sostituisce RLS o le normali verifiche di ownership e autorizzazione.
 
 ## 9.8 Protezione delle operazioni sensibili
 
@@ -1720,6 +1817,31 @@ scrittura
 le verifiche necessarie devono essere eseguite nel perimetro server-side appropriato e, quando necessario, nella stessa operazione atomica.
 
 Questo principio riduce il rischio di race condition e di modifiche effettuate tra una verifica e la successiva scrittura.
+
+La Sessione S019 ha confermato che alcune operazioni delle Fondazioni richiedono una protezione ulteriore rispetto al semplice accesso diretto alle tabelle mediante RLS.
+
+In particolare, il successivo blocco tecnico dovrà progettare le RPC sicure e atomiche relative a:
+
+- gestione di `profile_edit_locks`;
+- operazioni amministrative su `profile_memberships`.
+
+Per `profile_edit_locks` dovranno essere considerate almeno acquisizione, heartbeat/rinnovo, rilascio, scadenza, takeover, concorrenza tra client e controllo di `row_version`.
+
+Per `profile_memberships` dovranno essere protette le operazioni amministrative che possono modificare appartenenza, ruolo o stato della membership, impedendo che il client possa alterare direttamente condizioni rilevanti per l'autorizzazione.
+
+La progettazione delle RPC dovrà applicare almeno i seguenti criteri:
+
+- identità ricavata tramite `auth.uid()`;
+- nessuna fiducia nei dati di autorizzazione forniti dal client;
+- privilegio minimo;
+- `SECURITY DEFINER` soltanto quando realmente necessario;
+- `search_path` esplicito e sicuro;
+- `REVOKE` e `GRANT EXECUTE` espliciti;
+- operazioni atomiche quando richiesto;
+- test positivi e negativi;
+- verifica dei tentativi di bypass.
+
+Al termine della Sessione S019 queste RPC **non sono ancora implementate**: costituiscono il prossimo blocco tecnico previsto per l'evoluzione delle Fondazioni del Database V1.
 
 ## 9.9 Identità tecnica per dispositivi futuri
 
@@ -1795,9 +1917,44 @@ autorizzazione
 test
 ```
 
-Ogni gruppo di migration dovrà essere verificato anche dal punto di vista della sicurezza prima di essere considerato completato.
+La Sessione S019 ha applicato concretamente questo principio alla prima migration della baseline.
 
-Il Database V1 non sarà quindi considerato implementato soltanto perché le 52 entità esistono fisicamente: dovranno essere operative anche le protezioni previste dalla baseline.
+Il primo incremento è stato verificato mediante:
+
+- ricostruzione completa locale con `supabase db reset`;
+- controllo delle sei tabelle Fondazioni;
+- verifica dello schema `private`;
+- verifica degli helper autorizzativi;
+- verifica dei trigger metadata;
+- verifica dell'attivazione della Row Level Security;
+- verifica di **13 policy RLS**;
+- test manuali positivi;
+- test manuali negativi;
+- controllo dei tentativi di accesso e modifica non autorizzati.
+
+Il principio operativo consolidato diventa quindi:
+
+```text
+migration
+        ↓
+ricostruzione da zero
+        ↓
+verifica struttura
+        ↓
+verifica autorizzazioni
+        ↓
+test positivi
+        ↓
+test negativi
+        ↓
+incremento verificato
+```
+
+Ogni successivo gruppo di migration dovrà essere verificato anche dal punto di vista della sicurezza prima di essere considerato completato.
+
+Il Database V1 non sarà quindi considerato implementato soltanto perché le 52 entità esistono fisicamente: dovranno essere operative e collaudate anche le protezioni previste dalla baseline.
+
+Le future RPC sicure e atomiche costituiranno un ulteriore livello di protezione per le operazioni sensibili e dovranno essere verificate con lo stesso metodo prima di essere considerate consolidate.
 
 ---
 
@@ -2187,6 +2344,33 @@ Ogni incremento deve lasciare il repository e il database in uno stato comprensi
 
 Questo approccio riduce il rischio di introdurre contemporaneamente errori strutturali, problemi di sicurezza e regressioni applicative difficili da isolare.
 
+La Sessione S019 ha applicato per la prima volta concretamente questo metodo mediante la migration:
+
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
+
+Il primo incremento implementato è costituito dal gruppo **Fondazioni**, comprendente:
+
+- `profiles`;
+- `profile_memberships`;
+- `gardens`;
+- `seasons`;
+- `workers`;
+- `profile_edit_locks`.
+
+L'incremento è stato accompagnato dalla creazione dello schema `private`, dagli helper autorizzativi necessari, dai trigger metadata e dalla prima matrice di **13 policy RLS**.
+
+La migration è stata verificata mediante ricostruzione completa del database locale con:
+
+```text
+supabase db reset
+```
+
+e mediante test manuali positivi e negativi delle policy RLS.
+
+La S019 costituisce quindi il **primo incremento fisicamente implementato e verificato** della baseline Database V1. Le restanti entità della baseline e le operazioni server-side ancora necessarie, comprese le RPC per il modello single-writer e la gestione amministrativa delle membership, rimangono da implementare progressivamente.
+
 ## 11.4 Ordine delle dipendenze
 
 Le migration devono rispettare le dipendenze tra le entità.
@@ -2215,6 +2399,26 @@ infrastruttura tecnica necessaria
 
 L'ordine SQL concreto dovrà essere definito analizzando foreign key, vincoli, funzioni, policy e dipendenze effettive.
 
+La Sessione S019 ha applicato concretamente questo criterio introducendo per primo il gruppo **Fondazioni**, dal quale dipenderanno numerose strutture successive della baseline.
+
+L'ordine adottato nel primo incremento è stato:
+
+```text
+profiles
+        ↓
+profile_memberships
+        ↓
+gardens
+        ↓
+seasons / workers
+        ↓
+profile_edit_locks
+```
+
+Questo ordine non rappresenta una sequenza lineare assoluta di tutte le dipendenze interne, ma documenta il criterio con cui sono state introdotte per prime le strutture necessarie a stabilire identità, ownership, contesto Garden, partecipazione e coordinamento single-writer.
+
+Per gli incrementi successivi l'ordine SQL dovrà continuare a essere determinato dalle dipendenze effettive tra foreign key, vincoli, helper autorizzativi, policy RLS e funzioni server-side.
+
 ## 11.5 Schema e sicurezza insieme
 
 La creazione di una tabella non è considerata completa se la relativa sicurezza prevista dalla baseline non è stata affrontata.
@@ -2242,6 +2446,37 @@ test
 Non deve essere rimandata sistematicamente a una fase finale l'introduzione della sicurezza.
 
 Una tabella esposta senza le protezioni richieste non rappresenta una implementazione completa del Database V1.
+
+La Sessione S019 ha applicato concretamente questo criterio alle Fondazioni del Database V1.
+
+Il primo incremento non è stato considerato completo con la sola creazione delle tabelle, ma ha incluso anche:
+
+- schema `private`;
+- helper autorizzativi;
+- trigger metadata;
+- attivazione della Row Level Security;
+- definizione di **13 policy RLS**;
+- test manuali positivi;
+- test manuali negativi;
+- verifica dei tentativi di accesso, modifica ed eliminazione non autorizzati.
+
+Il metodo adottato è quindi:
+
+```text
+struttura persistente
+        +
+ownership
+        +
+sicurezza
+        +
+test positivi
+        +
+test negativi
+        =
+incremento verificato
+```
+
+Questo criterio dovrà essere mantenuto per tutti i successivi gruppi della baseline Database V1.
 
 ## 11.6 Migrazione dei dati esistenti
 
@@ -2332,6 +2567,22 @@ repository Git
 
 In questo modo lo stato del database può essere ricostruito e sottoposto a revisione.
 
+La Sessione S019 ha applicato concretamente questo principio mediante la prima migration della baseline Database V1:
+
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
+
+La migration contiene il primo incremento implementativo della baseline ed è conservata nel repository Git insieme al codice e alla documentazione del progetto.
+
+La relativa implementazione è stata consolidata nel commit:
+
+```text
+f5cd6cf  Crea baseline Database V1 e sicurezza RLS
+```
+
+Da questo punto l'evoluzione fisica del Database V1 deve quindi continuare attraverso migration versionate e riproducibili, evitando modifiche strutturali permanenti eseguite esclusivamente sulla Dashboard Supabase e non rappresentate nel repository.
+
 ## 11.10 Verifica delle migration
 
 Ogni gruppo di migration deve essere sottoposto a verifiche appropriate prima di essere considerato completato.
@@ -2350,6 +2601,44 @@ Le verifiche dovranno comprendere, secondo il contenuto della migration:
 - eventuale migrazione dei dati preesistenti.
 
 I test devono includere anche casi negativi, non soltanto operazioni autorizzate e valide.
+
+La Sessione S019 ha applicato concretamente questi criteri alla prima migration Database V1.
+
+La verifica è stata eseguita mediante:
+
+- `supabase db reset` per ricostruire il database locale da zero;
+- controllo della creazione delle sei tabelle Fondazioni;
+- verifica dello schema `private`;
+- verifica degli helper autorizzativi;
+- verifica dei trigger metadata;
+- verifica della Row Level Security;
+- verifica delle **13 policy RLS**;
+- test manuali di accesso autorizzato;
+- test manuali di accesso non autorizzato;
+- tentativi di scrittura non autorizzati;
+- tentativi di eliminazione non autorizzati.
+
+La struttura effettivamente generata è stata inoltre controllata mediante un dump diagnostico locale temporaneo.
+
+Il dump è stato utilizzato esclusivamente come supporto alla verifica ed è stato successivamente eliminato, evitando di conservarlo nel repository come artefatto non necessario.
+
+Il criterio applicato nella S019 è quindi:
+
+```text
+migration versionata
+        ↓
+ricostruzione completa
+        ↓
+verifica struttura effettiva
+        ↓
+test positivi
+        ↓
+test negativi
+        ↓
+commit e push
+```
+
+Una migration non deve essere considerata verificata soltanto perché viene applicata senza errori: deve essere controllato anche il comportamento effettivo della struttura e delle protezioni introdotte.
 
 ## 11.11 Backup e possibilità di recupero
 
@@ -2682,7 +2971,9 @@ Questi principi devono essere preservati durante la futura implementazione SQL/S
 
 ## 13.2 Stato raggiunto
 
-Con la Sessione S018 il progetto è passato dalla sola progettazione della baseline alla **predisposizione concreta dell'ambiente necessario alla sua futura implementazione**, senza modificare il database remoto.
+Con la Sessione S018 il progetto ha predisposto l'ambiente locale necessario alla futura implementazione della baseline.
+
+Con la Sessione S019 è stato compiuto il passaggio successivo: è iniziata concretamente l'implementazione fisica del Database V1 mediante la prima migration versionata e verificata localmente.
 
 Lo stato raggiunto è:
 
@@ -2706,13 +2997,54 @@ struttura per migration versionate inizializzata
         ✓
 
 prima migration Database V1 creata
-        ✗
+        ✓
 
-baseline Database V1 implementata in Supabase
+primo gruppo Fondazioni implementato
+        ✓
+
+prima matrice RLS verificata
+        ✓
+
+Database V1 completo
         ✗
 ```
 
-La presenza della baseline nel presente manuale non deve quindi essere confusa con lo stato fisico del database operativo.
+La prima migration Database V1 è:
+
+```text
+supabase/migrations/20260817103916_database_v1_baseline.sql
+```
+
+Il primo gruppo implementato comprende le sei strutture Fondazioni:
+
+- `profiles`;
+- `profile_memberships`;
+- `gardens`;
+- `workers`;
+- `seasons`;
+- `profile_edit_locks`.
+
+Sono stati inoltre introdotti e verificati:
+
+- schema `private`;
+- helper autorizzativi;
+- trigger metadata;
+- Row Level Security;
+- **13 policy RLS**;
+- test manuali positivi;
+- test manuali negativi.
+
+La migration è stata verificata mediante ricostruzione completa dell'ambiente locale con:
+
+```text
+supabase db reset
+```
+
+La struttura effettivamente generata è stata controllata anche mediante un dump diagnostico locale temporaneo, successivamente eliminato.
+
+La presenza del primo incremento implementato non deve essere confusa con il completamento dell'intera baseline Database V1.
+
+Le restanti entità e i successivi meccanismi server-side devono ancora essere implementati progressivamente.
 
 Durante la Sessione S018 è stato predisposto l'ambiente locale composto da:
 
@@ -2786,68 +3118,120 @@ Le 52 entità della baseline non sono ancora tutte presenti in Supabase e devono
 
 La prima migration della baseline Database V1 non è stata volutamente creata durante la S018.
 
-## 13.3 Passaggio alla fase di implementazione
+## 13.3 Implementazione raggiunta con la Sessione S019
 
-Con la conclusione della Sessione S018 sono stati completati i prerequisiti tecnici necessari per iniziare l'implementazione SQL della baseline Database V1.
+La Sessione S019 ha avviato concretamente la traduzione della baseline Database V1 congelata nella S017 in strutture PostgreSQL/Supabase versionate e verificabili.
 
-Il punto di ripartenza della Sessione S019 è fissato nello:
+È stata creata la prima migration della baseline:
 
 ```text
-STEP 35.3 – Costruzione baseline SQL Database V1
+supabase/migrations/20260817103916_database_v1_baseline.sql
 ```
 
-Dopo i normali controlli iniziali della nuova sessione, la prima operazione prevista sarà la creazione della migration:
+e il primo incremento implementativo ha riguardato il blocco **Fondazioni**, composto da:
+
+- `profiles`;
+- `profile_memberships`;
+- `gardens`;
+- `workers`;
+- `seasons`;
+- `profile_edit_locks`.
+
+L'incremento comprende inoltre:
+
+- schema `private`;
+- helper autorizzativi;
+- trigger metadata;
+- Row Level Security;
+- **13 policy RLS**.
+
+La migration è stata verificata mediante ricostruzione completa dell'ambiente locale:
 
 ```text
-supabase migration new database_v1_baseline
+supabase db reset
 ```
 
-Da quel momento la baseline logica e architetturale congelata nella S017 verrà tradotta progressivamente in PostgreSQL/Supabase.
+e mediante test manuali positivi e negativi delle policy RLS.
 
-Il percorso generale diventa:
+La Sessione S019 rappresenta quindi il passaggio da:
 
 ```text
-baseline Database V1 congelata
+baseline progettata e congelata
         ↓
-ambiente Supabase locale predisposto
+ambiente locale predisposto
         ↓
-creazione migration database_v1_baseline
+prima migration creata
         ↓
-implementazione per gruppi coerenti di tabelle
+Fondazioni implementate
         ↓
-relazioni e vincoli
+sicurezza RLS verificata
         ↓
-invarianti e sicurezza
+primo incremento Database V1 verificato
+```
+
+Il completamento di questo primo incremento non equivale al completamento dell'intera baseline Database V1.
+
+L'implementazione deve continuare **incrementalmente per gruppi coerenti di strutture e dipendenze**, mantenendo i criteri già adottati:
+
+- la baseline congelata nella S017 rimane il riferimento architetturale;
+- non devono essere introdotte nuove entità implicitamente durante l'implementazione;
+- eventuali necessità architetturali devono essere valutate esplicitamente prima di modificare la baseline;
+- le dipendenze effettive devono determinare l'ordine di implementazione;
+- schema, vincoli, ownership e sicurezza devono essere sviluppati congiuntamente;
+- ogni incremento deve essere ricostruibile mediante migration versionate;
+- i test devono comprendere sia operazioni autorizzate sia operazioni che devono essere rifiutate;
+- l'ambiente Docker/Supabase locale rimane il riferimento per la verifica prima degli interventi applicabili al database remoto.
+
+Il prossimo incremento tecnico riguarda le operazioni server-side necessarie a completare la protezione delle Fondazioni.
+
+In particolare dovranno essere progettate e successivamente implementate le RPC per:
+
+- acquisizione del lock;
+- heartbeat e rinnovo;
+- rilascio;
+- scadenza;
+- takeover;
+- gestione della concorrenza;
+- controllo di `row_version`;
+- operazioni amministrative protette sulle `profile_memberships`.
+
+Queste operazioni dovranno rispettare i principi già stabiliti per il Database V1:
+
+```text
+autenticazione
+        +
+ownership
+        +
+eventuale lock
+        +
+invarianti
+        +
+operazione atomica
+        =
+modifica autorizzata
+```
+
+Le RPC dovranno essere progettate secondo il principio del privilegio minimo, con particolare attenzione a `SECURITY DEFINER`, `search_path`, privilegi `EXECUTE`, `REVOKE` e `GRANT`, controllo dell'identità autenticata e impossibilità per il client di attribuirsi autonomamente privilegi o stato di writer.
+
+Il percorso di implementazione prosegue pertanto come:
+
+```text
+Fondazioni implementate e verificate
         ↓
-RLS e componenti server-side necessari
+RPC e operazioni server-side delle Fondazioni
         ↓
-test locali
+verifica positiva e negativa della sicurezza
         ↓
-verifica
+incrementi successivi della baseline
         ↓
-integrazione repository / dominio
+integrazione Repository / dominio
         ↓
 documentazione
         ↓
 commit e push
 ```
 
-L'implementazione non dovrà essere eseguita come trasformazione monolitica dell'intero database.
-
-La migration `database_v1_baseline` costituisce il contenitore versionato iniziale della nuova baseline, ma la sua costruzione dovrà procedere **incrementalmente per gruppi coerenti di tabelle e dipendenze**, verificando ogni incremento prima di proseguire.
-
-Durante questa fase valgono le seguenti regole:
-
-- la baseline congelata nella S017 costituisce il riferimento architetturale;
-- non devono essere introdotte nuove entità in modo implicito durante la scrittura SQL;
-- eventuali necessità architetturali emerse durante l'implementazione devono essere prima valutate esplicitamente;
-- le dipendenze tra tabelle devono determinare l'ordine di implementazione;
-- vincoli, ownership e sicurezza devono essere trattati come parte integrante dello schema;
-- i test locali devono precedere, per quanto applicabile, gli interventi sul database remoto;
-- ogni incremento deve rimanere sufficientemente piccolo da poter essere controllato e corretto;
-- l'ambiente Docker/Supabase locale viene utilizzato quando necessario per lo sviluppo e i test della persistenza.
-
-Al termine della S018 nessuna parte della nuova baseline SQL è stata ancora applicata al database remoto.
+La S019 costituisce quindi il **primo incremento fisicamente implementato e verificato** del Database V1, mentre le restanti strutture della baseline devono ancora essere introdotte progressivamente.
 
 ## 13.4 Relazione con il dominio applicativo
 
@@ -2928,7 +3312,7 @@ Il **DOC-004 — Manuale Database** costituisce il riferimento specifico per la 
 
 ---
 
-La baseline descritta nel presente documento rappresenta quindi il punto di partenza controllato per l'implementazione del nuovo database di Orto Smart.
+La baseline descritta nel presente documento costituisce il riferimento architetturale controllato per l'implementazione del Database V1 di Orto Smart, avviata concretamente nella Sessione S019 con il primo incremento Fondazioni.
 
 Il principio da mantenere durante le successive sessioni è:
 
