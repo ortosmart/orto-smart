@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 1.8
+**Versione:** 1.9
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 18/08/2026
+**Ultimo aggiornamento:** 20/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,14 +23,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 1.8 |
+| Versione | 1.9 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 18/08/2026 |
+| Ultimo aggiornamento | 20/08/2026 |
 
 ---
 
@@ -49,6 +49,7 @@
 | 1.6      | 16/08/2026 | Aggiornamento dell'architettura di persistenza con la baseline Database V1 congelata nella Sessione S017: 52 entità di dominio, struttura tecnica `profile_edit_locks`, ownership, accesso familiare monoutente, modello single-writer, sicurezza, integrità e strategia di implementazione incrementale |
 | 1.7      | 16/08/2026 | Aggiornamento della S018 con supporto alle finestre agronomiche multiple e predisposizione dell'ambiente locale Supabase mediante WSL 2, Docker Desktop e Supabase CLI per la futura implementazione incrementale della baseline Database V1 |
 | 1.8      | 18/08/2026 | Aggiornamento della S019 con prima migration Database V1, implementazione delle Fondazioni, schema `private`, helper autorizzativi, trigger metadata, prima matrice di sicurezza con 13 policy RLS, verifiche locali positive e negative e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
+| 1.9      | 20/08/2026 | Aggiornamento della S020 con hardening di `profile_edit_locks`, implementazione e verifica delle prime cinque RPC server-side per acquisizione, heartbeat, rilascio, richiesta e annullamento del takeover, consolidamento delle regole di sicurezza concorrente e distinzione delle operazioni di takeover ancora da completare |
 
 ---
 
@@ -1358,17 +1359,21 @@ Il lock non sostituisce:
 
 Costituisce invece un ulteriore meccanismo di coordinamento del writer.
 
-Al termine della S019 è stata verificata la protezione RLS di `profile_edit_locks`, ma non sono ancora state implementate le RPC sicure e atomiche destinate a gestire:
+Con la Sessione S020 è stata implementata e testata una prima parte delle RPC sicure e atomiche destinate a gestire `profile_edit_locks`:
 
-- acquisizione del lock;
-- heartbeat e rinnovo;
-- rilascio;
-- scadenza;
-- takeover;
-- concorrenza tra client;
-- controllo di `row_version`.
+- `acquire_profile_edit_lock`;
+- `heartbeat_profile_edit_lock`;
+- `release_profile_edit_lock`;
+- `request_profile_edit_takeover`;
+- `cancel_profile_edit_takeover`.
 
-Queste operazioni dovranno essere realizzate lato server senza consentire al client di modificare direttamente lo stato del lock in modo non controllato.
+L'acquisizione del lock è riservata all'`owner` del Profile. I ruoli `worker` e `viewer` non possono acquisirlo.
+
+Il protocollo utilizza heartbeat ogni **30 secondi** e un lease del lock pari a **2 minuti**. Le richieste di takeover hanno validità pari a **10 minuti**, mentre il grant di takeover ha validità pari a **60 secondi**. Il silenziamento delle nuove richieste può essere impostato a **5, 15 o 30 minuti**.
+
+Il `lock_token` viene generato lato server mediante materiale casuale di 32 byte. Nel database viene conservato solamente l'hash SHA-256 del token.
+
+Queste operazioni sono realizzate lato server senza consentire al client di modificare direttamente lo stato del lock in modo non controllato.
 
 ### Operazioni sensibili
 
@@ -1388,11 +1393,25 @@ operazione atomica
 
 La Sessione S019 ha confermato che alcune operazioni delle Fondazioni richiedono un livello di protezione superiore alla sola possibilità di scrivere direttamente sulle tabelle.
 
-In particolare, le future operazioni relative a `profile_edit_locks` e le operazioni amministrative su `profile_memberships` dovranno essere esposte mediante RPC server-side controllate.
+Sono già state esposte mediante RPC server-side controllate le prime operazioni relative a `profile_edit_locks`, mentre il completamento del protocollo di takeover e le operazioni amministrative su `profile_memberships` restano da implementare.
 
-Al termine della S019 tali RPC **non sono ancora implementate**.
+Al momento risultano implementate e testate:
 
-La loro progettazione dovrà rispettare almeno i seguenti principi:
+- `acquire_profile_edit_lock`;
+- `heartbeat_profile_edit_lock`;
+- `release_profile_edit_lock`;
+- `request_profile_edit_takeover`;
+- `cancel_profile_edit_takeover`.
+
+Restano da implementare e verificare:
+
+- `reject_profile_edit_takeover`;
+- `grant_profile_edit_takeover`;
+- `complete_profile_edit_takeover`;
+- `get_profile_edit_lock_state`;
+- il comportamento `silenced` previsto in `request_profile_edit_takeover`.
+
+Le RPC già implementate e quelle ancora da completare devono rispettare i seguenti principi:
 
 - privilegio minimo;
 - verifica dell'identità mediante `auth.uid()`;
@@ -1639,9 +1658,17 @@ L'evoluzione della persistenza deve preservare i principi stabiliti durante la p
 - separazione tra database, Repository Layer e dominio applicativo;
 - implementazione incrementale senza migrazioni big bang.
 
-Il prossimo incremento tecnico previsto riguarda la progettazione e successiva implementazione delle **RPC sicure e atomiche** necessarie per le operazioni sensibili, con priorità alla gestione di `profile_edit_locks` e alle operazioni amministrative su `profile_memberships`.
+La Sessione S020 ha avviato il successivo incremento tecnico relativo alle **RPC sicure e atomiche** per le operazioni sensibili, con particolare attenzione alla gestione di `profile_edit_locks`.
 
-Tali RPC non sono ancora implementate e dovranno essere progettate prima del codice, applicando privilegio minimo, controlli server-side, `search_path` sicuro, privilegi `EXECUTE` espliciti e verifiche positive e negative.
+Sono state implementate e testate le prime cinque RPC per `profile_edit_locks`:
+
+- `acquire_profile_edit_lock`;
+- `heartbeat_profile_edit_lock`;
+- `release_profile_edit_lock`;
+- `request_profile_edit_takeover`;
+- `cancel_profile_edit_takeover`.
+
+Il completamento del protocollo di takeover e le operazioni amministrative su `profile_memberships` restano da implementare, mantenendo i criteri di privilegio minimo, controlli server-side, `search_path` sicuro, privilegi `EXECUTE` espliciti e verifiche positive e negative.
 
 Il **DOC-004 – Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo all'interno dell'architettura complessiva di Orto Smart.
 

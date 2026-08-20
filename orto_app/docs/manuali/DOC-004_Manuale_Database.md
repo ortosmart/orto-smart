@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 1.2
+**Versione:** 1.3
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 18/08/2026
+**Ultimo aggiornamento:** 20/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 1.2 |
+| Versione | 1.3 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 18/08/2026 |
+| Ultimo aggiornamento | 20/08/2026 |
 
 ---
 
@@ -39,6 +39,7 @@
 | 1.0 | 16/08/2026 | Prima emissione del Manuale Database e documentazione della baseline Database V1 progettata nella Sessione S017 |
 | 1.1 | 16/08/2026 | Aggiornamento con la Sessione S018: predisposizione dell'ambiente locale Supabase, inizializzazione della struttura per migration versionate, conservazione dello schema sperimentale come `database_legacy_initial.sql`, verifica di PostgreSQL 17.6 e definizione del punto di avvio della futura baseline SQL Database V1 |
 | 1.2 | 18/08/2026 | Aggiornamento con la Sessione S019: creazione della prima migration Database V1, implementazione e verifica locale delle Fondazioni, introduzione dello schema `private`, helper autorizzativi, trigger metadata, prima matrice di 13 policy RLS, test positivi e negativi e definizione delle RPC sicure e atomiche come successivo incremento tecnico |
+| 1.3 | 20/08/2026 | Aggiornamento con la Sessione S020: hardening di `profile_edit_locks`, introduzione dello stato sicuro di takeover, implementazione e verifica delle prime cinque RPC server-side per acquisizione, heartbeat, rilascio, richiesta e annullamento del takeover, consolidamento delle regole di sicurezza, concorrenza, token e temporizzazione e distinzione delle operazioni di takeover ancora da completare |
 
 ---
 
@@ -185,7 +186,7 @@ La S019 rappresenta quindi il passaggio dalla sola progettazione alla **prima im
 
 Le successive fasi dovranno continuare a tradurre incrementalmente la baseline congelata in SQL/Supabase, senza riaprire lo STEP 34 salvo l'emersione di un errore concreto o di una necessità architetturale esplicitamente valutata.
 
-Il prossimo blocco tecnico previsto riguarda la progettazione e la successiva implementazione delle **RPC sicure e atomiche** necessarie per le operazioni sensibili, con priorità alla gestione di `profile_edit_locks` e alle operazioni amministrative su `profile_memberships`.
+La Sessione S020 ha avviato il blocco tecnico delle **RPC sicure e atomiche** per le operazioni sensibili, implementando e verificando le prime operazioni relative a `profile_edit_locks`. Il completamento del protocollo di takeover e le operazioni amministrative protette su `profile_memberships` costituiscono i successivi passi di questo incremento.
 
 ---
 
@@ -1777,22 +1778,46 @@ Il lock non attribuisce automaticamente autorizzazioni aggiuntive e non sostitui
 - invarianti;
 - controlli server-side.
 
-La gestione completa del lock deve supportare in modo controllato:
+La gestione del lock supporta o dovrà supportare in modo controllato:
 
 - acquisizione;
 - verifica del writer corrente;
 - heartbeat e rinnovo;
 - scadenza;
 - rilascio;
-- eventuale takeover;
+- richiesta e gestione del takeover;
 - concorrenza tra client;
-- controllo di `row_version`.
+- controllo dello stato e delle transizioni autorizzate.
 
-Al termine della S019 le RPC destinate a realizzare queste operazioni **non sono ancora implementate**.
+Con la Sessione S020 è stata implementata e testata una prima parte delle operazioni server-side del protocollo di lock:
 
-Le operazioni che dipendono dal possesso del lock dovranno verificare server-side che il writer sia effettivamente autorizzato e che lo stato del lock sia valido nel momento della modifica.
+- `acquire_profile_edit_lock`;
+- `heartbeat_profile_edit_lock`;
+- `release_profile_edit_lock`;
+- `request_profile_edit_takeover`;
+- `cancel_profile_edit_takeover`.
 
-Il client non dovrà poter modificare direttamente `profile_edit_locks` in modo da attribuirsi arbitrariamente il ruolo di writer.
+L'acquisizione del lock è riservata all'`owner` del Profile. I ruoli `worker` e `viewer` non possono acquisirlo.
+
+`client_id` e `session_id` identificano il contesto tecnico della richiesta, ma non costituiscono autenticazione e non possono sostituire l'identità determinata server-side.
+
+Il `lock_token` viene generato esclusivamente lato server mediante materiale casuale di 32 byte. Nel database viene conservato solamente il relativo hash SHA-256; il token in chiaro non deve essere persistito in log, UI, URL o storage persistente.
+
+Il protocollo utilizza:
+
+- heartbeat ogni **30 secondi**;
+- lease del lock pari a **2 minuti**;
+- validità della richiesta di takeover pari a **10 minuti**;
+- validità del grant di takeover pari a **60 secondi**;
+- silenziamento delle nuove richieste di takeover pari a **5, 15 o 30 minuti**.
+
+L'orologio PostgreSQL costituisce l'autorità temporale del protocollo. Un lock scaduto non può essere resuscitato mediante heartbeat.
+
+Le operazioni concorrenti sulle righe di lock esistenti utilizzano `FOR UPDATE`; la prima acquisizione o il riciclo di un lock scaduto utilizza `INSERT ... ON CONFLICT`.
+
+Le operazioni che dipendono dal possesso del lock devono verificare server-side che il writer sia effettivamente autorizzato e che lo stato del lock sia valido nel momento della modifica.
+
+Il client non può modificare direttamente `profile_edit_locks` per attribuirsi arbitrariamente il ruolo di writer.
 
 Il single-writer costituisce quindi un meccanismo di coordinamento e non sostituisce RLS o le normali verifiche di ownership e autorizzazione.
 
@@ -1820,28 +1845,39 @@ Questo principio riduce il rischio di race condition e di modifiche effettuate t
 
 La Sessione S019 ha confermato che alcune operazioni delle Fondazioni richiedono una protezione ulteriore rispetto al semplice accesso diretto alle tabelle mediante RLS.
 
-In particolare, il successivo blocco tecnico dovrà progettare le RPC sicure e atomiche relative a:
+La Sessione S020 ha avviato l'implementazione concreta delle RPC sicure e atomiche relative a `profile_edit_locks`.
 
-- gestione di `profile_edit_locks`;
-- operazioni amministrative su `profile_memberships`.
+Sono state implementate e testate le seguenti operazioni:
 
-Per `profile_edit_locks` dovranno essere considerate almeno acquisizione, heartbeat/rinnovo, rilascio, scadenza, takeover, concorrenza tra client e controllo di `row_version`.
+- `acquire_profile_edit_lock`;
+- `heartbeat_profile_edit_lock`;
+- `release_profile_edit_lock`;
+- `request_profile_edit_takeover`;
+- `cancel_profile_edit_takeover`.
 
-Per `profile_memberships` dovranno essere protette le operazioni amministrative che possono modificare appartenenza, ruolo o stato della membership, impedendo che il client possa alterare direttamente condizioni rilevanti per l'autorizzazione.
-
-La progettazione delle RPC dovrà applicare almeno i seguenti criteri:
+Le RPC implementate applicano i seguenti criteri:
 
 - identità ricavata tramite `auth.uid()`;
 - nessuna fiducia nei dati di autorizzazione forniti dal client;
 - privilegio minimo;
-- `SECURITY DEFINER` soltanto quando realmente necessario;
-- `search_path` esplicito e sicuro;
-- `REVOKE` e `GRANT EXECUTE` espliciti;
+- utilizzo di `SECURITY DEFINER`;
+- `search_path = ''`;
+- `PUBLIC EXECUTE` revocato;
+- `EXECUTE` concesso esplicitamente a `authenticated` e `postgres`;
 - operazioni atomiche quando richiesto;
 - test positivi e negativi;
-- verifica dei tentativi di bypass.
+- verifica dei principali tentativi di bypass.
 
-Al termine della Sessione S019 queste RPC **non sono ancora implementate**: costituiscono il prossimo blocco tecnico previsto per l'evoluzione delle Fondazioni del Database V1.
+Per `profile_edit_locks` restano ancora da implementare e verificare:
+
+- `reject_profile_edit_takeover`;
+- `grant_profile_edit_takeover`;
+- `complete_profile_edit_takeover`;
+- `get_profile_edit_lock_state`.
+
+Dopo `reject_profile_edit_takeover` dovrà inoltre essere verificato il comportamento `silenced` già previsto in `request_profile_edit_takeover`.
+
+Le operazioni amministrative protette su `profile_memberships` restano un blocco tecnico successivo e non risultano implementate nella Sessione S020.
 
 ## 9.9 Identità tecnica per dispositivi futuri
 
@@ -3182,20 +3218,27 @@ L'implementazione deve continuare **incrementalmente per gruppi coerenti di stru
 - i test devono comprendere sia operazioni autorizzate sia operazioni che devono essere rifiutate;
 - l'ambiente Docker/Supabase locale rimane il riferimento per la verifica prima degli interventi applicabili al database remoto.
 
-Il prossimo incremento tecnico riguarda le operazioni server-side necessarie a completare la protezione delle Fondazioni.
+La Sessione S020 ha avviato il successivo incremento tecnico dedicato alle operazioni server-side necessarie a completare la protezione delle Fondazioni.
 
-In particolare dovranno essere progettate e successivamente implementate le RPC per:
+Per `profile_edit_locks` risultano già implementate e testate:
 
-- acquisizione del lock;
-- heartbeat e rinnovo;
-- rilascio;
-- scadenza;
-- takeover;
-- gestione della concorrenza;
-- controllo di `row_version`;
-- operazioni amministrative protette sulle `profile_memberships`.
+- acquisizione del lock mediante `acquire_profile_edit_lock`;
+- heartbeat mediante `heartbeat_profile_edit_lock`;
+- rilascio mediante `release_profile_edit_lock`;
+- richiesta di takeover mediante `request_profile_edit_takeover`;
+- annullamento della richiesta mediante `cancel_profile_edit_takeover`.
 
-Queste operazioni dovranno rispettare i principi già stabiliti per il Database V1:
+Il protocollo di takeover non è ancora completo. Restano da implementare e verificare:
+
+- `reject_profile_edit_takeover`;
+- `grant_profile_edit_takeover`;
+- `complete_profile_edit_takeover`;
+- `get_profile_edit_lock_state`;
+- verifica del comportamento `silenced` previsto in `request_profile_edit_takeover`.
+
+Restano inoltre da affrontare le operazioni amministrative protette sulle `profile_memberships`.
+
+Le operazioni già implementate e quelle ancora da completare devono rispettare i principi già stabiliti per il Database V1:
 
 ```text
 autenticazione
@@ -3211,7 +3254,7 @@ operazione atomica
 modifica autorizzata
 ```
 
-Le RPC dovranno essere progettate secondo il principio del privilegio minimo, con particolare attenzione a `SECURITY DEFINER`, `search_path`, privilegi `EXECUTE`, `REVOKE` e `GRANT`, controllo dell'identità autenticata e impossibilità per il client di attribuirsi autonomamente privilegi o stato di writer.
+Le RPC devono essere progettate e implementate secondo il principio del privilegio minimo, con particolare attenzione a `SECURITY DEFINER`, `search_path`, privilegi `EXECUTE`, `REVOKE` e `GRANT`, controllo dell'identità autenticata e impossibilità per il client di attribuirsi autonomamente privilegi o stato di writer.
 
 Il percorso di implementazione prosegue pertanto come:
 
