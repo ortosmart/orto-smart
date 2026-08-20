@@ -4903,7 +4903,7 @@ La Sessione S019 è pertanto conclusa con un tempo effettivo complessivo di **8 
 # Sessione S020 — Sicurezza concorrente `profile_edit_locks`
 
 **Periodo sviluppo:** 18–20/08/2026
-**Documentazione:** avviata il 20/08/2026 alle 16:47
+**Documentazione:** 20/08/2026 — 17:47→18:05 = 18 min
 
 ## Obiettivo della sessione
 
@@ -5090,3 +5090,9 @@ Dopo questa RPC dovranno essere completate e verificate anche:
 Dovrà inoltre essere verificato il comportamento `silenced` già previsto in `request_profile_edit_takeover`.
 
 Fino al completamento e ai test di questi elementi, la gestione completa del takeover di `profile_edit_locks` resta parziale.
+
+## Tempo complessivo della Sessione S020
+
+Sviluppo: **6 h 36 min**
+Documentazione: **18 min**
+Totale S020: **6 h 54 min**
