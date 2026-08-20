@@ -1128,3 +1128,298 @@ grant execute
     uuid
   )
   to authenticated;
+
+-- ============================================================================
+-- GET PROFILE EDIT LOCK STATE
+-- ============================================================================
+
+create or replace function public.get_profile_edit_lock_state(
+  target_profile_id uuid,
+  target_client_id uuid,
+  target_session_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  server_now timestamptz := now();
+  current_auth_user_id uuid := auth.uid();
+
+  current_holder_auth_user_id uuid;
+  current_client_id uuid;
+  current_session_id uuid;
+  current_expires_at timestamptz;
+  current_row_version bigint;
+
+  current_takeover_requested_by_auth_user_id uuid;
+  current_takeover_requested_by_client_id uuid;
+  current_takeover_requested_by_session_id uuid;
+  current_takeover_requested_at timestamptz;
+
+  current_takeover_silenced_until timestamptz;
+
+  current_takeover_granted_to_auth_user_id uuid;
+  current_takeover_granted_to_client_id uuid;
+  current_takeover_granted_to_session_id uuid;
+  current_takeover_granted_at timestamptz;
+
+  remaining_seconds bigint;
+begin
+  -- Parametri obbligatori.
+  if target_profile_id is null
+     or target_client_id is null
+     or target_session_id is null
+  then
+    return jsonb_build_object(
+      'status', 'invalid_request',
+      'row_version', null
+    );
+  end if;
+
+  -- Solo un membro attivo autenticato del profilo può leggerne lo stato.
+  if current_auth_user_id is null
+     or not private.is_profile_member(target_profile_id)
+  then
+    return jsonb_build_object(
+      'status', 'forbidden',
+      'row_version', null
+    );
+  end if;
+
+  -- Una singola fotografia coerente della riga.
+  select
+    pel.holder_auth_user_id,
+    pel.client_instance_id,
+    pel.holder_session_id,
+    pel.expires_at,
+    pel.row_version,
+
+    pel.takeover_requested_by_auth_user_id,
+    pel.takeover_requested_by_client_id,
+    pel.takeover_requested_by_session_id,
+    pel.takeover_requested_at,
+
+    pel.takeover_silenced_until,
+
+    pel.takeover_granted_to_auth_user_id,
+    pel.takeover_granted_to_client_id,
+    pel.takeover_granted_to_session_id,
+    pel.takeover_granted_at
+  into
+    current_holder_auth_user_id,
+    current_client_id,
+    current_session_id,
+    current_expires_at,
+    current_row_version,
+
+    current_takeover_requested_by_auth_user_id,
+    current_takeover_requested_by_client_id,
+    current_takeover_requested_by_session_id,
+    current_takeover_requested_at,
+
+    current_takeover_silenced_until,
+
+    current_takeover_granted_to_auth_user_id,
+    current_takeover_granted_to_client_id,
+    current_takeover_granted_to_session_id,
+    current_takeover_granted_at
+  from public.profile_edit_locks pel
+  where pel.profile_id = target_profile_id;
+
+  -- Nessun lock presente.
+  if not found then
+    return jsonb_build_object(
+      'status', 'available',
+      'row_version', null
+    );
+  end if;
+
+  -- Lock scaduto o holder non più autorizzato:
+  -- per il client il profilo è disponibile.
+  if current_expires_at <= server_now
+     or not private.is_profile_auth_user_owner(
+       target_profile_id,
+       current_holder_auth_user_id
+     )
+  then
+    return jsonb_build_object(
+      'status', 'available',
+      'row_version', current_row_version
+    );
+  end if;
+
+  -- La sessione corrente è il vero holder.
+  if current_holder_auth_user_id = current_auth_user_id
+     and current_client_id = target_client_id
+     and current_session_id = target_session_id
+  then
+    remaining_seconds :=
+      greatest(
+        0,
+        ceil(
+          extract(epoch from (current_expires_at - server_now))
+        )::bigint
+      );
+
+    return jsonb_build_object(
+      'status', 'held_by_me',
+      'expires_in_seconds', remaining_seconds,
+      'row_version', current_row_version
+    );
+  end if;
+
+  -- Grant valido destinato esattamente alla sessione corrente.
+  if current_takeover_granted_at is not null
+     and current_takeover_granted_at + interval '60 seconds' > server_now
+     and current_takeover_granted_to_auth_user_id = current_auth_user_id
+     and current_takeover_granted_to_client_id = target_client_id
+     and current_takeover_granted_to_session_id = target_session_id
+  then
+    remaining_seconds :=
+      greatest(
+        0,
+        ceil(
+          extract(
+            epoch from (
+              current_takeover_granted_at
+              + interval '60 seconds'
+              - server_now
+            )
+          )
+        )::bigint
+      );
+
+    return jsonb_build_object(
+      'status', 'transfer_granted_to_me',
+      'expires_in_seconds', remaining_seconds,
+      'row_version', current_row_version
+    );
+  end if;
+
+  -- Richiesta takeover valida appartenente alla sessione corrente.
+  if current_takeover_requested_at is not null
+     and current_takeover_requested_at + interval '10 minutes' > server_now
+     and current_takeover_requested_by_auth_user_id = current_auth_user_id
+     and current_takeover_requested_by_client_id = target_client_id
+     and current_takeover_requested_by_session_id = target_session_id
+  then
+    remaining_seconds :=
+      greatest(
+        0,
+        ceil(
+          extract(
+            epoch from (
+              current_takeover_requested_at
+              + interval '10 minutes'
+              - server_now
+            )
+          )
+        )::bigint
+      );
+
+    return jsonb_build_object(
+      'status', 'takeover_requested_by_me',
+      'expires_in_seconds', remaining_seconds,
+      'row_version', current_row_version
+    );
+  end if;
+
+  -- Silenziamento ancora attivo.
+  if current_takeover_silenced_until is not null
+     and current_takeover_silenced_until > server_now
+  then
+    remaining_seconds :=
+      greatest(
+        0,
+        ceil(
+          extract(
+            epoch from (
+              current_takeover_silenced_until - server_now
+            )
+          )
+        )::bigint
+      );
+
+    return jsonb_build_object(
+      'status', 'silenced',
+      'retry_after_seconds', remaining_seconds,
+      'row_version', current_row_version
+    );
+  end if;
+
+  -- Esiste un grant valido, ma destinato a un'altra sessione.
+  if current_takeover_granted_at is not null
+     and current_takeover_granted_at + interval '60 seconds' > server_now
+  then
+    remaining_seconds :=
+      greatest(
+        0,
+        ceil(
+          extract(
+            epoch from (
+              current_takeover_granted_at
+              + interval '60 seconds'
+              - server_now
+            )
+          )
+        )::bigint
+      );
+
+    return jsonb_build_object(
+      'status', 'transfer_pending',
+      'expires_in_seconds', remaining_seconds,
+      'row_version', current_row_version
+    );
+  end if;
+
+  -- Esiste una richiesta valida, ma appartiene a un'altra sessione.
+  if current_takeover_requested_at is not null
+     and current_takeover_requested_at + interval '10 minutes' > server_now
+  then
+    remaining_seconds :=
+      greatest(
+        0,
+        ceil(
+          extract(
+            epoch from (
+              current_takeover_requested_at
+              + interval '10 minutes'
+              - server_now
+            )
+          )
+        )::bigint
+      );
+
+    return jsonb_build_object(
+      'status', 'takeover_pending',
+      'expires_in_seconds', remaining_seconds,
+      'row_version', current_row_version
+    );
+  end if;
+
+  -- Lock valido detenuto da un'altra sessione,
+  -- senza stati takeover più specifici.
+  return jsonb_build_object(
+    'status', 'busy',
+    'row_version', current_row_version
+  );
+end;
+$$;
+
+revoke all
+  on function public.get_profile_edit_lock_state(
+    uuid,
+    uuid,
+    uuid
+  )
+  from public;
+
+grant execute
+  on function public.get_profile_edit_lock_state(
+    uuid,
+    uuid,
+    uuid
+  )
+  to authenticated;
