@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 1.1
+**Versione:** 1.2
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 16/08/2026
+**Ultimo aggiornamento:** 20/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 1.1                            |
+| Versione             | 1.2                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
 | Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 16/08/2026                     |
+| Ultimo aggiornamento | 20/08/2026                     |
 
 ---
 
@@ -47,6 +47,7 @@
 | 0.9      | 12/08/2026 | Introduzione della DEC-010 sulla risoluzione gerarchica delle regole agronomiche e sulla distinzione tra assenza di conoscenza e incompatibilità |
 | 1.0      | 16/08/2026 | Introduzione della DEC-011 sulla baseline architetturale del Database V1 e congelamento della progettazione S017 |
 | 1.1      | 16/08/2026 | Aggiornamento della DEC-010 con l'evoluzione introdotta nella Sessione S018: supporto a più finestre agronomiche applicabili, fallback tra livelli di specificità e distinzione tra `matchedWindow` ed `evaluatedWindows` |
+| 1.2      | 20/08/2026 | Introduzione della DEC-012 sulla sicurezza e gestione concorrente di `profile_edit_locks` nella Sessione S020, con definizione del protocollo server-side, token, lease, heartbeat, takeover, controllo della concorrenza e privilegi delle RPC |
 
 ---
 
@@ -69,6 +70,7 @@
 3.9 DEC-009 – Separazione tra pianificazione temporale e compatibilità agronomica
 3.10 DEC-010 – Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza
 3.11 DEC-011 – Baseline architetturale del Database V1
+3.12 DEC-012 – Sicurezza e gestione concorrente del `profile_edit_lock`
 
 ## 4. Registro delle decisioni
 

@@ -4898,12 +4898,195 @@ Totale S019: **8 h 13 min**
 
 La Sessione S019 è pertanto conclusa con un tempo effettivo complessivo di **8 h 13 min**, al netto delle sospensioni.
 
-Il totale definitivo della documentazione verrà registrato alla chiusura della Sessione Manuali S019.
+---
 
-## Tempo complessivo della Sessione S019
+# Sessione S020 — Sicurezza concorrente `profile_edit_locks`
 
-Sviluppo: **6 h 03 min**
-Documentazione: **in corso**
-Totale S019: **da determinare alla chiusura della documentazione**
+**Periodo sviluppo:** 18–20/08/2026
+**Documentazione:** avviata il 20/08/2026 alle 16:47
 
-Il tempo complessivo definitivo della Sessione S019 verrà consolidato dopo la conclusione della presente sessione Manuali.
+## Obiettivo della sessione
+
+La Sessione S020 prosegue l'implementazione delle Fondazioni del Database V1 avviata nella S019, concentrandosi sulla gestione sicura e concorrente del lock di modifica del profilo.
+
+L'obiettivo tecnico è impedire modifiche concorrenti non controllate allo stesso Profile e spostare sul database/server le decisioni sensibili relative ad acquisizione, mantenimento, rilascio e takeover del lock.
+
+La progettazione segue i principi guida del progetto:
+
+- **sicurezza prima di tutto**;
+- **presto e bene non conviene**;
+- privilegio minimo;
+- nessuna fiducia nei dati di autorizzazione forniti dal client;
+- operazioni sensibili atomiche e governate lato server.
+
+## Timing dello sviluppo
+
+La fase di sviluppo della Sessione S020 si è svolta tra il **18 e il 20 agosto 2026**.
+
+| Fascia | Tempo |
+| --- | ---: |
+| 18/08 — 15:51 → 18:49 | 2 h 58 min |
+| 19/08 — 15:29 → 16:22 | 53 min |
+| 19→20/08 — 23:39 → 00:46 | 1 h 07 min |
+| 20/08 — 14:52 → 16:30 | 1 h 38 min |
+| **Totale sviluppo S020** | **6 h 36 min** |
+
+Il tempo indicato rappresenta il lavoro effettivo di sviluppo registrato al netto delle sospensioni.
+
+## APPROVATO / CONGELATO
+
+Durante la Sessione S020 sono state consolidate le regole di sicurezza e concorrenza per `profile_edit_locks`.
+
+Le decisioni approvate sono:
+
+- il principio guida resta **sicurezza prima di tutto**;
+- il principio operativo resta **presto e bene non conviene**;
+- il `profile_edit_lock` può essere acquisito esclusivamente dall'**owner** del Profile;
+- `worker` e `viewer` non possono acquisire il lock;
+- il client comunica soltanto l'intenzione dell'operazione, mentre il server determina identità, autorizzazione, tempi e stato;
+- `client_id` e `session_id` sono identificatori tecnici e **non costituiscono autenticazione**;
+- il `lock_token` viene generato esclusivamente lato server;
+- il token casuale ha lunghezza pari a **32 byte**;
+- nel database viene conservato esclusivamente l'hash **SHA-256** del token;
+- il token non deve essere persistito in chiaro;
+- il token non deve comparire in log, interfaccia utente, URL o storage persistente;
+- heartbeat previsto ogni **30 secondi**;
+- durata del lease pari a **2 minuti**;
+- validità della richiesta di takeover pari a **10 minuti**;
+- validità del grant di takeover pari a **60 secondi**;
+- il silenziamento delle nuove richieste di takeover può essere impostato a **5, 15 o 30 minuti**;
+- l'orologio PostgreSQL costituisce l'unica autorità temporale;
+- un lock scaduto non può essere resuscitato mediante heartbeat;
+- sulle righe di lock esistenti viene utilizzato locking concorrente mediante `FOR UPDATE`;
+- la prima acquisizione o il riciclo di un lock scaduto utilizza `INSERT ... ON CONFLICT`;
+- nel V1 non viene introdotto un `lock_timeout` dedicato;
+- un errore tecnico determina rollback completo dell'operazione;
+- la UI non deve esporre dettagli tecnici interni relativi al lock;
+- un retry non deve duplicare transizioni di stato né prolungare impropriamente i timer;
+- in caso di risposta persa durante `acquire` o `complete takeover`, il V1 non introduce un meccanismo speciale di recovery: si attende la naturale scadenza del lease, fino a **2 minuti**, quindi si procede con una nuova acquisizione.
+
+---
+
+## IMPLEMENTATO E TESTATO
+
+Nel corso della Sessione S020 sono stati implementati e verificati i primi meccanismi server-side necessari alla gestione sicura di `profile_edit_locks`.
+
+### Helper privati
+
+Sono presenti i seguenti helper nello schema `private`:
+
+- `private.profile_edit_lock_token_hash(...)`;
+- `private.is_profile_edit_lock_holder(...)`;
+- `private.is_profile_auth_user_owner(...)`;
+- `private.can_edit_profile(...)`.
+
+Per gli helper privati è stato revocato `PUBLIC EXECUTE`.
+
+### RPC implementate
+
+Sono state implementate le seguenti RPC:
+
+1. `acquire_profile_edit_lock`;
+2. `heartbeat_profile_edit_lock`;
+3. `release_profile_edit_lock`;
+4. `request_profile_edit_takeover`;
+5. `cancel_profile_edit_takeover`.
+
+Le RPC sensibili sono state realizzate con:
+
+- `SECURITY DEFINER`;
+- `search_path = ''`;
+- `EXECUTE` concesso a `authenticated` e `postgres`;
+- `PUBLIC EXECUTE` revocato.
+
+### Migrazioni introdotte
+
+La Sessione S020 ha prodotto le seguenti migration:
+
+20260818154920_harden_profile_edit_locks.sql
+20260818162315_add_takeover_grant_state.sql
+20260819215412_add_secure_profile_edit_lock_rpcs.sql
+
+### Verifiche eseguite
+
+I test eseguiti hanno verificato, tra gli altri, i seguenti scenari:
+
+- acquisizione iniziale del lock;
+- risposta `already_held`;
+- risposta `busy`;
+- riciclo corretto di un lock scaduto;
+- rifiuto dell'acquisizione da parte di `viewer`;
+- rifiuto dell'acquisizione da parte di `worker`;
+- heartbeat valido;
+- rifiuto di token errato;
+- impossibilità di resuscitare un lock già scaduto;
+- rilascio del lock;
+- richiesta di takeover;
+- annullamento della richiesta di takeover;
+- comportamento previsto durante lo stato `transfer_pending`.
+
+Le verifiche effettuate confermano il corretto funzionamento delle RPC attualmente implementate nei casi coperti dai test della sessione.
+
+---
+
+## APERTO / NON ANCORA IMPLEMENTATO
+
+Lo STEP 4.32 non è ancora concluso.
+
+Restano da implementare le seguenti RPC:
+
+- `reject_profile_edit_takeover`;
+- `grant_profile_edit_takeover`;
+- `complete_profile_edit_takeover`;
+- `get_profile_edit_lock_state`.
+
+Il punto esatto di ripresa dello sviluppo è:
+
+`STEP 4.32.11 — reject_profile_edit_takeover`
+
+Dopo l'implementazione di `reject_profile_edit_takeover` dovrà essere verificato anche il comportamento `silenced` già previsto in `request_profile_edit_takeover`.
+
+Questi elementi appartengono allo stato aperto della Sessione S020 e non devono essere considerati già implementati o testati.
+
+## Stato Git al passaggio alla documentazione
+
+All'apertura della fase documentale S020 lo stato del repository è stato verificato direttamente.
+
+```text
+branch       main
+HEAD         f167b57
+origin/main  a7e1c4e
+
+main avanti di 3 commit rispetto a origin/main
+working tree clean
+```
+
+I tre commit locali di sviluppo sono:
+
+```text
+f167b57  Aggiunge RPC sicure per profile edit lock
+c4ab49e  Aggiunge stato sicuro takeover grant
+b4a7311  Rafforza sicurezza profile edit locks
+```
+
+Al momento del passaggio alla documentazione i tre commit di sviluppo non risultano ancora pubblicati su `origin/main`.
+
+Nessun push viene eseguito prima del completamento e della verifica della documentazione S020.
+
+## Punto di continuità successivo
+
+La Sessione S020 non conclude ancora lo STEP 4.32.
+
+Il successivo punto tecnico da affrontare nello sviluppo è:
+
+`STEP 4.32.11 — reject_profile_edit_takeover`
+
+Dopo questa RPC dovranno essere completate e verificate anche:
+
+- `grant_profile_edit_takeover`;
+- `complete_profile_edit_takeover`;
+- `get_profile_edit_lock_state`.
+
+Dovrà inoltre essere verificato il comportamento `silenced` già previsto in `request_profile_edit_takeover`.
+
+Fino al completamento e ai test di questi elementi, la gestione completa del takeover di `profile_edit_locks` resta parziale.
