@@ -536,6 +536,10 @@ begin
     takeover_requested_by_client_id = target_client_id,
     takeover_requested_by_session_id = target_session_id,
     takeover_requested_at = server_now,
+    takeover_granted_to_auth_user_id = null,
+    takeover_granted_to_client_id = null,
+    takeover_granted_to_session_id = null,
+    takeover_granted_at = null,
     row_version = pel.row_version + 1
   where pel.profile_id = target_profile_id;
 
@@ -807,3 +811,163 @@ grant execute
     integer
   )
   to authenticated;
+
+-- ============================================================================
+-- GRANT PROFILE EDIT TAKEOVER
+-- ============================================================================
+
+create or replace function public.grant_profile_edit_takeover(
+  target_profile_id uuid,
+  target_client_id uuid,
+  target_session_id uuid,
+  lock_token text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  server_now timestamptz := now();
+  current_auth_user_id uuid := auth.uid();
+
+  current_holder_auth_user_id uuid;
+  current_client_id uuid;
+  current_session_id uuid;
+  current_lock_token_hash bytea;
+  current_expires_at timestamptz;
+
+  current_takeover_requested_by_auth_user_id uuid;
+  current_takeover_requested_by_client_id uuid;
+  current_takeover_requested_by_session_id uuid;
+  current_takeover_requested_at timestamptz;
+
+  current_takeover_granted_at timestamptz;
+
+  updated_profile_id uuid;
+begin
+  -- Solo l'owner attivo del profilo può concedere il takeover.
+  if current_auth_user_id is null
+     or not private.is_profile_auth_user_owner(
+       target_profile_id,
+       current_auth_user_id
+     )
+  then
+    return jsonb_build_object('status', 'forbidden');
+  end if;
+
+  -- Parametri mancanti non devono rivelare dettagli sul lock.
+  if target_profile_id is null
+     or target_client_id is null
+     or target_session_id is null
+     or lock_token is null
+  then
+    return jsonb_build_object('status', 'not_holder');
+  end if;
+
+  -- Serializza la decisione sulla riga del lock.
+  select
+    pel.holder_auth_user_id,
+    pel.client_instance_id,
+    pel.holder_session_id,
+    pel.lock_token_hash,
+    pel.expires_at,
+    pel.takeover_requested_by_auth_user_id,
+    pel.takeover_requested_by_client_id,
+    pel.takeover_requested_by_session_id,
+    pel.takeover_requested_at,
+    pel.takeover_granted_at
+  into
+    current_holder_auth_user_id,
+    current_client_id,
+    current_session_id,
+    current_lock_token_hash,
+    current_expires_at,
+    current_takeover_requested_by_auth_user_id,
+    current_takeover_requested_by_client_id,
+    current_takeover_requested_by_session_id,
+    current_takeover_requested_at,
+    current_takeover_granted_at
+  from public.profile_edit_locks pel
+  where pel.profile_id = target_profile_id
+  for update;
+
+  if not found then
+    return jsonb_build_object('status', 'not_holder');
+  end if;
+
+  -- Il grant può essere creato solamente dall'holder corrente,
+  -- con sessione valida, token valido e lease non scaduto.
+  if current_holder_auth_user_id <> current_auth_user_id
+     or current_client_id <> target_client_id
+     or current_session_id <> target_session_id
+     or current_lock_token_hash <>
+       private.profile_edit_lock_token_hash(lock_token)
+     or current_expires_at <= server_now
+  then
+    return jsonb_build_object('status', 'not_holder');
+  end if;
+
+  -- Un grant ancora valido non può essere sovrascritto o prolungato.
+  if current_takeover_granted_at is not null
+     and current_takeover_granted_at + interval '60 seconds' > server_now
+  then
+    return jsonb_build_object('status', 'transfer_pending');
+  end if;
+
+  -- Deve esistere una richiesta takeover completa e ancora valida.
+  if current_takeover_requested_by_auth_user_id is null
+     or current_takeover_requested_by_client_id is null
+     or current_takeover_requested_by_session_id is null
+     or current_takeover_requested_at is null
+     or current_takeover_requested_at + interval '10 minutes' <= server_now
+  then
+    return jsonb_build_object('status', 'no_pending_request');
+  end if;
+
+  -- Il destinatario del grant deriva esclusivamente dalla richiesta
+  -- pendente già registrata: il client non può sceglierlo.
+  update public.profile_edit_locks pel
+  set
+    takeover_granted_to_auth_user_id =
+      current_takeover_requested_by_auth_user_id,
+    takeover_granted_to_client_id =
+      current_takeover_requested_by_client_id,
+    takeover_granted_to_session_id =
+      current_takeover_requested_by_session_id,
+    takeover_granted_at = server_now,
+    takeover_requested_by_auth_user_id = null,
+    takeover_requested_by_client_id = null,
+    takeover_requested_by_session_id = null,
+    takeover_requested_at = null,
+    row_version = pel.row_version + 1
+  where pel.profile_id = target_profile_id
+  returning pel.profile_id
+  into updated_profile_id;
+
+  if updated_profile_id is null then
+    return jsonb_build_object('status', 'no_pending_request');
+  end if;
+
+  return jsonb_build_object('status', 'granted');
+end;
+$$;
+
+revoke all
+  on function public.grant_profile_edit_takeover(
+    uuid,
+    uuid,
+    uuid,
+    text
+  )
+  from public;
+
+grant execute
+  on function public.grant_profile_edit_takeover(
+    uuid,
+    uuid,
+    uuid,
+    text
+  )
+  to authenticated;
+
