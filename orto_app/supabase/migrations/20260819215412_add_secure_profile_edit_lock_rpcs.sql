@@ -295,7 +295,13 @@ security definer
 set search_path = ''
 as $$
 declare
-  server_now timestamptz := now();
+  current_holder_auth_user_id uuid;
+  current_client_id uuid;
+  current_session_id uuid;
+  current_lock_token_hash bytea;
+  current_expires_at timestamptz;
+
+  server_now timestamptz;
   renewed_expires_at timestamptz;
   renewed_row_version bigint;
 begin
@@ -315,18 +321,47 @@ begin
     return jsonb_build_object('status', 'not_holder');
   end if;
 
+  -- Serializza il rinnovo sulla riga del lock.
+  select
+    pel.holder_auth_user_id,
+    pel.client_instance_id,
+    pel.holder_session_id,
+    pel.lock_token_hash,
+    pel.expires_at
+  into
+    current_holder_auth_user_id,
+    current_client_id,
+    current_session_id,
+    current_lock_token_hash,
+    current_expires_at
+  from public.profile_edit_locks pel
+  where pel.profile_id = target_profile_id
+  for update;
+
+  if not found then
+    return jsonb_build_object('status', 'not_holder');
+  end if;
+
+  -- Il tempo deve essere acquisito dopo l'eventuale attesa sul row lock.
+  server_now := clock_timestamp();
+
+  -- Rivalida completamente l'holder e il lease.
+  if current_holder_auth_user_id <> auth.uid()
+     or current_client_id <> target_client_id
+     or current_session_id <> target_session_id
+     or current_lock_token_hash <>
+       private.profile_edit_lock_token_hash(lock_token)
+     or current_expires_at <= server_now
+  then
+    return jsonb_build_object('status', 'not_holder');
+  end if;
+
   update public.profile_edit_locks pel
   set
     heartbeat_at = server_now,
     expires_at = server_now + interval '2 minutes',
     row_version = pel.row_version + 1
   where pel.profile_id = target_profile_id
-    and pel.holder_auth_user_id = auth.uid()
-    and pel.client_instance_id = target_client_id
-    and pel.holder_session_id = target_session_id
-    and pel.lock_token_hash =
-      private.profile_edit_lock_token_hash(lock_token)
-    and pel.expires_at > server_now
   returning
     pel.expires_at,
     pel.row_version
@@ -370,7 +405,14 @@ security definer
 set search_path = ''
 as $$
 declare
-  server_now timestamptz := now();
+  current_holder_auth_user_id uuid;
+  current_client_id uuid;
+  current_session_id uuid;
+  current_lock_token_hash bytea;
+  current_expires_at timestamptz;
+  current_takeover_granted_at timestamptz;
+
+  server_now timestamptz;
   deleted_profile_id uuid;
 begin
   -- Solo l'owner attivo può rilasciare il profile edit lock.
@@ -389,14 +431,52 @@ begin
     return jsonb_build_object('status', 'not_holder');
   end if;
 
+  -- Serializza la decisione sulla riga del lock.
+  select
+    pel.holder_auth_user_id,
+    pel.client_instance_id,
+    pel.holder_session_id,
+    pel.lock_token_hash,
+    pel.expires_at,
+    pel.takeover_granted_at
+  into
+    current_holder_auth_user_id,
+    current_client_id,
+    current_session_id,
+    current_lock_token_hash,
+    current_expires_at,
+    current_takeover_granted_at
+  from public.profile_edit_locks pel
+  where pel.profile_id = target_profile_id
+  for update;
+
+  if not found then
+    return jsonb_build_object('status', 'not_holder');
+  end if;
+
+  -- Il tempo deve essere acquisito dopo l'eventuale attesa sul row lock.
+  server_now := clock_timestamp();
+
+  -- Rivalida completamente holder e lease.
+  if current_holder_auth_user_id <> auth.uid()
+     or current_client_id <> target_client_id
+     or current_session_id <> target_session_id
+     or current_lock_token_hash <>
+       private.profile_edit_lock_token_hash(lock_token)
+     or current_expires_at <= server_now
+  then
+    return jsonb_build_object('status', 'not_holder');
+  end if;
+
+  -- Un handoff già concesso non può essere distrutto da release.
+  if current_takeover_granted_at is not null
+     and current_takeover_granted_at + interval '60 seconds' > server_now
+  then
+    return jsonb_build_object('status', 'transfer_pending');
+  end if;
+
   delete from public.profile_edit_locks pel
   where pel.profile_id = target_profile_id
-    and pel.holder_auth_user_id = auth.uid()
-    and pel.client_instance_id = target_client_id
-    and pel.holder_session_id = target_session_id
-    and pel.lock_token_hash =
-      private.profile_edit_lock_token_hash(lock_token)
-    and pel.expires_at > server_now
   returning pel.profile_id
   into deleted_profile_id;
 
@@ -431,7 +511,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  server_now timestamptz := now();
+  server_now timestamptz;
   current_auth_user_id uuid := auth.uid();
 
   current_holder_auth_user_id uuid;
@@ -491,6 +571,9 @@ begin
   from public.profile_edit_locks pel
   where pel.profile_id = target_profile_id
   for update;
+
+  -- Il tempo deve essere acquisito dopo l'eventuale attesa sul row lock.
+  server_now := clock_timestamp();
 
   -- Nessun lock esistente oppure lock ormai scaduto:
   -- il client deve usare la normale acquisizione.
@@ -570,7 +653,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  server_now timestamptz := now();
+  server_now timestamptz;
   current_auth_user_id uuid := auth.uid();
 
   current_takeover_requested_by_auth_user_id uuid;
@@ -614,6 +697,9 @@ begin
   from public.profile_edit_locks pel
   where pel.profile_id = target_profile_id
   for update;
+
+  -- Il tempo deve essere acquisito dopo l'eventuale attesa sul row lock.
+  server_now := clock_timestamp();
 
   if not found then
     return jsonb_build_object('status', 'no_pending_request');
@@ -680,7 +766,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  server_now timestamptz := now();
+  server_now timestamptz;
   current_auth_user_id uuid := auth.uid();
 
   current_holder_auth_user_id uuid;
@@ -740,6 +826,9 @@ begin
   from public.profile_edit_locks pel
   where pel.profile_id = target_profile_id
   for update;
+
+  -- Il tempo deve essere acquisito dopo l'eventuale attesa sul row lock.
+  server_now := clock_timestamp();
 
   if not found then
     return jsonb_build_object('status', 'not_holder');
@@ -828,7 +917,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  server_now timestamptz := now();
+  server_now timestamptz;
   current_auth_user_id uuid := auth.uid();
 
   current_holder_auth_user_id uuid;
@@ -892,6 +981,9 @@ begin
   where pel.profile_id = target_profile_id
   for update;
 
+  -- Il tempo deve essere acquisito dopo l'eventuale attesa sul row lock.
+  server_now := clock_timestamp();
+
   if not found then
     return jsonb_build_object('status', 'not_holder');
   end if;
@@ -936,6 +1028,13 @@ begin
     takeover_granted_to_session_id =
       current_takeover_requested_by_session_id,
     takeover_granted_at = server_now,
+
+    expires_at =
+      greatest(
+        pel.expires_at,
+        server_now + interval '60 seconds'
+      ),
+
     takeover_requested_by_auth_user_id = null,
     takeover_requested_by_client_id = null,
     takeover_requested_by_session_id = null,
@@ -986,7 +1085,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  server_now timestamptz := now();
+  server_now timestamptz;
   current_auth_user_id uuid := auth.uid();
 
   current_takeover_granted_to_auth_user_id uuid;
@@ -1030,6 +1129,9 @@ begin
   from public.profile_edit_locks pel
   where pel.profile_id = target_profile_id
   for update;
+
+  -- Il tempo deve essere acquisito dopo l'eventuale attesa sul row lock.
+  server_now := clock_timestamp();
 
   if not found then
     return jsonb_build_object('status', 'no_grant');
@@ -1250,26 +1352,6 @@ begin
     );
   end if;
 
-  -- La sessione corrente è il vero holder.
-  if current_holder_auth_user_id = current_auth_user_id
-     and current_client_id = target_client_id
-     and current_session_id = target_session_id
-  then
-    remaining_seconds :=
-      greatest(
-        0,
-        ceil(
-          extract(epoch from (current_expires_at - server_now))
-        )::bigint
-      );
-
-    return jsonb_build_object(
-      'status', 'held_by_me',
-      'expires_in_seconds', remaining_seconds,
-      'row_version', current_row_version
-    );
-  end if;
-
   -- Grant valido destinato esattamente alla sessione corrente.
   if current_takeover_granted_at is not null
      and current_takeover_granted_at + interval '60 seconds' > server_now
@@ -1293,6 +1375,51 @@ begin
 
     return jsonb_build_object(
       'status', 'transfer_granted_to_me',
+      'expires_in_seconds', remaining_seconds,
+      'row_version', current_row_version
+    );
+  end if;
+
+  -- Esiste un grant valido, ma destinato a un'altra sessione.
+  if current_takeover_granted_at is not null
+     and current_takeover_granted_at + interval '60 seconds' > server_now
+  then
+    remaining_seconds :=
+      greatest(
+        0,
+        ceil(
+          extract(
+            epoch from (
+              current_takeover_granted_at
+              + interval '60 seconds'
+              - server_now
+            )
+          )
+        )::bigint
+      );
+
+    return jsonb_build_object(
+      'status', 'transfer_pending',
+      'expires_in_seconds', remaining_seconds,
+      'row_version', current_row_version
+    );
+  end if;
+
+  -- La sessione corrente è il vero holder.
+  if current_holder_auth_user_id = current_auth_user_id
+     and current_client_id = target_client_id
+     and current_session_id = target_session_id
+  then
+    remaining_seconds :=
+      greatest(
+        0,
+        ceil(
+          extract(epoch from (current_expires_at - server_now))
+        )::bigint
+      );
+
+    return jsonb_build_object(
+      'status', 'held_by_me',
       'expires_in_seconds', remaining_seconds,
       'row_version', current_row_version
     );
@@ -1345,31 +1472,6 @@ begin
     return jsonb_build_object(
       'status', 'silenced',
       'retry_after_seconds', remaining_seconds,
-      'row_version', current_row_version
-    );
-  end if;
-
-  -- Esiste un grant valido, ma destinato a un'altra sessione.
-  if current_takeover_granted_at is not null
-     and current_takeover_granted_at + interval '60 seconds' > server_now
-  then
-    remaining_seconds :=
-      greatest(
-        0,
-        ceil(
-          extract(
-            epoch from (
-              current_takeover_granted_at
-              + interval '60 seconds'
-              - server_now
-            )
-          )
-        )::bigint
-      );
-
-    return jsonb_build_object(
-      'status', 'transfer_pending',
-      'expires_in_seconds', remaining_seconds,
       'row_version', current_row_version
     );
   end if;
