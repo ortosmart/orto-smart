@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 1.3
+**Versione:** 1.4
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 20/08/2026
+**Ultimo aggiornamento:** 23/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -40,6 +40,7 @@
 | 1.1 | 16/08/2026 | Aggiornamento con la Sessione S018: predisposizione dell'ambiente locale Supabase, inizializzazione della struttura per migration versionate, conservazione dello schema sperimentale come `database_legacy_initial.sql`, verifica di PostgreSQL 17.6 e definizione del punto di avvio della futura baseline SQL Database V1 |
 | 1.2 | 18/08/2026 | Aggiornamento con la Sessione S019: creazione della prima migration Database V1, implementazione e verifica locale delle Fondazioni, introduzione dello schema `private`, helper autorizzativi, trigger metadata, prima matrice di 13 policy RLS, test positivi e negativi e definizione delle RPC sicure e atomiche come successivo incremento tecnico |
 | 1.3 | 20/08/2026 | Aggiornamento con la Sessione S020: hardening di `profile_edit_locks`, introduzione dello stato sicuro di takeover, implementazione e verifica delle prime cinque RPC server-side per acquisizione, heartbeat, rilascio, richiesta e annullamento del takeover, consolidamento delle regole di sicurezza, concorrenza, token e temporizzazione e distinzione delle operazioni di takeover ancora da completare |
+| 1.4 | 23/08/2026 | Aggiornamento con la Sessione S021: completamento e hardening del protocollo `profile_edit_locks`, verifica delle transizioni concorrenti mediante `FOR UPDATE`, rivalidazione server-side e definizione del successivo Write Path autoritativo delle entità di Categoria A |
 
 ---
 
@@ -1845,7 +1846,7 @@ Questo principio riduce il rischio di race condition e di modifiche effettuate t
 
 La Sessione S019 ha confermato che alcune operazioni delle Fondazioni richiedono una protezione ulteriore rispetto al semplice accesso diretto alle tabelle mediante RLS.
 
-La Sessione S020 ha avviato l'implementazione concreta delle RPC sicure e atomiche relative a `profile_edit_locks`.
+La Sessione S020 ha avviato l'implementazione concreta delle RPC sicure e atomiche relative a `profile_edit_locks`. La Sessione S021 ha completato il protocollo e ne ha effettuato l'hardening mediante un audit incrociato delle transizioni concorrenti.
 
 Sono state implementate e testate le seguenti operazioni:
 
@@ -1853,7 +1854,11 @@ Sono state implementate e testate le seguenti operazioni:
 - `heartbeat_profile_edit_lock`;
 - `release_profile_edit_lock`;
 - `request_profile_edit_takeover`;
-- `cancel_profile_edit_takeover`.
+- `cancel_profile_edit_takeover`;
+- `reject_profile_edit_takeover`;
+- `grant_profile_edit_takeover`;
+- `complete_profile_edit_takeover`;
+- `get_profile_edit_lock_state`.
 
 Le RPC implementate applicano i seguenti criteri:
 
@@ -1868,16 +1873,23 @@ Le RPC implementate applicano i seguenti criteri:
 - test positivi e negativi;
 - verifica dei principali tentativi di bypass.
 
-Per `profile_edit_locks` restano ancora da implementare e verificare:
+L'hardening della Sessione S021 ha inoltre verificato:
 
-- `reject_profile_edit_takeover`;
-- `grant_profile_edit_takeover`;
-- `complete_profile_edit_takeover`;
-- `get_profile_edit_lock_state`.
+- serializzazione delle operazioni concorrenti mediante `FOR UPDATE`;
+- rivalidazione di holder, client, sessione, token e lease dopo l'eventuale attesa sul row lock;
+- utilizzo di `clock_timestamp()` nei punti temporali autoritativi interessati;
+- impossibilità di resuscitare un lease scaduto mediante heartbeat;
+- conservazione del lock durante un grant di takeover ancora valido;
+- protezione del lease durante l'handoff di takeover;
+- precedenza del grant valido nello stato restituito da `get_profile_edit_lock_state`;
+- trasferimento atomico mediante `complete_profile_edit_takeover`;
+- generazione di un nuovo token al completamento del takeover.
 
-Dopo `reject_profile_edit_takeover` dovrà inoltre essere verificato il comportamento `silenced` già previsto in `request_profile_edit_takeover`.
+Il protocollo `profile_edit_locks` è considerato architetturalmente coerente allo stato attuale.
 
-Le operazioni amministrative protette su `profile_memberships` restano un blocco tecnico successivo e non risultano implementate nella Sessione S020.
+Il completamento del protocollo `profile_edit_locks` non implica tuttavia che il futuro **Write Path autoritativo delle entità di Categoria A** sia già implementato. Tale blocco tecnico dovrà verificare server-side il holder valido, l'identità esatta di client e sessione, il token, il lease, lo stato del takeover e `expected_row_version`, senza affidarsi al solo preflight del client.
+
+Le operazioni amministrative protette su `profile_memberships` restano un blocco tecnico successivo e non risultano implementate nella Sessione S021.
 
 ## 9.9 Identità tecnica per dispositivi futuri
 
@@ -3218,23 +3230,23 @@ L'implementazione deve continuare **incrementalmente per gruppi coerenti di stru
 - i test devono comprendere sia operazioni autorizzate sia operazioni che devono essere rifiutate;
 - l'ambiente Docker/Supabase locale rimane il riferimento per la verifica prima degli interventi applicabili al database remoto.
 
-La Sessione S020 ha avviato il successivo incremento tecnico dedicato alle operazioni server-side necessarie a completare la protezione delle Fondazioni.
+La Sessione S020 ha avviato il successivo incremento tecnico dedicato alle operazioni server-side necessarie a completare la protezione delle Fondazioni. La Sessione S021 ha completato il protocollo `profile_edit_locks` e ne ha verificato l'hardening concorrente.
 
-Per `profile_edit_locks` risultano già implementate e testate:
+Per `profile_edit_locks` risultano implementate e testate:
 
 - acquisizione del lock mediante `acquire_profile_edit_lock`;
 - heartbeat mediante `heartbeat_profile_edit_lock`;
 - rilascio mediante `release_profile_edit_lock`;
 - richiesta di takeover mediante `request_profile_edit_takeover`;
-- annullamento della richiesta mediante `cancel_profile_edit_takeover`.
+- annullamento della richiesta mediante `cancel_profile_edit_takeover`;
+- rifiuto del takeover mediante `reject_profile_edit_takeover`;
+- concessione del takeover mediante `grant_profile_edit_takeover`;
+- completamento del takeover mediante `complete_profile_edit_takeover`;
+- lettura dello stato mediante `get_profile_edit_lock_state`.
 
-Il protocollo di takeover non è ancora completo. Restano da implementare e verificare:
+La Sessione S021 ha inoltre verificato la serializzazione delle transizioni concorrenti mediante `FOR UPDATE`, la rivalidazione server-side dopo l'eventuale attesa sul row lock, l'utilizzo di `clock_timestamp()` nei punti temporali autoritativi interessati, la protezione del lease durante il grant e il trasferimento atomico del lock.
 
-- `reject_profile_edit_takeover`;
-- `grant_profile_edit_takeover`;
-- `complete_profile_edit_takeover`;
-- `get_profile_edit_lock_state`;
-- verifica del comportamento `silenced` previsto in `request_profile_edit_takeover`.
+Il protocollo `profile_edit_locks` è considerato completato e coerente allo stato attuale.
 
 Restano inoltre da affrontare le operazioni amministrative protette sulle `profile_memberships`.
 

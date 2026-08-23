@@ -42,6 +42,7 @@
 | 0.4 | 16/08/2026 | Riallineamento strutturale del Quaderno fino alla S017 e documentazione della progettazione e del congelamento del Database V1 |
 | 0.5 | 16/08/2026 | Aggiornamento del Quaderno con la Sessione S018: supporto alle finestre agronomiche multiple, preparazione dell'ambiente Supabase locale e predisposizione della futura baseline SQL Database V1 |
 | 0.6 | 18/08/2026 | Aggiornamento del Quaderno con la Sessione S019: prima migration Database V1, implementazione delle Fondazioni, schema `private`, helper autorizzativi, trigger metadata, prima matrice RLS e verifiche locali di sicurezza |
+| 0.7 | 21/08/2026 | Aggiornamento del Quaderno con la Sessione S021: completamento del protocollo `profile_edit_locks`, hardening delle transizioni concorrenti e definizione del successivo Write Path autoritativo di Categoria A |
 
 ---
 
@@ -68,6 +69,8 @@
 | S017 | 12–16/08/2026 | 25 h 14 min | 89 h 04 min | Progettazione e congelamento del Database V1 | ✅ |
 | S018 | 16/08/2026 | 3 h 56 min | 93 h 00 min | Finestre agronomiche multiple e preparazione ambiente Supabase locale | ✅ |
 | S019 | 17–18/08/2026 | 8 h 13 min | 101 h 13 min | Prima migration Database V1, Fondazioni e sicurezza RLS | ✅ |
+| S020 | 18–20/08/2026 | 6 h 36 min | 107 h 49 min | Sicurezza concorrente `profile_edit_locks` | ✅ |
+| S021 | 20–21/08/2026 | 8 h 09 min | 115 h 58 min | Hardening concorrente `profile_edit_locks` | ✅ |
 
 ---
 
@@ -5096,3 +5099,197 @@ Fino al completamento e ai test di questi elementi, la gestione completa del tak
 Sviluppo: **6 h 36 min**
 Documentazione: **18 min**
 Totale S020: **6 h 54 min**
+
+---
+
+# Sessione S021 — Hardening della concorrenza `profile_edit_locks`
+
+**Periodo sviluppo:** 20–21/08/2026
+**Sviluppo:** 8 h 09 min
+**Documentazione:** 1 h 48 min
+
+## Obiettivo della sessione
+
+La Sessione S021 prosegue direttamente il lavoro lasciato aperto dalla S020, completando il protocollo server-side di `profile_edit_locks` e sottoponendolo a un audit incrociato delle transizioni concorrenti.
+
+L'obiettivo tecnico è verificare che le operazioni di heartbeat, rilascio, richiesta e gestione del takeover e trasferimento del lock siano serializzate e rivalidate lato server, evitando race condition e transizioni di stato non autorizzate.
+
+La sessione mantiene i principi guida già approvati:
+
+- **sicurezza prima di tutto**;
+- **presto e bene non conviene**;
+- privilegio minimo;
+- nessuna fiducia nei dati di autorizzazione forniti dal client;
+- operazioni sensibili atomiche e governate lato server;
+- comportamento conservativo e fail-closed nelle operazioni concorrenti.
+
+## Timing dello sviluppo
+
+La fase di sviluppo della Sessione S021 si è svolta tra il **20 e il 21 agosto 2026**.
+
+| Fascia | Tempo |
+| --- | ---: |
+| 20/08 — 19:26 → 20:27 | 1 h 01 min |
+| 20/08 — 21:46 → 23:23 | 1 h 37 min |
+| 21/08 — 11:34 → 12:48 | 1 h 14 min |
+| 21/08 — 13:59 → 18:16 | 4 h 17 min |
+| **Totale sviluppo S021** | **8 h 09 min** |
+
+Il tempo indicato rappresenta il lavoro effettivo di sviluppo registrato al netto delle sospensioni.
+
+## IMPLEMENTATO E TESTATO
+
+La Sessione S021 ha completato il protocollo RPC relativo a `profile_edit_locks`.
+
+Risultano implementate e verificate le seguenti operazioni:
+
+1. `acquire_profile_edit_lock`;
+2. `heartbeat_profile_edit_lock`;
+3. `release_profile_edit_lock`;
+4. `request_profile_edit_takeover`;
+5. `cancel_profile_edit_takeover`;
+6. `reject_profile_edit_takeover`;
+7. `grant_profile_edit_takeover`;
+8. `complete_profile_edit_takeover`;
+9. `get_profile_edit_lock_state`.
+
+### Hardening della concorrenza
+
+La Sessione S021 ha effettuato un audit incrociato dell'intero percorso concorrente:
+
+```text
+acquire → heartbeat → release → request takeover → cancel → reject → grant → complete → get_state
+```
+
+Le operazioni che modificano lo stato di un lock esistente utilizzano `FOR UPDATE` nei punti necessari alla serializzazione concorrente.
+
+Dopo l'eventuale attesa sul row lock, le verifiche autoritative vengono rivalidate utilizzando il tempo server-side aggiornato. Nei punti interessati viene utilizzato `clock_timestamp()` dopo l'attesa, evitando che una decisione temporale venga presa sulla base di un valore acquisito prima della serializzazione.
+
+`heartbeat_profile_edit_lock` rivalida holder, client, sessione, token e lease dopo l'acquisizione del row lock. Un lock già scaduto non può essere resuscitato mediante heartbeat.
+
+`release_profile_edit_lock` segue lo stesso principio di rivalidazione. Se è presente un grant di takeover ancora valido, il rilascio non cancella il lock ma restituisce `transfer_pending`, preservando il trasferimento in corso. Se il grant è scaduto, il rilascio può procedere normalmente.
+
+`grant_profile_edit_takeover` protegge il lease del lock durante l'handoff mediante:
+
+```text
+expires_at =
+    greatest(
+        pel.expires_at,
+        server_now + interval '60 seconds'
+    )
+```
+
+In questo modo il lock non può scadere o essere riciclato da `acquire_profile_edit_lock` mentre il grant valido è ancora protetto.
+
+Il grant non modifica `heartbeat_at` e non accorcia un lease già superiore a 60 secondi.
+
+`get_profile_edit_lock_state` attribuisce precedenza a un grant valido rispetto allo stato ordinario dell'holder. Se il grant è destinato alla sessione chiamante viene restituito `transfer_granted_to_me`; se è destinato a un'altra sessione viene restituito `transfer_pending`.
+
+`complete_profile_edit_takeover` esegue il trasferimento in modo atomico, assegnando il nuovo holder, client e sessione, generando un nuovo token server-side, azzerando lo stato del takeover e creando il nuovo lease. Il vecchio token non sopravvive al trasferimento.
+
+Le operazioni concorrenti devono mantenere un comportamento conservativo e fail-closed. Un retry non deve duplicare transizioni di stato né prolungare impropriamente i timer.
+
+In caso di risposta persa durante `acquire` o `complete_profile_edit_takeover`, il V1 non introduce un meccanismo speciale di recovery: si attende la naturale scadenza del lease, fino a **2 minuti**, quindi si procede con una nuova acquisizione.
+
+### Criteri di sicurezza delle RPC
+
+Le RPC implementate applicano i seguenti principi:
+
+- identità determinata mediante `auth.uid()`;
+- nessuna fiducia nei dati di autorizzazione forniti dal client;
+- privilegio minimo;
+- utilizzo di `SECURITY DEFINER` quando necessario;
+- `search_path = ''`;
+- `PUBLIC EXECUTE` revocato;
+- privilegi `EXECUTE` concessi esplicitamente;
+- controllo atomico delle transizioni;
+- verifiche positive e negative;
+- verifica dei principali tentativi di bypass.
+
+### Stato delle migration
+
+La migration relativa alle RPC sicure del protocollo è:
+
+```text
+20260819215412_add_secure_profile_edit_lock_rpcs.sql
+```
+
+La Sessione S021 ha completato e verificato le RPC mancanti rispetto allo stato lasciato dalla S020 e ha consolidato l'hardening del protocollo.
+
+## APPROVATO / CONGELATO
+
+Con la conclusione della Sessione S021 vengono considerati consolidati:
+
+- il modello **single-writer per Profile**;
+- l'acquisizione del lock riservata all'`owner`;
+- il coordinamento server-side mediante `profile_edit_locks`;
+- la generazione server-side del token;
+- la conservazione nel database del solo hash SHA-256;
+- l'utilizzo dell'orologio PostgreSQL come autorità temporale;
+- la serializzazione delle transizioni concorrenti mediante `FOR UPDATE`;
+- la rivalidazione delle condizioni autoritative dopo l'eventuale attesa sul row lock;
+- il trasferimento atomico del lock durante il takeover;
+- la generazione di un nuovo token al completamento del takeover;
+- il comportamento conservativo e fail-closed delle operazioni concorrenti.
+
+Il protocollo `profile_edit_locks` è considerato **completato e coerente allo stato attuale**.
+
+## APERTO / PROSSIMO BLOCCO TECNICO
+
+Il completamento del protocollo `profile_edit_locks` non implica che il futuro **Write Path autoritativo delle entità di Categoria A** sia già implementato.
+
+Il successivo blocco tecnico dovrà introdurre le RPC autoritative per le entità di Categoria A, con verifica server-side almeno di:
+
+- holder valido;
+- identità esatta di client e sessione;
+- token;
+- lease;
+- stato del takeover;
+- `expected_row_version`.
+
+Il Write Path non dovrà affidarsi al solo preflight del client.
+
+Le operazioni amministrative protette su `profile_memberships` restano inoltre un blocco tecnico successivo e non risultano implementate nella Sessione S021.
+
+## Stato Git
+
+Il commit conclusivo della Sessione S021 è:
+
+```text
+2633649  Rafforza concorrenza profile edit lock
+```
+
+Il commit rappresenta il completamento dell'hardening concorrente del protocollo `profile_edit_locks`.
+
+## Punto di continuità successivo
+
+Il prossimo blocco tecnico di sviluppo riguarda il **Write Path autoritativo delle entità di Categoria A**.
+
+Prima di procedere all'implementazione dovranno essere definiti e verificati:
+
+- perimetro delle entità di Categoria A;
+- contratto delle RPC autoritative;
+- verifiche server-side del lock;
+- controllo di `expected_row_version`;
+- comportamento in caso di lock assente, scaduto o trasferito;
+- test positivi, negativi e concorrenti;
+- integrazione con il Repository Layer.
+
+## Timing della documentazione
+
+La documentazione della Sessione S021 si è svolta in tre fasce, al netto delle sospensioni:
+
+| Fascia | Tempo |
+| --- | ---: |
+| 21/08 — 22:19 → 23:12 | 53 min |
+| 22/08 — 18:50 → 19:25 | 35 min |
+| 23/08 — 12:04 → 12:24 | 20 min |
+| **Totale documentazione S021** | **1 h 48 min** |
+
+Il tempo effettivo di documentazione della Sessione S021 è pertanto pari a **1 h 48 min**.
+
+## Tempo complessivo della Sessione S021
+
+Sviluppo: **8 h 09 min**
+Documentazione: **1 h 48 min**
+Totale S021: **9 h 57 min**

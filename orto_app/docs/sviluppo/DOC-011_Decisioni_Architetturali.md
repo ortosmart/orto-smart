@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 1.2
+**Versione:** 1.4
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 20/08/2026
+**Ultimo aggiornamento:** 23/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 1.2                            |
+| Versione             | 1.3                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
 | Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 20/08/2026                     |
+| Ultimo aggiornamento | 21/08/2026                     |
 
 ---
 
@@ -48,6 +48,8 @@
 | 1.0      | 16/08/2026 | Introduzione della DEC-011 sulla baseline architetturale del Database V1 e congelamento della progettazione S017 |
 | 1.1      | 16/08/2026 | Aggiornamento della DEC-010 con l'evoluzione introdotta nella Sessione S018: supporto a più finestre agronomiche applicabili, fallback tra livelli di specificità e distinzione tra `matchedWindow` ed `evaluatedWindows` |
 | 1.2      | 20/08/2026 | Introduzione della DEC-012 sulla sicurezza e gestione concorrente di `profile_edit_locks` nella Sessione S020, con definizione del protocollo server-side, token, lease, heartbeat, takeover, controllo della concorrenza e privilegi delle RPC |
+| 1.3      | 21/08/2026 | Aggiornamento della DEC-012 con l'hardening della concorrenza introdotto nella Sessione S021, audit finale del protocollo `profile_edit_lock` e definizione del confine con il futuro Write Path autoritativo Categoria A |
+| 1.4      | 23/08/2026 | Consolidamento della DEC-012 con il completamento e l'hardening del protocollo `profile_edit_locks` nella Sessione S021 e definizione del confine architetturale con il futuro Write Path autoritativo Categoria A |
 
 ---
 
@@ -1511,6 +1513,193 @@ Queste alternative sono state escluse perché avrebbero aumentato la complessit�
 
 ---
 
+## 3.12 DEC-012 – Sicurezza e gestione concorrente del `profile_edit_lock`
+
+**Stato:** Approvata
+
+**Data:** 21/08/2026
+
+**Sessione:** S020–S021
+
+### Contesto
+
+Il modello V1 di Orto Smart adotta un modello **single-writer per Profile**, nel quale lo stesso accesso applicativo può essere utilizzato da dispositivi diversi.
+
+Il semplice utilizzo di autenticazione, autorizzazione e Row Level Security non è sufficiente a coordinare in modo atomico le modifiche concorrenti tra dispositivi.
+
+È pertanto necessario che il coordinamento del writer e le transizioni sensibili del lock siano governati lato server, senza affidarsi ai dati di autorizzazione dichiarati dal client.
+
+### Decisione
+
+Viene adottato `profile_edit_locks` come infrastruttura tecnica server-side per il coordinamento del writer del Profile.
+
+Il lock può essere acquisito esclusivamente dall'`owner` del Profile. `worker` e `viewer` non possono acquisirlo.
+
+Il client comunica esclusivamente l'intenzione dell'operazione e gli identificatori tecnici necessari alla sessione. Il server determina in modo autoritativo identità, autorizzazione, validità temporale, stato del lock e transizioni consentite.
+
+Il `lock_token` viene generato esclusivamente lato server mediante materiale casuale di **32 byte**. Nel database viene conservato esclusivamente l'hash **SHA-256** del token. Il token in chiaro non deve essere persistito né esposto in log, interfaccia, URL o storage persistente.
+
+Il protocollo utilizza:
+
+- heartbeat ogni **30 secondi**;
+- lease del lock pari a **2 minuti**;
+- richiesta di takeover valida per **10 minuti**;
+- grant di takeover valido per **60 secondi**;
+- silenziamento delle nuove richieste di takeover impostabile a **5, 15 o 30 minuti**;
+- orologio PostgreSQL come unica autorità temporale.
+
+Le operazioni sensibili sono esposte mediante RPC server-side controllate. Le RPC utilizzano, quando necessario, `SECURITY DEFINER`, `search_path = ''`, privilegi `EXECUTE` espliciti e `PUBLIC EXECUTE` revocato.
+
+Il protocollo completo comprende:
+
+- `acquire_profile_edit_lock`;
+- `heartbeat_profile_edit_lock`;
+- `release_profile_edit_lock`;
+- `request_profile_edit_takeover`;
+- `cancel_profile_edit_takeover`;
+- `reject_profile_edit_takeover`;
+- `grant_profile_edit_takeover`;
+- `complete_profile_edit_takeover`;
+- `get_profile_edit_lock_state`.
+
+### Hardening della concorrenza
+
+La Sessione S021 ha completato l'hardening del protocollo mediante un audit incrociato dell'intero percorso:
+
+```text
+acquire → heartbeat → release → request takeover → cancel → reject → grant → complete → get_state
+```
+
+Le operazioni che modificano lo stato di un lock esistente utilizzano `FOR UPDATE` nei punti necessari alla serializzazione concorrente.
+
+Dopo l'eventuale attesa sul row lock, le verifiche autoritative vengono rivalidate utilizzando il tempo server-side aggiornato. Nei punti interessati viene utilizzato `clock_timestamp()` dopo l'attesa, evitando che una decisione temporale venga presa sulla base di un valore acquisito prima della serializzazione.
+
+`heartbeat_profile_edit_lock` rivalida holder, client, sessione, token e lease dopo l'acquisizione del row lock. Un lock già scaduto non può essere resuscitato mediante heartbeat.
+
+`release_profile_edit_lock` segue lo stesso principio di rivalidazione. Se è presente un grant di takeover ancora valido, il rilascio non cancella il lock ma restituisce `transfer_pending`, preservando il trasferimento in corso. Se il grant è scaduto, il rilascio può procedere normalmente.
+
+`grant_profile_edit_takeover` protegge il lease del lock durante l'handoff mediante:
+
+```text
+expires_at =
+    greatest(
+        pel.expires_at,
+        server_now + interval '60 seconds'
+    )
+```
+
+In questo modo il lock non può scadere o essere riciclato da `acquire_profile_edit_lock` mentre il grant valido è ancora protetto.
+
+Il grant non modifica `heartbeat_at` e non accorcia un lease già superiore a 60 secondi.
+
+`get_profile_edit_lock_state` attribuisce precedenza a un grant valido rispetto allo stato ordinario dell'holder. Se il grant è destinato alla sessione chiamante viene restituito `transfer_granted_to_me`; se è destinato a un'altra sessione viene restituito `transfer_pending`.
+
+`complete_profile_edit_takeover` esegue il trasferimento in modo atomico, assegnando il nuovo holder, client e sessione, generando un nuovo token server-side, azzerando lo stato del takeover e creando il nuovo lease. Il vecchio token non sopravvive al trasferimento.
+
+Le operazioni concorrenti devono mantenere un comportamento conservativo e fail-closed. Un retry non deve duplicare transizioni di stato né prolungare impropriamente i timer.
+
+In caso di risposta persa durante `acquire` o `complete_profile_edit_takeover`, il V1 non introduce un meccanismo speciale di recovery: si attende la naturale scadenza del lease, fino a **2 minuti**, quindi si procede con una nuova acquisizione.
+
+### Verifiche e audit
+
+La Sessione S021 ha verificato con test SQL mirati le principali transizioni concorrenti del protocollo.
+
+Sono stati verificati, tra gli altri, i seguenti scenari:
+
+- `cancel_profile_edit_takeover` valido → `cancelled`, campi della richiesta azzerati e `row_version` incrementata;
+- concorrenza su `cancel` → comportamento conservativo senza modifica indebita dello stato;
+- `reject_profile_edit_takeover` valido → `rejected`, richiesta azzerata e silenziamento applicato;
+- concorrenza su `reject` → `not_holder`, con stato preservato;
+- `grant_profile_edit_takeover` valido → `granted`, con conversione corretta della richiesta in grant;
+- concorrenza su `grant` → nessuna modifica indebita;
+- `complete_profile_edit_takeover` valido → `completed`, con nuovo token, nuovo holder e nuovo lease;
+- grant scaduto → `grant_expired`, senza trasferimento;
+- `release_profile_edit_lock` normale → `released` e riga eliminata;
+- release durante grant valido → `transfer_pending`, con riga e grant preservati;
+- release dopo grant scaduto → `released`;
+- grant con lease residuo di 15 secondi → lease portato a 60 secondi;
+- grant con lease residuo di 120 secondi → lease conservato a 120 secondi.
+
+Dopo le correzioni introdotte durante l'hardening è stato eseguito un nuovo audit incrociato dell'intero protocollo concorrente.
+
+L'audit non ha individuato ulteriori problemi bloccanti. Il protocollo `profile_edit_lock` e takeover è pertanto considerato architetturalmente coerente allo stato attuale.
+
+Non vengono introdotti ulteriori meccanismi di complessità, quali advisory lock, retry loop, nuovi stati o nuove RPC, in assenza di un problema concreto che ne giustifichi l'introduzione.
+
+### Confine con il futuro Write Path autoritativo
+
+La protezione concorrente di `profile_edit_locks` non implica che tutte le entità strutturali del Database V1 siano già protette da un Write Path autoritativo completo.
+
+Il futuro Write Path delle entità di **Categoria A** dovrà verificare lato server, nella stessa operazione sensibile:
+
+- holder valido del Profile;
+- identità esatta di client e sessione;
+- token valido;
+- lease valido;
+- stato del takeover compatibile con la scrittura;
+- `expected_row_version`, per impedire lost update;
+- autorizzazione e invarianti applicabili all'operazione.
+
+Il preflight eseguito dal client non costituisce una protezione sufficiente e non sostituisce le verifiche autoritative server-side.
+
+La presente decisione consolida quindi il protocollo di coordinamento del writer, ma non anticipa né sostituisce l'implementazione del futuro Write Path Categoria A.
+
+### Motivazione
+
+La scelta di governare il coordinamento del writer lato server riduce il rischio che due dispositivi operanti sullo stesso Profile possano modificare contemporaneamente lo stesso stato senza una serializzazione affidabile.
+
+La separazione tra autenticazione, autorizzazione, lock e Write Path consente di mantenere distinti i diversi livelli di sicurezza del sistema:
+
+- autenticazione dell'identità;
+- autorizzazione dell'operazione;
+- coordinamento della concorrenza;
+- verifica delle versioni;
+- applicazione atomica delle modifiche.
+
+L'utilizzo del database come autorità per tempo, stato e transizioni evita che il client possa determinare autonomamente la validità del proprio lock o di un takeover.
+
+L'impiego di `FOR UPDATE` e la rivalidazione dopo l'attesa sul row lock riducono il rischio di race condition tra operazioni concorrenti.
+
+La scelta di mantenere il protocollo semplice e fail-closed evita di introdurre meccanismi di sincronizzazione aggiuntivi prima che emerga una necessità concreta.
+
+Il protocollo costituisce inoltre una base controllata per il successivo Write Path autoritativo delle entità di Categoria A, senza anticiparne l'implementazione.
+
+### Alternative valutate
+
+Sono state considerate e scartate o rinviate le seguenti alternative:
+
+- affidare il coordinamento della concorrenza esclusivamente al client;
+- considerare `client_id` o `session_id` come elementi sufficienti per autenticare l'operazione;
+- memorizzare il `lock_token` in chiaro nel database;
+- utilizzare l'orologio del client come autorità temporale;
+- introdurre un meccanismo di retry automatico lato server per tutte le transizioni;
+- introdurre advisory lock PostgreSQL come ulteriore livello generale di sincronizzazione;
+- introdurre nuovi stati o nuove RPC senza una necessità concreta;
+- considerare il lock come sostituto di autenticazione, autorizzazione, RLS o controllo del Write Path;
+- implementare immediatamente il Write Path autoritativo di tutte le entità del Database V1 insieme al protocollo del lock.
+
+Le alternative sono state escluse o rinviate perché avrebbero aumentato la complessità, indebolito la separazione delle responsabilità o anticipato funzionalità non ancora necessarie.
+
+Il futuro Write Path Categoria A rimane pertanto un blocco tecnico distinto, da implementare applicando il protocollo del lock senza considerarlo implicitamente già risolto dalla presente decisione.
+
+### Conseguenze
+
+- `profile_edit_locks` rimane una struttura tecnica separata dalle 52 entità di dominio del Database V1.
+- Il V1 dispone di un protocollo server-side completo per acquisizione, mantenimento, rilascio e takeover del lock.
+- Il coordinamento della concorrenza viene governato dal database e non dal solo client.
+- Il token del lock non viene conservato in chiaro.
+- Il tempo PostgreSQL costituisce l'autorità temporale del protocollo.
+- Le transizioni concorrenti vengono serializzate nei punti necessari mediante locking della riga e rivalidazione post-lock.
+- Il protocollo mantiene un comportamento conservativo e fail-closed.
+- Il modello single-writer per Profile rimane invariato.
+- Il protocollo del lock non sostituisce autenticazione, autorizzazione, RLS o invarianti del database.
+- Il protocollo del lock non equivale al completamento del futuro Write Path autoritativo Categoria A.
+- Le entità strutturali potranno essere considerate pienamente protette contro lost update solo dopo l'implementazione delle relative operazioni server-side autoritative con verifica del lock e `expected_row_version`.
+- Non vengono introdotti nel V1 ulteriori meccanismi di concorrenza non giustificati da problemi concreti.
+- Il protocollo costituisce la baseline tecnica per la successiva implementazione del Write Path autoritativo.
+
+---
+
 # 4. Registro delle decisioni
 
 | ID      | Data       | Sessione | Titolo                                                                                | Stato     |
@@ -1526,6 +1715,7 @@ Queste alternative sono state escluse perché avrebbero aumentato la complessit�
 | DEC-009 | 11/08/2026 | S015     | Separazione tra pianificazione temporale e compatibilità agronomica                | Approvata |
 | DEC-010 | 12/08/2026 | S016     | Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza | Approvata |
 | DEC-011 | 16/08/2026 | S017     | Baseline architetturale del Database V1                                               | Approvata |
+| DEC-012 | 21/08/2026 | S020–S021 | Sicurezza e gestione concorrente del `profile_edit_lock` | Approvata |
 
 ---
 
