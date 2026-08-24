@@ -4,14 +4,14 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 2.9
+**Versione:** 3.0
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 16/08/2026
+**Ultimo aggiornamento:** 24/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 2.9 |
+| Versione | 3.0 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 16/08/2026 |
+| Ultimo aggiornamento | 24/08/2026 |
 
 ---
 
@@ -47,6 +47,7 @@
 | 2.7      | 12/08/2026 | Aggiornamento del Registro Storico con la Sessione S016 e associazione delle finestre agronomiche a colture e varietà |
 | 2.8      | 16/08/2026 | Aggiornamento del Registro Storico con la Sessione S017, completamento e congelamento della baseline Database V1 e consolidamento dei tempi complessivi di sviluppo e documentazione |
 | 2.9      | 16/08/2026 | Aggiornamento del Registro Storico con la Sessione S018: supporto alle finestre agronomiche multiple, predisposizione dell'ambiente locale Supabase e riallineamento degli indicatori evolutivi |
+| 3.0      | 25/08/2026 | Aggiornamento del Registro Storico con le Sessioni S019, S020, S021 e S022, consolidamento dei tempi di sviluppo e documentazione e aggiornamento degli indicatori evolutivi |
 
 ---
 
@@ -100,13 +101,13 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 | Indicatore                          | Valore                                           |
 | ----------------------------------- | ------------------------------------------------ |
-| Sessioni completate                 | 19                                               |
-| Tempo complessivo di sviluppo       | 76 h 10 min                                      |
-| Tempo complessivo di documentazione | 25 h 03 min                                      |
-| Tempo complessivo progetto          | 101 h 13 min                                     |
+| Sessioni completate                 | 22                                               |
+| Tempo complessivo di sviluppo       | 98 h 00 min                                      |
+| Tempo complessivo di documentazione | 29 h 38 min                                      |
+| Tempo complessivo progetto          | 127 h 38 min                                     |
 | Prima sessione                      | S001                                             |
-| Ultima sessione                     | S019                                             |
-| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S019 |
+| Ultima sessione                     | S022                                             |
+| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S022 |
 
 \* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
@@ -137,6 +138,9 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo di svilupp
 | **S017** | Progettazione completa e congelamento della baseline Database V1 | **20 h 24 min** | **89 h 04 min** |
 | **S018** | Supporto alle finestre agronomiche multiple e predisposizione dell'ambiente locale Supabase | **3 h 56 min** | **93 h 00 min** |
 | **S019** | Prima migration Database V1, implementazione delle Fondazioni e prima sicurezza RLS | **8 h 13 min** | **101 h 13 min** |
+| **S020** | Hardening di `profile_edit_locks` e implementazione delle RPC server-side per il protocollo di takeover | **6 h 36 min** | **107 h 49 min** |
+| **S021** | Completamento e hardening del protocollo `profile_edit_locks` e verifica delle transizioni concorrenti | **8 h 09 min** | **115 h 58 min** |
+| **S022** | Primo Write Path autoritativo di Categoria A per `gardens` | **7 h 05 min** | **123 h 03 min** |
 
 ---
 
@@ -180,6 +184,9 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S017** | Baseline Database V1 | Completamento e congelamento della progettazione logica e architetturale del Database V1: 52 entità di dominio, struttura tecnica `profile_edit_locks`, ownership, modello di accesso familiare single-writer, temporalità, storicizzazione, invarianti, sicurezza, convenzioni dei dati e strategia di futura implementazione SQL/Supabase. |
 | **S018** | Finestre agronomiche multiple e ambiente Supabase locale | Estensione della valutazione agronomica al supporto di più finestre applicabili, con fallback tra livelli di specificità, e predisposizione dell'ambiente locale WSL 2, Docker Desktop e Supabase CLI per l'implementazione incrementale della baseline Database V1 mediante migration versionate. |
 | **S019** | Primo incremento fisico Database V1 | Creazione della prima migration `20260817103916_database_v1_baseline.sql`, implementazione del blocco Fondazioni (`profiles`, `profile_memberships`, `gardens`, `workers`, `seasons`, `profile_edit_locks`), introduzione dello schema `private`, helper autorizzativi, trigger metadata, prima matrice di 13 policy RLS e verifica locale positiva e negativa della sicurezza. |
+| **S020** | RPC sicure per `profile_edit_locks` | Implementazione e verifica delle RPC server-side per la gestione del lock e del takeover, con hardening della sicurezza, dei token, dei lease e delle transizioni concorrenti. |
+| **S021** | Hardening del protocollo `profile_edit_locks` | Completamento e audit del protocollo completo di `profile_edit_locks`, con verifica delle transizioni concorrenti mediante `FOR UPDATE`, rivalidazione server-side e trasferimento atomico del lock. |
+| **S022** | Primo Write Path autoritativo di Categoria A | Introduzione del primo Write Path autoritativo del Database V1 per `gardens`, con `Profile Write Authority`, RPC `create_garden` e `update_garden`, revoca delle scritture dirette da parte di `authenticated`, validazioni server-side e verifica del comportamento concorrente. |
 
 ---
 
@@ -199,13 +206,13 @@ Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e
 
 | Indicatore                    | Valore attuale |
 | ----------------------------- | -------------- |
-| Sessioni completate           | 19             |
-| Ore di sviluppo consolidate   | 76 h 10 min    |
-| Ore di documentazione         | 25 h 03 min    |
-| Totale ore progetto           | 101 h 13 min   |
+| Sessioni completate           | 22             |
+| Ore di sviluppo consolidate   | 98 h 00 min    |
+| Ore di documentazione         | 29 h 38 min    |
+| Totale ore progetto           | 127 h 38 min   |
 | Motori agronomici completati  | 5              |
 | Documenti ufficiali approvati | 10             |
-| Ultima sessione completata    | S019           |
+| Ultima sessione completata    | S022           |
 | Sessione in corso             | Nessuna        |
 
 Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.

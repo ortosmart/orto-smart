@@ -4,14 +4,14 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.6
+**Versione:** 0.9
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 18/08/2026
+**Ultimo aggiornamento:** 25/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.6 |
+| Versione | 0.9 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 18/08/2026 |
+| Ultimo aggiornamento | 25/08/2026 |
 
 ---
 
@@ -44,6 +44,7 @@
 | 0.6 | 18/08/2026 | Aggiornamento del Quaderno con la Sessione S019: prima migration Database V1, implementazione delle Fondazioni, schema `private`, helper autorizzativi, trigger metadata, prima matrice RLS e verifiche locali di sicurezza |
 | 0.7 | 21/08/2026 | Aggiornamento del Quaderno con la Sessione S021: completamento del protocollo `profile_edit_locks`, hardening delle transizioni concorrenti e definizione del successivo Write Path autoritativo di Categoria A |
 | 0.8 | 24/08/2026 | Aggiornamento del Quaderno con la Sessione S022: implementazione del primo Write Path autoritativo di Categoria A per `gardens`, introduzione di `Profile Write Authority`, hardening della struttura di `gardens`, RPC `create_garden` e `update_garden`, validazioni server-side e verifica del comportamento concorrente |
+| 0.9 | 25/08/2026 | Chiusura della Sessione S022: consolidamento del Write Path autoritativo di Categoria A per `gardens`, completamento della documentazione e aggiornamento del timing della sessione |
 
 ---
 
@@ -72,7 +73,7 @@
 | S019 | 17–18/08/2026 | 8 h 13 min | 101 h 13 min | Prima migration Database V1, Fondazioni e sicurezza RLS | ✅ |
 | S020 | 18–20/08/2026 | 6 h 36 min | 107 h 49 min | Sicurezza concorrente `profile_edit_locks` | ✅ |
 | S021 | 20–21/08/2026 | 8 h 09 min | 115 h 58 min | Hardening concorrente `profile_edit_locks` | ✅ |
-| S022 | 23–24/08/2026 | 7 h 05 min | 123 h 03 min | Implementazione del Write Path autoritativo di Categoria A per `gardens` | ✅ |
+| S022 | 23–25/08/2026 | 9 h 34 min | 127 h 38 min | Implementazione del Write Path autoritativo di Categoria A per `gardens` | ✅ |
 
 ---
 
@@ -5543,10 +5544,14 @@ Prima di procedere dovranno essere definiti e verificati:
 
 La documentazione della Sessione S022 è iniziata il **24/08/2026 alle 22:11** ed è attualmente in corso.
 
+## Timing della documentazione
+
+La documentazione della Sessione S022 è iniziata il **24/08/2026 alle 22:11** ed è terminata il **25/08/2026 alle 00:40**.
+
 ## Tempo complessivo della Sessione S022
 
 Sviluppo: **7 h 05 min**
 
-Documentazione: **in corso**
+Documentazione: **2 h 29 min**
 
-Totale S022: **in corso**
+Totale S022: **9 h 34 min**
