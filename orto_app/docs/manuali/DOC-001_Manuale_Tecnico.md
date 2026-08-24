@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.0
+**Versione:** 2.1
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 23/08/2026
+**Ultimo aggiornamento:** 24/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,14 +23,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 1.9 |
+| Versione | 2.1 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 20/08/2026 |
+| Ultimo aggiornamento | 24/08/2026 |
 
 ---
 
@@ -51,6 +51,7 @@
 | 1.8      | 18/08/2026 | Aggiornamento della S019 con prima migration Database V1, implementazione delle Fondazioni, schema `private`, helper autorizzativi, trigger metadata, prima matrice di sicurezza con 13 policy RLS, verifiche locali positive e negative e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
 | 1.9      | 20/08/2026 | Aggiornamento della S020 con hardening di `profile_edit_locks`, implementazione e verifica delle prime cinque RPC server-side per acquisizione, heartbeat, rilascio, richiesta e annullamento del takeover, consolidamento delle regole di sicurezza concorrente e distinzione delle operazioni di takeover ancora da completare |
 | 2.0      | 23/08/2026 | Aggiornamento con la Sessione S021: completamento del protocollo `profile_edit_locks`, hardening delle transizioni concorrenti, audit server-side e definizione del successivo Write Path autoritativo delle entità di Categoria A |
+| 2.1      | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, Profile Write Authority, RPC `create_garden` e `update_garden`, blocco delle scritture dirette su `public.gardens` e validazioni server-side del Write Path |
 
 ---
 
@@ -1429,9 +1430,13 @@ Le RPC implementate applicano i seguenti principi:
 - test positivi e negativi;
 - verifica dei principali tentativi di bypass.
 
-Il completamento del protocollo `profile_edit_locks` non implica tuttavia che il futuro Write Path autoritativo delle entità di Categoria A sia già implementato. Tale blocco tecnico dovrà verificare lato server il holder valido, l'identità esatta di client e sessione, il token, il lease, lo stato del takeover e `expected_row_version`, senza affidarsi al solo preflight del client.
+Il completamento del protocollo `profile_edit_locks` ha consentito nella Sessione S022 l'introduzione del primo **Write Path autoritativo di Categoria A**, applicato all'entità `gardens`. Il Write Path verifica lato server l'identità autenticata, l'ownership attiva del Profile, la Profile Write Authority, il client, la sessione, il token, il lease e lo stato del takeover, senza affidarsi al solo preflight del client.
 
-Le operazioni amministrative protette su `profile_memberships` restano un blocco tecnico successivo e non risultano implementate nella Sessione S021.
+Per `gardens` sono state introdotte le RPC autoritative `create_garden` e `update_garden`. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono state revocate e le modifiche applicative vengono quindi concentrate nelle RPC server-side, con validazione e controllo atomico delle operazioni.
+
+Il Write Path di `gardens` è considerato completato e coerente allo stato attuale. L'estensione dello stesso modello alle ulteriori entità di Categoria A costituisce invece un blocco tecnico successivo e dovrà mantenere i medesimi principi di verifica server-side, privilegi minimi, controllo della concorrenza e comportamento fail-closed. Il controllo della versione della riga dovrà essere definito secondo il contratto della relativa entità.
+
+Le operazioni amministrative protette su `profile_memberships` restano un blocco tecnico successivo e non risultano implementate nella Sessione S022.
 
 Le credenziali privilegiate e i segreti server-side non devono essere incorporati nel client Flutter.
 
@@ -1686,11 +1691,11 @@ Sono ora implementate e verificate:
 
 L'hardening della S021 ha verificato in particolare la serializzazione delle transizioni concorrenti mediante `FOR UPDATE`, la rivalidazione server-side dopo l'eventuale attesa sul row lock, l'utilizzo dell'orologio PostgreSQL nei punti temporali autoritativi, la protezione del lease durante il grant di takeover, il trasferimento atomico del lock e la generazione di un nuovo token al completamento del trasferimento.
 
-Il protocollo `profile_edit_locks` è considerato architetturalmente coerente allo stato attuale. Il completamento di questo protocollo non implica tuttavia che il futuro **Write Path autoritativo delle entità di Categoria A** sia già implementato.
+Il protocollo `profile_edit_locks` è considerato architetturalmente coerente allo stato attuale. Nella Sessione S022 il protocollo è stato utilizzato come fondamento del primo **Write Path autoritativo di Categoria A**, implementato per `gardens`.
 
-Il successivo blocco tecnico dovrà introdurre le RPC autoritative per le entità di Categoria A, con verifica server-side del holder, dell'identità esatta di client e sessione, del token, del lease, dello stato del takeover e di `expected_row_version`, senza affidarsi al solo preflight del client.
+Per `gardens` sono ora implementate e verificate le RPC autoritative `create_garden` e `update_garden`, con controllo server-side della Profile Write Authority, validazione degli input, controllo dell'appartenenza del Garden al Profile e scrittura atomica. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono state revocate.
 
-Le operazioni amministrative protette su `profile_memberships` restano un blocco tecnico successivo e non risultano implementate nella Sessione S021, mantenendo i criteri di privilegio minimo, controlli server-side, `search_path` sicuro, privilegi `EXECUTE` espliciti e verifiche positive e negative.
+Il Write Path delle ulteriori entità di Categoria A resta un blocco tecnico successivo e dovrà essere definito secondo il contratto specifico di ciascuna entità. Le operazioni amministrative protette su `profile_memberships` restano inoltre un blocco tecnico successivo.
 
 Il **DOC-004 – Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo all'interno dell'architettura complessiva di Orto Smart.
 

@@ -43,6 +43,7 @@
 | 0.5 | 16/08/2026 | Aggiornamento del Quaderno con la Sessione S018: supporto alle finestre agronomiche multiple, preparazione dell'ambiente Supabase locale e predisposizione della futura baseline SQL Database V1 |
 | 0.6 | 18/08/2026 | Aggiornamento del Quaderno con la Sessione S019: prima migration Database V1, implementazione delle Fondazioni, schema `private`, helper autorizzativi, trigger metadata, prima matrice RLS e verifiche locali di sicurezza |
 | 0.7 | 21/08/2026 | Aggiornamento del Quaderno con la Sessione S021: completamento del protocollo `profile_edit_locks`, hardening delle transizioni concorrenti e definizione del successivo Write Path autoritativo di Categoria A |
+| 0.8 | 24/08/2026 | Aggiornamento del Quaderno con la Sessione S022: implementazione del primo Write Path autoritativo di Categoria A per `gardens`, introduzione di `Profile Write Authority`, hardening della struttura di `gardens`, RPC `create_garden` e `update_garden`, validazioni server-side e verifica del comportamento concorrente |
 
 ---
 
@@ -71,6 +72,7 @@
 | S019 | 17–18/08/2026 | 8 h 13 min | 101 h 13 min | Prima migration Database V1, Fondazioni e sicurezza RLS | ✅ |
 | S020 | 18–20/08/2026 | 6 h 36 min | 107 h 49 min | Sicurezza concorrente `profile_edit_locks` | ✅ |
 | S021 | 20–21/08/2026 | 8 h 09 min | 115 h 58 min | Hardening concorrente `profile_edit_locks` | ✅ |
+| S022 | 23–24/08/2026 | 7 h 05 min | 123 h 03 min | Implementazione del Write Path autoritativo di Categoria A per `gardens` | ✅ |
 
 ---
 
@@ -5293,3 +5295,258 @@ Il tempo effettivo di documentazione della Sessione S021 è pertanto pari a **1 
 Sviluppo: **8 h 09 min**
 Documentazione: **1 h 48 min**
 Totale S021: **9 h 57 min**
+
+---
+
+# Sessione S022 — Write Path autoritativo per `gardens`
+
+**Periodo sviluppo:** 23–24/08/2026
+**Sviluppo:** 7 h 05 min
+**Documentazione:** in corso
+
+## Obiettivo della sessione
+
+La Sessione S022 prosegue il blocco tecnico definito alla chiusura della Sessione S021, introducendo il primo Write Path autoritativo di Categoria A per `gardens`.
+
+L'obiettivo è applicare concretamente il modello di **Profile Write Authority** alle scritture di `public.gardens`, concentrando nel database le verifiche di identità, ownership, lock, token, lease, validazione e integrità.
+
+La sessione mantiene i principi guida del progetto:
+
+- **sicurezza prima di tutto**;
+- **presto e bene non conviene**;
+- privilegio minimo;
+- nessuna fiducia nei dati di autorizzazione forniti dal client;
+- operazioni sensibili atomiche e governate lato server;
+- comportamento conservativo e fail-closed.
+
+## Timing dello sviluppo
+
+La fase di sviluppo della Sessione S022 si è svolta tra il **23 e il 24 agosto 2026**.
+
+| Fascia | Tempo |
+| --- | ---: |
+| 23/08 — 12:42 → 13:41 | 59 min |
+| 23/08 — 14:47 → 18:46 | 3 h 59 min |
+| 24/08 — 00:23 → 00:35 | 12 min |
+| 24/08 — 16:40 → 18:35 | 1 h 55 min |
+| **Totale sviluppo S022** | **7 h 05 min** |
+
+Il tempo indicato rappresenta il lavoro effettivo di sviluppo registrato al netto delle sospensioni.
+
+## IMPLEMENTATO E TESTATO
+
+La Sessione S022 ha introdotto il primo Write Path autoritativo di Categoria A per `gardens`.
+
+### Profile Write Authority
+
+È stato introdotto l'helper privato:
+
+`private.lock_profile_write_authority(...)`
+
+L'helper serializza il `profile_edit_lock` mediante `FOR UPDATE` e rivalida lato server:
+
+- identità dell'utente autenticato;
+- ownership attiva del Profile;
+- client;
+- sessione;
+- token;
+- hash del token;
+- validità del lease;
+- stato del takeover.
+
+Il tempo server-side viene acquisito dopo l'eventuale attesa sul row lock mediante `clock_timestamp()`.
+
+Un grant di takeover ancora valido impedisce al precedente holder di ottenere nuova autorità di scrittura.
+
+L'helper opera in modalità fail-closed e non espone privilegi di esecuzione a `PUBLIC`.
+
+### Hardening di `public.gardens`
+
+La struttura di `public.gardens` è stata rafforzata secondo il contratto del Database V1.
+
+Sono stati introdotti:
+
+- `elevation_m`;
+- `country_code`;
+- `municipality`;
+- `locality`;
+- `street_address`.
+
+Sono stati inoltre introdotti o rafforzati i vincoli relativi a:
+
+- normalizzazione del nome;
+- descrizione;
+- elevazione;
+- timezone;
+- codice paese;
+- municipio;
+- località;
+- indirizzo.
+
+Il nome viene normalizzato nel Write Path prima della persistenza.
+
+Il codice paese viene normalizzato in formato maiuscolo e verificato contro la baseline ISO 3166-1 alpha-2 incorporata nel database.
+
+La baseline ISO 3166-1 alpha-2 è stata verificata il **23/08/2026**. I codici user-assigned non sono ammessi.
+
+Eventuali aggiornamenti futuri dell'elenco ISO 3166-1 alpha-2 devono avvenire tramite migration versionata.
+
+La timezone viene validata server-side mediante l'elenco delle timezone PostgreSQL.
+
+### Blocco delle scritture dirette
+
+Le policy RLS precedentemente utilizzate per `INSERT` e `UPDATE` dei proprietari vengono rimosse.
+
+A `authenticated` vengono revocati i privilegi diretti `INSERT`, `UPDATE` e `DELETE` su `public.gardens`.
+
+Rimane il privilegio `SELECT` per la lettura secondo il modello RLS già definito.
+
+Le scritture applicative vengono quindi esposte esclusivamente tramite RPC autoritative.
+
+### `create_garden`
+
+È stata introdotta la RPC:
+
+`public.create_garden(...)`
+
+La RPC:
+
+- determina l'identità tramite `auth.uid()`;
+- verifica l'owner attivo del Profile;
+- verifica la Profile Write Authority;
+- normalizza gli input;
+- valida nome, coordinate, elevazione e timezone;
+- valida il codice ISO 3166-1 alpha-2;
+- valida i campi testuali opzionali;
+- verifica l'unicità del nome nel Profile;
+- esegue l'INSERT atomico;
+- restituisce l'identificativo del Garden, `row_version` e `created_at`.
+
+L'esecuzione è concessa esclusivamente a `authenticated`.
+
+### `update_garden`
+
+È stata introdotta la RPC:
+
+`public.update_garden(...)`
+
+La RPC:
+
+- verifica l'identità dell'utente autenticato;
+- verifica l'owner attivo del Profile;
+- verifica la Profile Write Authority;
+- verifica che il Garden appartenga al Profile indicato;
+- non rivela l'eventuale esistenza del Garden al di fuori del Profile autorizzato;
+- normalizza gli input;
+- valida nome, coordinate, elevazione e timezone;
+- valida il codice ISO 3166-1 alpha-2;
+- valida i campi testuali opzionali;
+- controlla i duplicati del nome;
+- riconosce il caso `unchanged`;
+- non esegue l'UPDATE e non modifica `row_version` e `updated_at` quando i valori risultano già invariati;
+- esegue l'UPDATE atomico quando necessario;
+- incrementa `row_version`;
+- aggiorna `updated_at`;
+- restituisce il nuovo `row_version` e `updated_at`.
+
+Il Garden viene aggiornato esclusivamente quando la riga appartiene al Profile autorizzato.
+
+Anche questa RPC è esposta esclusivamente a `authenticated`.
+
+## Migration introdotte
+
+La Sessione S022 ha prodotto le seguenti migration:
+
+- `20260823111048_add_profile_write_authority.sql`
+- `20260823145731_harden_gardens_write_path.sql`
+- `20260824145346_add_update_garden_rpc.sql`
+
+## Verifiche e test
+
+Durante lo sviluppo sono stati utilizzati test SQL dedicati al Write Path di `gardens`.
+
+Il commit funzionale `642e009` comprende i primi tre file di test:
+
+- `test_update_garden_01.sql`;
+- `test_update_garden_02.sql`;
+- `test_update_garden_03.sql`.
+
+Successivamente, con il commit `705267d`, i file di test SQL relativi al Write Path di `gardens` sono stati rimossi dal repository pubblico.
+
+La rimozione dei file di test non modifica le migration funzionali né il Write Path implementato.
+
+## APPROVATO / CONGELATO
+
+Con la conclusione dello sviluppo della Sessione S022 vengono considerati consolidati:
+
+- il principio di **Profile Write Authority** come controllo server-side del Write Path;
+- il primo Write Path autoritativo di Categoria A per `gardens`;
+- l'impossibilità per `authenticated` di scrivere direttamente su `public.gardens`;
+- l'utilizzo di `create_garden` per la creazione autoritativa;
+- l'utilizzo di `update_garden` per l'aggiornamento autoritativo;
+- la rivalidazione server-side del Profile Write Authority;
+- la validazione server-side dei dati geografici e testuali;
+- la validazione server-side del codice ISO 3166-1 alpha-2;
+- la validazione server-side delle timezone IANA;
+- il mantenimento di `row_version` come controllo di versione della riga;
+- il comportamento `unchanged` senza incremento di `row_version`;
+- l'esposizione delle RPC esclusivamente ai client `authenticated`.
+
+Il Write Path autoritativo di `gardens` è considerato **completato e coerente allo stato attuale**.
+
+## APERTO / PROSSIMO BLOCCO TECNICO
+
+La Sessione S022 completa il primo Write Path di Categoria A, ma non completa automaticamente il Write Path delle ulteriori entità di Categoria A.
+
+Il successivo sviluppo dovrà quindi estendere il modello alle ulteriori entità previste, mantenendo:
+
+- Profile Write Authority;
+- verifica server-side del lock;
+- controllo di client e sessione;
+- verifica del token e del lease;
+- controllo dello stato del takeover;
+- controllo della versione della riga dove previsto dal contratto della relativa entità;
+- test positivi, negativi e concorrenti;
+- integrazione con il Repository Layer.
+
+Le operazioni amministrative protette su `profile_memberships` restano inoltre un blocco tecnico successivo.
+
+## Stato Git
+
+Il commit funzionale conclusivo dell'implementazione principale della Sessione S022 è:
+
+`642e009` — **Implementa Write Path autoritativo per gardens**
+
+Il commit comprende le migration del Write Path e i primi test SQL utilizzati durante la verifica.
+
+Successivamente è stato eseguito:
+
+`705267d` — **Rimuove test SQL dal repository pubblico**
+
+Il secondo commit rimuove dal repository pubblico i file di test SQL, mantenendo nel repository le migration funzionali.
+
+## Punto di continuità successivo
+
+Il prossimo blocco tecnico riguarda l'estensione del **Write Path autoritativo** alle ulteriori entità di Categoria A.
+
+Prima di procedere dovranno essere definiti e verificati:
+
+- perimetro della successiva entità;
+- contratto della relativa RPC autoritativa;
+- verifiche server-side del lock;
+- controllo della versione della riga secondo il contratto dell'entità;
+- comportamento in caso di lock assente, scaduto o trasferito;
+- test positivi, negativi e concorrenti;
+- integrazione con il Repository Layer.
+
+## Timing della documentazione
+
+La documentazione della Sessione S022 è iniziata il **24/08/2026 alle 22:11** ed è attualmente in corso.
+
+## Tempo complessivo della Sessione S022
+
+Sviluppo: **7 h 05 min**
+
+Documentazione: **in corso**
+
+Totale S022: **in corso**

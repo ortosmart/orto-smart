@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 1.4
+**Versione:** 1.5
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 23/08/2026
+**Ultimo aggiornamento:** 24/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 1.3                            |
+| Versione             | 1.5                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
 | Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 21/08/2026                     |
+| Ultimo aggiornamento | 24/08/2026                     |
 
 ---
 
@@ -50,6 +50,7 @@
 | 1.2      | 20/08/2026 | Introduzione della DEC-012 sulla sicurezza e gestione concorrente di `profile_edit_locks` nella Sessione S020, con definizione del protocollo server-side, token, lease, heartbeat, takeover, controllo della concorrenza e privilegi delle RPC |
 | 1.3      | 21/08/2026 | Aggiornamento della DEC-012 con l'hardening della concorrenza introdotto nella Sessione S021, audit finale del protocollo `profile_edit_lock` e definizione del confine con il futuro Write Path autoritativo Categoria A |
 | 1.4      | 23/08/2026 | Consolidamento della DEC-012 con il completamento e l'hardening del protocollo `profile_edit_locks` nella Sessione S021 e definizione del confine architetturale con il futuro Write Path autoritativo Categoria A |
+| 1.5      | 24/08/2026 | Aggiornamento della DEC-012 con la Sessione S022: applicazione del protocollo `profile_edit_locks` come fondamento del primo Write Path autoritativo di Categoria A per `gardens`, introduzione di `Profile Write Authority`, RPC `create_garden` e `update_garden` e definizione del confine con le ulteriori entità di Categoria A |
 
 ---
 
@@ -1517,9 +1518,9 @@ Queste alternative sono state escluse perché avrebbero aumentato la complessit�
 
 **Stato:** Approvata
 
-**Data:** 21/08/2026
+**Data:** 24/08/2026
 
-**Sessione:** S020–S021
+**Sessione:** S020–S022
 
 ### Contesto
 
@@ -1626,23 +1627,34 @@ L'audit non ha individuato ulteriori problemi bloccanti. Il protocollo `profile_
 
 Non vengono introdotti ulteriori meccanismi di complessità, quali advisory lock, retry loop, nuovi stati o nuove RPC, in assenza di un problema concreto che ne giustifichi l'introduzione.
 
-### Confine con il futuro Write Path autoritativo
+### Confine con il Write Path autoritativo
 
-La protezione concorrente di `profile_edit_locks` non implica che tutte le entità strutturali del Database V1 siano già protette da un Write Path autoritativo completo.
+La protezione concorrente di `profile_edit_locks` costituisce il fondamento tecnico del Write Path autoritativo delle entità di Categoria A, ma non implica che tutte le entità strutturali del Database V1 siano già protette da un Write Path autoritativo completo.
 
-Il futuro Write Path delle entità di **Categoria A** dovrà verificare lato server, nella stessa operazione sensibile:
+Nella Sessione S022 questo modello è stato applicato per la prima volta all'entità `gardens`.
 
-- holder valido del Profile;
-- identità esatta di client e sessione;
+Per `gardens` il Write Path autoritativo verifica lato server, nella stessa operazione sensibile:
+
+- Profile Write Authority valida;
+- identità autenticata e ownership attiva del Profile;
+- client e sessione;
 - token valido;
 - lease valido;
 - stato del takeover compatibile con la scrittura;
-- `expected_row_version`, per impedire lost update;
-- autorizzazione e invarianti applicabili all'operazione.
+- validazione degli input;
+- appartenenza del Garden al Profile;
+- controllo della versione della riga secondo il contratto dell'entità.
+
+Sono state introdotte le RPC autoritative:
+
+- `create_garden`;
+- `update_garden`.
+
+Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` su `public.gardens` sono state revocate.
 
 Il preflight eseguito dal client non costituisce una protezione sufficiente e non sostituisce le verifiche autoritative server-side.
 
-La presente decisione consolida quindi il protocollo di coordinamento del writer, ma non anticipa né sostituisce l'implementazione del futuro Write Path Categoria A.
+Il Write Path di `gardens` è considerato completato e coerente allo stato attuale. Le ulteriori entità di Categoria A dovranno essere protette progressivamente mediante RPC autoritative definite secondo il contratto specifico di ciascuna entità.
 
 ### Motivazione
 
@@ -1662,7 +1674,7 @@ L'impiego di `FOR UPDATE` e la rivalidazione dopo l'attesa sul row lock riducono
 
 La scelta di mantenere il protocollo semplice e fail-closed evita di introdurre meccanismi di sincronizzazione aggiuntivi prima che emerga una necessità concreta.
 
-Il protocollo costituisce inoltre una base controllata per il successivo Write Path autoritativo delle entità di Categoria A, senza anticiparne l'implementazione.
+Il protocollo costituisce inoltre la base controllata per il Write Path autoritativo delle entità di Categoria A. La Sessione S022 ha dimostrato l'applicazione concreta di questo modello mediante il Write Path di `gardens`, mentre le ulteriori entità saranno implementate progressivamente secondo il rispettivo contratto.
 
 ### Alternative valutate
 
@@ -1680,7 +1692,7 @@ Sono state considerate e scartate o rinviate le seguenti alternative:
 
 Le alternative sono state escluse o rinviate perché avrebbero aumentato la complessità, indebolito la separazione delle responsabilità o anticipato funzionalità non ancora necessarie.
 
-Il futuro Write Path Categoria A rimane pertanto un blocco tecnico distinto, da implementare applicando il protocollo del lock senza considerarlo implicitamente già risolto dalla presente decisione.
+Il Write Path delle ulteriori entità di Categoria A rimane pertanto un blocco tecnico distinto, da implementare progressivamente applicando il protocollo del lock e le verifiche server-side previste per ciascuna entità.
 
 ### Conseguenze
 
@@ -1693,10 +1705,10 @@ Il futuro Write Path Categoria A rimane pertanto un blocco tecnico distinto, da 
 - Il protocollo mantiene un comportamento conservativo e fail-closed.
 - Il modello single-writer per Profile rimane invariato.
 - Il protocollo del lock non sostituisce autenticazione, autorizzazione, RLS o invarianti del database.
-- Il protocollo del lock non equivale al completamento del futuro Write Path autoritativo Categoria A.
-- Le entità strutturali potranno essere considerate pienamente protette contro lost update solo dopo l'implementazione delle relative operazioni server-side autoritative con verifica del lock e `expected_row_version`.
+- Il protocollo del lock costituisce il fondamento del Write Path autoritativo di Categoria A, ma non implica il completamento dei Write Path di tutte le entità di Categoria A.
+- `gardens` dispone del primo Write Path autoritativo di Categoria A; le ulteriori entità strutturali potranno essere considerate pienamente protette contro lost update solo dopo l'implementazione delle relative operazioni server-side autoritative con le verifiche previste dal contratto di ciascuna entità.
 - Non vengono introdotti nel V1 ulteriori meccanismi di concorrenza non giustificati da problemi concreti.
-- Il protocollo costituisce la baseline tecnica per la successiva implementazione del Write Path autoritativo.
+- Il protocollo costituisce la baseline tecnica per l'estensione progressiva del Write Path autoritativo alle ulteriori entità di Categoria A.
 
 ---
 
@@ -1715,7 +1727,7 @@ Il futuro Write Path Categoria A rimane pertanto un blocco tecnico distinto, da 
 | DEC-009 | 11/08/2026 | S015     | Separazione tra pianificazione temporale e compatibilità agronomica                | Approvata |
 | DEC-010 | 12/08/2026 | S016     | Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza | Approvata |
 | DEC-011 | 16/08/2026 | S017     | Baseline architetturale del Database V1                                               | Approvata |
-| DEC-012 | 21/08/2026 | S020–S021 | Sicurezza e gestione concorrente del `profile_edit_lock` | Approvata |
+| DEC-012 | 24/08/2026 | S020–S022 | Sicurezza e gestione concorrente del `profile_edit_locks` e fondamento del Write Path autoritativo di Categoria A | Approvata |
 
 ---
 

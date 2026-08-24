@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 1.4
+**Versione:** 1.5
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 23/08/2026
+**Ultimo aggiornamento:** 24/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 1.3 |
+| Versione | 1.5 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 20/08/2026 |
+| Ultimo aggiornamento | 24/08/2026 |
 
 ---
 
@@ -41,6 +41,7 @@
 | 1.2 | 18/08/2026 | Aggiornamento con la Sessione S019: creazione della prima migration Database V1, implementazione e verifica locale delle Fondazioni, introduzione dello schema `private`, helper autorizzativi, trigger metadata, prima matrice di 13 policy RLS, test positivi e negativi e definizione delle RPC sicure e atomiche come successivo incremento tecnico |
 | 1.3 | 20/08/2026 | Aggiornamento con la Sessione S020: hardening di `profile_edit_locks`, introduzione dello stato sicuro di takeover, implementazione e verifica delle prime cinque RPC server-side per acquisizione, heartbeat, rilascio, richiesta e annullamento del takeover, consolidamento delle regole di sicurezza, concorrenza, token e temporizzazione e distinzione delle operazioni di takeover ancora da completare |
 | 1.4 | 23/08/2026 | Aggiornamento con la Sessione S021: completamento e hardening del protocollo `profile_edit_locks`, verifica delle transizioni concorrenti mediante `FOR UPDATE`, rivalidazione server-side e definizione del successivo Write Path autoritativo delle entità di Categoria A |
+| 1.5 | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, helper `Profile Write Authority`, RPC `create_garden` e `update_garden`, revoca delle scritture dirette da parte di `authenticated`, validazioni server-side e controllo della concorrenza |
 
 ---
 
@@ -1887,9 +1888,11 @@ L'hardening della Sessione S021 ha inoltre verificato:
 
 Il protocollo `profile_edit_locks` è considerato architetturalmente coerente allo stato attuale.
 
-Il completamento del protocollo `profile_edit_locks` non implica tuttavia che il futuro **Write Path autoritativo delle entità di Categoria A** sia già implementato. Tale blocco tecnico dovrà verificare server-side il holder valido, l'identità esatta di client e sessione, il token, il lease, lo stato del takeover e `expected_row_version`, senza affidarsi al solo preflight del client.
+Il completamento del protocollo `profile_edit_locks` ha consentito nella Sessione S022 l'introduzione del primo **Write Path autoritativo di Categoria A**, applicato all'entità `gardens`. Il Write Path verifica lato server l'identità autenticata, l'ownership attiva del Profile, la Profile Write Authority, il client, la sessione, il token, il lease e lo stato del takeover, senza affidarsi al solo preflight del client.
 
-Le operazioni amministrative protette su `profile_memberships` restano un blocco tecnico successivo e non risultano implementate nella Sessione S021.
+Per `gardens` sono state introdotte le RPC autoritative `create_garden` e `update_garden`. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono state revocate e le modifiche applicative vengono quindi concentrate nelle RPC server-side, con validazione e controllo atomico delle operazioni.
+
+Il Write Path delle ulteriori entità di Categoria A resta un blocco tecnico successivo. Le operazioni amministrative protette su `profile_memberships` restano inoltre un blocco tecnico successivo.
 
 ## 9.9 Identità tecnica per dispositivi futuri
 
@@ -3248,6 +3251,14 @@ La Sessione S021 ha inoltre verificato la serializzazione delle transizioni conc
 
 Il protocollo `profile_edit_locks` è considerato completato e coerente allo stato attuale.
 
+La Sessione S022 ha utilizzato il protocollo `profile_edit_locks` come fondamento del primo **Write Path autoritativo di Categoria A**, implementato per `gardens`.
+
+Per `gardens` sono state introdotte le RPC autoritative `create_garden` e `update_garden`. Il Write Path verifica server-side la Profile Write Authority, l'identità autenticata, l'ownership attiva del Profile, il client, la sessione, il token, il lease e lo stato del takeover.
+
+Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` su `public.gardens` sono state revocate. Le modifiche applicative vengono quindi concentrate nelle RPC server-side, con validazione degli input e controllo atomico delle operazioni.
+
+Il Write Path di `gardens` è considerato completato e coerente allo stato attuale. L'estensione del modello alle ulteriori entità di Categoria A costituisce un blocco tecnico successivo.
+
 Restano inoltre da affrontare le operazioni amministrative protette sulle `profile_memberships`.
 
 Le operazioni già implementate e quelle ancora da completare devono rispettare i principi già stabiliti per il Database V1:
@@ -3286,7 +3297,7 @@ documentazione
 commit e push
 ```
 
-La S019 costituisce quindi il **primo incremento fisicamente implementato e verificato** del Database V1, mentre le restanti strutture della baseline devono ancora essere introdotte progressivamente.
+La S019 ha costituito il primo incremento fisicamente implementato e verificato del Database V1. Le Sessioni successive hanno esteso progressivamente l'implementazione, completando il protocollo `profile_edit_locks` e introducendo con la S022 il primo Write Path autoritativo di Categoria A per `gardens`. Le ulteriori strutture e Write Path della baseline continueranno a essere introdotti progressivamente secondo il perimetro approvato.
 
 ## 13.4 Relazione con il dominio applicativo
 
