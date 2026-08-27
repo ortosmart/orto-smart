@@ -122,6 +122,7 @@ class ProfileWriteAuthorityController extends ChangeNotifier {
       );
 
       if (!_isCurrent(generation)) {
+        await _releaseStaleAcquisition(result);
         return;
       }
 
@@ -156,6 +157,19 @@ class ProfileWriteAuthorityController extends ChangeNotifier {
         _lease = null;
         _transitionTo(ProfileWriteAuthorityStatus.recovering);
         _scheduleAcquireRetry(generation);
+      }
+    }
+  }
+
+  Future<void> _releaseStaleAcquisition(
+    AcquireProfileEditLockResult result,
+  ) async {
+    if (result case ProfileEditLockAcquired(:final lease)) {
+      try {
+        await _repository.release(lease);
+      } on Object {
+        // Il controller non conserva il lease obsoleto.
+        // Se il rilascio remoto fallisce, il lock scadrà sul server.
       }
     }
   }

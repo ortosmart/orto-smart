@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -428,5 +429,36 @@ void main() {
     expect(controller.status, ProfileWriteAuthorityStatus.released);
     expect(controller.canWrite, isFalse);
     expect(controller.expiresAt, isNull);
+  });
+  test('releases a stale acquisition after the Profile changes', () async {
+    final acquisitionCompleter = Completer<dynamic>();
+
+    rpc
+      ..enqueue(acquisitionCompleter.future)
+      ..enqueue({'status': 'released'});
+
+    final previousInitialization = controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    await controller.initialize(
+      profileContext: _workerContext,
+      identity: _identity,
+    );
+
+    acquisitionCompleter.complete(_acquiredResponse());
+
+    await previousInitialization;
+
+    expect(controller.status, ProfileWriteAuthorityStatus.readOnlyMember);
+    expect(controller.canWrite, isFalse);
+    expect(controller.expiresAt, isNull);
+    expect(controller.rowVersion, isNull);
+    expect(rpc.functionNames, [
+      'acquire_profile_edit_lock',
+      'release_profile_edit_lock',
+    ]);
+    expect(scheduler.delays, isEmpty);
   });
 }
