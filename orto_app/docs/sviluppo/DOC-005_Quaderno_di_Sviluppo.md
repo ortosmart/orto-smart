@@ -4,14 +4,14 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.9
+**Versione:** 0.10
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 25/08/2026
+**Ultimo aggiornamento:** 28/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.9 |
+| Versione | 0.10 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 25/08/2026 |
+| Ultimo aggiornamento | 28/08/2026 |
 
 ---
 
@@ -45,6 +45,7 @@
 | 0.7 | 21/08/2026 | Aggiornamento del Quaderno con la Sessione S021: completamento del protocollo `profile_edit_locks`, hardening delle transizioni concorrenti e definizione del successivo Write Path autoritativo di Categoria A |
 | 0.8 | 24/08/2026 | Aggiornamento del Quaderno con la Sessione S022: implementazione del primo Write Path autoritativo di Categoria A per `gardens`, introduzione di `Profile Write Authority`, hardening della struttura di `gardens`, RPC `create_garden` e `update_garden`, validazioni server-side e verifica del comportamento concorrente |
 | 0.9 | 25/08/2026 | Chiusura della Sessione S022: consolidamento del Write Path autoritativo di Categoria A per `gardens`, completamento della documentazione e aggiornamento del timing della sessione |
+| 0.10 | 28/08/2026 | Aggiornamento del Quaderno con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, identità tecnica del client e della sessione, integrazione Flutter della Profile Write Authority e definizione del successivo blocco `beds` e `bed_geometries` |
 
 ---
 
@@ -107,6 +108,10 @@
 3.17 S017
 3.18 S018
 3.19 S019
+3.20 S020
+3.21 S021
+3.22 S022
+3.23 S023
 
 ## 4. Considerazioni finali
 
@@ -4533,7 +4538,7 @@ Eventuali necessità architetturali emerse durante la traduzione SQL dovranno es
 # Sessione S019 – Baseline Database V1 e prima sicurezza RLS
 
 **Data sviluppo:** 17/08/2026
-**Stato:** Sviluppo concluso – documentazione in corso
+**Stato:** Sessione conclusa
 **Chiusura sviluppo:** 21:41
 **Tempo sviluppo effettivo:** **6 h 03 min**
 **Pause sviluppo complessive:** **3 h 05 min**
@@ -5303,7 +5308,7 @@ Totale S021: **9 h 57 min**
 
 **Periodo sviluppo:** 23–24/08/2026
 **Sviluppo:** 7 h 05 min
-**Documentazione:** in corso
+**Documentazione:** 2 h 29 min
 
 ## Obiettivo della sessione
 
@@ -5542,10 +5547,6 @@ Prima di procedere dovranno essere definiti e verificati:
 
 ## Timing della documentazione
 
-La documentazione della Sessione S022 è iniziata il **24/08/2026 alle 22:11** ed è attualmente in corso.
-
-## Timing della documentazione
-
 La documentazione della Sessione S022 è iniziata il **24/08/2026 alle 22:11** ed è terminata il **25/08/2026 alle 00:40**.
 
 ## Tempo complessivo della Sessione S022
@@ -5555,3 +5556,389 @@ Sviluppo: **7 h 05 min**
 Documentazione: **2 h 29 min**
 
 Totale S022: **9 h 34 min**
+
+# Sessione S023 — Profile Write Authority applicativa e Write Path `seasons`
+
+**Periodo sviluppo:** 25–28/08/2026
+**Sviluppo:** 10 h 35 min
+**Documentazione:** 2 h 50 min
+
+## Obiettivo della sessione
+
+La Sessione S023 prosegue l’implementazione incrementale dei Write Path autoritativi di Categoria A.
+
+Gli obiettivi principali sono:
+
+- rafforzare `update_garden` contro i lost update;
+- estendere il Write Path autoritativo a `seasons`;
+- introdurre nel client Flutter l’identità tecnica stabile e l’identità della sessione applicativa;
+- integrare il protocollo `profile_edit_locks` nel ciclo applicativo;
+- bloccare localmente le scritture protette quando non è disponibile un lease valido;
+- mantenere il database come autorità definitiva per identità, autorizzazione, tempo, lock, transizioni e invarianti.
+
+La sessione mantiene i principi guida del progetto:
+
+- **sicurezza prima di tutto**;
+- **presto e bene non conviene**;
+- comportamento conservativo e fail-closed;
+- distinzione tra controllo preventivo del client e controllo autoritativo server-side;
+- piccoli incrementi verificabili;
+- concorrenza ottimistica per le entità che espongono `row_version`.
+
+## Timing dello sviluppo
+
+La fase di sviluppo della Sessione S023 si è svolta tra il **25 e il 28 agosto 2026**.
+
+| Data | Intervallo | Durata netta |
+| --- | --- | ---: |
+| 25/08/2026 | 16:55 → 17:20 | 25 min |
+| 25/08/2026 | 19:08 → 20:48 | 1 h 40 min |
+| 26/08/2026 | 08:22 → 09:37 | 1 h 15 min |
+| 26/08/2026 | 15:26 → 16:27 | 1 h 01 min |
+| 26/08/2026 | 16:46 → 17:32 | 46 min |
+| 26/08/2026 | 18:21 → 18:40 | 19 min |
+| 26/08/2026 | 21:18 → 22:48 | 1 h 30 min |
+| 27–28/08/2026 | 21:46 → 00:32 | 2 h 46 min |
+| 28/08/2026 | 12:14 → 13:03 | 49 min |
+| 28/08/2026 | 13:37 → 13:41 | 4 min |
+| **Totale sviluppo S023** |  | **10 h 35 min** |
+
+La pausa del 28/08/2026 dalle **13:03 alle 13:37**, pari a 34 minuti, è esclusa dal conteggio.
+
+Lo sviluppo è stato sospeso definitivamente per il passaggio alla fase Manuali il **28/08/2026 alle 13:41**.
+
+## IMPLEMENTATO E TESTATO
+
+### Hardening concorrente di `update_garden`
+
+È stata introdotta la migration:
+
+`20260825173801_harden_update_garden_row_version.sql`
+
+La RPC `update_garden` richiede ora `expected_row_version`.
+
+La versione attesa viene verificata:
+
+- rispetto allo stato corrente della riga;
+- nella condizione dell’`UPDATE` finale;
+- prima di restituire il risultato applicativo.
+
+Quando la versione corrente non coincide più con quella attesa, la RPC restituisce `version_conflict` e non applica la modifica.
+
+Questo comportamento impedisce che un aggiornamento costruito su dati obsoleti sovrascriva una modifica più recente.
+
+### Write Path autoritativo di `seasons`
+
+È stata introdotta la migration:
+
+`20260826063859_harden_seasons_write_path.sql`
+
+La migration:
+
+- revoca ad `authenticated` i privilegi diretti `INSERT`, `UPDATE` e `DELETE` su `public.seasons`;
+- mantiene la lettura secondo le autorizzazioni previste;
+- centralizza le scritture applicative nelle RPC autoritative;
+- applica la Profile Write Authority lato server;
+- introduce la concorrenza ottimistica mediante `row_version`;
+- protegge le invarianti specifiche delle stagioni.
+
+Sono state implementate:
+
+- `create_season`;
+- `update_season`;
+- `activate_season`.
+
+`create_season`:
+
+- crea sempre la nuova stagione inizialmente inattiva;
+- verifica il Garden e il Profile autorizzato;
+- impedisce la duplicazione dell’anno nello stesso Garden;
+- valida i dati temporali e descrittivi;
+- restituisce lo stato `created` e la riga persistita.
+
+`update_season`:
+
+- richiede `expected_row_version`;
+- modifica esclusivamente i dati descrittivi e temporali;
+- mantiene immutabile `garden_id`;
+- non consente di modificare direttamente `is_active`;
+- distingue `updated`, `unchanged` e `version_conflict`.
+
+`activate_season`:
+
+- richiede `expected_row_version`;
+- costituisce l’operazione dedicata al cambio dello stato attivo;
+- attiva la stagione target;
+- disattiva nella stessa transazione l’eventuale stagione precedentemente attiva nello stesso Garden;
+- restituisce anche l’eventuale stagione disattivata;
+- distingue `activated`, `unchanged` e `version_conflict`.
+
+Il contratto server-side gestisce inoltre gli esiti:
+
+- `duplicate_year`;
+- `forbidden`;
+- `write_forbidden`;
+- `not_found`;
+- `invalid_input`.
+
+### Identità tecnica del client e della sessione
+
+È stata introdotta un’identità tecnica stabile del client, distinta dall’identità della sessione applicativa.
+
+I componenti principali sono:
+
+- `ClientInstanceIdStore`;
+- `AppSessionIdentity`;
+- `AppIdentityService`.
+
+L’identificatore stabile del client viene conservato localmente mediante `shared_preferences`. Gli identificatori tecnici vengono generati mediante `uuid`.
+
+A ogni avvio viene creata una nuova identità della sessione applicativa. Una nuova sessione non eredita automaticamente un lease ottenuto da una sessione precedente.
+
+Il token del lease rimane distinto dall’identità persistente del client e non viene conservato nello storage dell’identità tecnica.
+
+### Contesto Profile
+
+Sono stati introdotti:
+
+- `ProfileContext`;
+- `ProfileContextRepository`.
+
+Il Repository risolve il Profile associato all’utente autenticato e fornisce il contesto necessario al ciclo applicativo protetto.
+
+L’assenza di un contesto valido impedisce di considerare disponibile l’autorità di scrittura.
+
+### Repository `profile_edit_locks`
+
+È stato introdotto `ProfileEditLockRepository`.
+
+Il Repository:
+
+- incapsula le RPC server-side del protocollo `profile_edit_locks`;
+- converte lo stato restituito dal database nel modello applicativo `ProfileEditLock`;
+- mantiene separati client, sessione e token;
+- utilizza i tempi autoritativi restituiti dal server;
+- non attribuisce autonomamente l’autorità di scrittura.
+
+### Controller e scheduler della Profile Write Authority
+
+Sono stati introdotti:
+
+- `WriteAuthorityScheduler`;
+- `ProfileWriteAuthorityController`.
+
+Il controller coordina:
+
+- acquisizione del lease;
+- heartbeat;
+- scadenza;
+- perdita dell’autorità;
+- rilascio;
+- aggiornamento dello stato applicativo.
+
+Lo scheduler fornisce la pianificazione delle operazioni periodiche senza spostare nel client l’autorità temporale, che rimane nel database PostgreSQL.
+
+In assenza di un lease valido il controller applica un comportamento fail-closed e le scritture protette vengono bloccate localmente.
+
+### Scope applicativo e gate della sessione Profile
+
+Sono stati introdotti:
+
+- `ProfileWriteAuthorityScope`;
+- `ProfileSessionGate`.
+
+Lo scope rende disponibile alle componenti discendenti lo stato della Profile Write Authority senza richiedere alle pagine di gestire direttamente il token.
+
+Il gate impedisce l’ingresso nel ciclo applicativo protetto finché non sono disponibili:
+
+- utente autenticato;
+- identità tecnica del client;
+- identità della sessione;
+- contesto Profile coerente;
+- stato iniziale della Write Authority.
+
+Il controllo locale costituisce un preflight preventivo e non sostituisce le verifiche server-side delle RPC.
+
+### Integrazione nel ciclo applicativo
+
+Il ciclo applicativo in `main.dart` è stato aggiornato per coordinare:
+
+- inizializzazione di Supabase;
+- caricamento o creazione dell’identità stabile del client;
+- creazione della sessione applicativa;
+- risoluzione del contesto Profile;
+- rilascio conservativo delle acquisizioni obsolete riferite allo stesso client;
+- inizializzazione del Repository del lock;
+- creazione del controller e dello scheduler;
+- attivazione del gate;
+- esposizione dello scope applicativo;
+- rilascio delle risorse alla chiusura.
+
+### Adapter Flutter per `seasons`
+
+Il modello `Season` espone ora `rowVersion`.
+
+`SeasonRepository` integra:
+
+- `create_season`;
+- `update_season`;
+- `activate_season`;
+- la lettura della stagione attiva già esistente.
+
+Il Repository:
+
+- ottiene il lease dal livello Profile Write Authority;
+- non richiede alle pagine di trasmettere direttamente il token;
+- mappa gli esiti RPC in risultati Dart tipizzati;
+- rifiuta in modo fail-closed payload sconosciuti, incompleti o incoerenti;
+- gestisce la stagione target e l’eventuale stagione precedente disattivata atomicamente.
+
+Nessuna pagina applicativa scrive direttamente su `seasons`.
+
+## Migration introdotte
+
+La Sessione S023 ha prodotto:
+
+- `20260825173801_harden_update_garden_row_version.sql`;
+- `20260826063859_harden_seasons_write_path.sql`.
+
+## Verifiche e test
+
+Le verifiche finali della fase sviluppo hanno prodotto:
+
+- `flutter analyze`: **No issues found**;
+- `flutter test`: **237/237 test superati**;
+- test dedicati `SeasonRepository`: **28/28 superati**;
+- `git diff --check`: pulito;
+- working tree: pulito;
+- branch `main` allineato a `origin/main`.
+
+Sono stati aggiunti test dedicati per:
+
+- identità tecnica;
+- contesto Profile;
+- gate della sessione Profile;
+- controller della Profile Write Authority;
+- scope della Write Authority;
+- scheduler;
+- Repository `profile_edit_locks`;
+- `SeasonRepository`.
+
+Le verifiche comprendono casi positivi, negativi, payload non validi, assenza del lease, conflitti di versione e gestione fail-closed degli esiti sconosciuti o incoerenti.
+
+## APPROVATO / CONGELATO
+
+Con la conclusione dello sviluppo della Sessione S023 vengono considerati consolidati:
+
+- Profile Write Authority come prerequisito applicativo e server-side delle scritture protette;
+- identità stabile del client distinta dall’identità della sessione applicativa;
+- creazione di una nuova sessione applicativa a ogni avvio;
+- divieto di ereditare automaticamente un lease appartenente a una sessione precedente;
+- rilascio conservativo delle acquisizioni obsolete riferite allo stesso client;
+- blocco locale delle scritture protette in assenza di un lease valido;
+- natura preventiva del gate Flutter;
+- autorità definitiva delle verifiche server-side;
+- concorrenza ottimistica di `gardens` e `seasons` tramite `row_version`;
+- obbligatorietà di `expected_row_version` per le operazioni protette previste;
+- creazione delle stagioni sempre in stato inattivo;
+- immutabilità di `garden_id` nel Write Path di aggiornamento;
+- modifica di `is_active` esclusivamente tramite `activate_season`;
+- attivazione della stagione target e disattivazione della precedente nella stessa transazione;
+- rifiuto fail-closed delle risposte RPC sconosciute, incomplete o incoerenti;
+- impossibilità per le pagine di gestire direttamente il token del lease.
+
+I Write Path autoritativi di `gardens` e `seasons` sono considerati **completati e coerenti allo stato attuale**.
+
+## Commit tecnici S023
+
+La Sessione S023 comprende i seguenti commit tecnici, nella cronologia corrente:
+
+- `f722cb2` — **Rafforza controllo versione update garden**
+- `cdbc070` — **Implementa Write Path autoritativo per seasons**
+- `e12b5e2` — **Introduce identità tecnica locale**
+- `b1aacc1` — **Introduce contesto Profile applicativo**
+- `692d46e` — **Introduce repository Profile Edit Lock**
+- `8b28192` — **Introduce scheduler Write Authority**
+- `02e7fea` — **Introduce controller Profile Write Authority**
+- `9cd9915` — **Introduce scope Profile Write Authority**
+- `e14443b` — **Rilascia acquisizioni Profile obsolete**
+- `a105ae1` — **Introduce gate sessione Profile**
+- `620c855` — **Integra sessione Profile nel ciclo applicativo**
+- `9ca8bf1` — **Integra Write Path autoritativo per seasons**
+
+Il confine Git corrente della S023 tecnica è quindi:
+
+```text
+67debf7..9ca8bf1
+```
+
+La chiusura S022 nella cronologia riscritta termina con `67debf7`; i precedenti hash annotati prima della bonifica non devono essere utilizzati come riferimenti Git correnti.
+
+## Stato Git al termine dello sviluppo
+
+Al passaggio dalla fase sviluppo alla fase Manuali risultava:
+
+```text
+branch: main
+HEAD: 9ca8bf1
+origin/main: 9ca8bf1
+working tree: clean
+```
+
+Le verifiche finali confermavano il repository locale allineato al remoto.
+
+## APERTO / PROSSIMO BLOCCO TECNICO
+
+Il successivo blocco concordato per la Sessione S024 è:
+
+> **Implementazione V1 di `beds` e `bed_geometries`, con identità stabile, geometria storicizzata e Write Path autoritativo.**
+
+Le migration attuali non creano ancora `beds` e `bed_geometries` secondo il contratto V1.
+
+Il modello Flutter legacy mantiene ancora larghezza e lunghezza direttamente in `Bed`, mentre la baseline approvata separa:
+
+- identità stabile dell’aiuola;
+- geometria valida in uno specifico intervallo temporale.
+
+Implementare soltanto `beds` lascerebbe quindi incompleto e semanticamente scorretto il blocco.
+
+All’avvio della S024 dovranno essere definiti puntualmente:
+
+- campi di `beds`;
+- campi di `bed_geometries`;
+- vincoli temporali;
+- gestione della geometria corrente e dello storico;
+- RPC autoritative;
+- controllo di `row_version`;
+- gestione di `irrigation_zone`;
+- bootstrap delle 15 aiuole esistenti;
+- adattamento dei modelli e Repository Flutter;
+- test positivi, negativi e concorrenti.
+
+Le operazioni amministrative protette su `profile_memberships` restano un blocco successivo distinto.
+
+## Punto di continuità successivo
+
+La Sessione S024 dovrà iniziare dalla verifica della baseline approvata per `beds` e `bed_geometries`, evitando di trasferire automaticamente nel Database V1 la struttura del modello Flutter legacy.
+
+Prima dell’implementazione dovranno essere congelati il contratto delle due entità, le invarianti temporali, il Write Path e il piano controllato di bootstrap delle 15 aiuole.
+
+## Timing della documentazione
+
+La documentazione della Sessione S023 è iniziata il **28/08/2026 alle 15:33** ed è terminata il **28/08/2026 alle 19:05**.
+
+| Intervallo | Durata netta |
+| --- | ---: |
+| 15:33 → 16:55 | 1 h 22 min |
+| 17:37 → 19:05 | 1 h 28 min |
+| **Totale documentazione S023** | **2 h 50 min** |
+
+La sospensione dalle **16:55 alle 17:37**, pari a 42 minuti, è esclusa dal conteggio.
+
+## Tempo complessivo della Sessione S023
+
+Sviluppo: **10 h 35 min**
+
+Documentazione: **2 h 50 min**
+
+Totale S023: **13 h 25 min**

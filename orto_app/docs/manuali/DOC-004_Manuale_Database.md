@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 1.5
+**Versione:** 1.6
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 24/08/2026
+**Ultimo aggiornamento:** 28/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 1.5 |
+| Versione | 1.6 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 24/08/2026 |
+| Ultimo aggiornamento | 28/08/2026 |
 
 ---
 
@@ -42,6 +42,7 @@
 | 1.3 | 20/08/2026 | Aggiornamento con la Sessione S020: hardening di `profile_edit_locks`, introduzione dello stato sicuro di takeover, implementazione e verifica delle prime cinque RPC server-side per acquisizione, heartbeat, rilascio, richiesta e annullamento del takeover, consolidamento delle regole di sicurezza, concorrenza, token e temporizzazione e distinzione delle operazioni di takeover ancora da completare |
 | 1.4 | 23/08/2026 | Aggiornamento con la Sessione S021: completamento e hardening del protocollo `profile_edit_locks`, verifica delle transizioni concorrenti mediante `FOR UPDATE`, rivalidazione server-side e definizione del successivo Write Path autoritativo delle entità di Categoria A |
 | 1.5 | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, helper `Profile Write Authority`, RPC `create_garden` e `update_garden`, revoca delle scritture dirette da parte di `authenticated`, validazioni server-side e controllo della concorrenza |
+| 1.6 | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, introduzione del Write Path autoritativo di `seasons` mediante `create_season`, `update_season` e `activate_season`, revoca delle scritture dirette, concorrenza ottimistica tramite `row_version` e attivazione atomica della stagione |
 
 ---
 
@@ -154,26 +155,22 @@ e sostituisce la precedente denominazione provvisoria `zone_target_assignments`.
 
 ## 2.3 Stato di implementazione
 
-Al termine della Sessione S019 la situazione del Database V1 è la seguente:
+Al termine della Sessione S023 la situazione del Database V1 è la seguente:
 
 - la progettazione logica e architetturale completata nella S017 rimane la baseline ufficiale congelata;
-- l'ambiente locale Supabase predisposto nella S018 è operativo per sviluppo e collaudo;
-- è stata creata la prima migration Database V1:
-
-```text
-supabase/migrations/20260817103916_database_v1_baseline.sql
-```
-
-- è stato implementato il primo gruppo coerente della baseline, denominato **Fondazioni**;
-- la migration è ricostruibile localmente mediante `supabase db reset`;
-- la struttura effettivamente generata è stata verificata anche mediante un dump diagnostico locale temporaneo, successivamente eliminato;
-- sono stati introdotti lo schema `private`, gli helper autorizzativi e i trigger metadata;
-- è stata attivata e verificata la prima matrice di Row Level Security;
-- sono presenti e verificate **13 policy RLS**;
-- sono stati eseguiti test manuali sia positivi sia negativi sugli accessi e sulle operazioni protette;
+- l’ambiente locale Supabase predisposto nella S018 è operativo per sviluppo, ricostruzione e collaudo;
+- le migration locali e remote risultano allineate;
+- è implementato il gruppo **Fondazioni**;
+- sono presenti lo schema `private`, gli helper autorizzativi, i trigger metadata e la matrice RLS;
+- è completato e verificato il protocollo server-side `profile_edit_locks`;
+- è disponibile la Profile Write Authority server-side;
+- `gardens` dispone del Write Path autoritativo mediante `create_garden` e `update_garden`;
+- `update_garden` applica la concorrenza ottimistica mediante `expected_row_version`;
+- `seasons` dispone del Write Path autoritativo mediante `create_season`, `update_season` e `activate_season`;
+- le scritture dirette su `public.gardens` e `public.seasons` da parte di `authenticated` sono revocate;
 - il Database V1 completo non è ancora implementato.
 
-Le sei tabelle del blocco Fondazioni attualmente implementate nella nuova baseline sono:
+Le sei tabelle del blocco Fondazioni attualmente implementate sono:
 
 ```text
 profiles
@@ -184,11 +181,18 @@ seasons
 profile_edit_locks
 ```
 
-La S019 rappresenta quindi il passaggio dalla sola progettazione alla **prima implementazione fisica verificata** del Database V1.
+Le migration introdotte nella Sessione S023 sono:
 
-Le successive fasi dovranno continuare a tradurre incrementalmente la baseline congelata in SQL/Supabase, senza riaprire lo STEP 34 salvo l'emersione di un errore concreto o di una necessità architetturale esplicitamente valutata.
+```text
+20260825173801_harden_update_garden_row_version.sql
+20260826063859_harden_seasons_write_path.sql
+```
 
-La Sessione S020 ha avviato il blocco tecnico delle **RPC sicure e atomiche** per le operazioni sensibili, implementando e verificando le prime operazioni relative a `profile_edit_locks`. Il completamento del protocollo di takeover e le operazioni amministrative protette su `profile_memberships` costituiscono i successivi passi di questo incremento.
+La prima rafforza `update_garden` contro i lost update. La seconda protegge il Write Path di `seasons`, centralizza le scritture nelle RPC autoritative e applica le invarianti della stagione.
+
+Le sessioni da S019 a S023 rappresentano quindi la progressiva traduzione della baseline congelata in strutture, sicurezza e operazioni server-side verificate. L’implementazione dovrà continuare incrementalmente senza riaprire lo STEP 34 salvo l’emersione di un errore concreto o di una necessità architetturale esplicitamente valutata.
+
+Le operazioni amministrative protette su `profile_memberships` e i Write Path delle ulteriori entità di Categoria A restano incrementi successivi.
 
 ---
 
@@ -1888,11 +1892,27 @@ L'hardening della Sessione S021 ha inoltre verificato:
 
 Il protocollo `profile_edit_locks` è considerato architetturalmente coerente allo stato attuale.
 
-Il completamento del protocollo `profile_edit_locks` ha consentito nella Sessione S022 l'introduzione del primo **Write Path autoritativo di Categoria A**, applicato all'entità `gardens`. Il Write Path verifica lato server l'identità autenticata, l'ownership attiva del Profile, la Profile Write Authority, il client, la sessione, il token, il lease e lo stato del takeover, senza affidarsi al solo preflight del client.
+Il completamento del protocollo `profile_edit_locks` ha consentito nella Sessione S022 l’introduzione del primo **Write Path autoritativo di Categoria A**, applicato a `gardens`.
 
-Per `gardens` sono state introdotte le RPC autoritative `create_garden` e `update_garden`. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono state revocate e le modifiche applicative vengono quindi concentrate nelle RPC server-side, con validazione e controllo atomico delle operazioni.
+Il Write Path di `gardens` verifica server-side l’identità autenticata, l’ownership attiva del Profile, la Profile Write Authority, il client, la sessione, il token, il lease e lo stato del takeover. Le RPC `create_garden` e `update_garden` centralizzano validazione e scrittura atomica; i privilegi diretti `INSERT`, `UPDATE` e `DELETE` su `public.gardens` sono revocati ad `authenticated`.
 
-Il Write Path delle ulteriori entità di Categoria A resta un blocco tecnico successivo. Le operazioni amministrative protette su `profile_memberships` restano inoltre un blocco tecnico successivo.
+Nella Sessione S023 `update_garden` è stata rafforzata rendendo obbligatorio `expected_row_version`. La versione viene verificata sia sullo stato letto sia nella condizione della scrittura finale. Se la riga non corrisponde più alla versione attesa, la RPC restituisce `version_conflict` e non applica l’aggiornamento.
+
+La Sessione S023 ha inoltre introdotto il Write Path autoritativo di `seasons` mediante:
+
+- `create_season`;
+- `update_season`;
+- `activate_season`.
+
+I privilegi diretti `INSERT`, `UPDATE` e `DELETE` su `public.seasons` sono revocati ad `authenticated`, mentre `SELECT` rimane regolato dalle autorizzazioni previste.
+
+`create_season` crea la stagione inizialmente inattiva e impedisce la duplicazione dell’anno nello stesso Garden. `update_season` modifica esclusivamente i dati descrittivi e temporali, mantiene immutabile `garden_id` e non modifica `is_active`.
+
+`activate_season` costituisce l’unica operazione applicativa autorizzata a cambiare lo stato attivo. La RPC attiva la stagione target e disattiva atomicamente l’eventuale stagione precedentemente attiva nello stesso Garden.
+
+`update_season` e `activate_season` richiedono `expected_row_version` e restituiscono `version_conflict` quando lo stato corrente non coincide più con quello atteso. Gli altri esiti del contratto comprendono `created`, `updated`, `activated`, `unchanged`, `duplicate_year`, `forbidden`, `write_forbidden`, `not_found` e `invalid_input`.
+
+I Write Path di `gardens` e `seasons` sono considerati completati e coerenti allo stato attuale. Le operazioni amministrative protette su `profile_memberships` e i Write Path delle ulteriori entità di Categoria A restano incrementi successivi.
 
 ## 9.9 Identità tecnica per dispositivi futuri
 
@@ -2420,7 +2440,25 @@ supabase db reset
 
 e mediante test manuali positivi e negativi delle policy RLS.
 
-La S019 costituisce quindi il **primo incremento fisicamente implementato e verificato** della baseline Database V1. Le restanti entità della baseline e le operazioni server-side ancora necessarie, comprese le RPC per il modello single-writer e la gestione amministrativa delle membership, rimangono da implementare progressivamente.
+La S019 costituisce il primo incremento fisicamente implementato e verificato della baseline Database V1.
+
+Le Sessioni S020 e S021 hanno progressivamente completato e rafforzato il protocollo server-side `profile_edit_locks`. La S022 ha introdotto la Profile Write Authority e il primo Write Path autoritativo per `gardens`. La S023 ha rafforzato il controllo versione di `update_garden` e ha applicato il Write Path autoritativo a `seasons`.
+
+La sequenza delle migration implementate e allineate fino alla S023 è:
+
+```text
+20260817103916_database_v1_baseline.sql
+20260818154920_harden_profile_edit_locks.sql
+20260818162315_add_takeover_grant_state.sql
+20260819215412_add_secure_profile_edit_lock_rpcs.sql
+20260823111048_add_profile_write_authority.sql
+20260823145731_harden_gardens_write_path.sql
+20260824145346_add_update_garden_rpc.sql
+20260825173801_harden_update_garden_row_version.sql
+20260826063859_harden_seasons_write_path.sql
+```
+
+Le restanti entità della baseline, i relativi Write Path autoritativi e le operazioni amministrative protette su `profile_memberships` rimangono da implementare progressivamente secondo dipendenze e perimetro approvato.
 
 ## 11.4 Ordine delle dipendenze
 
@@ -3253,13 +3291,15 @@ Il protocollo `profile_edit_locks` è considerato completato e coerente allo sta
 
 La Sessione S022 ha utilizzato il protocollo `profile_edit_locks` come fondamento del primo **Write Path autoritativo di Categoria A**, implementato per `gardens`.
 
-Per `gardens` sono state introdotte le RPC autoritative `create_garden` e `update_garden`. Il Write Path verifica server-side la Profile Write Authority, l'identità autenticata, l'ownership attiva del Profile, il client, la sessione, il token, il lease e lo stato del takeover.
+Per `gardens` sono disponibili `create_garden` e `update_garden`. Il Write Path verifica server-side la Profile Write Authority, l’identità autenticata, l’ownership attiva del Profile, il client, la sessione, il token, il lease e lo stato del takeover. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono revocate.
 
-Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` su `public.gardens` sono state revocate. Le modifiche applicative vengono quindi concentrate nelle RPC server-side, con validazione degli input e controllo atomico delle operazioni.
+Nella Sessione S023 `update_garden` è stata rafforzata mediante `expected_row_version`, controllo condizionale della scrittura e restituzione di `version_conflict` in presenza di dati obsoleti.
 
-Il Write Path di `gardens` è considerato completato e coerente allo stato attuale. L'estensione del modello alle ulteriori entità di Categoria A costituisce un blocco tecnico successivo.
+La Sessione S023 ha inoltre introdotto il Write Path autoritativo di `seasons` mediante `create_season`, `update_season` e `activate_season`. Le scritture dirette sono revocate, la concorrenza ottimistica utilizza `row_version` e l’attivazione della stagione target con la disattivazione della precedente avviene atomicamente.
 
-Restano inoltre da affrontare le operazioni amministrative protette sulle `profile_memberships`.
+I Write Path di `gardens` e `seasons` sono considerati completati e coerenti allo stato attuale.
+
+Il prossimo incremento concordato riguarda `beds` e `bed_geometries`, con identità stabile dell’aiuola, geometria storicizzata e Write Path autoritativo. Restano inoltre da affrontare le operazioni amministrative protette su `profile_memberships`.
 
 Le operazioni già implementate e quelle ancora da completare devono rispettare i principi già stabiliti per il Database V1:
 
@@ -3282,13 +3322,13 @@ Le RPC devono essere progettate e implementate secondo il principio del privileg
 Il percorso di implementazione prosegue pertanto come:
 
 ```text
-Fondazioni implementate e verificate
+Fondazioni e protocollo single-writer verificati
         ↓
-RPC e operazioni server-side delle Fondazioni
+Write Path gardens e seasons verificati
+        ↓
+beds e bed_geometries
         ↓
 verifica positiva e negativa della sicurezza
-        ↓
-incrementi successivi della baseline
         ↓
 integrazione Repository / dominio
         ↓
@@ -3297,7 +3337,7 @@ documentazione
 commit e push
 ```
 
-La S019 ha costituito il primo incremento fisicamente implementato e verificato del Database V1. Le Sessioni successive hanno esteso progressivamente l'implementazione, completando il protocollo `profile_edit_locks` e introducendo con la S022 il primo Write Path autoritativo di Categoria A per `gardens`. Le ulteriori strutture e Write Path della baseline continueranno a essere introdotti progressivamente secondo il perimetro approvato.
+La S019 ha costituito il primo incremento fisicamente implementato e verificato del Database V1. Le Sessioni S020 e S021 hanno completato e rafforzato il protocollo `profile_edit_locks`; la S022 ha introdotto il Write Path autoritativo di `gardens`; la S023 ha rafforzato `update_garden` e completato il Write Path autoritativo di `seasons`. Le ulteriori strutture e operazioni della baseline continueranno a essere introdotte progressivamente secondo il perimetro approvato.
 
 ## 13.4 Relazione con il dominio applicativo
 

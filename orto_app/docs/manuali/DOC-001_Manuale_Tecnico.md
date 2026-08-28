@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.1
+**Versione:** 2.2
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 24/08/2026
+**Ultimo aggiornamento:** 28/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,14 +23,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.1 |
+| Versione | 2.2 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 24/08/2026 |
+| Ultimo aggiornamento | 28/08/2026 |
 
 ---
 
@@ -52,6 +52,7 @@
 | 1.9      | 20/08/2026 | Aggiornamento della S020 con hardening di `profile_edit_locks`, implementazione e verifica delle prime cinque RPC server-side per acquisizione, heartbeat, rilascio, richiesta e annullamento del takeover, consolidamento delle regole di sicurezza concorrente e distinzione delle operazioni di takeover ancora da completare |
 | 2.0      | 23/08/2026 | Aggiornamento con la Sessione S021: completamento del protocollo `profile_edit_locks`, hardening delle transizioni concorrenti, audit server-side e definizione del successivo Write Path autoritativo delle entità di Categoria A |
 | 2.1      | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, Profile Write Authority, RPC `create_garden` e `update_garden`, blocco delle scritture dirette su `public.gardens` e validazioni server-side del Write Path |
+| 2.2      | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, introduzione dell’identità tecnica del client e della sessione applicativa, integrazione Flutter della Profile Write Authority, gate locale fail-closed e adapter tipizzato per le scritture delle stagioni |
 
 ---
 
@@ -573,13 +574,29 @@ Questa organizzazione consente di individuare rapidamente il punto in cui interv
 
 ## 3.4 Cartella `core`
 
-La directory `core/` contiene gli elementi condivisi dall'intera applicazione che non appartengono a uno specifico modulo funzionale.
+La directory `core/` contiene gli elementi condivisi dall’intera applicazione che non appartengono a uno specifico modulo funzionale.
 
-Attualmente ospita la sottocartella `config/`, nella quale sono raccolte le configurazioni generali del progetto.
+La struttura comprende attualmente:
 
-Lo scopo della directory `core` è centralizzare le risorse comuni, evitando duplicazioni e mantenendo uniforme il comportamento dell'applicazione.
+- `config/`, per le configurazioni generali del progetto;
+- `identity/`, per l’identità tecnica persistente del client e l’identità della sessione applicativa;
+- `profile/`, per il contesto del Profile corrente e il gate della sessione Profile;
+- `write_authority/`, per il coordinamento applicativo della Profile Write Authority.
 
-Con l'evoluzione di Orto Smart questa directory potrà includere ulteriori componenti condivisi, come costanti, utility, estensioni, temi grafici, servizi comuni e classi di supporto utilizzate trasversalmente dai diversi moduli del progetto.
+La sottocartella `identity/` distingue due concetti:
+
+- l’identità stabile dell’installazione o istanza client, conservata localmente;
+- l’identità della sessione applicativa, nuova a ogni avvio e non persistita come continuazione automatica di una sessione precedente.
+
+La persistenza dell’identificatore stabile del client utilizza `shared_preferences` versione `2.5.5`, mentre la generazione degli identificatori tecnici utilizza `uuid` versione `4.6.0`. Il token del lease non appartiene all’identità persistente del client e non viene conservato in questo storage.
+
+La sottocartella `profile/` mantiene il contesto applicativo del Profile e impedisce l’accesso al ciclo operativo protetto finché identità, appartenenza e stato della sessione non sono stati risolti in modo coerente.
+
+La sottocartella `write_authority/` contiene il modello del lock, lo scheduler, il controller, lo scope applicativo e i risultati tipizzati delle scritture protette. Il controller mantiene lo stato locale della Write Authority, coordina acquisizione, heartbeat, scadenza e rilascio del lease e applica un comportamento fail-closed quando l’autorità non può essere dimostrata.
+
+Il gate locale costituisce un controllo preventivo dell’applicazione: evita di avviare scritture note come non autorizzate, ma non sostituisce mai le verifiche autoritative eseguite dal database all’interno delle RPC.
+
+Lo scopo della directory `core/` è centralizzare queste responsabilità trasversali, evitando duplicazioni e mantenendo uniforme il comportamento dell’applicazione.
 
 ## 3.5 Cartella `data`
 
@@ -609,6 +626,8 @@ Le classi presenti in questa cartella hanno il compito di:
 
 I modelli non contengono logica di business né effettuano operazioni di accesso al database. La loro responsabilità è esclusivamente quella di rappresentare le informazioni in modo strutturato.
 
+Dalla Sessione S023 il modello `Season` espone anche `rowVersion`, necessario per applicare il controllo di concorrenza ottimistico durante le scritture autoritative. Il valore rappresenta la versione server-side della riga e non viene incrementato autonomamente dal client.
+
 Questa separazione consente di mantenere il codice più ordinato, facilita il riutilizzo delle classi e rende più semplice l'introduzione di nuove entità durante l'evoluzione del progetto.
 
 ## 3.7 Cartella `repositories`
@@ -619,11 +638,14 @@ Ogni Repository è responsabile dell'accesso ai dati relativi a una specifica en
 
 Le principali responsabilità dei Repository sono:
 
-- eseguire interrogazioni verso Supabase;
-- inserire, aggiornare ed eliminare i dati;
-- convertire i risultati delle query nei modelli Dart;
-- gestire eventuali errori di comunicazione con il backend;
-- fornire all'applicazione un'interfaccia uniforme per l'accesso ai dati.
+- eseguire le interrogazioni di lettura verso Supabase;
+- invocare le RPC autoritative previste per le scritture protette;
+- convertire i risultati nei modelli e nei risultati tipizzati Dart;
+- validare in modo fail-closed i payload restituiti dal backend;
+- gestire gli errori di comunicazione e gli esiti applicativi;
+- fornire all’applicazione un’interfaccia uniforme per l’accesso ai dati.
+
+I Repository non attribuiscono autonomamente l’autorità di scrittura. Quando un’operazione è protetta, ottengono il lease dal livello Profile Write Authority e demandano al database la verifica definitiva di identità, ownership, client, sessione, token, lease, takeover, invarianti e versione della riga.
 
 Grazie a questa architettura, le pagine dell'applicazione non comunicano mai direttamente con il database, ma utilizzano esclusivamente i Repository.
 
@@ -686,9 +708,20 @@ Oltre alle directory principali, il progetto comprende alcuni file fondamentali 
 
 ### `main.dart`
 
-È il punto di ingresso dell'applicazione Flutter.
+È il punto di ingresso dell’applicazione Flutter.
 
-Ha il compito di inizializzare l'ambiente di esecuzione, configurare i servizi necessari all'avvio e creare l'applicazione principale.
+Ha il compito di inizializzare l’ambiente di esecuzione, Supabase e i servizi necessari all’avvio. Dalla Sessione S023 coordina inoltre:
+
+- il caricamento o la creazione dell’identità tecnica persistente del client;
+- la creazione di una nuova identità della sessione applicativa;
+- la risoluzione del contesto Profile;
+- il rilascio conservativo delle acquisizioni obsolete riferite allo stesso client;
+- la creazione del controller e dello scheduler della Profile Write Authority;
+- il gate della sessione Profile;
+- l’esposizione della Write Authority tramite lo scope applicativo;
+- il rilascio delle risorse nel ciclo di chiusura dell’applicazione.
+
+Una nuova sessione applicativa non eredita automaticamente un lease ottenuto da una sessione precedente. Le funzionalità protette vengono rese disponibili soltanto dopo la costruzione coerente del contesto Profile e della relativa autorità di scrittura.
 
 ### `supabase_config.dart`
 
@@ -1349,7 +1382,7 @@ profile_edit_locks
 
 rimane separata dalle 52 entità di dominio ed è stata fisicamente introdotta con la prima migration Database V1 della Sessione S019.
 
-La tabella costituisce la base persistente per il futuro coordinamento delle modifiche concorrenti sul Profile.
+La tabella costituisce la base persistente per il coordinamento delle modifiche concorrenti sul Profile.
 
 Il lock non sostituisce:
 
@@ -1430,13 +1463,29 @@ Le RPC implementate applicano i seguenti principi:
 - test positivi e negativi;
 - verifica dei principali tentativi di bypass.
 
-Il completamento del protocollo `profile_edit_locks` ha consentito nella Sessione S022 l'introduzione del primo **Write Path autoritativo di Categoria A**, applicato all'entità `gardens`. Il Write Path verifica lato server l'identità autenticata, l'ownership attiva del Profile, la Profile Write Authority, il client, la sessione, il token, il lease e lo stato del takeover, senza affidarsi al solo preflight del client.
+Il completamento del protocollo `profile_edit_locks` ha consentito nella Sessione S022 l’introduzione del primo **Write Path autoritativo di Categoria A**, applicato all’entità `gardens`. Il Write Path verifica lato server l’identità autenticata, l’ownership attiva del Profile, la Profile Write Authority, il client, la sessione, il token, il lease e lo stato del takeover, senza affidarsi al solo preflight del client.
 
-Per `gardens` sono state introdotte le RPC autoritative `create_garden` e `update_garden`. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono state revocate e le modifiche applicative vengono quindi concentrate nelle RPC server-side, con validazione e controllo atomico delle operazioni.
+Per `gardens` sono state introdotte le RPC autoritative `create_garden` e `update_garden`. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono state revocate e le modifiche applicative vengono concentrate nelle RPC server-side, con validazione e controllo atomico delle operazioni.
 
-Il Write Path di `gardens` è considerato completato e coerente allo stato attuale. L'estensione dello stesso modello alle ulteriori entità di Categoria A costituisce invece un blocco tecnico successivo e dovrà mantenere i medesimi principi di verifica server-side, privilegi minimi, controllo della concorrenza e comportamento fail-closed. Il controllo della versione della riga dovrà essere definito secondo il contratto della relativa entità.
+Nella Sessione S023 `update_garden` è stata rafforzata rendendo obbligatorio `expected_row_version`. La RPC confronta la versione attesa dal client con quella corrente e applica l’aggiornamento soltanto se la condizione rimane valida nella scrittura finale. In caso contrario restituisce `version_conflict`, impedendo che una modifica basata su dati obsoleti sovrascriva un aggiornamento più recente.
 
-Le operazioni amministrative protette su `profile_memberships` restano un blocco tecnico successivo e non risultano implementate nella Sessione S022.
+La Sessione S023 ha inoltre esteso il Write Path autoritativo all’entità `seasons` mediante:
+
+- `create_season`;
+- `update_season`;
+- `activate_season`.
+
+Le scritture dirette `INSERT`, `UPDATE` e `DELETE` su `public.seasons` sono state revocate, mentre la lettura rimane disponibile secondo le autorizzazioni previste.
+
+`create_season` crea sempre una nuova stagione inizialmente inattiva. `update_season` modifica esclusivamente i dati descrittivi e temporali, mantiene immutabile `garden_id` e non può modificare direttamente `is_active`.
+
+L’attivazione viene eseguita esclusivamente da `activate_season`. La RPC attiva la stagione target e disattiva nella stessa transazione l’eventuale stagione precedentemente attiva, preservando l’invariante di una sola stagione attiva per Garden.
+
+`update_season` e `activate_season` applicano la concorrenza ottimistica mediante `expected_row_version`. Il contratto server-side distingue gli esiti `created`, `updated`, `activated`, `unchanged`, `version_conflict`, `duplicate_year`, `forbidden`, `write_forbidden`, `not_found` e `invalid_input`.
+
+I Write Path di `gardens` e `seasons` sono considerati completati e coerenti allo stato attuale. L’estensione alle ulteriori entità di Categoria A dovrà mantenere verifiche server-side, privilegi minimi, concorrenza controllata e comportamento fail-closed, adattando il contratto alle invarianti della singola entità.
+
+Le operazioni amministrative protette su `profile_memberships` restano un blocco tecnico successivo e non risultano implementate nella Sessione S023.
 
 Le credenziali privilegiate e i segreti server-side non devono essere incorporati nel client Flutter.
 
@@ -1691,11 +1740,15 @@ Sono ora implementate e verificate:
 
 L'hardening della S021 ha verificato in particolare la serializzazione delle transizioni concorrenti mediante `FOR UPDATE`, la rivalidazione server-side dopo l'eventuale attesa sul row lock, l'utilizzo dell'orologio PostgreSQL nei punti temporali autoritativi, la protezione del lease durante il grant di takeover, il trasferimento atomico del lock e la generazione di un nuovo token al completamento del trasferimento.
 
-Il protocollo `profile_edit_locks` è considerato architetturalmente coerente allo stato attuale. Nella Sessione S022 il protocollo è stato utilizzato come fondamento del primo **Write Path autoritativo di Categoria A**, implementato per `gardens`.
+Il protocollo `profile_edit_locks` è considerato architetturalmente coerente allo stato attuale. Nella Sessione S022 è stato utilizzato come fondamento del primo **Write Path autoritativo di Categoria A**, implementato per `gardens`.
 
-Per `gardens` sono ora implementate e verificate le RPC autoritative `create_garden` e `update_garden`, con controllo server-side della Profile Write Authority, validazione degli input, controllo dell'appartenenza del Garden al Profile e scrittura atomica. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono state revocate.
+Per `gardens` sono implementate e verificate le RPC autoritative `create_garden` e `update_garden`, con controllo server-side della Profile Write Authority, validazione degli input, controllo dell’appartenenza del Garden al Profile e scrittura atomica. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono revocate. Nella Sessione S023 `update_garden` è stata ulteriormente protetta mediante `expected_row_version` e gestione esplicita di `version_conflict`.
 
-Il Write Path delle ulteriori entità di Categoria A resta un blocco tecnico successivo e dovrà essere definito secondo il contratto specifico di ciascuna entità. Le operazioni amministrative protette su `profile_memberships` restano inoltre un blocco tecnico successivo.
+La Sessione S023 ha esteso il medesimo modello a `seasons`, introducendo `create_season`, `update_season` e `activate_season`, revocando le scritture dirette e concentrando nel database la validazione, il controllo della Profile Write Authority, la concorrenza ottimistica e l’attivazione atomica della stagione.
+
+Sul lato Flutter sono ora implementati l’identità tecnica persistente del client, l’identità distinta della sessione applicativa, il contesto Profile, il Repository del lock, lo scheduler, il controller, lo scope e il gate della Profile Write Authority. Le scritture protette vengono bloccate localmente in assenza di un lease valido, fermo restando che l’autorità definitiva appartiene alle RPC server-side.
+
+I Write Path delle ulteriori entità di Categoria A restano incrementi successivi. Il prossimo blocco concordato riguarda `beds` e `bed_geometries`, con identità stabile, geometria storicizzata e Write Path autoritativo. Restano inoltre da implementare le operazioni amministrative protette su `profile_memberships`.
 
 Il **DOC-004 – Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo all'interno dell'architettura complessiva di Orto Smart.
 
@@ -1767,23 +1820,39 @@ Attualmente il progetto comprende i seguenti Repository principali:
 
 ### GardenRepository
 
-Gestisce le informazioni relative all'orto principale, consentendo il recupero dei dati generali e delle configurazioni dell'installazione.
+Gestisce le informazioni relative all’orto principale. Le scritture protette utilizzano le RPC autoritative `create_garden` e `update_garden`. Dalla Sessione S023 `update_garden` richiede anche `expected_row_version` e restituisce `version_conflict` quando la riga è stata modificata dopo la lettura del client, prevenendo i lost update.
 
 ### BedRepository
 
-Si occupa della gestione delle aiuole, permettendo il recupero dell'elenco delle aiuole attive e delle relative informazioni strutturali.
+Si occupa della gestione delle aiuole, permettendo il recupero dell’elenco delle aiuole attive e delle relative informazioni strutturali. Il modello corrente è ancora legacy e sarà riallineato nella Sessione S024 alla separazione tra identità stabile di `beds` e geometria storicizzata in `bed_geometries`.
 
 ### CropRepository
 
-Gestisce il catalogo delle colture disponibili, rendendo accessibili le caratteristiche agronomiche utilizzate dall'applicazione e dal Motore Agronomico.
+Gestisce il catalogo delle colture disponibili, rendendo accessibili le caratteristiche agronomiche utilizzate dall’applicazione e dal Motore Agronomico.
 
 ### SeasonRepository
 
-Amministra le stagioni colturali, consentendo di individuare la stagione attiva e di organizzare cronologicamente le attività dell'orto.
+Gestisce la lettura della stagione attiva e, dalla Sessione S023, integra le RPC autoritative:
+
+- `create_season`;
+- `update_season`;
+- `activate_season`.
+
+Il Repository ottiene il lease dal livello Profile Write Authority, senza richiedere alle pagine di conoscere o trasmettere direttamente il token. Le risposte RPC vengono convertite in risultati Dart tipizzati e validate in modo fail-closed.
+
+`create_season` crea una stagione inizialmente inattiva. `update_season` modifica soltanto i dati descrittivi e temporali, mantenendo immutabile `garden_id`. `activate_season` esegue l’attivazione server-side e restituisce anche l’eventuale stagione precedente disattivata atomicamente.
+
+### ProfileContextRepository
+
+Risolve il contesto Profile dell’utente autenticato e fornisce all’applicazione gli identificatori e le informazioni necessarie per costruire una sessione Profile coerente.
+
+### ProfileEditLockRepository
+
+Incapsula le RPC server-side del protocollo `profile_edit_locks` e converte gli stati restituiti dal database nel modello applicativo del lock. Il Repository non decide autonomamente la validità dell’autorità: utilizza lo stato e i tempi autoritativi restituiti dal server.
 
 ### PlantingRepository
 
-PlantingRepository gestisce le piantagioni dell'applicazione. Si occupa del loro inserimento, aggiornamento e recupero, mantenendole ordinate secondo la posizione occupata nelle singole aiuole.
+Gestisce le piantagioni dell’applicazione. Si occupa del loro inserimento, aggiornamento e recupero, mantenendole ordinate secondo la posizione occupata nelle singole aiuole.
 
 L'organizzazione in Repository indipendenti rende il codice più leggibile, favorisce il riutilizzo delle funzionalità e semplifica l'introduzione di nuovi moduli senza modificare le componenti già esistenti.
 
@@ -1796,6 +1865,22 @@ Quando l'utente esegue un'azione nell'applicazione, la richiesta viene elaborata
 I dati ricevuti vengono convertiti nei corrispondenti modelli dell'applicazione e resi disponibili ai componenti che li hanno richiesti, mantenendo separati i diversi livelli dell'architettura.
 
 Questo flusso consente di centralizzare la logica di accesso ai dati, ridurre le duplicazioni di codice e garantire un comportamento uniforme in tutta l'applicazione.
+
+Per le scritture protette il flusso comprende un ulteriore gate applicativo:
+
+```text
+Flutter UI
+   ↓
+Repository
+   ↓
+Profile Write Authority locale
+   ↓
+RPC autoritativa
+   ↓
+verifiche e transazione PostgreSQL
+```
+
+Il controllo locale evita chiamate note come prive di lease valido. La RPC ripete comunque tutte le verifiche necessarie e rappresenta l’unico punto autoritativo della scrittura. Una risposta sconosciuta, incompleta o incoerente viene rifiutata dal client secondo un comportamento fail-closed.
 
 ```text
 Utente

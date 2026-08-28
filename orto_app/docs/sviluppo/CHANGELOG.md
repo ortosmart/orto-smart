@@ -4,14 +4,14 @@
 
 # Registro delle modifiche
 
-**Versione:** 2.0
+**Versione:** 2.1
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 18/08/2026
+**Ultimo aggiornamento:** 28/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------ |
 | Documento            | CHANGELOG                |
 | Titolo               | Registro delle modifiche |
-| Versione             | 2.0                      |
+| Versione             | 2.1                      |
 | Stato                | Approvato                |
 | Progetto             | Orto Smart               |
 | Repository           | ortosmart/orto-smart     |
 | Prima emissione      | 27/07/2026               |
-| Ultimo aggiornamento | 18/08/2026               |
+| Ultimo aggiornamento | 28/08/2026               |
 
 ---
 
@@ -49,6 +49,7 @@
 | 1.8      | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.11-alpha e completamento della progettazione e del congelamento della baseline Database V1 nella Sessione S017 |
 | 1.9      | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.12-alpha: supporto alle finestre agronomiche multiple e predisposizione dell'ambiente Supabase locale per la futura implementazione della baseline Database V1 |
 | 2.0      | 18/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.13-alpha: prima migration Database V1, implementazione e verifica locale delle Fondazioni, introduzione della prima sicurezza RLS e consolidamento del primo incremento fisico della baseline |
+| 2.1      | 28/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.14-alpha: protocollo completo `profile_edit_locks`, Profile Write Authority, Write Path autoritativi di `gardens` e `seasons` e integrazione Flutter fail-closed |
 
 ---
 
@@ -74,6 +75,7 @@
 3.12 Versione 0.1.11-alpha
 3.13 Versione 0.1.12-alpha
 3.14 Versione 0.1.13-alpha
+3.15 Versione 0.1.14-alpha
 
 ## 4. Cronologia versioni
 
@@ -681,6 +683,65 @@ Nessuna correzione specifica separata dalle modifiche descritte sopra.
 
 ---
 
+## 3.15 Versione 0.1.14-alpha
+
+**Data:** 28/08/2026
+
+### Aggiunto
+
+- Completato il protocollo server-side `profile_edit_locks` per il coordinamento single-writer del Profile.
+- Introdotte le RPC per acquisizione, heartbeat, rilascio, richiesta, annullamento, rifiuto, concessione e completamento del takeover e lettura dello stato del lock.
+- Introdotta la Profile Write Authority come prerequisito server-side delle scritture protette.
+- Implementato il Write Path autoritativo di `gardens` mediante `create_garden` e `update_garden`.
+- Implementato il Write Path autoritativo di `seasons` mediante `create_season`, `update_season` e `activate_season`.
+- Introdotta l’identità tecnica stabile del client, distinta dall’identità della sessione applicativa.
+- Introdotti `ProfileContext` e `ProfileContextRepository`.
+- Introdotti `ProfileEditLockRepository`, `ProfileWriteAuthorityController` e `WriteAuthorityScheduler`.
+- Introdotti `ProfileWriteAuthorityScope` e `ProfileSessionGate`.
+- Integrato il ciclo della sessione Profile nell’avvio dell’applicazione Flutter.
+- Integrato `SeasonRepository` con risultati Dart tipizzati per le RPC autoritative.
+
+### Modificato
+
+- Rafforzato `update_garden` mediante `expected_row_version` e rifiuto `version_conflict` delle modifiche costruite su dati obsoleti.
+- Esteso il modello `Season` con `rowVersion`.
+- Centralizzate nelle RPC autoritative le scritture applicative su `gardens` e `seasons`.
+- Separata l’identità persistente del client dall’identità temporanea della sessione applicativa.
+- Impedita l’eredità automatica di un lease da parte di una nuova sessione.
+- Introdotto il rilascio conservativo delle acquisizioni obsolete riferite allo stesso client.
+- Bloccate localmente le scritture protette quando non è disponibile un lease valido.
+- Mantenuto il controllo locale come preflight preventivo, senza sostituire le verifiche server-side.
+
+### Architettura
+
+- Consolidato il database PostgreSQL come autorità definitiva per identità, autorizzazione, tempo, lock, takeover, controllo versione e invarianti.
+- Confermata la separazione tra autenticazione, autorizzazione, Profile Write Authority e Write Path dell’entità.
+- Applicata la concorrenza ottimistica mediante `row_version` ai Write Path protetti di `gardens` e `seasons`.
+- Stabilito che la creazione di una stagione produce sempre uno stato inizialmente inattivo.
+- Reso immutabile `garden_id` nel Write Path di aggiornamento delle stagioni.
+- Riservata la modifica di `is_active` alla sola RPC `activate_season`.
+- Garantite nella stessa transazione l’attivazione della stagione target e la disattivazione dell’eventuale stagione precedentemente attiva.
+- Definito come blocco tecnico successivo l’implementazione coordinata di `beds` e `bed_geometries`.
+
+### Test
+
+- `flutter analyze`: nessun problema rilevato.
+- Suite completa Flutter: **237/237 test superati**.
+- Test dedicati a `SeasonRepository`: **28/28 superati**.
+- Verificati casi positivi, negativi, conflitti di versione, assenza del lease e payload RPC sconosciuti, incompleti o incoerenti.
+- Verificato il comportamento fail-closed dell’infrastruttura applicativa della Profile Write Authority.
+
+### Sicurezza
+
+- Revocati ad `authenticated` i privilegi diretti `INSERT`, `UPDATE` e `DELETE` su `public.gardens` e `public.seasons`.
+- Mantenuto `PUBLIC EXECUTE` revocato per le RPC sensibili.
+- Applicati `SECURITY DEFINER`, `search_path = ''` e privilegi `EXECUTE` espliciti secondo il contratto delle funzioni.
+- Conservato nel database esclusivamente l’hash SHA-256 del token del lock.
+- Impedita alle pagine Flutter la gestione diretta del token del lease.
+- Confermato che il gate Flutter non sostituisce autenticazione, autorizzazione, RLS, validità del lock, controllo di versione o invarianti server-side.
+
+---
+
 # 4. Cronologia versioni
 
 | Versione    | Data       | Stato      | Note                                                                                                                                                              |
@@ -698,7 +759,8 @@ Nessuna correzione specifica separata dalle modifiche descritte sopra.
 | 0.1.10-alpha | 12/08/2026 | Archiviata | Associate le finestre agronomiche a colture e varietà mediante `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService`, introducendo il fallback varietà → coltura e la distinzione tra `unknown` e `incompatible`. |
 | 0.1.11-alpha | 16/08/2026 | Archiviata | Completata e congelata nella S017 la progettazione della baseline Database V1: 52 entità di dominio più la struttura tecnica `profile_edit_locks`, con ownership, accesso familiare monoutente, modello single-writer, temporalità, sicurezza, invarianti e strategia di implementazione incrementale in Supabase. |
 | 0.1.12-alpha | 16/08/2026 | Archiviata | Introdotto il supporto alle finestre agronomiche multiple e predisposto l'ambiente Supabase locale versionato per la futura implementazione incrementale della baseline Database V1; verificati 151/151 test e mantenuto invariato il database remoto. |
-| 0.1.13-alpha | 18/08/2026 | Corrente | Creata la prima migration Database V1 e implementato e verificato localmente il blocco Fondazioni con schema `private`, helper autorizzativi, trigger metadata e 13 policy RLS; consolidato il primo incremento fisico della baseline Database V1. |
+| 0.1.13-alpha | 18/08/2026 | Archiviata | Creata la prima migration Database V1 e implementato e verificato localmente il blocco Fondazioni con schema `private`, helper autorizzativi, trigger metadata e 13 policy RLS; consolidato il primo incremento fisico della baseline Database V1. |
+| 0.1.14-alpha | 28/08/2026 | Corrente | Completato il protocollo `profile_edit_locks`, introdotta la Profile Write Authority, implementati i Write Path autoritativi di `gardens` e `seasons`, integrata la sessione Profile nel client Flutter e verificati 237/237 test. |
 
 ---
 

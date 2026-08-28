@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 1.5
+**Versione:** 1.6
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 24/08/2026
+**Ultimo aggiornamento:** 28/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 1.5                            |
+| Versione             | 1.6                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
 | Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 24/08/2026                     |
+| Ultimo aggiornamento | 28/08/2026                     |
 
 ---
 
@@ -51,6 +51,7 @@
 | 1.3      | 21/08/2026 | Aggiornamento della DEC-012 con l'hardening della concorrenza introdotto nella Sessione S021, audit finale del protocollo `profile_edit_lock` e definizione del confine con il futuro Write Path autoritativo Categoria A |
 | 1.4      | 23/08/2026 | Consolidamento della DEC-012 con il completamento e l'hardening del protocollo `profile_edit_locks` nella Sessione S021 e definizione del confine architetturale con il futuro Write Path autoritativo Categoria A |
 | 1.5      | 24/08/2026 | Aggiornamento della DEC-012 con la Sessione S022: applicazione del protocollo `profile_edit_locks` come fondamento del primo Write Path autoritativo di Categoria A per `gardens`, introduzione di `Profile Write Authority`, RPC `create_garden` e `update_garden` e definizione del confine con le ulteriori entità di Categoria A |
+| 1.6      | 28/08/2026 | Aggiornamento della DEC-012 con la Sessione S023: hardening concorrente di `update_garden`, estensione del Write Path autoritativo a `seasons`, introduzione dell’identità tecnica del client e della sessione e integrazione Flutter fail-closed della Profile Write Authority |
 
 ---
 
@@ -1518,9 +1519,9 @@ Queste alternative sono state escluse perché avrebbero aumentato la complessit�
 
 **Stato:** Approvata
 
-**Data:** 24/08/2026
+**Data:** 28/08/2026
 
-**Sessione:** S020–S022
+**Sessione:** S020–S023
 
 ### Contesto
 
@@ -1627,13 +1628,49 @@ L'audit non ha individuato ulteriori problemi bloccanti. Il protocollo `profile_
 
 Non vengono introdotti ulteriori meccanismi di complessità, quali advisory lock, retry loop, nuovi stati o nuove RPC, in assenza di un problema concreto che ne giustifichi l'introduzione.
 
+### Integrazione applicativa della Profile Write Authority
+
+La Sessione S023 ha integrato il protocollo server-side nel ciclo applicativo Flutter senza trasferire al client alcuna autorità definitiva.
+
+Vengono mantenute distinte:
+
+- identità autenticata dell’utente;
+- identità tecnica stabile del client;
+- identità della sessione applicativa;
+- contesto Profile;
+- token temporaneo del lease.
+
+L’identità stabile del client viene conservata localmente. A ogni avvio viene invece generata una nuova identità della sessione applicativa.
+
+Una nuova sessione non eredita automaticamente il lease ottenuto da una sessione precedente. Il token del lease non viene conservato nello storage persistente dell’identità tecnica.
+
+Il ciclo applicativo coordina:
+
+- risoluzione del contesto Profile;
+- rilascio conservativo delle acquisizioni obsolete riferite allo stesso client;
+- acquisizione del lease;
+- heartbeat;
+- scadenza e perdita dell’autorità;
+- rilascio;
+- aggiornamento dello stato applicativo.
+
+`ProfileWriteAuthorityController` e `WriteAuthorityScheduler` coordinano il ciclo del lease utilizzando i tempi autoritativi restituiti dal database.
+
+`ProfileSessionGate` impedisce l’ingresso nel ciclo applicativo protetto finché non sono disponibili identità, contesto Profile e stato iniziale della Write Authority coerenti.
+
+`ProfileWriteAuthorityScope` espone alle componenti discendenti lo stato della Write Authority senza consentire alle pagine di gestire direttamente il token.
+
+In assenza di un lease valido, le scritture protette vengono bloccate localmente secondo un comportamento fail-closed.
+
+Il gate e il controllo locale costituiscono esclusivamente un preflight preventivo. Autenticazione, autorizzazione, validità del lease, token, stato del takeover, controllo della versione e invarianti rimangono verificati autoritativamente dalle RPC server-side.
+
 ### Confine con il Write Path autoritativo
 
 La protezione concorrente di `profile_edit_locks` costituisce il fondamento tecnico del Write Path autoritativo delle entità di Categoria A, ma non implica che tutte le entità strutturali del Database V1 siano già protette da un Write Path autoritativo completo.
 
-Nella Sessione S022 questo modello è stato applicato per la prima volta all'entità `gardens`.
+Nella Sessione S022 questo modello è stato applicato per la prima volta a `gardens`. Nella Sessione S023 è stato rafforzato il controllo concorrente di `update_garden` ed è stato applicato il Write Path autoritativo a `seasons`.
 
-Per `gardens` il Write Path autoritativo verifica lato server, nella stessa operazione sensibile:
+Per `gardens` e `seasons`, le operazioni protette verificano lato server, secondo il contratto specifico dell’entità:
 
 - Profile Write Authority valida;
 - identità autenticata e ownership attiva del Profile;
@@ -1642,19 +1679,32 @@ Per `gardens` il Write Path autoritativo verifica lato server, nella stessa oper
 - lease valido;
 - stato del takeover compatibile con la scrittura;
 - validazione degli input;
-- appartenenza del Garden al Profile;
-- controllo della versione della riga secondo il contratto dell'entità.
+- appartenenza del Garden al Profile autorizzato e, per `seasons`, appartenenza della stagione al Garden autorizzato;
+- controllo della versione mediante `row_version` quando previsto;
+- invarianti specifiche dell’entità.
 
-Sono state introdotte le RPC autoritative:
+Per `gardens` sono disponibili:
 
 - `create_garden`;
 - `update_garden`.
 
-Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` su `public.gardens` sono state revocate.
+`update_garden` richiede `expected_row_version`. La versione attesa viene verificata rispetto allo stato corrente e nella condizione dell’aggiornamento finale. Una modifica costruita su una versione obsoleta viene rifiutata con `version_conflict`.
+
+Per `seasons` sono disponibili:
+
+- `create_season`;
+- `update_season`;
+- `activate_season`.
+
+La creazione produce sempre una stagione inizialmente inattiva. `update_season` non consente di modificare direttamente `garden_id` o `is_active` e applica la concorrenza ottimistica mediante `expected_row_version`.
+
+L’attivazione viene eseguita esclusivamente mediante `activate_season`, che attiva la stagione target e disattiva atomicamente l’eventuale stagione precedentemente attiva nello stesso Garden.
+
+Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono revocate sia su `public.gardens` sia su `public.seasons`.
 
 Il preflight eseguito dal client non costituisce una protezione sufficiente e non sostituisce le verifiche autoritative server-side.
 
-Il Write Path di `gardens` è considerato completato e coerente allo stato attuale. Le ulteriori entità di Categoria A dovranno essere protette progressivamente mediante RPC autoritative definite secondo il contratto specifico di ciascuna entità.
+I Write Path di `gardens` e `seasons` sono considerati completati e coerenti allo stato attuale. Le ulteriori entità di Categoria A dovranno essere protette progressivamente mediante RPC autoritative definite secondo il contratto specifico di ciascuna entità.
 
 ### Motivazione
 
@@ -1674,7 +1724,7 @@ L'impiego di `FOR UPDATE` e la rivalidazione dopo l'attesa sul row lock riducono
 
 La scelta di mantenere il protocollo semplice e fail-closed evita di introdurre meccanismi di sincronizzazione aggiuntivi prima che emerga una necessità concreta.
 
-Il protocollo costituisce inoltre la base controllata per il Write Path autoritativo delle entità di Categoria A. La Sessione S022 ha dimostrato l'applicazione concreta di questo modello mediante il Write Path di `gardens`, mentre le ulteriori entità saranno implementate progressivamente secondo il rispettivo contratto.
+Il protocollo costituisce inoltre la base controllata per il Write Path autoritativo delle entità di Categoria A. La Sessione S022 ha dimostrato l’applicazione concreta di questo modello mediante il Write Path di `gardens`; la Sessione S023 ne ha rafforzato il controllo concorrente e ha applicato lo stesso modello a `seasons`. Le ulteriori entità saranno implementate progressivamente secondo il rispettivo contratto.
 
 ### Alternative valutate
 
@@ -1704,9 +1754,13 @@ Il Write Path delle ulteriori entità di Categoria A rimane pertanto un blocco t
 - Le transizioni concorrenti vengono serializzate nei punti necessari mediante locking della riga e rivalidazione post-lock.
 - Il protocollo mantiene un comportamento conservativo e fail-closed.
 - Il modello single-writer per Profile rimane invariato.
+- L’identità tecnica stabile del client rimane distinta dall’identità della sessione applicativa.
+- Una nuova sessione applicativa non eredita automaticamente il lease di una sessione precedente.
+- Le pagine non gestiscono direttamente il token del lease.
+- Il blocco locale fail-closed delle scritture costituisce un controllo preventivo e non sostituisce le verifiche server-side.
 - Il protocollo del lock non sostituisce autenticazione, autorizzazione, RLS o invarianti del database.
 - Il protocollo del lock costituisce il fondamento del Write Path autoritativo di Categoria A, ma non implica il completamento dei Write Path di tutte le entità di Categoria A.
-- `gardens` dispone del primo Write Path autoritativo di Categoria A; le ulteriori entità strutturali potranno essere considerate pienamente protette contro lost update solo dopo l'implementazione delle relative operazioni server-side autoritative con le verifiche previste dal contratto di ciascuna entità.
+- `gardens` e `seasons` dispongono di Write Path autoritativi di Categoria A completati e coerenti allo stato attuale; le ulteriori entità strutturali potranno essere considerate pienamente protette contro lost update solo dopo l’implementazione delle relative operazioni server-side autoritative con le verifiche previste dal contratto di ciascuna entità.
 - Non vengono introdotti nel V1 ulteriori meccanismi di concorrenza non giustificati da problemi concreti.
 - Il protocollo costituisce la baseline tecnica per l'estensione progressiva del Write Path autoritativo alle ulteriori entità di Categoria A.
 
@@ -1727,7 +1781,7 @@ Il Write Path delle ulteriori entità di Categoria A rimane pertanto un blocco t
 | DEC-009 | 11/08/2026 | S015     | Separazione tra pianificazione temporale e compatibilità agronomica                | Approvata |
 | DEC-010 | 12/08/2026 | S016     | Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza | Approvata |
 | DEC-011 | 16/08/2026 | S017     | Baseline architetturale del Database V1                                               | Approvata |
-| DEC-012 | 24/08/2026 | S020–S022 | Sicurezza e gestione concorrente del `profile_edit_locks` e fondamento del Write Path autoritativo di Categoria A | Approvata |
+| DEC-012 | 28/08/2026 | S020–S023 | Sicurezza e gestione concorrente del `profile_edit_locks` e fondamento del Write Path autoritativo di Categoria A | Approvata |
 
 ---
 

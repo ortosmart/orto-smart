@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 1.4
+**Versione:** 1.5
 **Stato:** Approvato
 
 **Autore:** Renzo
@@ -12,7 +12,7 @@
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 18/08/2026
+**Ultimo aggiornamento:** 28/08/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -24,12 +24,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 1.4 |
+| Versione | 1.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 18/08/2026 |
+| Ultimo aggiornamento | 28/08/2026 |
 
 ---
 
@@ -45,6 +45,7 @@
 | 1.2      | 16/08/2026 | Aggiornamento della roadmap dopo la Sessione S017: completamento e congelamento della progettazione Database V1, pianificazione dell'implementazione incrementale in Supabase e riallineamento delle priorità di sviluppo |
 | 1.3 | 16/08/2026 | Aggiornamento dopo la Sessione S018: completamento dei prerequisiti locali Supabase, consolidamento delle finestre agronomiche multiple e definizione dello STEP 35.3 come punto di avvio della baseline SQL Database V1 |
 | 1.4 | 18/08/2026 | Aggiornamento dopo la Sessione S019: prima migration Database V1, implementazione e verifica locale delle Fondazioni, prima matrice di 13 policy RLS e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
+| 1.5 | 28/08/2026 | Aggiornamento dopo la Sessione S023: completamento del protocollo `profile_edit_locks`, Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e definizione di `beds` e `bed_geometries` come prossimo blocco tecnico |
 
 ---
 
@@ -104,7 +105,7 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | Repository Pattern | ✅ Completato |
 | Modelli | ✅ Completato |
 | Progettazione Database V1 | ✅ Completato |
-| Implementazione Database V1 in Supabase | 📋 Pianificato |
+| Implementazione Database V1 in Supabase | 🚧 In sviluppo |
 
 ---
 
@@ -235,56 +236,64 @@ Le attività riportate in questa sezione rappresentano le principali direttrici 
 
 L'ordine di realizzazione potrà variare in funzione delle esigenze del progetto e delle decisioni architetturali adottate durante lo sviluppo.
 
-## Stato dopo la Sessione S019
+## Stato dopo la Sessione S023
 
-La Sessione S019 ha avviato concretamente l'implementazione SQL della baseline Database V1 congelata nella S017.
+La Sessione S023 ha consolidato il percorso incrementale di implementazione fisica del Database V1 iniziato nella S019.
 
 Sono stati completati:
 
-- creazione della prima migration versionata:
-  `supabase/migrations/20260817103916_database_v1_baseline.sql`;
-- implementazione del primo blocco **Fondazioni**:
-  - `profiles`;
-  - `profile_memberships`;
-  - `gardens`;
-  - `workers`;
-  - `seasons`;
-  - `profile_edit_locks`;
-- introduzione dello schema `private`;
-- introduzione degli helper autorizzativi;
-- introduzione dei trigger metadata;
-- attivazione della prima matrice Row Level Security;
-- verifica di **13 policy RLS**;
-- ricostruzione completa locale mediante `supabase db reset`;
-- test manuali positivi e negativi della sicurezza;
-- consolidamento del primo incremento fisicamente implementato e verificato del Database V1.
+- primo blocco Fondazioni della baseline Database V1;
+- schema `private`, helper autorizzativi, trigger metadata e prima matrice RLS;
+- protocollo server-side completo di `profile_edit_locks`;
+- acquisizione, heartbeat, rilascio, scadenza e takeover del lease;
+- hardening delle transizioni concorrenti mediante locking e rivalidazione server-side;
+- introduzione della Profile Write Authority;
+- Write Path autoritativo di `gardens`;
+- hardening concorrente di `update_garden` mediante `expected_row_version`;
+- Write Path autoritativo di `seasons`;
+- RPC `create_season`, `update_season` e `activate_season`;
+- revoca delle scritture dirette da parte di `authenticated` su `gardens` e `seasons`;
+- integrazione Flutter dell’identità tecnica del client e della sessione applicativa;
+- integrazione di controller, scheduler, scope e gate locale fail-closed della Profile Write Authority;
+- adapter Flutter tipizzato per le scritture autoritative di `seasons`;
+- verifica finale mediante `flutter analyze` e **237/237 test superati**.
 
-Lo STEP 35.3 – Costruzione baseline SQL Database V1 è quindi **avviato e parzialmente completato**: la migration `database_v1_baseline` esiste e contiene il primo gruppo coerente della baseline, mentre le restanti strutture devono ancora essere implementate progressivamente.
+Lo STEP 35.3 – Costruzione baseline SQL Database V1 rimane **in corso**. Le Fondazioni e i primi Write Path autoritativi sono implementati, mentre le restanti entità devono essere introdotte progressivamente per gruppi coerenti di strutture e dipendenze.
 
-Il prossimo blocco tecnico previsto riguarda la progettazione e la successiva implementazione delle **RPC sicure e atomiche** necessarie a completare la protezione delle Fondazioni.
+## Prossimo blocco tecnico
 
-Le priorità immediate riguardano:
+Il successivo blocco concordato è:
 
-- gestione sicura di `profile_edit_locks`:
-  - acquisizione;
-  - heartbeat e rinnovo;
-  - rilascio;
-  - scadenza;
-  - takeover;
-  - concorrenza tra client;
-  - controllo di `row_version`;
-- operazioni amministrative protette su `profile_memberships`;
-- applicazione del principio di privilegio minimo;
-- verifica di `SECURITY DEFINER`, `search_path`, `REVOKE` e `GRANT EXECUTE`;
-- test positivi, negativi e tentativi di bypass.
+> **Implementazione V1 di `beds` e `bed_geometries`, con identità stabile, geometria storicizzata e Write Path autoritativo.**
+
+Le due entità devono essere progettate e implementate come un unico blocco coerente:
+
+- `beds` rappresenta l’identità stabile dell’aiuola;
+- `bed_geometries` rappresenta la geometria valida in uno specifico intervallo temporale.
+
+Prima dell’implementazione dovranno essere congelati:
+
+- contratto delle due entità;
+- campi, ownership e vincoli;
+- invarianti temporali;
+- gestione della geometria corrente e dello storico;
+- RPC autoritative;
+- controllo di `row_version`;
+- gestione di `irrigation_zone`;
+- piano controllato di bootstrap delle 15 aiuole esistenti;
+- adattamento dei modelli e Repository Flutter;
+- test positivi, negativi e concorrenti.
+
+Le operazioni amministrative protette su `profile_memberships` rimangono un blocco successivo distinto.
 
 ## Priorità attuali
 
-- completamento delle operazioni server-side delle Fondazioni mediante RPC sicure e atomiche;
+- implementazione coordinata di `beds` e `bed_geometries`;
 - prosecuzione incrementale della baseline Database V1 per gruppi coerenti di strutture e dipendenze;
+- estensione progressiva dei Write Path autoritativi alle entità di Categoria A;
 - riallineamento progressivo del Repository Layer e del dominio applicativo alla nuova persistenza;
 - consolidamento e ampliamento del Motore Agronomico sulla base della nuova architettura dati;
-- evoluzione della gestione dell'irrigazione;
+- evoluzione della gestione dell’irrigazione;
 - sviluppo del modulo Attività e Piano di Lavoro;
 - ampliamento della Dashboard con informazioni agronomiche e meteorologiche.
 
@@ -304,6 +313,7 @@ La pianificazione dettagliata delle singole sessioni di sviluppo viene documenta
 | 1.2 | 16/08/2026 | Aggiornamento della roadmap dopo la Sessione S017: completamento e congelamento della progettazione Database V1, pianificazione dell'implementazione incrementale in Supabase e riallineamento delle priorità di sviluppo |
 | 1.3 | 16/08/2026 | Aggiornamento dopo la Sessione S018: completamento dei prerequisiti locali Supabase, consolidamento delle finestre agronomiche multiple e definizione dello STEP 35.3 come punto di avvio della baseline SQL Database V1 |
 | 1.4 | 18/08/2026 | Aggiornamento dopo la Sessione S019: prima migration Database V1, implementazione e verifica locale delle Fondazioni, prima matrice di 13 policy RLS e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
+| 1.5 | 28/08/2026 | Aggiornamento dopo la Sessione S023: completamento del protocollo `profile_edit_locks`, Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e definizione di `beds` e `bed_geometries` come prossimo blocco tecnico |
 
 ---
 
