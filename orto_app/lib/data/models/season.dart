@@ -7,6 +7,7 @@ class Season {
   final DateTime? endDate;
   final bool isActive;
   final String? notes;
+  final int rowVersion;
 
   const Season({
     required this.id,
@@ -17,6 +18,7 @@ class Season {
     this.endDate,
     required this.isActive,
     this.notes,
+    required this.rowVersion,
   });
 
   factory Season.fromMap(Map<String, dynamic> map) {
@@ -31,6 +33,7 @@ class Season {
           : DateTime.parse(map['end_date'] as String),
       isActive: map['is_active'] as bool? ?? false,
       notes: map['notes'] as String?,
+      rowVersion: map['row_version'] as int,
     );
   }
 }
