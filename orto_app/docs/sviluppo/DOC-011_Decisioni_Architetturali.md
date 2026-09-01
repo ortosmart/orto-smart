@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 1.6
+**Versione:** 1.7
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 28/08/2026
+**Ultimo aggiornamento:** 01/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 1.6                            |
+| Versione             | 1.7                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
 | Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 28/08/2026                     |
+| Ultimo aggiornamento | 01/09/2026                     |
 
 ---
 
@@ -52,6 +52,7 @@
 | 1.4      | 23/08/2026 | Consolidamento della DEC-012 con il completamento e l'hardening del protocollo `profile_edit_locks` nella Sessione S021 e definizione del confine architetturale con il futuro Write Path autoritativo Categoria A |
 | 1.5      | 24/08/2026 | Aggiornamento della DEC-012 con la Sessione S022: applicazione del protocollo `profile_edit_locks` come fondamento del primo Write Path autoritativo di Categoria A per `gardens`, introduzione di `Profile Write Authority`, RPC `create_garden` e `update_garden` e definizione del confine con le ulteriori entità di Categoria A |
 | 1.6      | 28/08/2026 | Aggiornamento della DEC-012 con la Sessione S023: hardening concorrente di `update_garden`, estensione del Write Path autoritativo a `seasons`, introduzione dell’identità tecnica del client e della sessione e integrazione Flutter fail-closed della Profile Write Authority |
+| 1.7      | 01/09/2026 | Aggiornamento della DEC-012 con la Sessione S024: estensione del Write Path autoritativo a `beds`, geometria storicizzata, concorrenza ottimistica, correzioni tracciate e integrazione Flutter mediante `ProfileContextScope` e risultati tipizzati |
 
 ---
 
@@ -1519,9 +1520,9 @@ Queste alternative sono state escluse perché avrebbero aumentato la complessit�
 
 **Stato:** Approvata
 
-**Data:** 28/08/2026
+**Data:** 01/09/2026
 
-**Sessione:** S020–S023
+**Sessione:** S020–S024
 
 ### Contesto
 
@@ -1646,7 +1647,7 @@ Una nuova sessione non eredita automaticamente il lease ottenuto da una sessione
 
 Il ciclo applicativo coordina:
 
-- risoluzione del contesto Profile;
+- risoluzione del contesto Profile ed esposizione tramite `ProfileContextScope`;
 - rilascio conservativo delle acquisizioni obsolete riferite allo stesso client;
 - acquisizione del lease;
 - heartbeat;
@@ -1660,6 +1661,8 @@ Il ciclo applicativo coordina:
 
 `ProfileWriteAuthorityScope` espone alle componenti discendenti lo stato della Write Authority senza consentire alle pagine di gestire direttamente il token.
 
+`ProfileContextScope`, introdotto nella Sessione S024, espone alle componenti discendenti il contesto Profile già risolto, evitando che le singole pagine debbano ricostruirlo o riceverlo attraverso passaggi manuali non uniformi.
+
 In assenza di un lease valido, le scritture protette vengono bloccate localmente secondo un comportamento fail-closed.
 
 Il gate e il controllo locale costituiscono esclusivamente un preflight preventivo. Autenticazione, autorizzazione, validità del lease, token, stato del takeover, controllo della versione e invarianti rimangono verificati autoritativamente dalle RPC server-side.
@@ -1668,9 +1671,9 @@ Il gate e il controllo locale costituiscono esclusivamente un preflight preventi
 
 La protezione concorrente di `profile_edit_locks` costituisce il fondamento tecnico del Write Path autoritativo delle entità di Categoria A, ma non implica che tutte le entità strutturali del Database V1 siano già protette da un Write Path autoritativo completo.
 
-Nella Sessione S022 questo modello è stato applicato per la prima volta a `gardens`. Nella Sessione S023 è stato rafforzato il controllo concorrente di `update_garden` ed è stato applicato il Write Path autoritativo a `seasons`.
+Nella Sessione S022 questo modello è stato applicato per la prima volta a `gardens`. Nella Sessione S023 è stato rafforzato il controllo concorrente di `update_garden` ed è stato applicato il Write Path autoritativo a `seasons`. Nella Sessione S024 il modello è stato esteso a `beds` e alla relativa geometria storicizzata.
 
-Per `gardens` e `seasons`, le operazioni protette verificano lato server, secondo il contratto specifico dell’entità:
+Per `gardens`, `seasons` e `beds`, le operazioni protette verificano lato server, secondo il contratto specifico dell’entità:
 
 - Profile Write Authority valida;
 - identità autenticata e ownership attiva del Profile;
@@ -1700,11 +1703,27 @@ La creazione produce sempre una stagione inizialmente inattiva. `update_season` 
 
 L’attivazione viene eseguita esclusivamente mediante `activate_season`, che attiva la stagione target e disattiva atomicamente l’eventuale stagione precedentemente attiva nello stesso Garden.
 
-Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono revocate sia su `public.gardens` sia su `public.seasons`.
+L’attivazione viene eseguita esclusivamente mediante `activate_season`, che attiva la stagione target e disattiva atomicamente l’eventuale stagione precedentemente attiva nello stesso Garden.
+
+Per `beds` sono disponibili:
+
+- `create_bed`;
+- `update_bed`;
+- `set_bed_active`;
+- `change_bed_geometry`;
+- `correct_bed_geometry`.
+
+`create_bed` crea atomicamente l’identità stabile dell’aiuola e la geometria iniziale. Le operazioni di aggiornamento e variazione dello stato applicano la concorrenza ottimistica mediante `expected_row_version`.
+
+`change_bed_geometry` rappresenta una variazione fisica ordinaria: chiude l’intervallo precedente e crea una nuova geometria. `correct_bed_geometry` rappresenta invece la rettifica di un dato storico errato e registra separatamente lo stato precedente e quello successivo in `bed_geometry_corrections`.
+
+Gli intervalli di `bed_geometries` non possono sovrapporsi per la stessa aiuola.
+
+Le scritture dirette da parte di `authenticated` sono revocate sulle entità protette `public.gardens`, `public.seasons`, `public.beds`, `public.bed_geometries` e `public.bed_geometry_corrections`, secondo il contratto specifico delle rispettive tabelle.
 
 Il preflight eseguito dal client non costituisce una protezione sufficiente e non sostituisce le verifiche autoritative server-side.
 
-I Write Path di `gardens` e `seasons` sono considerati completati e coerenti allo stato attuale. Le ulteriori entità di Categoria A dovranno essere protette progressivamente mediante RPC autoritative definite secondo il contratto specifico di ciascuna entità.
+I Write Path di `gardens`, `seasons` e `beds` sono considerati completati e coerenti allo stato attuale. Le ulteriori entità di Categoria A dovranno essere protette progressivamente mediante RPC autoritative definite secondo il contratto specifico di ciascuna entità.
 
 ### Motivazione
 
@@ -1724,7 +1743,7 @@ L'impiego di `FOR UPDATE` e la rivalidazione dopo l'attesa sul row lock riducono
 
 La scelta di mantenere il protocollo semplice e fail-closed evita di introdurre meccanismi di sincronizzazione aggiuntivi prima che emerga una necessità concreta.
 
-Il protocollo costituisce inoltre la base controllata per il Write Path autoritativo delle entità di Categoria A. La Sessione S022 ha dimostrato l’applicazione concreta di questo modello mediante il Write Path di `gardens`; la Sessione S023 ne ha rafforzato il controllo concorrente e ha applicato lo stesso modello a `seasons`. Le ulteriori entità saranno implementate progressivamente secondo il rispettivo contratto.
+Il protocollo costituisce inoltre la base controllata per il Write Path autoritativo delle entità di Categoria A. La Sessione S022 ha dimostrato l’applicazione concreta di questo modello mediante il Write Path di `gardens`; la Sessione S023 ne ha rafforzato il controllo concorrente e ha applicato lo stesso modello a `seasons`; la Sessione S024 lo ha esteso a `beds`, mantenendo separati identità stabile, geometria storicizzata e correzioni tracciate. Le ulteriori entità saranno implementate progressivamente secondo il rispettivo contratto.
 
 ### Alternative valutate
 
@@ -1760,7 +1779,10 @@ Il Write Path delle ulteriori entità di Categoria A rimane pertanto un blocco t
 - Il blocco locale fail-closed delle scritture costituisce un controllo preventivo e non sostituisce le verifiche server-side.
 - Il protocollo del lock non sostituisce autenticazione, autorizzazione, RLS o invarianti del database.
 - Il protocollo del lock costituisce il fondamento del Write Path autoritativo di Categoria A, ma non implica il completamento dei Write Path di tutte le entità di Categoria A.
-- `gardens` e `seasons` dispongono di Write Path autoritativi di Categoria A completati e coerenti allo stato attuale; le ulteriori entità strutturali potranno essere considerate pienamente protette contro lost update solo dopo l’implementazione delle relative operazioni server-side autoritative con le verifiche previste dal contratto di ciascuna entità.
+- `gardens`, `seasons` e `beds` dispongono di Write Path autoritativi di Categoria A completati e coerenti allo stato attuale; le ulteriori entità strutturali potranno essere considerate pienamente protette contro lost update solo dopo l’implementazione delle relative operazioni server-side autoritative con le verifiche previste dal contratto di ciascuna entità.
+- L’identità stabile dell’aiuola rimane separata dalla geometria valida nel tempo.
+- Il cambio ordinario della geometria rimane distinto dalla correzione storica tracciata.
+- Gli intervalli geometrici della stessa aiuola non possono sovrapporsi.
 - Non vengono introdotti nel V1 ulteriori meccanismi di concorrenza non giustificati da problemi concreti.
 - Il protocollo costituisce la baseline tecnica per l'estensione progressiva del Write Path autoritativo alle ulteriori entità di Categoria A.
 
@@ -1781,7 +1803,7 @@ Il Write Path delle ulteriori entità di Categoria A rimane pertanto un blocco t
 | DEC-009 | 11/08/2026 | S015     | Separazione tra pianificazione temporale e compatibilità agronomica                | Approvata |
 | DEC-010 | 12/08/2026 | S016     | Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza | Approvata |
 | DEC-011 | 16/08/2026 | S017     | Baseline architetturale del Database V1                                               | Approvata |
-| DEC-012 | 28/08/2026 | S020–S023 | Sicurezza e gestione concorrente del `profile_edit_locks` e fondamento del Write Path autoritativo di Categoria A | Approvata |
+| DEC-012 | 01/09/2026 | S020–S024 | Sicurezza e gestione concorrente del `profile_edit_locks` e fondamento del Write Path autoritativo di Categoria A | Approvata |
 
 ---
 

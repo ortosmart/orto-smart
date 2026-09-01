@@ -4,14 +4,14 @@
 
 # Registro delle modifiche
 
-**Versione:** 2.1
+**Versione:** 2.2
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 28/08/2026
+**Ultimo aggiornamento:** 01/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------ |
 | Documento            | CHANGELOG                |
 | Titolo               | Registro delle modifiche |
-| Versione             | 2.1                      |
+| Versione             | 2.2                      |
 | Stato                | Approvato                |
 | Progetto             | Orto Smart               |
 | Repository           | ortosmart/orto-smart     |
 | Prima emissione      | 27/07/2026               |
-| Ultimo aggiornamento | 28/08/2026               |
+| Ultimo aggiornamento | 01/09/2026               |
 
 ---
 
@@ -50,6 +50,7 @@
 | 1.9      | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.12-alpha: supporto alle finestre agronomiche multiple e predisposizione dell'ambiente Supabase locale per la futura implementazione della baseline Database V1 |
 | 2.0      | 18/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.13-alpha: prima migration Database V1, implementazione e verifica locale delle Fondazioni, introduzione della prima sicurezza RLS e consolidamento del primo incremento fisico della baseline |
 | 2.1      | 28/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.14-alpha: protocollo completo `profile_edit_locks`, Profile Write Authority, Write Path autoritativi di `gardens` e `seasons` e integrazione Flutter fail-closed |
+| 2.2      | 01/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.15-alpha: implementazione di `beds`, geometria storicizzata, Write Path autoritativo delle aiuole, integrazione Flutter e configurazione Supabase parametrizzabile |
 
 ---
 
@@ -76,6 +77,7 @@
 3.13 Versione 0.1.12-alpha
 3.14 Versione 0.1.13-alpha
 3.15 Versione 0.1.14-alpha
+3.16 Versione 0.1.15-alpha
 
 ## 4. Cronologia versioni
 
@@ -742,6 +744,75 @@ Nessuna correzione specifica separata dalle modifiche descritte sopra.
 
 ---
 
+## 3.16 Versione 0.1.15-alpha
+
+**Data:** 01/09/2026
+
+### Aggiunto
+
+- Introdotte le tabelle `beds`, `bed_geometries` e `bed_geometry_corrections`.
+- Implementato il Write Path autoritativo di `beds`.
+- Introdotte le RPC `create_bed`, `update_bed`, `set_bed_active`, `change_bed_geometry` e `correct_bed_geometry`.
+- Introdotto il modello Flutter `BedGeometry`.
+- Introdotti risultati Dart tipizzati per le operazioni autoritative delle aiuole.
+- Esteso `BedRepository` con lettura del dettaglio e cinque operazioni di scrittura.
+- Introdotto `ProfileContextScope`.
+- Introdotta `CreateBedPage`.
+- Integrata nella sezione Orto la creazione autoritativa di una nuova aiuola.
+- Introdotti test dedicati a modelli, repository, pagine, widget e integrazione HTTP del nuovo Write Path.
+- Resa parametrizzabile la configurazione Supabase mediante `SUPABASE_URL` e `SUPABASE_ANON_KEY`.
+
+### Modificato
+
+- Riallineato il modello `Bed` al contratto Database V1.
+- Separata l’identità stabile dell’aiuola dalla geometria valida nel tempo.
+- Adeguati `ProfileSessionGate` e `ProfileWriteAuthorityScope`.
+- Adeguati `GardenRepository`, `GardenPage`, `BedPage`, `GardenCard`, `BedCard` e `GardenMap`.
+- Mantenuto l’ambiente Supabase remoto come configurazione predefinita.
+- Reso esplicito l’uso dell’ambiente locale mediante `--dart-define`.
+- Estesa la concorrenza ottimistica alle operazioni protette di `beds` e `bed_geometries`.
+- Allineate le migration locali e remote fino a `20260830140235`.
+
+### Architettura
+
+- Consolidata `beds` come identità stabile dell’aiuola.
+- Consolidata `bed_geometries` come cronologia delle geometrie valide nel tempo.
+- Vietata la sovrapposizione degli intervalli geometrici della stessa aiuola.
+- Distinto il cambio ordinario della geometria dalla correzione di un dato storico.
+- Introdotto `bed_geometry_corrections` come registro delle rettifiche geometriche.
+- Mantenuta la Profile Write Authority come prerequisito applicativo e server-side delle scritture protette.
+- Mantenuto il database PostgreSQL come autorità definitiva per autorizzazioni, concorrenza, temporalità e invarianti.
+- Mantenuto il comportamento fail-closed dei risultati RPC non riconosciuti, incompleti o incoerenti.
+
+### Test
+
+- `flutter analyze`: nessun problema rilevato.
+- Suite completa Flutter: **781/781 test superati**.
+- Verificati modelli `Bed` e `BedGeometry`.
+- Verificate la lettura dell’elenco e del dettaglio delle aiuole.
+- Verificate le cinque operazioni autoritative di `BedRepository`.
+- Verificate `CreateBedPage`, `BedPage`, `GardenPage` e `GardenMap`.
+- Verificati casi positivi, negativi, assenza del lease, conflitti di versione e payload RPC non validi.
+- Verificata manualmente in locale la creazione dell’aiuola A01 di 90 × 700 cm attraverso UI e Write Path.
+
+### Sicurezza
+
+- Revocate le scritture applicative dirette sulle tabelle protette delle aiuole.
+- Mantenuto `PUBLIC EXECUTE` revocato per le RPC sensibili.
+- Applicati controllo server-side della Profile Write Authority e privilegio minimo.
+- Applicata la concorrenza ottimistica mediante `expected_row_version`.
+- Impedita la modifica retroattiva non tracciata della geometria.
+- Registrate separatamente le correzioni geometriche.
+- Mantenuto il token del lease fuori dalle pagine Flutter.
+
+### Aperto / Future
+
+- La visualizzazione del campo “Geometria valida dal” resta in formato `AAAA-MM-GG`; è prevista una futura presentazione `GG/MM/AAAA`, mantenendo ISO verso RPC e database.
+- `public.plantings` non è ancora implementata nell’attuale schema Database V1.
+- Le interfacce di modifica, attivazione/disattivazione, cambio geometria e correzione geometrica non sono ancora presenti, mentre RPC e metodi Repository risultano implementati e testati.
+
+---
+
 # 4. Cronologia versioni
 
 | Versione    | Data       | Stato      | Note                                                                                                                                                              |
@@ -760,7 +831,8 @@ Nessuna correzione specifica separata dalle modifiche descritte sopra.
 | 0.1.11-alpha | 16/08/2026 | Archiviata | Completata e congelata nella S017 la progettazione della baseline Database V1: 52 entità di dominio più la struttura tecnica `profile_edit_locks`, con ownership, accesso familiare monoutente, modello single-writer, temporalità, sicurezza, invarianti e strategia di implementazione incrementale in Supabase. |
 | 0.1.12-alpha | 16/08/2026 | Archiviata | Introdotto il supporto alle finestre agronomiche multiple e predisposto l'ambiente Supabase locale versionato per la futura implementazione incrementale della baseline Database V1; verificati 151/151 test e mantenuto invariato il database remoto. |
 | 0.1.13-alpha | 18/08/2026 | Archiviata | Creata la prima migration Database V1 e implementato e verificato localmente il blocco Fondazioni con schema `private`, helper autorizzativi, trigger metadata e 13 policy RLS; consolidato il primo incremento fisico della baseline Database V1. |
-| 0.1.14-alpha | 28/08/2026 | Corrente | Completato il protocollo `profile_edit_locks`, introdotta la Profile Write Authority, implementati i Write Path autoritativi di `gardens` e `seasons`, integrata la sessione Profile nel client Flutter e verificati 237/237 test. |
+| 0.1.14-alpha | 28/08/2026 | Archiviata | Completato il protocollo `profile_edit_locks`, introdotta la Profile Write Authority, implementati i Write Path autoritativi di `gardens` e `seasons`, integrata la sessione Profile nel client Flutter e verificati 237/237 test. |
+| 0.1.15-alpha | 01/09/2026 | Corrente | Implementati `beds`, geometria storicizzata e relativo Write Path autoritativo, integrata la creazione dell’aiuola nel client Flutter, parametrizzata la configurazione Supabase e verificati 781/781 test. |
 
 ---
 

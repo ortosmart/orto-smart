@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 1.6
+**Versione:** 1.7
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 28/08/2026
+**Ultimo aggiornamento:** 01/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 1.6 |
+| Versione | 1.7 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 28/08/2026 |
+| Ultimo aggiornamento | 01/09/2026 |
 
 ---
 
@@ -43,6 +43,7 @@
 | 1.4 | 23/08/2026 | Aggiornamento con la Sessione S021: completamento e hardening del protocollo `profile_edit_locks`, verifica delle transizioni concorrenti mediante `FOR UPDATE`, rivalidazione server-side e definizione del successivo Write Path autoritativo delle entità di Categoria A |
 | 1.5 | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, helper `Profile Write Authority`, RPC `create_garden` e `update_garden`, revoca delle scritture dirette da parte di `authenticated`, validazioni server-side e controllo della concorrenza |
 | 1.6 | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, introduzione del Write Path autoritativo di `seasons` mediante `create_season`, `update_season` e `activate_season`, revoca delle scritture dirette, concorrenza ottimistica tramite `row_version` e attivazione atomica della stagione |
+| 1.7 | 01/09/2026 | Aggiornamento con la Sessione S024: implementazione V1 di `beds`, `bed_geometries` e `bed_geometry_corrections`, Write Path autoritativo delle aiuole, storicizzazione geometrica, concorrenza ottimistica, tracciamento delle correzioni e allineamento delle migration locale/remoto |
 
 ---
 
@@ -155,22 +156,25 @@ e sostituisce la precedente denominazione provvisoria `zone_target_assignments`.
 
 ## 2.3 Stato di implementazione
 
-Al termine della Sessione S023 la situazione del Database V1 è la seguente:
+Al termine della Sessione S024 la situazione del Database V1 è la seguente:
 
 - la progettazione logica e architetturale completata nella S017 rimane la baseline ufficiale congelata;
 - l’ambiente locale Supabase predisposto nella S018 è operativo per sviluppo, ricostruzione e collaudo;
-- le migration locali e remote risultano allineate;
+- le migration locali e remote risultano allineate fino a `20260830140235`;
 - è implementato il gruppo **Fondazioni**;
 - sono presenti lo schema `private`, gli helper autorizzativi, i trigger metadata e la matrice RLS;
 - è completato e verificato il protocollo server-side `profile_edit_locks`;
 - è disponibile la Profile Write Authority server-side;
 - `gardens` dispone del Write Path autoritativo mediante `create_garden` e `update_garden`;
-- `update_garden` applica la concorrenza ottimistica mediante `expected_row_version`;
 - `seasons` dispone del Write Path autoritativo mediante `create_season`, `update_season` e `activate_season`;
-- le scritture dirette su `public.gardens` e `public.seasons` da parte di `authenticated` sono revocate;
-- il Database V1 completo non è ancora implementato.
+- `beds` dispone del Write Path autoritativo mediante `create_bed`, `update_bed`, `set_bed_active`, `change_bed_geometry` e `correct_bed_geometry`;
+- l’identità stabile dell’aiuola è separata dalla geometria valida nel tempo;
+- le correzioni geometriche sono registrate separatamente;
+- le scritture dirette sulle entità protette da parte di `authenticated` sono revocate;
+- il Database V1 completo non è ancora implementato;
+- `public.plantings` non è ancora presente nell’attuale schema implementato.
 
-Le sei tabelle del blocco Fondazioni attualmente implementate sono:
+Le nove tabelle del Database V1 attualmente implementate sono:
 
 ```text
 profiles
@@ -179,18 +183,25 @@ gardens
 workers
 seasons
 profile_edit_locks
+beds
+bed_geometries
+bed_geometry_corrections
 ```
 
-Le migration introdotte nella Sessione S023 sono:
+Le migration introdotte nella Sessione S024 sono:
 
 ```text
-20260825173801_harden_update_garden_row_version.sql
-20260826063859_harden_seasons_write_path.sql
+20260830091156_add_beds_and_geometry_history.sql
+20260830095426_add_beds_write_rpcs.sql
+20260830101354_add_update_bed_rpc.sql
+20260830103544_add_set_bed_active_rpc.sql
+20260830133429_add_change_bed_geometry_rpc.sql
+20260830140235_add_correct_bed_geometry_rpc.sql
 ```
 
-La prima rafforza `update_garden` contro i lost update. La seconda protegge il Write Path di `seasons`, centralizza le scritture nelle RPC autoritative e applica le invarianti della stagione.
+La prima migration introduce l’identità stabile delle aiuole, la geometria storicizzata e il registro delle correzioni. Le cinque migration successive implementano progressivamente le RPC autoritative di creazione, aggiornamento, variazione dello stato attivo, cambio ordinario della geometria e correzione geometrica.
 
-Le sessioni da S019 a S023 rappresentano quindi la progressiva traduzione della baseline congelata in strutture, sicurezza e operazioni server-side verificate. L’implementazione dovrà continuare incrementalmente senza riaprire lo STEP 34 salvo l’emersione di un errore concreto o di una necessità architetturale esplicitamente valutata.
+Le sessioni da S019 a S024 rappresentano la progressiva traduzione della baseline congelata in strutture, sicurezza e operazioni server-side verificate. L’implementazione dovrà continuare incrementalmente senza riaprire lo STEP 34 salvo l’emersione di un errore concreto o di una necessità architetturale esplicitamente valutata.
 
 Le operazioni amministrative protette su `profile_memberships` e i Write Path delle ulteriori entità di Categoria A restano incrementi successivi.
 
@@ -2442,9 +2453,9 @@ e mediante test manuali positivi e negativi delle policy RLS.
 
 La S019 costituisce il primo incremento fisicamente implementato e verificato della baseline Database V1.
 
-Le Sessioni S020 e S021 hanno progressivamente completato e rafforzato il protocollo server-side `profile_edit_locks`. La S022 ha introdotto la Profile Write Authority e il primo Write Path autoritativo per `gardens`. La S023 ha rafforzato il controllo versione di `update_garden` e ha applicato il Write Path autoritativo a `seasons`.
+Le Sessioni S020 e S021 hanno progressivamente completato e rafforzato il protocollo server-side `profile_edit_locks`. La S022 ha introdotto la Profile Write Authority e il primo Write Path autoritativo per `gardens`. La S023 ha rafforzato il controllo versione di `update_garden` e ha applicato il Write Path autoritativo a `seasons`. La S024 ha implementato `beds`, la geometria storicizzata e il relativo Write Path autoritativo.
 
-La sequenza delle migration implementate e allineate fino alla S023 è:
+La sequenza delle migration implementate e allineate fino alla S024 è:
 
 ```text
 20260817103916_database_v1_baseline.sql
@@ -2456,6 +2467,12 @@ La sequenza delle migration implementate e allineate fino alla S023 è:
 20260824145346_add_update_garden_rpc.sql
 20260825173801_harden_update_garden_row_version.sql
 20260826063859_harden_seasons_write_path.sql
+20260830091156_add_beds_and_geometry_history.sql
+20260830095426_add_beds_write_rpcs.sql
+20260830101354_add_update_bed_rpc.sql
+20260830103544_add_set_bed_active_rpc.sql
+20260830133429_add_change_bed_geometry_rpc.sql
+20260830140235_add_correct_bed_geometry_rpc.sql
 ```
 
 Le restanti entità della baseline, i relativi Write Path autoritativi e le operazioni amministrative protette su `profile_memberships` rimangono da implementare progressivamente secondo dipendenze e perimetro approvato.
@@ -3297,9 +3314,15 @@ Nella Sessione S023 `update_garden` è stata rafforzata mediante `expected_row_v
 
 La Sessione S023 ha inoltre introdotto il Write Path autoritativo di `seasons` mediante `create_season`, `update_season` e `activate_season`. Le scritture dirette sono revocate, la concorrenza ottimistica utilizza `row_version` e l’attivazione della stagione target con la disattivazione della precedente avviene atomicamente.
 
-I Write Path di `gardens` e `seasons` sono considerati completati e coerenti allo stato attuale.
+La Sessione S024 ha introdotto il Write Path autoritativo di `beds` mediante `create_bed`, `update_bed`, `set_bed_active`, `change_bed_geometry` e `correct_bed_geometry`.
 
-Il prossimo incremento concordato riguarda `beds` e `bed_geometries`, con identità stabile dell’aiuola, geometria storicizzata e Write Path autoritativo. Restano inoltre da affrontare le operazioni amministrative protette su `profile_memberships`.
+L’identità stabile dell’aiuola è mantenuta in `beds`, mentre `bed_geometries` conserva le configurazioni valide nel tempo mediante intervalli non sovrapposti. Le normali variazioni fisiche chiudono la geometria precedente e ne creano una nuova; le rettifiche storiche utilizzano un’operazione distinta e vengono registrate in `bed_geometry_corrections`.
+
+Le scritture dirette sulle tabelle protette sono revocate, le operazioni applicano la Profile Write Authority e la concorrenza ottimistica utilizza `row_version` ed `expected_row_version` secondo il contratto delle singole RPC.
+
+I Write Path di `gardens`, `seasons` e `beds` sono considerati completati e coerenti allo stato attuale.
+
+Restano da implementare progressivamente i Write Path delle ulteriori entità della baseline e le operazioni amministrative protette su `profile_memberships`. `public.plantings`, pur prevista nella baseline, non è ancora presente nello schema implementato.
 
 Le operazioni già implementate e quelle ancora da completare devono rispettare i principi già stabiliti per il Database V1:
 
@@ -3324,9 +3347,9 @@ Il percorso di implementazione prosegue pertanto come:
 ```text
 Fondazioni e protocollo single-writer verificati
         ↓
-Write Path gardens e seasons verificati
+Write Path gardens, seasons e beds verificati
         ↓
-beds e bed_geometries
+ulteriori entità secondo dipendenze e perimetro approvato
         ↓
 verifica positiva e negativa della sicurezza
         ↓
@@ -3337,7 +3360,7 @@ documentazione
 commit e push
 ```
 
-La S019 ha costituito il primo incremento fisicamente implementato e verificato del Database V1. Le Sessioni S020 e S021 hanno completato e rafforzato il protocollo `profile_edit_locks`; la S022 ha introdotto il Write Path autoritativo di `gardens`; la S023 ha rafforzato `update_garden` e completato il Write Path autoritativo di `seasons`. Le ulteriori strutture e operazioni della baseline continueranno a essere introdotte progressivamente secondo il perimetro approvato.
+La S019 ha costituito il primo incremento fisicamente implementato e verificato del Database V1. Le Sessioni S020 e S021 hanno completato e rafforzato il protocollo `profile_edit_locks`; la S022 ha introdotto il Write Path autoritativo di `gardens`; la S023 ha rafforzato `update_garden` e completato il Write Path autoritativo di `seasons`; la S024 ha implementato l’identità stabile, la geometria storicizzata e il Write Path autoritativo di `beds`. Le ulteriori strutture e operazioni della baseline continueranno a essere introdotte progressivamente secondo il perimetro approvato.
 
 ## 13.4 Relazione con il dominio applicativo
 

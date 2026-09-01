@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.2
+**Versione:** 2.3
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 28/08/2026
+**Ultimo aggiornamento:** 01/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,14 +23,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.2 |
+| Versione | 2.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 28/08/2026 |
+| Ultimo aggiornamento | 01/09/2026 |
 
 ---
 
@@ -53,6 +53,7 @@
 | 2.0      | 23/08/2026 | Aggiornamento con la Sessione S021: completamento del protocollo `profile_edit_locks`, hardening delle transizioni concorrenti, audit server-side e definizione del successivo Write Path autoritativo delle entità di Categoria A |
 | 2.1      | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, Profile Write Authority, RPC `create_garden` e `update_garden`, blocco delle scritture dirette su `public.gardens` e validazioni server-side del Write Path |
 | 2.2      | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, introduzione dell’identità tecnica del client e della sessione applicativa, integrazione Flutter della Profile Write Authority, gate locale fail-closed e adapter tipizzato per le scritture delle stagioni |
+| 2.3      | 01/09/2026 | Aggiornamento con la Sessione S024: implementazione V1 di `beds` e `bed_geometries`, geometria storicizzata, cinque RPC autoritative, integrazione Flutter del Write Path delle aiuole, nuova `CreateBedPage` e configurazione Supabase parametrizzabile |
 
 ---
 
@@ -714,20 +715,29 @@ Ha il compito di inizializzare l’ambiente di esecuzione, Supabase e i servizi 
 
 - il caricamento o la creazione dell’identità tecnica persistente del client;
 - la creazione di una nuova identità della sessione applicativa;
-- la risoluzione del contesto Profile;
+- la risoluzione del contesto Profile e la sua esposizione tramite `ProfileContextScope`;
 - il rilascio conservativo delle acquisizioni obsolete riferite allo stesso client;
 - la creazione del controller e dello scheduler della Profile Write Authority;
 - il gate della sessione Profile;
-- l’esposizione della Write Authority tramite lo scope applicativo;
+- l’esposizione della Write Authority tramite `ProfileWriteAuthorityScope`;
 - il rilascio delle risorse nel ciclo di chiusura dell’applicazione.
 
 Una nuova sessione applicativa non eredita automaticamente un lease ottenuto da una sessione precedente. Le funzionalità protette vengono rese disponibili soltanto dopo la costruzione coerente del contesto Profile e della relativa autorità di scrittura.
 
 ### `supabase_config.dart`
 
-Contiene i parametri di configurazione utilizzati per la connessione al backend Supabase.
+Contiene i parametri utilizzati per la connessione al backend Supabase.
 
-La separazione della configurazione dal resto del codice migliora l'organizzazione del progetto e semplifica la gestione delle impostazioni dell'applicazione.
+Dalla Sessione S024 la configurazione utilizza `String.fromEnvironment` e accetta:
+
+- `SUPABASE_URL`;
+- `SUPABASE_ANON_KEY`.
+
+I valori possono essere forniti all’avvio mediante `--dart-define`, consentendo di selezionare esplicitamente un ambiente locale o alternativo senza modificare il sorgente.
+
+In assenza di override vengono utilizzati i valori predefiniti dell’ambiente Supabase remoto. Il remoto rimane quindi il target predefinito, mentre l’uso dell’ambiente locale richiede una scelta esplicita al momento dell’avvio.
+
+La separazione della configurazione dal resto del codice migliora l’organizzazione del progetto, riduce il rischio di modifiche manuali errate e rende ripetibili le verifiche sui diversi ambienti.
 
 ## 3.12 Considerazioni finali
 
@@ -805,9 +815,15 @@ Contiene le informazioni generali dell'orto, come il nome, la posizione e le imp
 
 ### Bed
 
-Rappresenta una singola aiuola.
+Rappresenta l’identità stabile di una singola aiuola appartenente a un Garden.
 
-Ogni aiuola appartiene a un orto ed è caratterizzata da proprietà geometriche, come lunghezza e larghezza, oltre che dalle informazioni necessarie alla gestione delle coltivazioni.
+Il modello mantiene separati i dati identificativi e descrittivi dalla geometria valida nel tempo. Espone inoltre `rowVersion`, utilizzato per la concorrenza ottimistica delle operazioni autoritative.
+
+### BedGeometry
+
+Rappresenta la geometria dell’aiuola valida in uno specifico intervallo temporale.
+
+Comprende le dimensioni, la decorrenza `validFrom`, l’eventuale termine `validTo` e la propria `rowVersion`. La separazione da `Bed` consente di modificare la configurazione fisica dell’aiuola senza riscriverne retroattivamente la storia.
 
 ### Crop
 
@@ -1748,7 +1764,11 @@ La Sessione S023 ha esteso il medesimo modello a `seasons`, introducendo `create
 
 Sul lato Flutter sono ora implementati l’identità tecnica persistente del client, l’identità distinta della sessione applicativa, il contesto Profile, il Repository del lock, lo scheduler, il controller, lo scope e il gate della Profile Write Authority. Le scritture protette vengono bloccate localmente in assenza di un lease valido, fermo restando che l’autorità definitiva appartiene alle RPC server-side.
 
-I Write Path delle ulteriori entità di Categoria A restano incrementi successivi. Il prossimo blocco concordato riguarda `beds` e `bed_geometries`, con identità stabile, geometria storicizzata e Write Path autoritativo. Restano inoltre da implementare le operazioni amministrative protette su `profile_memberships`.
+La Sessione S024 ha esteso il modello autoritativo a `beds` e `bed_geometries`, separando l’identità stabile dell’aiuola dalla geometria valida nel tempo.
+
+Sono state introdotte le RPC `create_bed`, `update_bed`, `set_bed_active`, `change_bed_geometry` e `correct_bed_geometry`. Le operazioni applicano la Profile Write Authority, la concorrenza ottimistica tramite `row_version`, le invarianti temporali e la distinzione tra normale cambio di geometria e correzione storica tracciata.
+
+I Write Path delle ulteriori entità di Categoria A restano incrementi successivi. Restano inoltre da implementare le operazioni amministrative protette su `profile_memberships`.
 
 Il **DOC-004 – Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo all'interno dell'architettura complessiva di Orto Smart.
 
@@ -1824,7 +1844,17 @@ Gestisce le informazioni relative all’orto principale. Le scritture protette u
 
 ### BedRepository
 
-Si occupa della gestione delle aiuole, permettendo il recupero dell’elenco delle aiuole attive e delle relative informazioni strutturali. Il modello corrente è ancora legacy e sarà riallineato nella Sessione S024 alla separazione tra identità stabile di `beds` e geometria storicizzata in `bed_geometries`.
+Gestisce la lettura dell’elenco delle aiuole e del dettaglio di una singola aiuola secondo il contratto V1, mantenendo separati `Bed` e `BedGeometry`.
+
+Dalla Sessione S024 integra le RPC autoritative:
+
+- `create_bed`;
+- `update_bed`;
+- `set_bed_active`;
+- `change_bed_geometry`;
+- `correct_bed_geometry`.
+
+Il Repository ottiene il lease dal livello Profile Write Authority, converte le risposte RPC in risultati Dart tipizzati e applica un comportamento fail-closed ai payload sconosciuti, incompleti o incoerenti. Le pagine non gestiscono direttamente il token del lease.
 
 ### CropRepository
 
@@ -2059,15 +2089,21 @@ Da questa pagina l'utente può raggiungere rapidamente le diverse sezioni operat
 
 ### GardenPage
 
-Visualizza l'orto e l'elenco delle aiuole disponibili.
+Visualizza l’orto e l’elenco delle aiuole disponibili.
 
-Da questa schermata è possibile selezionare una specifica aiuola per visualizzarne il contenuto oppure avviare l'inserimento di una nuova coltura.
+Da questa schermata è possibile selezionare un’aiuola per visualizzarne il dettaglio oppure avviare la creazione di una nuova aiuola mediante il Write Path autoritativo.
+
+### CreateBedPage
+
+Consente di creare una nuova aiuola raccogliendo separatamente i dati identificativi e la geometria iniziale.
+
+La pagina utilizza `BedRepository.createBed`, richiede la disponibilità della Profile Write Authority e non esegue scritture dirette sulle tabelle Supabase.
 
 ### BedPage
 
-Mostra il dettaglio di una singola aiuola.
+Mostra il dettaglio di una singola aiuola e ne esegue la rilettura autoritativa tramite `BedRepository`.
 
-Visualizza le colture presenti, la rappresentazione grafica della loro disposizione, le informazioni principali e le operazioni disponibili per la gestione dell'aiuola.
+La pagina è predisposta per visualizzare le colture e la loro disposizione. Nello stato attuale del Database V1, tuttavia, `public.plantings` non è ancora implementata mediante migration; la relativa sezione resta quindi dipendente da un futuro incremento tecnico.
 
 ### AddPlantingPage
 

@@ -4,14 +4,14 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.10
+**Versione:** 0.11
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 28/08/2026
+**Ultimo aggiornamento:** 01/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.10 |
+| Versione | 0.11 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 28/08/2026 |
+| Ultimo aggiornamento | 01/09/2026 |
 
 ---
 
@@ -46,6 +46,7 @@
 | 0.8 | 24/08/2026 | Aggiornamento del Quaderno con la Sessione S022: implementazione del primo Write Path autoritativo di Categoria A per `gardens`, introduzione di `Profile Write Authority`, hardening della struttura di `gardens`, RPC `create_garden` e `update_garden`, validazioni server-side e verifica del comportamento concorrente |
 | 0.9 | 25/08/2026 | Chiusura della Sessione S022: consolidamento del Write Path autoritativo di Categoria A per `gardens`, completamento della documentazione e aggiornamento del timing della sessione |
 | 0.10 | 28/08/2026 | Aggiornamento del Quaderno con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, identità tecnica del client e della sessione, integrazione Flutter della Profile Write Authority e definizione del successivo blocco `beds` e `bed_geometries` |
+| 0.11 | 01/09/2026 | Aggiornamento del Quaderno con la Sessione S024: implementazione V1 di `beds` e `bed_geometries`, geometria storicizzata, Write Path autoritativo delle aiuole, integrazione Flutter, configurazione Supabase parametrizzabile e verifiche locali/end-to-end |
 
 ---
 
@@ -75,6 +76,8 @@
 | S020 | 18–20/08/2026 | 6 h 36 min | 107 h 49 min | Sicurezza concorrente `profile_edit_locks` | ✅ |
 | S021 | 20–21/08/2026 | 8 h 09 min | 115 h 58 min | Hardening concorrente `profile_edit_locks` | ✅ |
 | S022 | 23–25/08/2026 | 9 h 34 min | 127 h 38 min | Implementazione del Write Path autoritativo di Categoria A per `gardens` | ✅ |
+| S023 | 25–28/08/2026 | 13 h 25 min | 141 h 03 min | Profile Write Authority applicativa, hardening concorrente di `gardens` e Write Path autoritativo di `seasons` | ✅ |
+| S024 | 30/08–01/09/2026 | 18 h 03 min | 159 h 06 min | Implementazione del Write Path autoritativo di `beds` e della geometria storicizzata delle aiuole | ✅ |
 
 ---
 
@@ -112,6 +115,7 @@
 3.21 S021
 3.22 S022
 3.23 S023
+3.24 S024
 
 ## 4. Considerazioni finali
 
@@ -5942,3 +5946,429 @@ Sviluppo: **10 h 35 min**
 Documentazione: **2 h 50 min**
 
 Totale S023: **13 h 25 min**
+
+# Sessione S024 — Write Path autoritativo di `beds` e geometria storicizzata
+
+**Periodo sviluppo:** 30/08–01/09/2026
+**Sviluppo:** 15 h 02 min
+**Documentazione:** 3 h 01 min
+
+## Obiettivo della sessione
+
+La Sessione S024 prosegue l’implementazione incrementale dei Write Path autoritativi di Categoria A, affrontando congiuntamente `beds` e `bed_geometries`.
+
+Gli obiettivi principali sono:
+
+- sostituire il precedente modello legacy delle aiuole con il contratto approvato per il Database V1;
+- mantenere stabile l’identità logica dell’aiuola;
+- separare l’identità dell’aiuola dalla geometria valida nel tempo;
+- impedire modifiche retroattive involontarie della storia geometrica;
+- distinguere il normale cambio di geometria dalla correzione di dati storici errati;
+- introdurre RPC autoritative per tutte le operazioni protette;
+- integrare il nuovo contratto nel Repository Layer e nell’interfaccia Flutter;
+- mantenere il comportamento fail-closed della Profile Write Authority;
+- verificare il percorso completo mediante test automatici e prova locale end-to-end.
+
+La sessione mantiene i principi guida del progetto:
+
+- **sicurezza prima di tutto**;
+- **presto e bene non conviene**;
+- piccoli incrementi verificabili;
+- autorità definitiva del database;
+- controllo preventivo nel client e controllo autoritativo server-side;
+- concorrenza ottimistica mediante `row_version`;
+- separazione tra operazioni ordinarie e rettifiche amministrative.
+
+## Timing dello sviluppo
+
+La fase di sviluppo della Sessione S024 si è svolta tra il **30 agosto e il 1º settembre 2026**.
+
+| Data | Intervallo | Durata netta |
+| --- | --- | ---: |
+| 30/08/2026 | 10:01 → 12:55 | 2 h 54 min |
+| 30/08/2026 | 15:33 → 19:01 | 3 h 28 min |
+| 30–31/08/2026 | 23:48 → 00:45 | 57 min |
+| 31/08/2026 | 10:05 → 13:15 | 3 h 10 min |
+| 31/08/2026 | 14:03 → 16:32 | 2 h 29 min |
+| 31/08/2026 | 19:14 → 20:27 | 1 h 13 min |
+| 01/09/2026 | 16:24 → 17:15 | 51 min |
+| **Totale sviluppo S024** |  | **15 h 02 min** |
+
+Le pause e le sospensioni tra gli intervalli sono escluse dal conteggio.
+
+Lo sviluppo è stato concluso per il passaggio alla fase Manuali il **01/09/2026 alle 17:15**.
+
+## IMPLEMENTATO E TESTATO
+
+### Struttura autoritativa delle aiuole
+
+È stata introdotta la migration:
+
+`20260830091156_add_beds_and_geometry_history.sql`
+
+La migration introduce:
+
+- `public.beds`;
+- `public.bed_geometries`;
+- `public.bed_geometry_corrections`.
+
+`beds` mantiene l’identità stabile dell’aiuola e comprende il controllo di concorrenza mediante `row_version`.
+
+Il database garantisce, tra le altre invarianti:
+
+- unicità del numero dell’aiuola all’interno dello stesso Garden;
+- numero positivo;
+- rifiuto dei valori testuali non significativi dove previsti;
+- `row_version` sempre maggiore o uguale a 1;
+- aggiornamento controllato dei metadata e della versione della riga.
+
+### Geometria storicizzata
+
+`bed_geometries` rappresenta la geometria dell’aiuola valida in uno specifico intervallo temporale.
+
+L’intervallo utilizza:
+
+- `valid_from` incluso;
+- `valid_to` escluso;
+- `valid_to = null` per la geometria priva di una fine già definita.
+
+Il database impone:
+
+- larghezza positiva;
+- lunghezza positiva;
+- date finite;
+- `valid_to` successivo a `valid_from`, quando presente;
+- assenza di sovrapposizioni tra gli intervalli geometrici della stessa aiuola;
+- concorrenza ottimistica mediante `row_version`.
+
+Una variazione della geometria non modifica retroattivamente la configurazione valida nei periodi precedenti.
+
+### Registro delle correzioni geometriche
+
+`bed_geometry_corrections` registra le rettifiche apportate a una geometria storica.
+
+Il registro conserva:
+
+- stato precedente;
+- stato successivo;
+- motivazione della correzione;
+- versioni coinvolte;
+- relazione con l’aiuola e la geometria interessate.
+
+Le registrazioni delle correzioni non possono essere modificate come normali dati applicativi. Questa separazione consente di distinguere una nuova configurazione fisica dell’aiuola dalla rettifica di un dato storico errato.
+
+### Sicurezza e accesso
+
+Per `beds`, `bed_geometries` e `bed_geometry_corrections`:
+
+- la lettura è consentita ai membri autorizzati del Profile;
+- le scritture dirette non costituiscono il percorso applicativo;
+- i privilegi vengono limitati esplicitamente;
+- le operazioni protette passano attraverso RPC autoritative;
+- la Profile Write Authority viene verificata server-side.
+
+Il controllo locale Flutter rimane preventivo e non sostituisce le verifiche del database.
+
+### Creazione autoritativa dell’aiuola
+
+È stata introdotta la migration:
+
+`20260830095426_add_beds_write_rpcs.sql`
+
+La RPC `create_bed`:
+
+- verifica utente, Profile, Garden e autorità di scrittura;
+- valida i dati identificativi e geometrici;
+- crea nella stessa operazione l’identità stabile dell’aiuola e la geometria iniziale;
+- utilizza come data iniziale quella fornita oppure la data autoritativa prevista;
+- impedisce date iniziali future;
+- intercetta la duplicazione del numero dell’aiuola nello stesso Garden;
+- restituisce il risultato applicativo con le versioni iniziali di aiuola e geometria.
+
+### Aggiornamento dei dati dell’aiuola
+
+È stata introdotta la migration:
+
+`20260830101354_add_update_bed_rpc.sql`
+
+La RPC `update_bed`:
+
+- richiede `expected_row_version`;
+- modifica i dati propri dell’identità dell’aiuola senza alterarne direttamente la geometria;
+- verifica la versione corrente prima della scrittura;
+- applica la condizione di versione anche nell’aggiornamento finale;
+- distingue gli aggiornamenti effettivi, i dati invariati e i conflitti di versione;
+- impedisce che dati obsoleti sovrascrivano modifiche più recenti.
+
+### Attivazione e disattivazione
+
+È stata introdotta la migration:
+
+`20260830103544_add_set_bed_active_rpc.sql`
+
+La RPC `set_bed_active`:
+
+- costituisce l’operazione dedicata alla variazione dello stato attivo;
+- richiede `expected_row_version`;
+- mantiene separata la gestione dello stato dalle normali modifiche descrittive;
+- gestisce il caso invariato;
+- impedisce i lost update mediante controllo concorrente della versione.
+
+### Cambio ordinario della geometria
+
+È stata introdotta la migration:
+
+`20260830133429_add_change_bed_geometry_rpc.sql`
+
+La RPC `change_bed_geometry`:
+
+- richiede `expected_row_version`;
+- individua la geometria corrente applicabile;
+- chiude l’intervallo precedente alla data di decorrenza indicata;
+- crea la nuova geometria nella stessa transazione;
+- impedisce date future e intervalli incoerenti;
+- mantiene la continuità temporale;
+- aggiorna anche la versione dell’aiuola;
+- restituisce i dati della nuova geometria e le informazioni sulla geometria precedente chiusa.
+
+Quando i dati proposti coincidono con la geometria già valida dalla stessa data, l’operazione non crea inutilmente una nuova versione.
+
+### Correzione della geometria storica
+
+È stata introdotta la migration:
+
+`20260830140235_add_correct_bed_geometry_rpc.sql`
+
+La RPC `correct_bed_geometry`:
+
+- richiede `expected_row_version`;
+- opera sulla geometria specificamente individuata;
+- richiede una motivazione della rettifica;
+- mantiene coerenti gli intervalli confinanti;
+- applica in modo differito il controllo di non sovrapposizione durante la transazione;
+- aggiorna la versione della geometria e dell’aiuola;
+- registra lo stato precedente e quello successivo in `bed_geometry_corrections`;
+- mantiene distinta la rettifica storica dal normale cambio di geometria.
+
+### Modelli e risultati Flutter
+
+Il modello `Bed` è stato riallineato al contratto V1.
+
+Sono stati introdotti:
+
+- `BedGeometry`;
+- `BedWriteResult`;
+- risultati tipizzati per le singole operazioni di scrittura;
+- gestione fail-closed dei payload RPC non validi o incoerenti.
+
+Il client non attribuisce autonomamente validità ai risultati server-side e non tratta risposte sconosciute come esiti positivi.
+
+### Repository delle aiuole
+
+`BedRepository` è stato esteso con:
+
+- `getBeds`;
+- `getBed`;
+- `createBed`;
+- `updateBed`;
+- `setBedActive`;
+- `changeBedGeometry`;
+- `correctBedGeometry`.
+
+Il Repository:
+
+- utilizza la Profile Write Authority per le operazioni protette;
+- mantiene il token del lease fuori dalle pagine;
+- traduce le risposte RPC in risultati Dart tipizzati;
+- rifiuta in modo fail-closed payload incompleti, sconosciuti o incoerenti;
+- gestisce separatamente identità dell’aiuola, geometria corrente e geometria precedente.
+
+### Contesto Profile e integrazione applicativa
+
+È stato introdotto `ProfileContextScope`.
+
+Sono stati adeguati:
+
+- `ProfileSessionGate`;
+- `ProfileWriteAuthorityScope`;
+- `GardenRepository`;
+- `GardenPage`;
+- i widget di rappresentazione dell’orto e delle aiuole.
+
+Il contesto Profile viene reso disponibile alle componenti discendenti senza richiedere alle singole pagine di ricostruirlo autonomamente.
+
+### Interfaccia di creazione dell’aiuola
+
+È stata introdotta `CreateBedPage` e integrata nella sezione Orto.
+
+La pagina:
+
+- acquisisce i dati necessari alla creazione;
+- utilizza il Write Path autoritativo tramite `BedRepository`;
+- mantiene separati i dati identificativi da quelli geometrici;
+- mostra l’esito dell’operazione senza eseguire scritture dirette sulle tabelle.
+
+La visualizzazione dell’orto, la mappa e le schede delle aiuole sono state adeguate al nuovo modello.
+
+`BedPage` rilegge autoritativamente la singola aiuola e utilizza dipendenze sostituibili per consentire test isolati.
+
+### Configurazione Supabase parametrizzabile
+
+`SupabaseConfig` è stato adeguato per consentire la configurazione tramite `--dart-define`.
+
+La configurazione remota rimane il comportamento predefinito. L’ambiente locale deve essere selezionato esplicitamente fornendo i valori previsti all’avvio dell’applicazione.
+
+Questa soluzione consente di eseguire prove locali senza modificare manualmente il sorgente e senza cambiare involontariamente il target predefinito.
+
+## Migration introdotte
+
+La Sessione S024 ha prodotto:
+
+- `20260830091156_add_beds_and_geometry_history.sql`;
+- `20260830095426_add_beds_write_rpcs.sql`;
+- `20260830101354_add_update_bed_rpc.sql`;
+- `20260830103544_add_set_bed_active_rpc.sql`;
+- `20260830133429_add_change_bed_geometry_rpc.sql`;
+- `20260830140235_add_correct_bed_geometry_rpc.sql`.
+
+Al termine dello sviluppo tutte le migration risultavano allineate tra ambiente locale e database remoto fino a `20260830140235`.
+
+## Verifiche e test
+
+Le verifiche finali della fase sviluppo hanno prodotto:
+
+- `flutter analyze`: **No issues found**;
+- `flutter test`: **781/781 test superati**;
+- `git diff --check`: pulito;
+- `git diff --cached --check`: pulito;
+- working tree: pulito;
+- branch `main` allineato a `origin/main`.
+
+Sono stati aggiunti o aggiornati test dedicati per:
+
+- modelli `Bed` e `BedGeometry`;
+- risultati tipizzati del Write Path;
+- `BedRepository`;
+- lettura dell’elenco e del dettaglio;
+- richieste HTTP e payload RPC;
+- cinque operazioni di scrittura;
+- `ProfileContextScope`;
+- `ProfileSessionGate`;
+- Profile Write Authority;
+- `GardenRepository`;
+- `GardenPage`;
+- `CreateBedPage`;
+- `BedPage`;
+- `GardenMap`.
+
+Le verifiche comprendono casi positivi, negativi, conflitti di versione, assenza del lease, payload non validi e gestione fail-closed delle risposte non riconosciute.
+
+## Verifica manuale locale end-to-end
+
+Nell’ambiente Supabase locale sono stati creati e utilizzati:
+
+- un account locale;
+- un Profile owner locale;
+- l’orto `Orto prova locale s024`;
+- l’aiuola A01 con dimensioni **90 × 700 cm**.
+
+La creazione dell’aiuola attraverso l’interfaccia Flutter e il Write Path autoritativo ha avuto esito positivo.
+
+La successiva lettura dell’aiuola dal database locale ha confermato la persistenza e il recupero corretto dei dati.
+
+## APPROVATO / CONGELATO
+
+Con la conclusione dello sviluppo della Sessione S024 vengono considerati consolidati:
+
+- identità stabile dell’aiuola in `beds`;
+- geometria valida nel tempo in `bed_geometries`;
+- assenza di sovrapposizioni temporali tra geometrie della stessa aiuola;
+- distinzione tra cambio ordinario della geometria e correzione storica;
+- tracciamento immutabile delle correzioni geometriche;
+- Profile Write Authority come prerequisito delle scritture protette;
+- revoca delle scritture applicative dirette;
+- concorrenza ottimistica tramite `row_version`;
+- uso obbligatorio di `expected_row_version` nelle operazioni previste;
+- creazione atomica dell’aiuola e della geometria iniziale;
+- modifica dello stato attivo mediante operazione dedicata;
+- aggiornamento coordinato della versione dell’aiuola quando cambia la geometria;
+- risultati Flutter tipizzati e comportamento fail-closed;
+- configurazione remota Supabase come default;
+- selezione esplicita dell’ambiente locale tramite `--dart-define`.
+
+Il Write Path autoritativo di `beds` è considerato **completato e coerente allo stato attuale**.
+
+## Commit tecnico S024
+
+Il commit tecnico conclusivo della Sessione S024 è:
+
+- `32a22b0` — **Integra Write Path autoritativo per beds**
+
+Il confine Git tecnico della sessione è:
+
+`bb678ab..32a22b0`
+
+## Stato Git al termine dello sviluppo
+
+Al passaggio dalla fase sviluppo alla fase Manuali risultava:
+
+```text
+branch: main
+HEAD: 32a22b0
+origin/main: 32a22b0
+working tree: clean
+```
+
+Le verifiche confermavano il repository locale allineato al remoto.
+
+## APERTO / FUTURE
+
+Non fanno parte della chiusura del Write Path autoritativo di `beds`:
+
+1. presentazione del campo “Geometria valida dal” nel formato `GG/MM/AAAA`, mantenendo internamente il formato ISO verso RPC e database;
+2. implementazione della tabella e del Write Path V1 di `plantings`;
+3. risoluzione del codice `PGRST205` prodotto dalla sezione colture di `BedPage` finché `public.plantings` non sarà implementata;
+4. interfacce dedicate a:
+   - modifica dei dati dell’aiuola;
+   - attivazione e disattivazione;
+   - cambio della geometria;
+   - correzione della geometria.
+
+Le RPC e i metodi Repository relativi alle quattro operazioni sono già implementati e coperti da test automatici.
+
+La presenza di `plantings` nella baseline architetturale Database V1 non implica che la relativa tabella sia già stata implementata mediante migration.
+
+Le operazioni amministrative protette su `profile_memberships` restano un blocco successivo distinto.
+
+## Punto di continuità successivo
+
+Il successivo blocco tecnico dovrà essere scelto e approvato dopo il consolidamento documentale della Sessione S024.
+
+Prima di intervenire su `plantings` dovranno essere verificati:
+
+- contratto V1 dell’entità;
+- relazioni con `beds`, `bed_geometries`, colture, varietà e stagioni;
+- dipendenze della UI esistente;
+- Write Path autoritativo;
+- strategia di migrazione;
+- test positivi, negativi e concorrenti.
+
+## Timing della documentazione
+
+La documentazione della Sessione S024 è iniziata il **01/09/2026 alle 17:40** ed è terminata il **01/09/2026 alle 21:15**.
+
+| Intervallo | Durata netta |
+| --- | ---: |
+| 17:40 → 18:40 | 1 h 00 min |
+| 19:14 → 21:15 | 2 h 01 min |
+| **Totale documentazione S024** | **3 h 01 min** |
+
+La sospensione dalle **18:40 alle 19:14**, pari a 34 minuti, è esclusa dal conteggio.
+
+## Tempo complessivo della Sessione S024
+
+Sviluppo: **15 h 02 min**
+
+Documentazione: **3 h 01 min**
+
+Totale S024: **18 h 03 min**
