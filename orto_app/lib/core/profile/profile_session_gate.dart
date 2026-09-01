@@ -6,6 +6,7 @@ import '../identity/app_session_identity.dart';
 import '../write_authority/profile_write_authority_controller.dart';
 import '../write_authority/profile_write_authority_scope.dart';
 import 'profile_context.dart';
+import 'profile_context_scope.dart';
 
 typedef ProfileContextResolver = Future<ProfileContext> Function();
 
@@ -43,6 +44,7 @@ class ProfileSessionGate extends StatefulWidget {
 
 class _ProfileSessionGateState extends State<ProfileSessionGate> {
   late final ProfileWriteAuthorityController _controller;
+  ProfileContext? _profileContext;
 
   int _generation = 0;
   bool _isReady = false;
@@ -84,6 +86,7 @@ class _ProfileSessionGateState extends State<ProfileSessionGate> {
       }
 
       setState(() {
+        _profileContext = profileContext;
         _isReady = true;
         _isInitializing = false;
         _failure = null;
@@ -94,6 +97,7 @@ class _ProfileSessionGateState extends State<ProfileSessionGate> {
       }
 
       setState(() {
+        _profileContext = null;
         _isReady = false;
         _isInitializing = false;
         _failure = failure;
@@ -113,6 +117,7 @@ class _ProfileSessionGateState extends State<ProfileSessionGate> {
     final generation = ++_generation;
 
     setState(() {
+      _profileContext = null;
       _isReady = false;
       _isInitializing = true;
       _failure = null;
@@ -133,13 +138,18 @@ class _ProfileSessionGateState extends State<ProfileSessionGate> {
       return widget.failureBuilder(context, failure, _retry);
     }
 
-    if (!_isReady) {
+    final profileContext = _profileContext;
+
+    if (!_isReady || profileContext == null) {
       return widget.loading;
     }
 
-    return ProfileWriteAuthorityScope(
-      controller: _controller,
-      child: widget.child,
+    return ProfileContextScope(
+      profileContext: profileContext,
+      child: ProfileWriteAuthorityScope(
+        controller: _controller,
+        child: widget.child,
+      ),
     );
   }
 

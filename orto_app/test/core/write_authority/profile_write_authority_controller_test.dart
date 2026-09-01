@@ -6,6 +6,7 @@ import 'package:orto_app/core/identity/app_session_identity.dart';
 import 'package:orto_app/core/profile/profile_context.dart';
 import 'package:orto_app/core/write_authority/profile_write_authority_controller.dart';
 import 'package:orto_app/core/write_authority/write_authority_scheduler.dart';
+import 'package:orto_app/data/repositories/bed_repository.dart';
 import 'package:orto_app/data/repositories/profile_edit_lock_repository.dart';
 
 const _profileId = '11111111-1111-4111-8111-111111111111';
@@ -150,6 +151,89 @@ void main() {
     );
 
     addTearDown(controller.dispose);
+  });
+  test('bed writes require the current lease on every operation', () async {
+    final bedRpcCalls = <Map<String, dynamic>>[];
+
+    final bedRepository = BedRepository.withProviders(
+      (_) async => throw StateError('Unexpected bed list request'),
+      (functionName, parameters) async {
+        expect(functionName, 'create_bed');
+        bedRpcCalls.add(Map<String, dynamic>.from(parameters));
+
+        // Qui verifichiamo l'autorità inviata, non la creazione.
+        return {'status': 'invalid_input'};
+      },
+      controller.requireLeaseForWrite,
+    );
+
+    Future<void> attemptCreate() async {
+      await bedRepository.createBed(
+        gardenId: '44444444-4444-4444-8444-444444444444',
+        number: 1,
+        widthCm: 90,
+        lengthCm: 700,
+      );
+    }
+
+    // Il repository esiste già prima dell'acquisizione.
+    await expectLater(
+      attemptCreate(),
+      throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+    );
+    expect(bedRpcCalls, isEmpty);
+
+    rpc.enqueue(_acquiredResponse());
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    await attemptCreate();
+
+    expect(bedRpcCalls, hasLength(1));
+    expect(bedRpcCalls.single['target_profile_id'], _profileId);
+    expect(bedRpcCalls.single['target_client_id'], _clientInstanceId);
+    expect(bedRpcCalls.single['target_session_id'], _sessionId);
+    expect(bedRpcCalls.single['lock_token'], _fakeToken);
+
+    // Superiamo la scadenza senza eseguire heartbeat.
+    now = DateTime.utc(2026, 8, 26, 22, 3);
+
+    await expectLater(
+      attemptCreate(),
+      throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+    );
+
+    expect(controller.status, ProfileWriteAuthorityStatus.lost);
+    expect(controller.canWrite, isFalse);
+    expect(bedRpcCalls, hasLength(1));
+
+    const renewedToken = 'secondo-token-esclusivamente-fittizio';
+
+    rpc.enqueue({
+      ..._acquiredResponse(
+        rowVersion: 2,
+        expiresAt: '2026-08-26T22:05:00+00:00',
+      ),
+      'lock_token': renewedToken,
+    });
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    // Riutilizziamo lo stesso repository: deve ottenere il nuovo lease.
+    await attemptCreate();
+
+    expect(controller.canWrite, isTrue);
+    expect(bedRpcCalls, hasLength(2));
+    expect(bedRpcCalls.last['lock_token'], renewedToken);
+    expect(bedRpcCalls.last['target_profile_id'], _profileId);
+    expect(bedRpcCalls.last['target_client_id'], _clientInstanceId);
+    expect(bedRpcCalls.last['target_session_id'], _sessionId);
   });
 
   test('worker remains read only without acquiring a lock', () async {

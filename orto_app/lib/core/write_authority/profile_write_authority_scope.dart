@@ -10,17 +10,23 @@ class ProfileWriteAuthorityScope
     required super.child,
   }) : super(notifier: controller);
 
-  static ProfileWriteAuthorityController of(BuildContext context) {
+  static ProfileWriteAuthorityController? maybeOf(BuildContext context) {
     final scope = context
         .dependOnInheritedWidgetOfExactType<ProfileWriteAuthorityScope>();
 
-    if (scope == null) {
+    return scope?.notifier;
+  }
+
+  static ProfileWriteAuthorityController of(BuildContext context) {
+    final controller = maybeOf(context);
+
+    if (controller == null) {
       throw StateError(
         'ProfileWriteAuthorityScope not found in the widget tree.',
       );
     }
 
-    return scope.notifier!;
+    return controller;
   }
 
   static ProfileWriteAuthorityController read(BuildContext context) {

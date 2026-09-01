@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orto_app/core/identity/app_session_identity.dart';
 import 'package:orto_app/core/profile/profile_context.dart';
+import 'package:orto_app/core/profile/profile_context_scope.dart';
 import 'package:orto_app/core/profile/profile_session_gate.dart';
 import 'package:orto_app/core/write_authority/profile_write_authority_controller.dart';
 import 'package:orto_app/core/write_authority/profile_write_authority_scope.dart';
@@ -295,4 +296,122 @@ void main() {
     expect(rpc.functionNames, isEmpty);
     expect(scheduler.delays, isEmpty);
   });
+  testWidgets('publishes Profile context only after initialization completes', (
+    tester,
+  ) async {
+    final rpc = _QueuedRpc()
+      ..enqueue(_acquiredResponse())
+      ..enqueue({'status': 'released'});
+    final scheduler = _RecordingScheduler();
+    final identityCompleter = Completer<AppSessionIdentity>();
+
+    ProfileContext? receivedContext;
+    ProfileWriteAuthorityController? receivedController;
+
+    await tester.pumpWidget(
+      ProfileSessionGate(
+        resolveProfileContext: () async => _ownerContext,
+        createSessionIdentity: () => identityCompleter.future,
+        createController: () => _createController(rpc, scheduler),
+        loading: const SizedBox(key: Key('context-loading')),
+        failureBuilder: (context, failure, retry) {
+          return const SizedBox(key: Key('context-failure'));
+        },
+        child: Builder(
+          builder: (context) {
+            receivedContext = ProfileContextScope.of(context);
+            receivedController = ProfileWriteAuthorityScope.read(context);
+
+            return const SizedBox(key: Key('context-ready'));
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('context-loading')), findsOneWidget);
+    expect(find.byType(ProfileContextScope), findsNothing);
+    expect(receivedContext, isNull);
+    expect(receivedController, isNull);
+    expect(rpc.functionNames, isEmpty);
+
+    identityCompleter.complete(_identity);
+
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('context-loading')), findsNothing);
+    expect(find.byKey(const Key('context-ready')), findsOneWidget);
+    expect(find.byType(ProfileContextScope), findsOneWidget);
+    expect(receivedContext, same(_ownerContext));
+    expect(receivedController!.status, ProfileWriteAuthorityStatus.writer);
+    expect(rpc.functionNames, ['acquire_profile_edit_lock']);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+
+    expect(find.byType(ProfileContextScope), findsNothing);
+    expect(rpc.functionNames, [
+      'acquire_profile_edit_lock',
+      'release_profile_edit_lock',
+    ]);
+  });
+
+  for (final role in [ProfileMemberRole.worker, ProfileMemberRole.viewer]) {
+    testWidgets('exposes ${role.name} Profile context without a lease', (
+      tester,
+    ) async {
+      final rpc = _QueuedRpc();
+      final scheduler = _RecordingScheduler();
+      final memberContext = ProfileContext(profileId: _profileId, role: role);
+
+      ProfileContext? receivedContext;
+      ProfileWriteAuthorityController? receivedController;
+
+      await tester.pumpWidget(
+        ProfileSessionGate(
+          resolveProfileContext: () async => memberContext,
+          createSessionIdentity: () async => _identity,
+          createController: () => _createController(rpc, scheduler),
+          loading: const SizedBox(key: Key('member-loading')),
+          failureBuilder: (context, failure, retry) {
+            return const SizedBox(key: Key('member-failure'));
+          },
+          child: Builder(
+            builder: (context) {
+              receivedContext = ProfileContextScope.read(context);
+              receivedController = ProfileWriteAuthorityScope.read(context);
+
+              return const SizedBox(key: Key('member-ready'));
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('member-ready')), findsOneWidget);
+      expect(find.byKey(const Key('member-failure')), findsNothing);
+      expect(receivedContext, same(memberContext));
+      expect(receivedContext!.profileId, _profileId);
+      expect(receivedContext!.role, role);
+      expect(receivedController!.canWrite, isFalse);
+      expect(
+        receivedController!.status,
+        ProfileWriteAuthorityStatus.readOnlyMember,
+      );
+      expect(
+        () => receivedController!.requireLeaseForWrite(),
+        throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+      );
+      expect(rpc.functionNames, isEmpty);
+      expect(scheduler.delays, isEmpty);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+
+      expect(find.byType(ProfileContextScope), findsNothing);
+      expect(rpc.functionNames, isEmpty);
+    });
+  }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../data/models/bed.dart';
@@ -8,6 +9,7 @@ import '../data/models/suggestion_result.dart';
 import '../data/repositories/crop_association_repository.dart';
 import '../data/repositories/crop_repository.dart';
 import '../data/repositories/planting_repository.dart';
+import '../data/repositories/bed_repository.dart';
 import '../services/bed_analysis_service.dart';
 import '../widgets/bed_layout_widget.dart';
 import '../widgets/planting_card.dart';
@@ -16,10 +18,18 @@ import '../widgets/companion_analysis_widget.dart';
 
 class BedPage extends StatefulWidget {
   final Bed bed;
+  final BedRepository? repository;
+  final PlantingRepository? plantingRepository;
+  final CropRepository? cropRepository;
+  final CropAssociationRepository? cropAssociationRepository;
 
   const BedPage({
     super.key,
     required this.bed,
+    this.repository,
+    this.plantingRepository,
+    this.cropRepository,
+    this.cropAssociationRepository,
   });
 
   @override
@@ -27,22 +37,143 @@ class BedPage extends StatefulWidget {
 }
 
 class _BedPageState extends State<BedPage> {
-  final PlantingRepository _plantingRepository = PlantingRepository();
-  final CropRepository _cropRepository = CropRepository();
-  final CropAssociationRepository _cropAssociationRepository =
-      CropAssociationRepository();
+  late PlantingRepository _plantingRepository;
+  late CropRepository _cropRepository;
+  late CropAssociationRepository _cropAssociationRepository;
 
+  late BedRepository _bedRepository;
+  late Bed _bed;
   late Future<_BedPageData> _bedPageDataFuture;
 
-  Bed get bed => widget.bed;
+  bool _isLoadingBed = true;
+  bool _bedLoadFailed = false;
+  bool _bedAvailable = false;
+  int _bedLoadGeneration = 0;
+
+  Bed get bed => _bed;
 
   @override
   void initState() {
     super.initState();
-    _bedPageDataFuture = _loadBedPageData();
+
+    _bedRepository = widget.repository ?? BedRepository();
+    _plantingRepository = widget.plantingRepository ?? PlantingRepository();
+    _cropRepository = widget.cropRepository ?? CropRepository();
+    _cropAssociationRepository =
+        widget.cropAssociationRepository ?? CropAssociationRepository();
+    _bed = widget.bed;
+
+    unawaited(_reloadBed());
   }
 
-  Future<_BedPageData> _loadBedPageData() async {
+  @override
+  void didUpdateWidget(covariant BedPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final repositoryChanged = !identical(
+      oldWidget.repository,
+      widget.repository,
+    );
+    final plantingRepositoryChanged = !identical(
+      oldWidget.plantingRepository,
+      widget.plantingRepository,
+    );
+    final cropRepositoryChanged = !identical(
+      oldWidget.cropRepository,
+      widget.cropRepository,
+    );
+    final associationRepositoryChanged = !identical(
+      oldWidget.cropAssociationRepository,
+      widget.cropAssociationRepository,
+    );
+
+    if (repositoryChanged) {
+      _bedRepository = widget.repository ?? BedRepository();
+    }
+
+    if (plantingRepositoryChanged) {
+      _plantingRepository = widget.plantingRepository ?? PlantingRepository();
+    }
+
+    if (cropRepositoryChanged) {
+      _cropRepository = widget.cropRepository ?? CropRepository();
+    }
+
+    if (associationRepositoryChanged) {
+      _cropAssociationRepository =
+          widget.cropAssociationRepository ?? CropAssociationRepository();
+    }
+
+    if (oldWidget.bed.id != widget.bed.id ||
+        oldWidget.bed.gardenId != widget.bed.gardenId ||
+        repositoryChanged ||
+        plantingRepositoryChanged ||
+        cropRepositoryChanged ||
+        associationRepositoryChanged) {
+      unawaited(_reloadBed());
+    }
+  }
+
+  Future<void> _reloadBed() async {
+    final generation = ++_bedLoadGeneration;
+    final gardenId = widget.bed.gardenId;
+    final bedId = widget.bed.id;
+
+    setState(() {
+      _isLoadingBed = true;
+      _bedLoadFailed = false;
+      _bedAvailable = false;
+    });
+
+    try {
+      final loaded = await _bedRepository.getBed(
+        gardenId: gardenId,
+        bedId: bedId,
+      );
+
+      if (!mounted || generation != _bedLoadGeneration) {
+        return;
+      }
+
+      setState(() {
+        _isLoadingBed = false;
+        _bedAvailable = loaded != null;
+
+        if (loaded != null) {
+          _bed = loaded;
+          _bedPageDataFuture = _loadBedPageData();
+        }
+      });
+    } on Object {
+      if (!mounted || generation != _bedLoadGeneration) {
+        return;
+      }
+
+      setState(() {
+        _isLoadingBed = false;
+        _bedLoadFailed = true;
+        _bedAvailable = false;
+      });
+    }
+  }
+
+  Future<_BedPageData> _loadBedPageData() {
+    final future = _fetchBedPageData();
+
+    // Il caricamento può fallire prima del prossimo build.
+    // Registriamo subito un gestore, lasciando il Future originale
+    // al FutureBuilder affinché possa mostrare l'errore.
+    unawaited(
+      future.then<void>(
+        (_) {},
+        onError: (Object error, StackTrace stackTrace) {},
+      ),
+    );
+
+    return future;
+  }
+
+  Future<_BedPageData> _fetchBedPageData() async {
     final results = await Future.wait([
       _plantingRepository.getPlantingsByBed(bed.id),
       _cropRepository.getCrops(),
@@ -53,9 +184,7 @@ class _BedPageState extends State<BedPage> {
     final crops = results[1] as List<Crop>;
     final associations = results[2] as List<CropAssociation>;
 
-    final cropsById = <String, Crop>{
-      for (final crop in crops) crop.id: crop,
-    };
+    final cropsById = <String, Crop>{for (final crop in crops) crop.id: crop};
 
     return _BedPageData(
       plantings: plantings,
@@ -75,11 +204,7 @@ class _BedPageState extends State<BedPage> {
 
   Future<void> _openAddPlantingPage() async {
     final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (context) => AddPlantingPage(
-          bed: bed,
-        ),
-      ),
+      MaterialPageRoute(builder: (context) => AddPlantingPage(bed: bed)),
     );
 
     if (result == true && mounted) {
@@ -90,10 +215,7 @@ class _BedPageState extends State<BedPage> {
   Future<void> _editPlanting(Planting planting) async {
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (context) => AddPlantingPage(
-          bed: bed,
-          planting: planting,
-        ),
+        builder: (context) => AddPlantingPage(bed: bed, planting: planting),
       ),
     );
 
@@ -105,17 +227,12 @@ class _BedPageState extends State<BedPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Coltura modificata correttamente.'),
-        ),
+        const SnackBar(content: Text('Coltura modificata correttamente.')),
       );
     }
   }
 
-  Future<void> _deletePlanting(
-    Planting planting,
-    Crop? crop,
-  ) async {
+  Future<void> _deletePlanting(Planting planting, Crop? crop) async {
     final plantingId = planting.id;
 
     if (plantingId == null) {
@@ -199,9 +316,7 @@ class _BedPageState extends State<BedPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$cropName eliminata correttamente.'),
-        ),
+        SnackBar(content: Text('$cropName eliminata correttamente.')),
       );
     } catch (error, stackTrace) {
       debugPrint('Errore durante l’eliminazione della coltura: $error');
@@ -212,9 +327,7 @@ class _BedPageState extends State<BedPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Errore durante l’eliminazione: $error'),
-        ),
+        SnackBar(content: Text('Errore durante l’eliminazione: $error')),
       );
     }
   }
@@ -240,9 +353,7 @@ class _BedPageState extends State<BedPage> {
         if (scoreComparison != 0) {
           return scoreComparison;
         }
-        return a.crop.name.toLowerCase().compareTo(
-              b.crop.name.toLowerCase(),
-            );
+        return a.crop.name.toLowerCase().compareTo(b.crop.name.toLowerCase());
       });
 
     if (!mounted) {
@@ -264,15 +375,11 @@ class _BedPageState extends State<BedPage> {
                 children: [
                   Text(
                     'Colture suggerite',
-                    style: Theme.of(sheetContext)
-                        .textTheme
-                        .headlineSmall
+                    style: Theme.of(sheetContext).textTheme.headlineSmall
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Analizzate ${result.analyzedCropsCount} colture.',
-                  ),
+                  Text('Analizzate ${result.analyzedCropsCount} colture.'),
                   const SizedBox(height: 16),
                   Expanded(
                     child: suggestions.isEmpty
@@ -288,14 +395,15 @@ class _BedPageState extends State<BedPage> {
                                 onUseSuggestion: () async {
                                   Navigator.of(sheetContext).pop();
 
-                                  final result = await Navigator.of(context).push<bool>(
-                                    MaterialPageRoute(
-                                      builder: (_) => AddPlantingPage(
-                                        bed: bed,
-                                        suggestion: suggestions[index],
-                                      ),
-                                    ),
-                                  );
+                                  final result = await Navigator.of(context)
+                                      .push<bool>(
+                                        MaterialPageRoute(
+                                          builder: (_) => AddPlantingPage(
+                                            bed: bed,
+                                            suggestion: suggestions[index],
+                                          ),
+                                        ),
+                                      );
 
                                   if (result == true && mounted) {
                                     await _refreshPlantings();
@@ -321,23 +429,49 @@ class _BedPageState extends State<BedPage> {
 
   @override
   Widget build(BuildContext context) {
-    final irrigationText = bed.irrigationZone == null
-        ? 'Zona irrigazione non impostata'
-        : 'Zona irrigazione ${bed.irrigationZone}';
+    if (_isLoadingBed || _bedLoadFailed || !_bedAvailable) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Aiuola')),
+        body: Center(
+          child: _isLoadingBed
+              ? const CircularProgressIndicator()
+              : Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _bedLoadFailed
+                            ? 'Non è stato possibile caricare l’aiuola.'
+                            : 'Aiuola non disponibile nell’orto richiesto.',
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: _reloadBed,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Riprova'),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: Text('${bed.code} - Aiuola ${bed.number}'),
         actions: [
           IconButton(
-            onPressed: _refreshPlantings,
+            onPressed: _reloadBed,
             tooltip: 'Aggiorna',
             icon: const Icon(Icons.refresh),
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _refreshPlantings,
+        onRefresh: _reloadBed,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -345,29 +479,16 @@ class _BedPageState extends State<BedPage> {
               bed.name != null && bed.name!.trim().isNotEmpty
                   ? bed.name!
                   : 'Aiuola ${bed.number}',
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
-            Text(
-              bed.code,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text(bed.code, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 24),
             Card(
               child: ListTile(
                 leading: const Icon(Icons.straighten),
                 title: const Text('Dimensioni'),
                 subtitle: Text('${bed.widthCm} × ${bed.lengthCm} cm'),
-              ),
-            ),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.water_drop_outlined),
-                title: const Text('Irrigazione'),
-                subtitle: Text(irrigationText),
               ),
             ),
             if (bed.notes != null && bed.notes!.trim().isNotEmpty)
@@ -381,10 +502,7 @@ class _BedPageState extends State<BedPage> {
             const SizedBox(height: 24),
             const Text(
               'Colture presenti',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             FutureBuilder<_BedPageData>(
@@ -411,9 +529,9 @@ class _BedPageState extends State<BedPage> {
                             'Errore nel caricamento delle colture:\n\n'
                             '${snapshot.error}',
                             style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onErrorContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onErrorContainer,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -433,33 +551,33 @@ class _BedPageState extends State<BedPage> {
                   return const SizedBox.shrink();
                 }
 
-final companionAnalysis = BedAnalysisService.analyzeCompanions(
-  plantings: data.plantings,
-);
+                final companionAnalysis = BedAnalysisService.analyzeCompanions(
+                  plantings: data.plantings,
+                );
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     BedLayoutWidget(
-  bed: bed,
-  plantings: data.plantings,
-  cropsById: data.cropsById,
-),
+                      bed: bed,
+                      plantings: data.plantings,
+                      cropsById: data.cropsById,
+                    ),
 
-const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-CompanionAnalysisWidget(
-  analysis: companionAnalysis,
-  cropsById: data.cropsById,
-),
+                    CompanionAnalysisWidget(
+                      analysis: companionAnalysis,
+                      cropsById: data.cropsById,
+                    ),
 
-const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-OutlinedButton.icon(
-  onPressed: () => _showCropSuggestions(data),
-  icon: const Icon(Icons.auto_awesome),
-  label: const Text('Suggerisci colture'),
-),
+                    OutlinedButton.icon(
+                      onPressed: () => _showCropSuggestions(data),
+                      icon: const Icon(Icons.auto_awesome),
+                      label: const Text('Suggerisci colture'),
+                    ),
                     const SizedBox(height: 24),
                     if (data.plantings.isEmpty)
                       const Card(
@@ -532,9 +650,9 @@ class _SuggestionCard extends StatelessWidget {
         ),
         trailing: Text(
           '${suggestion.score}/100',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
