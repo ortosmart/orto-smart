@@ -1,23 +1,30 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../core/write_authority/bed_write_result.dart';
+import '../core/write_authority/profile_write_authority_controller.dart';
 import '../data/models/bed.dart';
 import '../data/models/crop.dart';
 import '../data/models/crop_association.dart';
 import '../data/models/planting.dart';
 import '../data/models/suggestion_result.dart';
+import '../data/repositories/bed_repository.dart';
 import '../data/repositories/crop_association_repository.dart';
 import '../data/repositories/crop_repository.dart';
 import '../data/repositories/planting_repository.dart';
-import '../data/repositories/bed_repository.dart';
 import '../services/bed_analysis_service.dart';
 import '../widgets/bed_layout_widget.dart';
+import '../widgets/companion_analysis_widget.dart';
 import '../widgets/planting_card.dart';
 import 'add_planting_page.dart';
-import '../widgets/companion_analysis_widget.dart';
+import 'edit_bed_page.dart';
+import 'change_bed_geometry_page.dart';
+import 'correct_bed_geometry_page.dart';
 
 class BedPage extends StatefulWidget {
   final Bed bed;
+  final ProfileWriteAuthorityController? authority;
   final BedRepository? repository;
   final PlantingRepository? plantingRepository;
   final CropRepository? cropRepository;
@@ -26,6 +33,7 @@ class BedPage extends StatefulWidget {
   const BedPage({
     super.key,
     required this.bed,
+    this.authority,
     this.repository,
     this.plantingRepository,
     this.cropRepository,
@@ -427,6 +435,162 @@ class _BedPageState extends State<BedPage> {
     );
   }
 
+  Future<void> _setBedActive(bool isActive) async {
+    final authority = widget.authority;
+
+    if (authority == null) {
+      return;
+    }
+
+    try {
+      authority.requireLeaseForWrite();
+
+      final result = await _bedRepository.setBedActive(
+        bedId: bed.id,
+        expectedRowVersion: bed.rowVersion,
+        isActive: isActive,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      switch (result) {
+        case BedActiveUpdated():
+        case SetBedActiveUnchanged():
+          await _reloadBed();
+          break;
+
+        case SetBedActiveVersionConflict():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'L’aiuola è stata modificata da un’altra sessione. '
+                'Aggiorna i dati prima di riprovare.',
+              ),
+            ),
+          );
+          break;
+
+        case SetBedActiveForbidden():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Non sei autorizzato a modificare questa aiuola.'),
+            ),
+          );
+          break;
+
+        case SetBedActiveWriteForbidden():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Il server non ha autorizzato la scrittura.'),
+            ),
+          );
+          break;
+
+        case SetBedActiveNotFound():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('L’aiuola non è più disponibile.')),
+          );
+          break;
+
+        case SetBedActiveInvalidInput():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Il server ha rifiutato la modifica dello stato.'),
+            ),
+          );
+          break;
+      }
+    } on ProfileWriteAuthorityUnavailableException {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Autorità di scrittura non disponibile.')),
+      );
+    } on Object {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Non è stato possibile confermare l’esito della modifica.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openEditBedPage() async {
+    final authority = widget.authority;
+
+    if (authority == null) {
+      return;
+    }
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => EditBedPage(
+          bed: bed,
+          repository: _bedRepository,
+          authority: authority,
+        ),
+      ),
+    );
+
+    if (result == true && mounted) {
+      await _reloadBed();
+    }
+  }
+
+  Future<void> _openChangeBedGeometryPage() async {
+    final authority = widget.authority;
+
+    if (authority == null) {
+      return;
+    }
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ChangeBedGeometryPage(
+          bed: bed,
+          repository: _bedRepository,
+          authority: authority,
+        ),
+      ),
+    );
+
+    if (result == true && mounted) {
+      await _reloadBed();
+    }
+  }
+
+  Future<void> _openCorrectBedGeometryPage() async {
+    final authority = widget.authority;
+
+    if (authority == null) {
+      return;
+    }
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => CorrectBedGeometryPage(
+          bed: bed,
+          repository: _bedRepository,
+          authority: authority,
+        ),
+      ),
+    );
+
+    if (result == true && mounted) {
+      await _reloadBed();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoadingBed || _bedLoadFailed || !_bedAvailable) {
@@ -464,6 +628,11 @@ class _BedPageState extends State<BedPage> {
         title: Text('${bed.code} - Aiuola ${bed.number}'),
         actions: [
           IconButton(
+            onPressed: widget.authority == null ? null : _openEditBedPage,
+            tooltip: 'Modifica aiuola',
+            icon: const Icon(Icons.edit_outlined),
+          ),
+          IconButton(
             onPressed: _reloadBed,
             tooltip: 'Aggiorna',
             icon: const Icon(Icons.refresh),
@@ -489,6 +658,34 @@ class _BedPageState extends State<BedPage> {
                 leading: const Icon(Icons.straighten),
                 title: const Text('Dimensioni'),
                 subtitle: Text('${bed.widthCm} × ${bed.lengthCm} cm'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: widget.authority == null
+                    ? null
+                    : _openChangeBedGeometryPage,
+              ),
+            ),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.history_outlined),
+                title: const Text('Correggi geometria'),
+                subtitle: const Text('Rettifica dati storici della geometria'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: widget.authority == null
+                    ? null
+                    : _openCorrectBedGeometryPage,
+              ),
+            ),
+            Card(
+              child: SwitchListTile(
+                secondary: Icon(
+                  bed.isActive
+                      ? Icons.check_circle_outline
+                      : Icons.pause_circle_outline,
+                ),
+                title: const Text('Stato aiuola'),
+                subtitle: Text(bed.isActive ? 'Attiva' : 'Disattivata'),
+                value: bed.isActive,
+                onChanged: widget.authority == null ? null : _setBedActive,
               ),
             ),
             if (bed.notes != null && bed.notes!.trim().isNotEmpty)

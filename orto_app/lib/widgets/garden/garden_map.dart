@@ -237,6 +237,7 @@ class _GardenMapState extends State<GardenMap> {
                         MaterialPageRoute(
                           builder: (_) => BedPage(
                             bed: bed,
+                            authority: _writeAuthority,
                             repository: _repository,
                             plantingRepository: widget.plantingRepository,
                             cropRepository: widget.cropRepository,

@@ -2,6 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:orto_app/core/identity/app_session_identity.dart';
+import 'package:orto_app/core/profile/profile_context.dart';
+import 'package:orto_app/core/write_authority/profile_write_authority_controller.dart';
+import 'package:orto_app/core/write_authority/write_authority_scheduler.dart';
+import 'package:orto_app/core/write_authority/profile_edit_lock.dart';
 import 'package:orto_app/data/models/bed.dart';
 import 'package:orto_app/data/models/crop.dart';
 import 'package:orto_app/data/models/crop_association.dart';
@@ -10,7 +16,10 @@ import 'package:orto_app/data/repositories/bed_repository.dart';
 import 'package:orto_app/data/repositories/crop_association_repository.dart';
 import 'package:orto_app/data/repositories/crop_repository.dart';
 import 'package:orto_app/data/repositories/planting_repository.dart';
+import 'package:orto_app/data/repositories/profile_edit_lock_repository.dart';
 import 'package:orto_app/pages/bed_page.dart';
+import 'package:orto_app/pages/change_bed_geometry_page.dart';
+import 'package:orto_app/pages/correct_bed_geometry_page.dart';
 import 'package:orto_app/widgets/bed_layout_widget.dart';
 import 'package:orto_app/widgets/garden/bed_card.dart';
 import 'package:orto_app/widgets/garden/garden_map.dart';
@@ -18,6 +27,29 @@ import 'package:orto_app/widgets/garden/garden_map.dart';
 const _gardenId = '11111111-1111-4111-8111-111111111111';
 const _bedId = '22222222-2222-4222-8222-222222222222';
 const _geometryId = '33333333-3333-4333-8333-333333333333';
+
+class _ScheduledTask implements ScheduledWriteAuthorityTask {
+  bool _active = true;
+
+  @override
+  bool get isActive => _active;
+
+  @override
+  void cancel() {
+    _active = false;
+  }
+}
+
+class _Scheduler implements WriteAuthorityScheduler {
+  @override
+  ScheduledWriteAuthorityTask schedule(
+    Duration delay,
+    ScheduledWriteAuthorityAction action,
+  ) {
+    // Il tempo è controllato dal test; nessun timer reale.
+    return _ScheduledTask();
+  }
+}
 
 Map<String, dynamic> _bedMap({
   String bedId = _bedId,
@@ -128,6 +160,48 @@ class _Harness {
     expect(plantings.requestedBeds, [_bedId]);
     expect(crops.calls, 1);
     expect(associations.calls, 1);
+  }
+}
+
+class _WriteHarness {
+  final plantings = _PlantingRepositoryFake();
+  final crops = _CropRepositoryFake();
+  final associations = _CropAssociationRepositoryFake();
+  final requestedBeds = <List<String>>[];
+  final rpcCalls = <Map<String, dynamic>>[];
+
+  late final BedRepository repository;
+
+  _WriteHarness({
+    required Future<Map<String, dynamic>?> Function() loadBed,
+    required Future<dynamic> Function(
+      String functionName,
+      Map<String, dynamic> parameters,
+    )
+    invokeRpc,
+  }) {
+    repository = BedRepository.withProviders(
+      (_) async => throw StateError('Unexpected list request'),
+      (functionName, parameters) async {
+        rpcCalls.add({'functionName': functionName, 'parameters': parameters});
+
+        return invokeRpc(functionName, parameters);
+      },
+      () => ProfileEditLockLease(
+        profileId: '44444444-4444-4444-8444-444444444444',
+        identity: const AppSessionIdentity(
+          clientInstanceId: '55555555-5555-4555-8555-555555555555',
+          sessionId: '66666666-6666-4666-8666-666666666666',
+        ),
+        lockToken: 'token-bed-page-esclusivamente-fittizio',
+        expiresAt: DateTime.utc(2026, 9, 2, 23),
+        rowVersion: 1,
+      ),
+      (gardenId, bedId) {
+        requestedBeds.add([gardenId, bedId]);
+        return loadBed();
+      },
+    );
   }
 }
 
@@ -681,6 +755,1072 @@ void main() {
         [_gardenId, _bedId],
       ]);
       harness.expectOneCropLoad();
+      expect(tester.takeException(), isNull);
+    });
+  });
+  testWidgets('apre la pagina di modifica geometria dalla card Dimensioni', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 9, 2, 12);
+
+    final authority = ProfileWriteAuthorityController(
+      ProfileEditLockRepository.withRpcInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'acquire_profile_edit_lock');
+
+        return {
+          'status': 'acquired',
+          'lock_token': 'token-bed-page-geometry-fittizio',
+          'expires_at': '2026-09-02T12:02:00+00:00',
+          'row_version': 1,
+        };
+      }),
+      _Scheduler(),
+      utcNow: () => now,
+    );
+
+    addTearDown(authority.dispose);
+
+    await authority.initialize(
+      profileContext: const ProfileContext(
+        profileId: '44444444-4444-4444-8444-444444444444',
+        role: ProfileMemberRole.owner,
+      ),
+      identity: const AppSessionIdentity(
+        clientInstanceId: '55555555-5555-4555-8555-555555555555',
+        sessionId: '66666666-6666-4666-8666-666666666666',
+      ),
+    );
+
+    final harness = _WriteHarness(
+      loadBed: () async => _bedMap(),
+      invokeRpc: (functionName, parameters) async {
+        throw StateError('RPC non attesa');
+      },
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BedPage(
+          bed: Bed.fromMap(_bedMap()),
+          authority: authority,
+          repository: harness.repository,
+          plantingRepository: harness.plantings,
+          cropRepository: harness.crops,
+          cropAssociationRepository: harness.associations,
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Dimensioni'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ChangeBedGeometryPage), findsOneWidget);
+    expect(find.text('Modifica geometria'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('apre la pagina di correzione geometria', (tester) async {
+    final now = DateTime.utc(2026, 9, 2, 12);
+
+    final authority = ProfileWriteAuthorityController(
+      ProfileEditLockRepository.withRpcInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'acquire_profile_edit_lock');
+
+        return {
+          'status': 'acquired',
+          'lock_token': 'token-bed-page-correction-fittizio',
+          'expires_at': '2026-09-02T12:02:00+00:00',
+          'row_version': 1,
+        };
+      }),
+      _Scheduler(),
+      utcNow: () => now,
+    );
+
+    addTearDown(authority.dispose);
+
+    await authority.initialize(
+      profileContext: const ProfileContext(
+        profileId: '44444444-4444-4444-8444-444444444444',
+        role: ProfileMemberRole.owner,
+      ),
+      identity: const AppSessionIdentity(
+        clientInstanceId: '55555555-5555-4555-8555-555555555555',
+        sessionId: '66666666-6666-4666-8666-666666666666',
+      ),
+    );
+
+    final harness = _WriteHarness(
+      loadBed: () async => _bedMap(),
+      invokeRpc: (functionName, parameters) async {
+        throw StateError('RPC non attesa');
+      },
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BedPage(
+          bed: Bed.fromMap(_bedMap()),
+          authority: authority,
+          repository: harness.repository,
+          plantingRepository: harness.plantings,
+          cropRepository: harness.crops,
+          cropAssociationRepository: harness.associations,
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Correggi geometria'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CorrectBedGeometryPage), findsOneWidget);
+    expect(find.text('Correggi geometria'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('rilegge l aiuola dopo la correzione della geometria', (
+    tester,
+  ) async {
+    var loadCount = 0;
+    final now = DateTime.utc(2026, 9, 2, 12);
+
+    final authority = ProfileWriteAuthorityController(
+      ProfileEditLockRepository.withRpcInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'acquire_profile_edit_lock');
+
+        return {
+          'status': 'acquired',
+          'lock_token': 'token-bed-page-correction-reload-fittizio',
+          'expires_at': '2026-09-02T12:02:00+00:00',
+          'row_version': 1,
+        };
+      }),
+      _Scheduler(),
+      utcNow: () => now,
+    );
+
+    addTearDown(authority.dispose);
+
+    await authority.initialize(
+      profileContext: const ProfileContext(
+        profileId: '44444444-4444-4444-8444-444444444444',
+        role: ProfileMemberRole.owner,
+      ),
+      identity: const AppSessionIdentity(
+        clientInstanceId: '55555555-5555-4555-8555-555555555555',
+        sessionId: '66666666-6666-4666-8666-666666666666',
+      ),
+    );
+
+    final harness = _WriteHarness(
+      loadBed: () async {
+        loadCount++;
+
+        return _bedMap(
+          widthCm: loadCount == 1 ? 90 : 95,
+          lengthCm: loadCount == 1 ? 700 : 710,
+          rowVersion: loadCount == 1 ? 1 : 2,
+        );
+      },
+      invokeRpc: (functionName, parameters) async {
+        expect(functionName, 'correct_bed_geometry');
+        expect(parameters['target_bed_id'], _bedId);
+        expect(parameters['target_geometry_id'], _geometryId);
+        expect(parameters['expected_row_version'], 1);
+        expect(parameters['geometry_width_cm'], 95);
+        expect(parameters['geometry_length_cm'], 710);
+        expect(parameters['geometry_valid_from'], '2026-03-02');
+        expect(parameters['correction_reason'], 'Rettifica misura errata');
+
+        return {
+          'status': 'corrected',
+          'bed_id': _bedId,
+          'garden_id': _gardenId,
+          'row_version': 2,
+          'updated_at': '2026-09-03T09:01:00+00:00',
+          'geometry_id': _geometryId,
+          'width_cm': 95,
+          'length_cm': 710,
+          'valid_from': '2026-03-02',
+          'valid_to': null,
+          'geometry_row_version': 2,
+          'geometry_updated_at': '2026-09-03T09:01:00+00:00',
+          'correction_id': 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+          'correction_created_at': '2026-09-03T09:01:00+00:00',
+        };
+      },
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BedPage(
+          bed: Bed.fromMap(_bedMap()),
+          authority: authority,
+          repository: harness.repository,
+          plantingRepository: harness.plantings,
+          cropRepository: harness.crops,
+          cropAssociationRepository: harness.associations,
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('90 × 700 cm'), findsOneWidget);
+
+    await tester.tap(find.text('Correggi geometria'));
+    await tester.pumpAndSettle();
+
+    final fields = tester
+        .widgetList<TextFormField>(find.byType(TextFormField))
+        .toList();
+
+    await tester.enterText(find.byWidget(fields[0]), '95');
+    await tester.enterText(find.byWidget(fields[1]), '710');
+    await tester.enterText(find.byWidget(fields[2]), '02/03/2026');
+    await tester.enterText(
+      find.byWidget(fields[3]),
+      '  Rettifica misura errata  ',
+    );
+
+    await tester.tap(find.text('Conferma correzione'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CorrectBedGeometryPage), findsNothing);
+    expect(harness.rpcCalls, hasLength(1));
+    expect(loadCount, 2);
+    expect(find.text('95 × 710 cm'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('rilegge l aiuola dopo la modifica della geometria', (
+    tester,
+  ) async {
+    var loadCount = 0;
+    final now = DateTime.utc(2026, 9, 2, 12);
+
+    final authority = ProfileWriteAuthorityController(
+      ProfileEditLockRepository.withRpcInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'acquire_profile_edit_lock');
+
+        return {
+          'status': 'acquired',
+          'lock_token': 'token-bed-page-geometry-reload-fittizio',
+          'expires_at': '2026-09-02T12:02:00+00:00',
+          'row_version': 1,
+        };
+      }),
+      _Scheduler(),
+      utcNow: () => now,
+    );
+
+    addTearDown(authority.dispose);
+
+    await authority.initialize(
+      profileContext: const ProfileContext(
+        profileId: '44444444-4444-4444-8444-444444444444',
+        role: ProfileMemberRole.owner,
+      ),
+      identity: const AppSessionIdentity(
+        clientInstanceId: '55555555-5555-4555-8555-555555555555',
+        sessionId: '66666666-6666-4666-8666-666666666666',
+      ),
+    );
+
+    final harness = _WriteHarness(
+      loadBed: () async {
+        loadCount++;
+
+        return _bedMap(
+          widthCm: loadCount == 1 ? 90 : 100,
+          lengthCm: loadCount == 1 ? 700 : 750,
+          rowVersion: loadCount == 1 ? 1 : 2,
+        );
+      },
+      invokeRpc: (functionName, parameters) async {
+        expect(functionName, 'change_bed_geometry');
+        expect(parameters['target_bed_id'], _bedId);
+        expect(parameters['expected_row_version'], 1);
+        expect(parameters['geometry_width_cm'], 100);
+        expect(parameters['geometry_length_cm'], 750);
+        expect(parameters['geometry_valid_from'], '2026-09-03');
+
+        return {
+          'status': 'changed',
+          'bed_id': _bedId,
+          'garden_id': _gardenId,
+          'row_version': 2,
+          'updated_at': '2026-09-03T08:01:00+00:00',
+          'geometry_id': 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+          'width_cm': 100,
+          'length_cm': 750,
+          'valid_from': '2026-09-03',
+          'valid_to': null,
+          'geometry_row_version': 1,
+          'geometry_created_at': '2026-09-03T08:01:00+00:00',
+          'previous_geometry_id': _geometryId,
+          'previous_geometry_valid_to': '2026-09-03',
+          'previous_geometry_row_version': 2,
+          'previous_geometry_updated_at': '2026-09-03T08:01:00+00:00',
+        };
+      },
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BedPage(
+          bed: Bed.fromMap(_bedMap()),
+          authority: authority,
+          repository: harness.repository,
+          plantingRepository: harness.plantings,
+          cropRepository: harness.crops,
+          cropAssociationRepository: harness.associations,
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('90 × 700 cm'), findsOneWidget);
+
+    await tester.tap(find.text('Dimensioni'));
+    await tester.pumpAndSettle();
+
+    final fields = tester
+        .widgetList<TextFormField>(find.byType(TextFormField))
+        .toList();
+
+    await tester.enterText(find.byWidget(fields[0]), '100');
+    await tester.enterText(find.byWidget(fields[1]), '750');
+    await tester.enterText(find.byWidget(fields[2]), '03/09/2026');
+
+    await tester.tap(find.text('Salva nuova geometria'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ChangeBedGeometryPage), findsNothing);
+    expect(
+      find.textContaining('Non è stato possibile confermare'),
+      findsNothing,
+    );
+
+    expect(harness.rpcCalls, hasLength(1));
+    expect(loadCount, 2);
+    expect(find.byType(ChangeBedGeometryPage), findsNothing);
+    expect(find.text('100 × 750 cm'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  group('BedPage active state writing', () {
+    testWidgets('disattiva una aiuola attiva', (tester) async {
+      var loadCount = 0;
+      final now = DateTime.utc(2026, 9, 2, 12);
+
+      final authority = ProfileWriteAuthorityController(
+        ProfileEditLockRepository.withRpcInvoker((
+          functionName,
+          parameters,
+        ) async {
+          expect(functionName, 'acquire_profile_edit_lock');
+
+          return {
+            'status': 'acquired',
+            'lock_token': 'token-bed-page-authority-fittizio',
+            'expires_at': '2026-09-02T12:02:00+00:00',
+            'row_version': 1,
+          };
+        }),
+        _Scheduler(),
+        utcNow: () => now,
+      );
+
+      addTearDown(authority.dispose);
+
+      await authority.initialize(
+        profileContext: const ProfileContext(
+          profileId: '44444444-4444-4444-8444-444444444444',
+          role: ProfileMemberRole.owner,
+        ),
+        identity: const AppSessionIdentity(
+          clientInstanceId: '55555555-5555-4555-8555-555555555555',
+          sessionId: '66666666-6666-4666-8666-666666666666',
+        ),
+      );
+
+      final harness = _WriteHarness(
+        loadBed: () async {
+          loadCount++;
+
+          return _bedMap(
+            isActive: loadCount == 1,
+            rowVersion: loadCount == 1 ? 1 : 2,
+          );
+        },
+        invokeRpc: (functionName, parameters) async {
+          expect(functionName, 'set_bed_active');
+          expect(parameters['target_bed_id'], _bedId);
+          expect(parameters['expected_row_version'], 1);
+          expect(parameters['bed_is_active'], isFalse);
+
+          return {
+            'status': 'updated',
+            'bed_id': _bedId,
+            'garden_id': _gardenId,
+            'is_active': false,
+            'row_version': 2,
+            'updated_at': '2026-09-02T12:01:00+00:00',
+          };
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BedPage(
+            bed: Bed.fromMap(_bedMap()),
+            authority: authority,
+            repository: harness.repository,
+            plantingRepository: harness.plantings,
+            cropRepository: harness.crops,
+            cropAssociationRepository: harness.associations,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Attiva'), findsOneWidget);
+
+      var switchTile = tester.widget<SwitchListTile>(
+        find.byType(SwitchListTile),
+      );
+
+      expect(switchTile.value, isTrue);
+      expect(switchTile.onChanged, isNotNull);
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      expect(harness.rpcCalls, hasLength(1));
+      expect(loadCount, 2);
+      expect(find.text('Disattivata'), findsOneWidget);
+
+      switchTile = tester.widget<SwitchListTile>(find.byType(SwitchListTile));
+
+      expect(switchTile.value, isFalse);
+      expect(tester.takeException(), isNull);
+    });
+    testWidgets('riattiva una aiuola disattivata', (tester) async {
+      var loadCount = 0;
+      final now = DateTime.utc(2026, 9, 2, 12);
+
+      final authority = ProfileWriteAuthorityController(
+        ProfileEditLockRepository.withRpcInvoker((
+          functionName,
+          parameters,
+        ) async {
+          expect(functionName, 'acquire_profile_edit_lock');
+
+          return {
+            'status': 'acquired',
+            'lock_token': 'token-bed-page-authority-fittizio',
+            'expires_at': '2026-09-02T12:02:00+00:00',
+            'row_version': 1,
+          };
+        }),
+        _Scheduler(),
+        utcNow: () => now,
+      );
+
+      addTearDown(authority.dispose);
+
+      await authority.initialize(
+        profileContext: const ProfileContext(
+          profileId: '44444444-4444-4444-8444-444444444444',
+          role: ProfileMemberRole.owner,
+        ),
+        identity: const AppSessionIdentity(
+          clientInstanceId: '55555555-5555-4555-8555-555555555555',
+          sessionId: '66666666-6666-4666-8666-666666666666',
+        ),
+      );
+
+      final harness = _WriteHarness(
+        loadBed: () async {
+          loadCount++;
+
+          return _bedMap(
+            isActive: loadCount != 1,
+            rowVersion: loadCount == 1 ? 1 : 2,
+          );
+        },
+        invokeRpc: (functionName, parameters) async {
+          expect(functionName, 'set_bed_active');
+          expect(parameters['target_bed_id'], _bedId);
+          expect(parameters['expected_row_version'], 1);
+          expect(parameters['bed_is_active'], isTrue);
+
+          return {
+            'status': 'updated',
+            'bed_id': _bedId,
+            'garden_id': _gardenId,
+            'is_active': true,
+            'row_version': 2,
+            'updated_at': '2026-09-02T12:01:00+00:00',
+          };
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BedPage(
+            bed: Bed.fromMap(_bedMap(isActive: false)),
+            authority: authority,
+            repository: harness.repository,
+            plantingRepository: harness.plantings,
+            cropRepository: harness.crops,
+            cropAssociationRepository: harness.associations,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Disattivata'), findsOneWidget);
+
+      var switchTile = tester.widget<SwitchListTile>(
+        find.byType(SwitchListTile),
+      );
+
+      expect(switchTile.value, isFalse);
+      expect(switchTile.onChanged, isNotNull);
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      expect(harness.rpcCalls, hasLength(1));
+      expect(loadCount, 2);
+      expect(find.text('Attiva'), findsOneWidget);
+
+      switchTile = tester.widget<SwitchListTile>(find.byType(SwitchListTile));
+
+      expect(switchTile.value, isTrue);
+      expect(tester.takeException(), isNull);
+    });
+    testWidgets('mostra errore in caso di conflitto di versione sullo stato', (
+      tester,
+    ) async {
+      final now = DateTime.utc(2026, 9, 2, 12);
+
+      final authority = ProfileWriteAuthorityController(
+        ProfileEditLockRepository.withRpcInvoker((
+          functionName,
+          parameters,
+        ) async {
+          expect(functionName, 'acquire_profile_edit_lock');
+
+          return {
+            'status': 'acquired',
+            'lock_token': 'token-bed-page-authority-fittizio',
+            'expires_at': '2026-09-02T12:02:00+00:00',
+            'row_version': 1,
+          };
+        }),
+        _Scheduler(),
+        utcNow: () => now,
+      );
+
+      addTearDown(authority.dispose);
+
+      await authority.initialize(
+        profileContext: const ProfileContext(
+          profileId: '44444444-4444-4444-8444-444444444444',
+          role: ProfileMemberRole.owner,
+        ),
+        identity: const AppSessionIdentity(
+          clientInstanceId: '55555555-5555-4555-8555-555555555555',
+          sessionId: '66666666-6666-4666-8666-666666666666',
+        ),
+      );
+
+      final harness = _WriteHarness(
+        loadBed: () async => _bedMap(isActive: true, rowVersion: 1),
+        invokeRpc: (functionName, parameters) async {
+          expect(functionName, 'set_bed_active');
+          expect(parameters['expected_row_version'], 1);
+
+          return {
+            'status': 'version_conflict',
+            'bed_id': _bedId,
+            'expected_row_version': 1,
+            'current_row_version': 2,
+            'updated_at': '2026-09-02T12:01:00+00:00',
+          };
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BedPage(
+            bed: Bed.fromMap(_bedMap()),
+            authority: authority,
+            repository: harness.repository,
+            plantingRepository: harness.plantings,
+            cropRepository: harness.crops,
+            cropAssociationRepository: harness.associations,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      expect(harness.rpcCalls, hasLength(1));
+      expect(
+        find.text(
+          'L’aiuola è stata modificata da un’altra sessione. '
+          'Aggiorna i dati prima di riprovare.',
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+    testWidgets('mostra errore se la modifica dello stato non è autorizzata', (
+      tester,
+    ) async {
+      final now = DateTime.utc(2026, 9, 2, 12);
+
+      final authority = ProfileWriteAuthorityController(
+        ProfileEditLockRepository.withRpcInvoker((
+          functionName,
+          parameters,
+        ) async {
+          expect(functionName, 'acquire_profile_edit_lock');
+
+          return {
+            'status': 'acquired',
+            'lock_token': 'token-bed-page-authority-fittizio',
+            'expires_at': '2026-09-02T12:02:00+00:00',
+            'row_version': 1,
+          };
+        }),
+        _Scheduler(),
+        utcNow: () => now,
+      );
+
+      addTearDown(authority.dispose);
+
+      await authority.initialize(
+        profileContext: const ProfileContext(
+          profileId: '44444444-4444-4444-8444-444444444444',
+          role: ProfileMemberRole.owner,
+        ),
+        identity: const AppSessionIdentity(
+          clientInstanceId: '55555555-5555-4555-8555-555555555555',
+          sessionId: '66666666-6666-4666-8666-666666666666',
+        ),
+      );
+
+      final harness = _WriteHarness(
+        loadBed: () async => _bedMap(isActive: true, rowVersion: 1),
+        invokeRpc: (functionName, parameters) async {
+          expect(functionName, 'set_bed_active');
+
+          return {'status': 'forbidden'};
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BedPage(
+            bed: Bed.fromMap(_bedMap()),
+            authority: authority,
+            repository: harness.repository,
+            plantingRepository: harness.plantings,
+            cropRepository: harness.crops,
+            cropAssociationRepository: harness.associations,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      expect(harness.rpcCalls, hasLength(1));
+      expect(
+        find.text('Non sei autorizzato a modificare questa aiuola.'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+    testWidgets('mostra errore se il server rifiuta la scrittura dello stato', (
+      tester,
+    ) async {
+      final now = DateTime.utc(2026, 9, 2, 12);
+
+      final authority = ProfileWriteAuthorityController(
+        ProfileEditLockRepository.withRpcInvoker((
+          functionName,
+          parameters,
+        ) async {
+          expect(functionName, 'acquire_profile_edit_lock');
+
+          return {
+            'status': 'acquired',
+            'lock_token': 'token-bed-page-authority-fittizio',
+            'expires_at': '2026-09-02T12:02:00+00:00',
+            'row_version': 1,
+          };
+        }),
+        _Scheduler(),
+        utcNow: () => now,
+      );
+
+      addTearDown(authority.dispose);
+
+      await authority.initialize(
+        profileContext: const ProfileContext(
+          profileId: '44444444-4444-4444-8444-444444444444',
+          role: ProfileMemberRole.owner,
+        ),
+        identity: const AppSessionIdentity(
+          clientInstanceId: '55555555-5555-4555-8555-555555555555',
+          sessionId: '66666666-6666-4666-8666-666666666666',
+        ),
+      );
+
+      final harness = _WriteHarness(
+        loadBed: () async => _bedMap(isActive: true, rowVersion: 1),
+        invokeRpc: (functionName, parameters) async {
+          expect(functionName, 'set_bed_active');
+
+          return {'status': 'write_forbidden'};
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BedPage(
+            bed: Bed.fromMap(_bedMap()),
+            authority: authority,
+            repository: harness.repository,
+            plantingRepository: harness.plantings,
+            cropRepository: harness.crops,
+            cropAssociationRepository: harness.associations,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      expect(harness.rpcCalls, hasLength(1));
+      expect(
+        find.text('Il server non ha autorizzato la scrittura.'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+    testWidgets('mostra errore se l aiuola non esiste più', (tester) async {
+      final now = DateTime.utc(2026, 9, 2, 12);
+
+      final authority = ProfileWriteAuthorityController(
+        ProfileEditLockRepository.withRpcInvoker((
+          functionName,
+          parameters,
+        ) async {
+          expect(functionName, 'acquire_profile_edit_lock');
+
+          return {
+            'status': 'acquired',
+            'lock_token': 'token-bed-page-authority-fittizio',
+            'expires_at': '2026-09-02T12:02:00+00:00',
+            'row_version': 1,
+          };
+        }),
+        _Scheduler(),
+        utcNow: () => now,
+      );
+
+      addTearDown(authority.dispose);
+
+      await authority.initialize(
+        profileContext: const ProfileContext(
+          profileId: '44444444-4444-4444-8444-444444444444',
+          role: ProfileMemberRole.owner,
+        ),
+        identity: const AppSessionIdentity(
+          clientInstanceId: '55555555-5555-4555-8555-555555555555',
+          sessionId: '66666666-6666-4666-8666-666666666666',
+        ),
+      );
+
+      final harness = _WriteHarness(
+        loadBed: () async => _bedMap(isActive: true, rowVersion: 1),
+        invokeRpc: (functionName, parameters) async {
+          expect(functionName, 'set_bed_active');
+
+          return {'status': 'not_found'};
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BedPage(
+            bed: Bed.fromMap(_bedMap()),
+            authority: authority,
+            repository: harness.repository,
+            plantingRepository: harness.plantings,
+            cropRepository: harness.crops,
+            cropAssociationRepository: harness.associations,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      expect(harness.rpcCalls, hasLength(1));
+      expect(find.text('L’aiuola non è più disponibile.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+    testWidgets('mostra errore se il server rifiuta la modifica dello stato', (
+      tester,
+    ) async {
+      final now = DateTime.utc(2026, 9, 2, 12);
+
+      final authority = ProfileWriteAuthorityController(
+        ProfileEditLockRepository.withRpcInvoker((
+          functionName,
+          parameters,
+        ) async {
+          expect(functionName, 'acquire_profile_edit_lock');
+
+          return {
+            'status': 'acquired',
+            'lock_token': 'token-bed-page-authority-fittizio',
+            'expires_at': '2026-09-02T12:02:00+00:00',
+            'row_version': 1,
+          };
+        }),
+        _Scheduler(),
+        utcNow: () => now,
+      );
+
+      addTearDown(authority.dispose);
+
+      await authority.initialize(
+        profileContext: const ProfileContext(
+          profileId: '44444444-4444-4444-8444-444444444444',
+          role: ProfileMemberRole.owner,
+        ),
+        identity: const AppSessionIdentity(
+          clientInstanceId: '55555555-5555-4555-8555-555555555555',
+          sessionId: '66666666-6666-4666-8666-666666666666',
+        ),
+      );
+
+      final harness = _WriteHarness(
+        loadBed: () async => _bedMap(isActive: true, rowVersion: 1),
+        invokeRpc: (functionName, parameters) async {
+          expect(functionName, 'set_bed_active');
+
+          return {'status': 'invalid_input'};
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BedPage(
+            bed: Bed.fromMap(_bedMap()),
+            authority: authority,
+            repository: harness.repository,
+            plantingRepository: harness.plantings,
+            cropRepository: harness.crops,
+            cropAssociationRepository: harness.associations,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      expect(harness.rpcCalls, hasLength(1));
+      expect(
+        find.text('Il server ha rifiutato la modifica dello stato.'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+    testWidgets('mostra errore se l esito della modifica non è confermato', (
+      tester,
+    ) async {
+      final now = DateTime.utc(2026, 9, 2, 12);
+
+      final authority = ProfileWriteAuthorityController(
+        ProfileEditLockRepository.withRpcInvoker((
+          functionName,
+          parameters,
+        ) async {
+          expect(functionName, 'acquire_profile_edit_lock');
+
+          return {
+            'status': 'acquired',
+            'lock_token': 'token-bed-page-authority-fittizio',
+            'expires_at': '2026-09-02T12:02:00+00:00',
+            'row_version': 1,
+          };
+        }),
+        _Scheduler(),
+        utcNow: () => now,
+      );
+
+      addTearDown(authority.dispose);
+
+      await authority.initialize(
+        profileContext: const ProfileContext(
+          profileId: '44444444-4444-4444-8444-444444444444',
+          role: ProfileMemberRole.owner,
+        ),
+        identity: const AppSessionIdentity(
+          clientInstanceId: '55555555-5555-4555-8555-555555555555',
+          sessionId: '66666666-6666-4666-8666-666666666666',
+        ),
+      );
+
+      final harness = _WriteHarness(
+        loadBed: () async => _bedMap(isActive: true, rowVersion: 1),
+        invokeRpc: (functionName, parameters) async {
+          expect(functionName, 'set_bed_active');
+          throw StateError('errore simulato');
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BedPage(
+            bed: Bed.fromMap(_bedMap()),
+            authority: authority,
+            repository: harness.repository,
+            plantingRepository: harness.plantings,
+            cropRepository: harness.crops,
+            cropAssociationRepository: harness.associations,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      expect(harness.rpcCalls, hasLength(1));
+      expect(
+        find.text('Non è stato possibile confermare l’esito della modifica.'),
+        findsOneWidget,
+      );
+
+      final switchTile = tester.widget<SwitchListTile>(
+        find.byType(SwitchListTile),
+      );
+
+      expect(switchTile.value, isTrue);
+      expect(tester.takeException(), isNull);
+    });
+    testWidgets('non modifica lo stato se la lease scade prima del tap', (
+      tester,
+    ) async {
+      var now = DateTime.utc(2026, 9, 2, 12);
+
+      final authority = ProfileWriteAuthorityController(
+        ProfileEditLockRepository.withRpcInvoker((
+          functionName,
+          parameters,
+        ) async {
+          expect(functionName, 'acquire_profile_edit_lock');
+
+          return {
+            'status': 'acquired',
+            'lock_token': 'token-bed-page-authority-fittizio',
+            'expires_at': '2026-09-02T12:02:00+00:00',
+            'row_version': 1,
+          };
+        }),
+        _Scheduler(),
+        utcNow: () => now,
+      );
+
+      addTearDown(authority.dispose);
+
+      await authority.initialize(
+        profileContext: const ProfileContext(
+          profileId: '44444444-4444-4444-8444-444444444444',
+          role: ProfileMemberRole.owner,
+        ),
+        identity: const AppSessionIdentity(
+          clientInstanceId: '55555555-5555-4555-8555-555555555555',
+          sessionId: '66666666-6666-4666-8666-666666666666',
+        ),
+      );
+
+      final harness = _WriteHarness(
+        loadBed: () async => _bedMap(isActive: true, rowVersion: 1),
+        invokeRpc: (functionName, parameters) async {
+          fail('La RPC non deve essere chiamata con lease scaduta.');
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BedPage(
+            bed: Bed.fromMap(_bedMap()),
+            authority: authority,
+            repository: harness.repository,
+            plantingRepository: harness.plantings,
+            cropRepository: harness.crops,
+            cropAssociationRepository: harness.associations,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      now = DateTime.utc(2026, 9, 2, 12, 3);
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      expect(harness.rpcCalls, isEmpty);
+      expect(
+        find.text('Autorità di scrittura non disponibile.'),
+        findsOneWidget,
+      );
+
+      final switchTile = tester.widget<SwitchListTile>(
+        find.byType(SwitchListTile),
+      );
+
+      expect(switchTile.value, isTrue);
       expect(tester.takeException(), isNull);
     });
   });

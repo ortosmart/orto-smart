@@ -116,7 +116,7 @@ Future<void> _fillValidForm(WidgetTester tester) async {
   await tester.enterText(_field('Nome (facoltativo)'), '  Aiuola nuova  ');
   await tester.enterText(_field('Larghezza (cm)'), '90');
   await tester.enterText(_field('Lunghezza (cm)'), '700');
-  await tester.enterText(_field('Geometria valida dal'), '2026-08-30');
+  await tester.enterText(_field('Geometria valida dal'), '30/08/2026');
   await tester.enterText(_field('Note (facoltative)'), '  Nota di prova  ');
 }
 
@@ -579,7 +579,7 @@ void main() {
     await tester.enterText(_field('Numero aiuola'), '0');
     await tester.enterText(_field('Larghezza (cm)'), '-1');
     await tester.enterText(_field('Lunghezza (cm)'), 'abc');
-    await tester.enterText(_field('Geometria valida dal'), '2026-02-30');
+    await tester.enterText(_field('Geometria valida dal'), '30/02/2026');
 
     await _submit(tester);
 
@@ -589,7 +589,7 @@ void main() {
       find.text('Inserisci un intero positivo, massimo 2147483647.'),
       findsNWidgets(3),
     );
-    expect(find.text('Inserisci una data valida: AAAA-MM-GG.'), findsOneWidget);
+    expect(find.text('Inserisci una data valida: GG/MM/AAAA.'), findsOneWidget);
     expect(returnedResult, isNull);
     expect(tester.takeException(), isNull);
   });

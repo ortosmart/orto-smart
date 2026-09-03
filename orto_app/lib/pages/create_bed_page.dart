@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/date/civil_date.dart';
 import '../core/write_authority/bed_write_result.dart';
 import '../core/write_authority/profile_write_authority_controller.dart';
 import '../data/repositories/bed_repository.dart';
@@ -56,28 +57,6 @@ class _CreateBedPageState extends State<CreateBedPage> {
     return null;
   }
 
-  DateTime? _parseCivilDate(String text) {
-    final value = text.trim();
-
-    if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)) {
-      return null;
-    }
-
-    final year = int.parse(value.substring(0, 4));
-    final month = int.parse(value.substring(5, 7));
-    final day = int.parse(value.substring(8, 10));
-    final date = DateTime.utc(year, month, day);
-
-    if (year < 1 ||
-        date.year != year ||
-        date.month != month ||
-        date.day != day) {
-      return null;
-    }
-
-    return date;
-  }
-
   String? _optionalText(TextEditingController controller) {
     final value = controller.text.trim();
     return value.isEmpty ? null : value;
@@ -124,7 +103,7 @@ class _CreateBedPageState extends State<CreateBedPage> {
         lengthCm: int.parse(_length.text.trim()),
         validFrom: _validFrom.text.trim().isEmpty
             ? null
-            : _parseCivilDate(_validFrom.text)!,
+            : CivilDate.parseItalian(_validFrom.text)!,
       );
 
       if (!mounted) {
@@ -274,7 +253,7 @@ class _CreateBedPageState extends State<CreateBedPage> {
                               labelText: 'Geometria valida dal',
                               helperText:
                                   'Vuoto = oggi nel fuso dell’orto.\n'
-                                  'Altrimenti AAAA-MM-GG; non sono ammesse '
+                                  'Altrimenti GG/MM/AAAA; non sono ammesse '
                                   'date future.',
                               helperMaxLines: 3,
                             ),
@@ -285,8 +264,8 @@ class _CreateBedPageState extends State<CreateBedPage> {
                                 return null;
                               }
 
-                              if (_parseCivilDate(text) == null) {
-                                return 'Inserisci una data valida: AAAA-MM-GG.';
+                              if (CivilDate.parseItalian(text) == null) {
+                                return 'Inserisci una data valida: GG/MM/AAAA.';
                               }
 
                               return null;
