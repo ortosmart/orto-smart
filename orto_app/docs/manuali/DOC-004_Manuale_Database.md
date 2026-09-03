@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 1.7
+**Versione:** 1.8
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 01/09/2026
+**Ultimo aggiornamento:** 03/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 1.7 |
+| Versione | 1.8 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 01/09/2026 |
+| Ultimo aggiornamento | 03/09/2026 |
 
 ---
 
@@ -44,6 +44,7 @@
 | 1.5 | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, helper `Profile Write Authority`, RPC `create_garden` e `update_garden`, revoca delle scritture dirette da parte di `authenticated`, validazioni server-side e controllo della concorrenza |
 | 1.6 | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, introduzione del Write Path autoritativo di `seasons` mediante `create_season`, `update_season` e `activate_season`, revoca delle scritture dirette, concorrenza ottimistica tramite `row_version` e attivazione atomica della stagione |
 | 1.7 | 01/09/2026 | Aggiornamento con la Sessione S024: implementazione V1 di `beds`, `bed_geometries` e `bed_geometry_corrections`, Write Path autoritativo delle aiuole, storicizzazione geometrica, concorrenza ottimistica, tracciamento delle correzioni e allineamento delle migration locale/remoto |
+| 1.8 | 03/09/2026 | Manutenzione straordinaria del Manuale Database: chiarimento della distinzione tra componenti legacy e schema Database V1 implementato, documentazione dell’assenza corrente di `public.plantings` e separazione delle otto tabelle di dominio dalla struttura tecnica `profile_edit_locks` |
 
 ---
 
@@ -112,7 +113,7 @@ Il progetto Orto Smart si trova in una fase di transizione tra il database opera
 
 L'applicazione utilizza **Supabase**, basato su PostgreSQL, come backend persistente.
 
-Tra le principali entità operative già presenti nel database utilizzato dall'applicazione rientrano:
+Nel codice applicativo sono ancora presenti componenti e Repository appartenenti alla persistenza precedente alla riprogettazione Database V1, riferiti principalmente a:
 
 - `gardens`;
 - `beds`;
@@ -120,7 +121,11 @@ Tra le principali entità operative già presenti nel database utilizzato dall'a
 - `seasons`;
 - `plantings`.
 
-Questa struttura appartiene al database operativo precedente alla riprogettazione V1 e non deve essere confusa con la baseline architetturale definitiva descritta nel presente manuale.
+La presenza di questi riferimenti nel codice legacy non implica che tutte le corrispondenti tabelle siano già disponibili nello schema Database V1 ricostruito mediante le migration correnti.
+
+In particolare, al termine della Sessione S024, `public.plantings` non è ancora implementata nello schema Database V1. I componenti applicativi che tentano di utilizzarla possono pertanto ricevere `PGRST205` fino alla relativa implementazione mediante una futura migration.
+
+Lo stato fisicamente implementato del Database V1 è riportato nel paragrafo 2.3 e deve essere distinto sia dalla baseline completa progettata sia dai componenti legacy ancora presenti nel codice Flutter.
 
 La presenza di una entità nella baseline Database V1 non implica che la relativa tabella, relazione, policy o migration sia già stata realizzata in Supabase.
 
@@ -174,7 +179,7 @@ Al termine della Sessione S024 la situazione del Database V1 è la seguente:
 - il Database V1 completo non è ancora implementato;
 - `public.plantings` non è ancora presente nell’attuale schema implementato.
 
-Le nove tabelle del Database V1 attualmente implementate sono:
+Le otto tabelle di dominio Database V1 attualmente implementate sono:
 
 ```text
 profiles
@@ -182,10 +187,15 @@ profile_memberships
 gardens
 workers
 seasons
-profile_edit_locks
 beds
 bed_geometries
 bed_geometry_corrections
+```
+
+A queste si aggiunge la struttura tecnica separata:
+
+```text
+profile_edit_locks
 ```
 
 Le migration introdotte nella Sessione S024 sono:

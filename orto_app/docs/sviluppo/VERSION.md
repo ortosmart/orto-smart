@@ -4,6 +4,7 @@
 | ----------------- | -------------------- |
 | Progetto          | Orto Smart           |
 | Versione corrente | 0.1.15-alpha         |
+| Versione Flutter  | 0.1.15-alpha+1       |
 | Stato             | Alpha                |
 | Data versione     | 01/09/2026           |
 | Linguaggio        | Flutter / Dart       |
@@ -11,6 +12,8 @@
 | Repository        | ortosmart/orto-smart |
 
 ---
+
+La versione corrente identifica la versione pubblica del software. Nel file `pubspec.yaml` la stessa versione è accompagnata dal suffisso di build Flutter, espresso dopo `+` e incrementato progressivamente senza modificare il significato della versione pubblica.
 
 # Stato del progetto
 

@@ -4,14 +4,14 @@
 
 # Linee Guida di Sviluppo
 
-**Versione:** 1.1
+**Versione:** 1.2
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 08/08/2026
+**Ultimo aggiornamento:** 03/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-006 |
 | Titolo | Linee Guida di Sviluppo |
-| Versione | 1.1 |
+| Versione | 1.2 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 08/08/2026 |
+| Ultimo aggiornamento | 03/09/2026 |
 
 ---
 
@@ -39,6 +39,7 @@
 | 0.1 | 27/07/2026 | Prima versione del documento |
 | 1.0 | 04/08/2026 | Revisione completa, uniformazione allo Standard Documentale e approvazione del documento |
 | 1.1 | 08/08/2026 | Aggiornamento del workflow di sviluppo, introduzione della verifica incrociata della documentazione e formalizzazione della registrazione dei tempi effettivi |
+| 1.2 | 03/09/2026 | Manutenzione straordinaria delle Linee Guida: introduzione esplicita di `dart format`, consolidamento dei tempi prima del commit documentale, verifica della sincronizzazione locale/remoto e distinzione dei controlli obbligatori in base alla natura delle modifiche |
 
 ---
 
@@ -166,17 +167,19 @@ Ogni sessione deve seguire un processo ordinato, progressivo e verificabile basa
 2. analisi e progettazione delle modifiche;
 3. implementazione mediante piccoli cambiamenti verificabili;
 4. esecuzione dei test e delle verifiche funzionali;
-5. esecuzione di `flutter analyze`;
-6. esecuzione di `flutter test`;
-7. commit del codice verificato;
-8. aggiornamento della documentazione interessata;
-9. rilettura e verifica dei singoli documenti;
-10. verifica incrociata della coerenza tra codice, documentazione e dati di progetto;
-11. commit della documentazione;
-12. verifica finale del repository;
-13. push su GitHub;
-14. registrazione dei tempi effettivi della sessione;
-15. definizione del checkpoint e degli obiettivi della sessione successiva.
+5. esecuzione di `dart format`;
+6. esecuzione di `flutter analyze`;
+7. esecuzione di `flutter test`;
+8. commit del codice verificato;
+9. aggiornamento della documentazione interessata;
+10. rilettura e verifica dei singoli documenti;
+11. verifica incrociata della coerenza tra codice, documentazione e dati di progetto;
+12. consolidamento dei tempi effettivi della sessione;
+13. commit della documentazione;
+14. verifica finale del repository;
+15. push su GitHub;
+16. verifica della sincronizzazione tra repository locale e remoto;
+17. registrazione del checkpoint finale e definizione degli obiettivi della sessione successiva.
 
 Le attività devono essere svolte **passo dopo passo**, verificando l'esito di ciascuna operazione prima di procedere con la successiva.
 
@@ -241,11 +244,14 @@ Prima di ogni commit devono essere completate le verifiche previste dal processo
 
 In particolare devono essere verificati almeno i seguenti aspetti:
 
+- esecuzione di `dart format`;
 - esecuzione di `flutter analyze`;
 - esecuzione di `flutter test`;
 - assenza di warning o errori;
 - assenza di codice inutilizzato;
 - aggiornamento della documentazione interessata.
+
+Per le attività che non modificano il software devono essere eseguiti esclusivamente i controlli pertinenti; quando viene modificato codice Dart o Flutter, `dart format`, `flutter analyze` e `flutter test` sono obbligatori.
 
 Le procedure operative di verifica sono descritte nel **DOC-009 – Workflow Operativo**.
 

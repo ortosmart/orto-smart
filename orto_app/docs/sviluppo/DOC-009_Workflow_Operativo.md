@@ -4,14 +4,14 @@
 
 # Workflow Operativo
 
-**Versione:** 2.2
+**Versione:** 2.3
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
 **Progetto:** Orto Smart
 
-**Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 08/08/2026
+**Data prima emissione:** 28/07/2026
+**Ultimo aggiornamento:** 03/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-009 |
 | Titolo | Workflow Operativo |
-| Versione | 2.2 |
+| Versione | 2.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
-| Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 08/08/2026 |
+| Prima emissione | 28/07/2026 |
+| Ultimo aggiornamento | 03/09/2026 |
 
 ---
 
@@ -36,10 +36,11 @@
 
 | Versione | Data | Descrizione |
 |-----------|------------|------------------------------------------------|
-| 1.0 | 27/07/2026 | Prima emissione del Workflow Operativo |
+| 1.0 | 28/07/2026 | Prima emissione del Workflow Operativo |
 | 2.0 | 29/07/2026 | Revisione completa del documento, definizione del metodo di sviluppo ufficiale, integrazione della Checklist Operativa e del Diagramma del Workflow |
 | 2.1 | 04/08/2026 | Uniformazione allo Standard Documentale e revisione del documento |
 | 2.2 | 08/08/2026 | Consolidamento del Workflow Operativo, introduzione della verifica incrociata, gestione dei tempi effettivi, revisione della sequenza Git e completamento degli allegati operativi |
+| 2.3 | 03/09/2026 | Manutenzione straordinaria del Workflow Operativo: correzione della data di prima emissione sulla base della prima registrazione verificata nella cronologia Git |
 
 ---
 

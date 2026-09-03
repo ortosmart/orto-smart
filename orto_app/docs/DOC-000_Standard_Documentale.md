@@ -1,18 +1,17 @@
-# DOC-000 – Standard Documentale
 # ORTO SMART
 
 ### DOC-000
 
 # Standard Documentale
 
-**Versione:** 1.1  
+**Versione:** 1.2
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 04/08/2026
+**Ultimo aggiornamento:** 03/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -24,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-000 |
 | Titolo | Standard Documentale |
-| Versione | 1.1 |
+| Versione | 1.2 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 04/08/2026 |
+| Ultimo aggiornamento | 03/09/2026 |
 
 ---
 
@@ -39,6 +38,7 @@
 |-----------|------------|------------------------------------------------|
 | 1.0 | 29/07/2026 | Prima emissione dello Standard Documentale |
 | 1.1 | 04/08/2026 | Allineamento della struttura del documento allo standard documentale ufficiale del progetto |
+| 1.2 | 03/09/2026 | Manutenzione straordinaria dello Standard Documentale: distinzione dei controlli applicabili in base alla natura del lavoro, rafforzamento della sicurezza dello staging Git, censimento dello stato effettivo dei documenti ufficiali e chiarimento relativo al codice DOC-010 non assegnato |
 
 ---
 
@@ -89,11 +89,11 @@ I principi fondamentali della documentazione di Orto Smart sono:
 
 Una sessione di sviluppo non può considerarsi conclusa fino al completamento di tutte le attività previste dal workflow ufficiale.
 
-Prima della chiusura di ogni sessione devono essere completati:
+Prima della chiusura di ogni sessione devono essere completate tutte le attività applicabili alla natura del lavoro svolto:
 
 - sviluppo del software;
-- test funzionali;
-- controllo della qualità del codice (`dart format`, `flutter analyze`, `flutter test`);
+- test funzionali, quando applicabili;
+- controllo della qualità del codice mediante `dart format`, `flutter analyze` e `flutter test`, obbligatorio quando la sessione modifica il software;
 - aggiornamento della documentazione;
 - aggiornamento del Registro Storico dello Sviluppo (DOC-012);
 - commit Git;
@@ -335,22 +335,24 @@ Ogni documento evolve in funzione delle proprie modifiche e non della versione d
 
 La documentazione ufficiale di Orto Smart è composta dai seguenti documenti.
 
-| Codice | Documento | Scopo |
-|---------|-----------|-------|
-| DOC-000 | Standard Documentale | Definisce le regole della documentazione |
-| DOC-001 | Manuale Tecnico | Descrive l'architettura e il funzionamento del software |
-| DOC-002 | Manuale d'Uso | Guida l'utilizzatore nell'uso dell'applicazione |
-| DOC-003 | Installazione e Configurazione | Descrive l'installazione e la configurazione dell'ambiente |
-| DOC-004 | Manuale Database | Documenta la struttura e l'organizzazione del database |
-| DOC-005 | Quaderno di Sviluppo | Diario tecnico delle sessioni di sviluppo |
-| DOC-006 | Linee Guida di Sviluppo | Definisce il metodo di sviluppo del progetto |
-| DOC-007 | Test e Collaudo | Descrive le procedure di verifica e collaudo |
-| DOC-008 | Roadmap di Sviluppo | Pianifica l'evoluzione futura del software |
-| DOC-009 | Workflow Operativo | Descrive il flusso operativo di ogni sessione |
-| CHANGELOG | Registro delle modifiche | Registra sinteticamente le modifiche introdotte nel software |
-| DOC-011 | Decisioni Architetturali | Registra le decisioni progettuali più importanti |
-| DOC-012 | Registro Storico dello Sviluppo | Tiene traccia del tempo dedicato al progetto e delle principali milestone |
-| VERSION | Versione del progetto | Riporta la versione corrente del software e le informazioni di rilascio |
+| Codice | Documento | Scopo | Stato effettivo |
+|---------|-----------|-------|-----------------|
+| DOC-000 | Standard Documentale | Definisce le regole della documentazione | Emesso |
+| DOC-001 | Manuale Tecnico | Descrive l'architettura e il funzionamento del software | Emesso |
+| DOC-002 | Manuale d'Uso | Guida l'utilizzatore nell'uso dell'applicazione | Da redigere |
+| DOC-003 | Installazione e Configurazione | Descrive l'installazione e la configurazione dell'ambiente | Da redigere |
+| DOC-004 | Manuale Database | Documenta la struttura e l'organizzazione del database | Emesso |
+| DOC-005 | Quaderno di Sviluppo | Diario tecnico delle sessioni di sviluppo | Emesso |
+| DOC-006 | Linee Guida di Sviluppo | Definisce il metodo di sviluppo del progetto | Emesso |
+| DOC-007 | Test e Collaudo | Descrive le procedure di verifica e collaudo | Da redigere |
+| DOC-008 | Roadmap di Sviluppo | Pianifica l'evoluzione futura del software | Emesso |
+| DOC-009 | Workflow Operativo | Descrive il flusso operativo di ogni sessione | Emesso |
+| CHANGELOG | Registro delle modifiche | Registra sinteticamente le modifiche introdotte nel software | Emesso |
+| DOC-011 | Decisioni Architetturali | Registra le decisioni progettuali più importanti | Emesso |
+| DOC-012 | Registro Storico dello Sviluppo | Tiene traccia del tempo dedicato al progetto e delle principali milestone | Emesso |
+| VERSION | Versione del progetto | Riporta la versione corrente del software e le informazioni di rilascio | Emesso |
+
+Il codice `DOC-010` non risulta assegnato ad alcun documento versionato nel repository. L'assenza del codice non rappresenta la cancellazione o l'archiviazione di un documento esistente e dovrà essere rivalutata soltanto in caso di futura assegnazione formale.
 
 ## 7.1 Nuovi documenti
 
@@ -402,10 +404,13 @@ Prima della chiusura di una sessione devono essere verificati:
 
 Solo dopo aver completato lo sviluppo, i test e l'aggiornamento della documentazione è possibile eseguire:
 
-- `git status`
-- `git add .`
-- `git commit`
-- `git push`
+- `git status`;
+- `git add` esclusivamente sui file interessati;
+- `git diff --cached --check`;
+- `git commit`;
+- `git push`.
+
+Prima del commit deve essere verificato che lo staging non contenga file estranei al perimetro della sessione.
 
 La documentazione deve essere sincronizzata con il codice sorgente presente nel repository GitHub.
 

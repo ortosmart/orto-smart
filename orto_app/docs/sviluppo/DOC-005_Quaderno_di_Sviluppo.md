@@ -4,14 +4,14 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.11
+**Versione:** 0.12
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 01/09/2026
+**Ultimo aggiornamento:** 03/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.11 |
+| Versione | 0.12 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 01/09/2026 |
+| Ultimo aggiornamento | 03/09/2026 |
 
 ---
 
@@ -47,37 +47,44 @@
 | 0.9 | 25/08/2026 | Chiusura della Sessione S022: consolidamento del Write Path autoritativo di Categoria A per `gardens`, completamento della documentazione e aggiornamento del timing della sessione |
 | 0.10 | 28/08/2026 | Aggiornamento del Quaderno con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, identità tecnica del client e della sessione, integrazione Flutter della Profile Write Authority e definizione del successivo blocco `beds` e `bed_geometries` |
 | 0.11 | 01/09/2026 | Aggiornamento del Quaderno con la Sessione S024: implementazione V1 di `beds` e `bed_geometries`, geometria storicizzata, Write Path autoritativo delle aiuole, integrazione Flutter, configurazione Supabase parametrizzabile e verifiche locali/end-to-end |
+| 0.12 | 03/09/2026 | Manutenzione straordinaria del Quaderno di Sviluppo: ricostruzione e consolidamento dei tempi complessivi delle Sessioni S001–S024, riallineamento dei progressivi con il DOC-012, classificazione della S007 come attività documentale e formalizzazione della futura verifica controllata degli aggiornamenti ISO 3166-1 alpha-2 |
 
 ---
 
 # Registro delle sessioni di sviluppo
 
+La durata riportata comprende il tempo complessivo della sessione, includendo sviluppo e documentazione quando entrambi presenti.
+
 | Sessione | Periodo | Durata | Totale progetto | Attività principale | Stato |
-|-----------|------------|:------:|:---------------:|---------------------------------------------------------------|:-----:|
-| S001 | Maggio 2026 | 5 h 30 min | 5 h 30 min | Avvio del progetto Orto Smart e configurazione dell'ambiente di sviluppo | ✅ |
-| S002 | Giugno 2026 | 3 h 00 min | 8 h 30 min | Integrazione di Supabase e sviluppo delle funzionalità di base | ✅ |
-| S003 | Luglio 2026 | 2 h 15 min | 10 h 45 min | Gestione delle aiuole e sviluppo del FreeSpaceEngine | ✅ |
-| S004 | Luglio 2026 | Da ricostruire | Da aggiornare | Introduzione del Companion Engine e consolidamento dell'architettura agronomica | ✅ |
-| S005 | Luglio 2026 | Da ricostruire | Da aggiornare | BedAnalysisService e Bed Companion Analyzer | ✅ |
-| S006 | Luglio 2026 | Da ricostruire | Da aggiornare | Decision Engine e consolidamento del Motore Agronomico | ✅ |
-| S007 | Agosto 2026 | 11 h 00 min* | Da aggiornare | Revisione e consolidamento della documentazione tecnica | ✅ |
-| S008 | Agosto 2026 | 4 h 16 min | 40 h 31 min | Censimento e consolidamento della documentazione residua | ✅ |
-| S009     | Agosto 2026 |   5 h 22 min   |   45 h 53 min   | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | ✅ |
-| S010     | Agosto 2026 |   4 h 54 min   |   50 h 47 min   | Configurazione dei pesi del DecisionEngine mediante DecisionWeights | ✅ |
-| S011 | 09/08/2026 | 2 h 27 min | 53 h 14 min | Prima implementazione del FamilyNeedsEngine | ✅ |
-| S012 | 09/08/2026 | 1 h 42 min | 54 h 56 min | Integrazione del FamilyNeedsEngine nella RecommendationPipeline | ✅ |
-| S013 | 10/08/2026 | 2 h 07 min | 57 h 03 min | Fabbisogni quantitativi e lotti di coltivazione pianificati | ✅ |
-| S014 | 11/08/2026 | 2 h 46 min | 59 h 49 min | Prima implementazione del SuccessionPlanningEngine | ✅ |
-| S015 | 11/08/2026 | 1 h 59 min | 61 h 48 min | Prima implementazione delle finestre agronomiche | ✅ |
-| S016 | 11–12/08/2026 | 2 h 02 min | 63 h 50 min | Associazione delle finestre agronomiche a colture e varietà | ✅ |
-| S017 | 12–16/08/2026 | 25 h 14 min | 89 h 04 min | Progettazione e congelamento del Database V1 | ✅ |
-| S018 | 16/08/2026 | 3 h 56 min | 93 h 00 min | Finestre agronomiche multiple e preparazione ambiente Supabase locale | ✅ |
-| S019 | 17–18/08/2026 | 8 h 13 min | 101 h 13 min | Prima migration Database V1, Fondazioni e sicurezza RLS | ✅ |
-| S020 | 18–20/08/2026 | 6 h 36 min | 107 h 49 min | Sicurezza concorrente `profile_edit_locks` | ✅ |
-| S021 | 20–21/08/2026 | 8 h 09 min | 115 h 58 min | Hardening concorrente `profile_edit_locks` | ✅ |
-| S022 | 23–25/08/2026 | 9 h 34 min | 127 h 38 min | Implementazione del Write Path autoritativo di Categoria A per `gardens` | ✅ |
-| S023 | 25–28/08/2026 | 13 h 25 min | 141 h 03 min | Profile Write Authority applicativa, hardening concorrente di `gardens` e Write Path autoritativo di `seasons` | ✅ |
-| S024 | 30/08–01/09/2026 | 18 h 03 min | 159 h 06 min | Implementazione del Write Path autoritativo di `beds` e della geometria storicizzata delle aiuole | ✅ |
+|-----------|---------|:------:|:---------------:|---------------------|:-----:|
+| S001 | Maggio 2026 | 6 h 00 min | 6 h 00 min | Avvio del progetto Orto Smart e configurazione dell'ambiente di sviluppo | ✅ |
+| S002 | Giugno 2026 | 7 h 00 min | 13 h 00 min | Integrazione di Supabase e sviluppo delle funzionalità di base | ✅ |
+| S003 | Luglio 2026 | 8 h 00 min | 21 h 00 min | Gestione delle aiuole e sviluppo del FreeSpaceEngine | ✅ |
+| S004 | Luglio 2026 | 5 h 00 min | 26 h 00 min | Introduzione del Companion Engine e consolidamento dell'architettura agronomica | ✅ |
+| S005 | Luglio 2026 | 4 h 00 min | 30 h 00 min | BedAnalysisService e Bed Companion Analyzer | ✅ |
+| S006 | Luglio 2026 | 4 h 00 min | 34 h 00 min | Decision Engine e consolidamento del Motore Agronomico | ✅ |
+| S007 | Agosto 2026 | 11 h 00 min\* | 45 h 00 min | Revisione e consolidamento della documentazione tecnica | ✅ |
+| S008 | Agosto 2026 | 4 h 16 min | 49 h 16 min | Censimento e consolidamento della documentazione residua | ✅ |
+| S009 | Agosto 2026 | 5 h 22 min | 54 h 38 min | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | ✅ |
+| S010 | Agosto 2026 | 4 h 54 min | 59 h 32 min | Configurazione dei pesi del DecisionEngine mediante DecisionWeights | ✅ |
+| S011 | 09/08/2026 | 2 h 27 min | 61 h 59 min | Prima implementazione del FamilyNeedsEngine | ✅ |
+| S012 | 09/08/2026 | 1 h 42 min | 63 h 41 min | Integrazione del FamilyNeedsEngine nella RecommendationPipeline | ✅ |
+| S013 | 10/08/2026 | 2 h 07 min | 65 h 48 min | Fabbisogni quantitativi e lotti di coltivazione pianificati | ✅ |
+| S014 | 11/08/2026 | 2 h 46 min | 68 h 34 min | Prima implementazione del SuccessionPlanningEngine | ✅ |
+| S015 | 11/08/2026 | 1 h 59 min | 70 h 33 min | Prima implementazione delle finestre agronomiche | ✅ |
+| S016 | 11–12/08/2026 | 2 h 02 min | 72 h 35 min | Associazione delle finestre agronomiche a colture e varietà | ✅ |
+| S017 | 12–16/08/2026 | 25 h 14 min | 97 h 49 min | Progettazione e congelamento del Database V1 | ✅ |
+| S018 | 16/08/2026 | 3 h 56 min | 101 h 45 min | Finestre agronomiche multiple e preparazione ambiente Supabase locale | ✅ |
+| S019 | 17–18/08/2026 | 8 h 13 min | 109 h 58 min | Prima migration Database V1, Fondazioni e sicurezza RLS | ✅ |
+| S020 | 18–20/08/2026 | 6 h 54 min | 116 h 52 min | Sicurezza concorrente `profile_edit_locks` | ✅ |
+| S021 | 20–21/08/2026 | 9 h 57 min | 126 h 49 min | Hardening concorrente `profile_edit_locks` | ✅ |
+| S022 | 23–25/08/2026 | 9 h 34 min | 136 h 23 min | Implementazione del Write Path autoritativo di Categoria A per `gardens` | ✅ |
+| S023 | 25–28/08/2026 | 13 h 25 min | 149 h 48 min | Profile Write Authority applicativa, hardening concorrente di `gardens` e Write Path autoritativo di `seasons` | ✅ |
+| S024 | 30/08–01/09/2026 | 18 h 03 min | 167 h 51 min | Implementazione del Write Path autoritativo di `beds` e della geometria storicizzata delle aiuole | ✅ |
+
+\* La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
+
+Per le Sessioni S004, S005 e S006 è disponibile il tempo complessivo storico della sessione, ma non la ripartizione attendibile tra sviluppo e documentazione.
 
 ---
 
@@ -5399,7 +5406,7 @@ Il codice paese viene normalizzato in formato maiuscolo e verificato contro la b
 
 La baseline ISO 3166-1 alpha-2 è stata verificata il **23/08/2026**. I codici user-assigned non sono ammessi.
 
-Eventuali aggiornamenti futuri dell'elenco ISO 3166-1 alpha-2 devono avvenire tramite migration versionata.
+Il progetto dovrà prevedere un controllo o una segnalazione quando l’elenco ufficiale ISO 3166-1 alpha-2 viene modificato, senza applicare aggiornamenti automatici al database. Ogni variazione dovrà essere verificata sulla fonte ufficiale ISO e introdotta esclusivamente mediante una nuova migration versionata, accompagnata dai relativi test prima dell’applicazione.
 
 La timezone viene validata server-side mediante l'elenco delle timezone PostgreSQL.
 

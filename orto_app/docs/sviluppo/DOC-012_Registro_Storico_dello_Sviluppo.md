@@ -4,14 +4,14 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 3.2
+**Versione:** 3.3
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 01/09/2026
+**Ultimo aggiornamento:** 03/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 3.2 |
+| Versione | 3.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 01/09/2026 |
+| Ultimo aggiornamento | 03/09/2026 |
 
 ---
 
@@ -50,6 +50,7 @@
 | 3.0      | 25/08/2026 | Aggiornamento del Registro Storico con le Sessioni S019, S020, S021 e S022, consolidamento dei tempi di sviluppo e documentazione e aggiornamento degli indicatori evolutivi |
 | 3.1      | 28/08/2026 | Aggiornamento del Registro Storico con la Sessione S023, consolidamento dei Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e riallineamento definitivo dei tempi S020–S023 |
 | 3.2      | 01/09/2026 | Aggiornamento del Registro Storico con la Sessione S024: Write Path autoritativo di `beds`, geometria storicizzata, integrazione Flutter, versione 0.1.15-alpha e riallineamento degli indicatori evolutivi |
+| 3.3      | 03/09/2026 | Manutenzione straordinaria del Registro Storico: consolidamento dei tempi complessivi delle Sessioni S001–S024, classificazione documentale della S007, riallineamento dei progressivi e aggiornamento del totale progetto a 167 h 51 min |
 
 ---
 
@@ -105,8 +106,8 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 | ----------------------------------- | ------------------------------------------------ |
 | Sessioni completate                 | 24                                               |
 | Tempo complessivo di sviluppo       | 123 h 37 min                                     |
-| Tempo complessivo di documentazione | 35 h 29 min                                      |
-| Tempo complessivo progetto          | 159 h 06 min                                     |
+| Tempo complessivo di documentazione | 44 h 14 min                                      |
+| Tempo complessivo progetto          | 167 h 51 min                                     |
 | Prima sessione                      | S001                                             |
 | Ultima sessione                     | S024                                             |
 | Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S024 |
@@ -117,34 +118,38 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 La cronologia sintetica riporta, in ordine cronologico, le principali sessioni che hanno caratterizzato l'evoluzione del progetto Orto Smart.
 
-Per ciascuna sessione vengono indicati l'evento principale e il tempo di sviluppo consolidato, consentendo di ricostruire rapidamente la crescita del progetto nel tempo.
+Per ciascuna sessione vengono indicati l'evento principale e il tempo complessivo della sessione, comprensivo dello sviluppo e della documentazione quando entrambi presenti, consentendo di ricostruire rapidamente la crescita del progetto nel tempo.
 
 | Sessione | Attività principale | Ore sessione | Totale progressivo |
 |-----------|---------------------|-------------:|-------------------:|
-| **S001** | Avvio del progetto Orto Smart | **6 h** | **6 h** |
-| **S002** | Evoluzione dell'architettura e integrazione Supabase | **7 h** | **13 h** |
-| **S003** | Realizzazione del FreeSpace Engine e del Suggestion Engine | **8 h** | **21 h** |
-| **S004** | Sviluppo del Companion Engine e refactoring dell'architettura | **5 h** | **26 h** |
-| **S005** | Introduzione del BedAnalysisService e integrazione dell'analisi agronomica | **4 h** | **30 h** |
-| **S006** | Decision Engine, integrazione dell'analisi agronomica e completamento della documentazione di progetto | **4 h** | **34 h** |
-| **S007** | Revisione e consolidamento della documentazione tecnica | **2 h 15 min** | **36 h 15 min** |
-| **S008** | Censimento e consolidamento della documentazione residua | **4 h 16 min** | **40 h 31 min** |
-| **S009** | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | **5 h 22 min** | **45 h 53 min** |
-| **S010** | Configurazione dei pesi del DecisionEngine mediante DecisionWeights | **4 h 54 min** | **50 h 47 min** |
-| **S011** | Prima implementazione del FamilyNeedsEngine per la valutazione delle priorità e dei fabbisogni familiari | **2 h 27 min** | **53 h 14 min** |
-| **S012** | Integrazione del FamilyNeedsEngine nella RecommendationPipeline mediante ordinamento gerarchico delle raccomandazioni | **1 h 42 min** | **54 h 56 min** |
-| **S013** | Introduzione dei fabbisogni quantitativi familiari e dei lotti pianificati come fondamenta del futuro SuccessionPlanningEngine | **2 h 07 min** | **57 h 03 min** |
-| **S014** | Prima implementazione del SuccessionPlanningEngine per la generazione temporale validata dei lotti di coltivazione | **1 h 32 min** | **59 h 49 min** |
-| **S015** | Prima implementazione delle finestre agronomiche mediante AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine | **1 h 00 min** |    **61 h 48 min** |
-| **S016** | Associazione delle finestre agronomiche a colture e varietà e introduzione della valutazione stagionale dei lotti pianificati | **1 h 06 min** | **63 h 50 min** |
-| **S017** | Progettazione completa e congelamento della baseline Database V1 | **20 h 24 min** | **89 h 04 min** |
-| **S018** | Supporto alle finestre agronomiche multiple e predisposizione dell'ambiente locale Supabase | **3 h 56 min** | **93 h 00 min** |
-| **S019** | Prima migration Database V1, implementazione delle Fondazioni e prima sicurezza RLS | **8 h 13 min** | **101 h 13 min** |
-| **S020** | Hardening di `profile_edit_locks` e implementazione delle RPC server-side per il protocollo di takeover | **6 h 54 min** | **108 h 07 min** |
-| **S021** | Completamento e hardening del protocollo `profile_edit_locks` e verifica delle transizioni concorrenti | **9 h 57 min** | **118 h 04 min** |
-| **S022** | Primo Write Path autoritativo di Categoria A per `gardens` | **9 h 34 min** | **127 h 38 min** |
-| **S023** | Profile Write Authority applicativa, hardening concorrente di `gardens` e Write Path autoritativo di `seasons` | **13 h 25 min** | **141 h 03 min** |
-| **S024** | Write Path autoritativo di `beds`, geometria storicizzata e integrazione Flutter della creazione dell’aiuola | **18 h 03 min** | **159 h 06 min** |
+| **S001** | Avvio del progetto Orto Smart | **6 h 00 min** | **6 h 00 min** |
+| **S002** | Evoluzione dell'architettura e integrazione Supabase | **7 h 00 min** | **13 h 00 min** |
+| **S003** | Realizzazione del FreeSpace Engine e del Suggestion Engine | **8 h 00 min** | **21 h 00 min** |
+| **S004** | Sviluppo del Companion Engine e refactoring dell'architettura | **5 h 00 min** | **26 h 00 min** |
+| **S005** | Introduzione del BedAnalysisService e integrazione dell'analisi agronomica | **4 h 00 min** | **30 h 00 min** |
+| **S006** | Decision Engine, integrazione dell'analisi agronomica e completamento della documentazione di progetto | **4 h 00 min** | **34 h 00 min** |
+| **S007** | Revisione e consolidamento della documentazione tecnica | **11 h 00 min**\* | **45 h 00 min** |
+| **S008** | Censimento e consolidamento della documentazione residua | **4 h 16 min** | **49 h 16 min** |
+| **S009** | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | **5 h 22 min** | **54 h 38 min** |
+| **S010** | Configurazione dei pesi del DecisionEngine mediante DecisionWeights | **4 h 54 min** | **59 h 32 min** |
+| **S011** | Prima implementazione del FamilyNeedsEngine per la valutazione delle priorità e dei fabbisogni familiari | **2 h 27 min** | **61 h 59 min** |
+| **S012** | Integrazione del FamilyNeedsEngine nella RecommendationPipeline mediante ordinamento gerarchico delle raccomandazioni | **1 h 42 min** | **63 h 41 min** |
+| **S013** | Introduzione dei fabbisogni quantitativi familiari e dei lotti pianificati come fondamenta del futuro SuccessionPlanningEngine | **2 h 07 min** | **65 h 48 min** |
+| **S014** | Prima implementazione del SuccessionPlanningEngine per la generazione temporale validata dei lotti di coltivazione | **2 h 46 min** | **68 h 34 min** |
+| **S015** | Prima implementazione delle finestre agronomiche mediante AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine | **1 h 59 min** | **70 h 33 min** |
+| **S016** | Associazione delle finestre agronomiche a colture e varietà e introduzione della valutazione stagionale dei lotti pianificati | **2 h 02 min** | **72 h 35 min** |
+| **S017** | Progettazione completa e congelamento della baseline Database V1 | **25 h 14 min** | **97 h 49 min** |
+| **S018** | Supporto alle finestre agronomiche multiple e predisposizione dell'ambiente locale Supabase | **3 h 56 min** | **101 h 45 min** |
+| **S019** | Prima migration Database V1, implementazione delle Fondazioni e prima sicurezza RLS | **8 h 13 min** | **109 h 58 min** |
+| **S020** | Hardening di `profile_edit_locks` e implementazione delle RPC server-side per il protocollo di takeover | **6 h 54 min** | **116 h 52 min** |
+| **S021** | Completamento e hardening del protocollo `profile_edit_locks` e verifica delle transizioni concorrenti | **9 h 57 min** | **126 h 49 min** |
+| **S022** | Primo Write Path autoritativo di Categoria A per `gardens` | **9 h 34 min** | **136 h 23 min** |
+| **S023** | Profile Write Authority applicativa, hardening concorrente di `gardens` e Write Path autoritativo di `seasons` | **13 h 25 min** | **149 h 48 min** |
+| **S024** | Write Path autoritativo di `beds`, geometria storicizzata e integrazione Flutter della creazione dell’aiuola | **18 h 03 min** | **167 h 51 min** |
+
+\* La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
+
+Per le Sessioni S004, S005 e S006 è disponibile il tempo complessivo storico della sessione, ma non la ripartizione attendibile tra sviluppo e documentazione.
 
 ---
 
@@ -214,8 +219,8 @@ Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e
 | ----------------------------- | -------------- |
 | Sessioni completate           | 24             |
 | Ore di sviluppo consolidate   | 123 h 37 min   |
-| Ore di documentazione         | 35 h 29 min    |
-| Totale ore progetto           | 159 h 06 min   |
+| Ore di documentazione         | 44 h 14 min    |
+| Totale ore progetto           | 167 h 51 min   |
 | Motori agronomici completati  | 5              |
 | Documenti ufficiali approvati | 10             |
 | Ultima sessione completata    | S024           |

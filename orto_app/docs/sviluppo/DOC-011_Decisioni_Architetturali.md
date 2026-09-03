@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 1.7
+**Versione:** 1.8
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 01/09/2026
+**Ultimo aggiornamento:** 03/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 1.7                            |
+| Versione             | 1.8                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
 | Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 01/09/2026                     |
+| Ultimo aggiornamento | 03/09/2026                     |
 
 ---
 
@@ -53,6 +53,7 @@
 | 1.5      | 24/08/2026 | Aggiornamento della DEC-012 con la Sessione S022: applicazione del protocollo `profile_edit_locks` come fondamento del primo Write Path autoritativo di Categoria A per `gardens`, introduzione di `Profile Write Authority`, RPC `create_garden` e `update_garden` e definizione del confine con le ulteriori entità di Categoria A |
 | 1.6      | 28/08/2026 | Aggiornamento della DEC-012 con la Sessione S023: hardening concorrente di `update_garden`, estensione del Write Path autoritativo a `seasons`, introduzione dell’identità tecnica del client e della sessione e integrazione Flutter fail-closed della Profile Write Authority |
 | 1.7      | 01/09/2026 | Aggiornamento della DEC-012 con la Sessione S024: estensione del Write Path autoritativo a `beds`, geometria storicizzata, concorrenza ottimistica, correzioni tracciate e integrazione Flutter mediante `ProfileContextScope` e risultati tipizzati |
+| 1.8      | 03/09/2026 | Manutenzione straordinaria delle Decisioni Architetturali: eliminazione della duplicazione relativa all’attivazione atomica della stagione nella DEC-012 |
 
 ---
 
@@ -1700,8 +1701,6 @@ Per `seasons` sono disponibili:
 - `activate_season`.
 
 La creazione produce sempre una stagione inizialmente inattiva. `update_season` non consente di modificare direttamente `garden_id` o `is_active` e applica la concorrenza ottimistica mediante `expected_row_version`.
-
-L’attivazione viene eseguita esclusivamente mediante `activate_season`, che attiva la stagione target e disattiva atomicamente l’eventuale stagione precedentemente attiva nello stesso Garden.
 
 L’attivazione viene eseguita esclusivamente mediante `activate_season`, che attiva la stagione target e disattiva atomicamente l’eventuale stagione precedentemente attiva nello stesso Garden.
 
