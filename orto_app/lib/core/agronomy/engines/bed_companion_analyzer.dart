@@ -8,10 +8,7 @@ class BedCompanionAnalyzer {
 
     for (var i = 0; i < cropIds.length; i++) {
       for (var j = i + 1; j < cropIds.length; j++) {
-        final result = CompanionEngine.analyze(
-          cropIds[i],
-          cropIds[j],
-        );
+        final result = CompanionEngine.analyze(cropIds[i], cropIds[j]);
 
         pairs.add(
           CompanionPairAnalysis(
@@ -23,8 +20,6 @@ class BedCompanionAnalyzer {
       }
     }
 
-    return BedCompanionAnalysis(
-      pairs: pairs,
-    );
+    return BedCompanionAnalysis(pairs: pairs);
   }
 }

@@ -6,10 +6,7 @@ class OccupiedSpace {
   /// Posizione finale del tratto occupato, espressa in centimetri.
   final double endCm;
 
-  const OccupiedSpace({
-    required this.startCm,
-    required this.endCm,
-  });
+  const OccupiedSpace({required this.startCm, required this.endCm});
 
   /// Lunghezza del tratto occupato, espressa in centimetri.
   double get lengthCm => endCm - startCm;

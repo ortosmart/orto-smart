@@ -89,23 +89,21 @@ class CompanionAnalysisWidget extends StatelessWidget {
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 4),
-            ...analysis.pairs.map(
-              (pair) {
-                final cropAName = _cropName(pair.cropAId);
-                final cropBName = _cropName(pair.cropBId);
-                final presentation = _presentationFor(
-                  context,
-                  pair.result.compatibility,
-                );
+            ...analysis.pairs.map((pair) {
+              final cropAName = _cropName(pair.cropAId);
+              final cropBName = _cropName(pair.cropBId);
+              final presentation = _presentationFor(
+                context,
+                pair.result.compatibility,
+              );
 
-                return _CompanionPairTile(
-                  cropAName: cropAName,
-                  cropBName: cropBName,
-                  message: pair.result.message,
-                  presentation: presentation,
-                );
-              },
-            ),
+              return _CompanionPairTile(
+                cropAName: cropAName,
+                cropBName: cropBName,
+                message: pair.result.message,
+                presentation: presentation,
+              );
+            }),
           ],
         ),
       ),
@@ -130,30 +128,30 @@ class CompanionAnalysisWidget extends StatelessWidget {
 
     return switch (compatibility) {
       CompanionCompatibility.excellent => _CompatibilityPresentation(
-          label: 'Eccellente',
-          icon: Icons.stars_rounded,
-          color: colorScheme.primary,
-        ),
+        label: 'Eccellente',
+        icon: Icons.stars_rounded,
+        color: colorScheme.primary,
+      ),
       CompanionCompatibility.good => _CompatibilityPresentation(
-          label: 'Buona',
-          icon: Icons.check_circle_outline,
-          color: colorScheme.secondary,
-        ),
+        label: 'Buona',
+        icon: Icons.check_circle_outline,
+        color: colorScheme.secondary,
+      ),
       CompanionCompatibility.neutral => _CompatibilityPresentation(
-          label: 'Neutrale',
-          icon: Icons.info_outline,
-          color: colorScheme.onSurfaceVariant,
-        ),
+        label: 'Neutrale',
+        icon: Icons.info_outline,
+        color: colorScheme.onSurfaceVariant,
+      ),
       CompanionCompatibility.bad => _CompatibilityPresentation(
-          label: 'Sconsigliata',
-          icon: Icons.warning_amber_rounded,
-          color: colorScheme.error,
-        ),
+        label: 'Sconsigliata',
+        icon: Icons.warning_amber_rounded,
+        color: colorScheme.error,
+      ),
       CompanionCompatibility.incompatible => _CompatibilityPresentation(
-          label: 'Incompatibile',
-          icon: Icons.cancel_outlined,
-          color: colorScheme.error,
-        ),
+        label: 'Incompatibile',
+        icon: Icons.cancel_outlined,
+        color: colorScheme.error,
+      ),
     };
   }
 }
@@ -180,10 +178,7 @@ class _CompanionPairTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            presentation.icon,
-            color: presentation.color,
-          ),
+          Icon(presentation.icon, color: presentation.color),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -218,17 +213,11 @@ class _SummaryChip extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _SummaryChip({
-    required this.icon,
-    required this.label,
-  });
+  const _SummaryChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
-    );
+    return Chip(avatar: Icon(icon, size: 18), label: Text(label));
   }
 }
 
@@ -251,10 +240,7 @@ class _EmptyCompanionAnalysisCard extends StatelessWidget {
                 children: [
                   Text(
                     'Consociazioni',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 4),
                   Text(

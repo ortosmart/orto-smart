@@ -37,8 +37,7 @@ class BedAnalyzer {
         .map(
           (planting) => OccupiedSpace(
             startCm: planting.startPositionCm.toDouble(),
-            endCm:
-                (planting.startPositionCm + planting.lengthCm).toDouble(),
+            endCm: (planting.startPositionCm + planting.lengthCm).toDouble(),
           ),
         )
         .toList();

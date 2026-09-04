@@ -88,9 +88,7 @@ class _LoginPageState extends State<LoginPage> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 420,
-              ),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
@@ -98,11 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.eco,
-                          size: 72,
-                          color: Colors.green,
-                        ),
+                        const Icon(Icons.eco, size: 72, color: Colors.green),
                         const SizedBox(height: 16),
                         Text(
                           'Orto Smart',
@@ -133,9 +127,7 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
-                          autofillHints: const [
-                            AutofillHints.password,
-                          ],
+                          autofillHints: const [AutofillHints.password],
                           onSubmitted: (_) {
                             if (!_isLoading) {
                               _signIn();

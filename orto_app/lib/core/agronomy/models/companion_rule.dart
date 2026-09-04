@@ -1,10 +1,4 @@
-enum CompanionCompatibility {
-  excellent,
-  good,
-  neutral,
-  bad,
-  incompatible,
-}
+enum CompanionCompatibility { excellent, good, neutral, bad, incompatible }
 
 class CompanionRule {
   final String cropAId;
@@ -19,10 +13,7 @@ class CompanionRule {
     required this.reason,
   });
 
-  bool matches(
-    String firstCropId,
-    String secondCropId,
-  ) {
+  bool matches(String firstCropId, String secondCropId) {
     return (cropAId == firstCropId && cropBId == secondCropId) ||
         (cropAId == secondCropId && cropBId == firstCropId);
   }

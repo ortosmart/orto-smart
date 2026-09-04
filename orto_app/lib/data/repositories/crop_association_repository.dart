@@ -6,11 +6,9 @@ class CropAssociationRepository {
   final SupabaseClient _client;
 
   CropAssociationRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+    : _client = client ?? Supabase.instance.client;
 
-  Future<List<CropAssociation>> getAssociationsForCrop(
-    String cropId,
-  ) async {
+  Future<List<CropAssociation>> getAssociationsForCrop(String cropId) async {
     final response = await _client
         .from('crop_associations')
         .select()
@@ -18,11 +16,7 @@ class CropAssociationRepository {
         .order('score', ascending: false);
 
     return (response as List<dynamic>)
-        .map(
-          (item) => CropAssociation.fromMap(
-            item as Map<String, dynamic>,
-          ),
-        )
+        .map((item) => CropAssociation.fromMap(item as Map<String, dynamic>))
         .toList();
   }
 
@@ -44,11 +38,7 @@ class CropAssociationRepository {
         .order('score', ascending: false);
 
     return (response as List<dynamic>)
-        .map(
-          (item) => CropAssociation.fromMap(
-            item as Map<String, dynamic>,
-          ),
-        )
+        .map((item) => CropAssociation.fromMap(item as Map<String, dynamic>))
         .toList();
   }
 
@@ -60,11 +50,7 @@ class CropAssociationRepository {
         .order('score', ascending: false);
 
     return (response as List<dynamic>)
-        .map(
-          (item) => CropAssociation.fromMap(
-            item as Map<String, dynamic>,
-          ),
-        )
+        .map((item) => CropAssociation.fromMap(item as Map<String, dynamic>))
         .toList();
   }
 }

@@ -3,16 +3,11 @@ import '../models/companion_result.dart';
 import '../models/companion_rule.dart';
 
 class CompanionEngine {
-  static CompanionRule? findRule(
-    String cropAId,
-    String cropBId,
-  ) {
+  static CompanionRule? findRule(String cropAId, String cropBId) {
     for (final rule in companionRules) {
-      final sameOrder =
-          rule.cropAId == cropAId && rule.cropBId == cropBId;
+      final sameOrder = rule.cropAId == cropAId && rule.cropBId == cropBId;
 
-      final reverseOrder =
-          rule.cropAId == cropBId && rule.cropBId == cropAId;
+      final reverseOrder = rule.cropAId == cropBId && rule.cropBId == cropAId;
 
       if (sameOrder || reverseOrder) {
         return rule;
@@ -22,10 +17,7 @@ class CompanionEngine {
     return null;
   }
 
-  static CompanionResult analyze(
-    String cropAId,
-    String cropBId,
-  ) {
+  static CompanionResult analyze(String cropAId, String cropBId) {
     final rule = findRule(cropAId, cropBId);
 
     if (rule == null) {
@@ -38,8 +30,7 @@ class CompanionEngine {
     }
 
     return CompanionResult(
-      compatible:
-          rule.compatibility != CompanionCompatibility.incompatible,
+      compatible: rule.compatibility != CompanionCompatibility.incompatible,
       compatibility: rule.compatibility,
       message: rule.reason,
     );

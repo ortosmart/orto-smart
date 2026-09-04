@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/models/crop.dart';
 import '../data/models/planting.dart';
 
-enum PlantingCardAction {
-  edit,
-  delete,
-}
+enum PlantingCardAction { edit, delete }
 
 class PlantingCard extends StatelessWidget {
   final Planting planting;
@@ -102,18 +99,12 @@ class PlantingCard extends StatelessWidget {
       child: Column(
         children: [
           ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.eco),
-            ),
+            leading: const CircleAvatar(child: Icon(Icons.eco)),
             title: Text(
               _cropName,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: Text(
-              'Semina: ${_formatDate(planting.sowingDate)}',
-            ),
+            subtitle: Text('Semina: ${_formatDate(planting.sowingDate)}'),
             trailing: PopupMenuButton<PlantingCardAction>(
               tooltip: 'Azioni coltura',
               onSelected: _handleAction,
@@ -160,15 +151,10 @@ class PlantingCard extends StatelessWidget {
           ),
           ListTile(
             dense: true,
-            leading: Icon(
-              _statusIcon(planting.status),
-            ),
-            title: Text(
-              _statusText(planting.status),
-            ),
+            leading: Icon(_statusIcon(planting.status)),
+            title: Text(_statusText(planting.status)),
           ),
-          if (planting.notes != null &&
-              planting.notes!.trim().isNotEmpty)
+          if (planting.notes != null && planting.notes!.trim().isNotEmpty)
             ListTile(
               dense: true,
               leading: const Icon(Icons.notes),

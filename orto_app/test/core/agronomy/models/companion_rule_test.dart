@@ -13,14 +13,8 @@ void main() {
 
       expect(rule.cropAId, '1');
       expect(rule.cropBId, '3');
-      expect(
-        rule.compatibility,
-        CompanionCompatibility.excellent,
-      );
-      expect(
-        rule.reason,
-        'Il basilico può favorire la crescita del pomodoro.',
-      );
+      expect(rule.compatibility, CompanionCompatibility.excellent);
+      expect(rule.reason, 'Il basilico può favorire la crescita del pomodoro.');
     });
 
     test('considera equivalenti le coppie anche in ordine inverso', () {

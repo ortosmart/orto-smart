@@ -15,9 +15,7 @@ void main() {
     });
 
     test('returns no pairs for a single crop', () {
-      final analysis = BedCompanionAnalyzer.analyze([
-        CropIds.pomodoro,
-      ]);
+      final analysis = BedCompanionAnalyzer.analyze([CropIds.pomodoro]);
 
       expect(analysis.totalPairs, 0);
     });

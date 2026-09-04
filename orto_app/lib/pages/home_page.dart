@@ -6,16 +6,11 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('🌱 Orto Smart'),
-      ),
+      appBar: AppBar(title: const Text('🌱 Orto Smart')),
       body: const Center(
         child: Text(
           'Benvenuto in Orto Smart!',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ),
     );

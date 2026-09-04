@@ -6,7 +6,7 @@ class PlantingRepository {
   final SupabaseClient _supabase;
 
   PlantingRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? Supabase.instance.client;
+    : _supabase = supabase ?? Supabase.instance.client;
 
   Future<List<Planting>> getPlantingsByBed(String bedId) async {
     final response = await _supabase
@@ -16,11 +16,7 @@ class PlantingRepository {
         .order('start_position_cm', ascending: true);
 
     return (response as List)
-        .map(
-          (item) => Planting.fromMap(
-            Map<String, dynamic>.from(item as Map),
-          ),
-        )
+        .map((item) => Planting.fromMap(Map<String, dynamic>.from(item as Map)))
         .toList();
   }
 
@@ -33,16 +29,12 @@ class PlantingRepository {
         .select()
         .single();
 
-    return Planting.fromMap(
-      Map<String, dynamic>.from(response),
-    );
+    return Planting.fromMap(Map<String, dynamic>.from(response));
   }
 
   Future<Planting> updatePlanting(Planting planting) async {
     if (planting.id == null) {
-      throw ArgumentError(
-        'Non è possibile aggiornare una semina senza id.',
-      );
+      throw ArgumentError('Non è possibile aggiornare una semina senza id.');
     }
 
     final data = planting.toMap()..remove('id');
@@ -54,15 +46,10 @@ class PlantingRepository {
         .select()
         .single();
 
-    return Planting.fromMap(
-      Map<String, dynamic>.from(response),
-    );
+    return Planting.fromMap(Map<String, dynamic>.from(response));
   }
 
   Future<void> deletePlanting(String id) async {
-    await _supabase
-        .from('plantings')
-        .delete()
-        .eq('id', id);
+    await _supabase.from('plantings').delete().eq('id', id);
   }
 }

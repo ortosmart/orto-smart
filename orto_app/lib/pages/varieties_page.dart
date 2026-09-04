@@ -15,8 +15,7 @@ class VarietiesPage extends StatefulWidget {
 
 class _VarietiesPageState extends State<VarietiesPage> {
   final CropRepository _cropRepository = CropRepository();
-  final CropVarietyRepository _varietyRepository =
-      CropVarietyRepository();
+  final CropVarietyRepository _varietyRepository = CropVarietyRepository();
 
   late Future<_VarietiesPageData> _pageDataFuture;
 
@@ -50,9 +49,7 @@ class _VarietiesPageState extends State<VarietiesPage> {
   Future<void> _openAddVarietyPage() async {
     await Navigator.push<void>(
       context,
-      MaterialPageRoute<void>(
-        builder: (context) => const AddVarietyPage(),
-      ),
+      MaterialPageRoute<void>(builder: (context) => const AddVarietyPage()),
     );
 
     if (!mounted) {
@@ -79,9 +76,7 @@ class _VarietiesPageState extends State<VarietiesPage> {
         future: _pageDataFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
@@ -91,10 +86,7 @@ class _VarietiesPageState extends State<VarietiesPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 48,
-                    ),
+                    const Icon(Icons.error_outline, size: 48),
                     const SizedBox(height: 16),
                     const Text(
                       'Errore durante il caricamento delle varietà.',
@@ -128,10 +120,7 @@ class _VarietiesPageState extends State<VarietiesPage> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   const SizedBox(height: 140),
-                  const Icon(
-                    Icons.eco_outlined,
-                    size: 64,
-                  ),
+                  const Icon(Icons.eco_outlined, size: 64),
                   const SizedBox(height: 16),
                   const Center(
                     child: Text(
@@ -144,9 +133,7 @@ class _VarietiesPageState extends State<VarietiesPage> {
                   ),
                   const SizedBox(height: 8),
                   const Center(
-                    child: Text(
-                      'Premi + per inserire la prima varietà.',
-                    ),
+                    child: Text('Premi + per inserire la prima varietà.'),
                   ),
                   const SizedBox(height: 24),
                   Center(
@@ -161,18 +148,14 @@ class _VarietiesPageState extends State<VarietiesPage> {
             );
           }
 
-          final cropsById = {
-            for (final crop in data.crops) crop.id: crop,
-          };
+          final cropsById = {for (final crop in data.crops) crop.id: crop};
 
           final varietiesByCrop = <String, List<CropVariety>>{};
 
           for (final variety in data.varieties) {
             final cropId = variety.cropId.toString();
 
-            varietiesByCrop
-                .putIfAbsent(cropId, () => [])
-                .add(variety);
+            varietiesByCrop.putIfAbsent(cropId, () => []).add(variety);
           }
 
           final cropIds = varietiesByCrop.keys.toList()
@@ -195,14 +178,10 @@ class _VarietiesPageState extends State<VarietiesPage> {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ExpansionTile(
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.grass),
-                    ),
+                    leading: const CircleAvatar(child: Icon(Icons.grass)),
                     title: Text(
                       crop?.name ?? 'Coltura sconosciuta',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text('${varieties.length} varietà'),
                     children: varieties.map((variety) {
@@ -227,11 +206,7 @@ class _VarietiesPageState extends State<VarietiesPage> {
     final details = <String>[];
 
     if (variety.defaultPlantingMethod != null) {
-      details.add(
-        _formatPlantingMethod(
-          variety.defaultPlantingMethod!,
-        ),
-      );
+      details.add(_formatPlantingMethod(variety.defaultPlantingMethod!));
     }
 
     if (variety.plantSpacingCm != null) {
@@ -267,8 +242,5 @@ class _VarietiesPageData {
   final List<Crop> crops;
   final List<CropVariety> varieties;
 
-  const _VarietiesPageData({
-    required this.crops,
-    required this.varieties,
-  });
+  const _VarietiesPageData({required this.crops, required this.varieties});
 }

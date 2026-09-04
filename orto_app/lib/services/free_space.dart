@@ -6,10 +6,7 @@ class FreeSpace {
   /// Posizione finale dello spazio libero (cm)
   final double endCm;
 
-  const FreeSpace({
-    required this.startCm,
-    required this.endCm,
-  });
+  const FreeSpace({required this.startCm, required this.endCm});
 
   /// Lunghezza dello spazio libero (cm)
   double get lengthCm => endCm - startCm;

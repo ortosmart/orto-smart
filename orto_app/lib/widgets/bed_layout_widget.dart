@@ -21,23 +21,17 @@ class BedLayoutWidget extends StatelessWidget {
     final bedLengthCm = bed.lengthCm.toDouble();
 
     if (bedLengthCm <= 0) {
-      return const Text(
-        'La lunghezza dell’aiuola non è valida.',
-      );
+      return const Text('La lunghezza dell’aiuola non è valida.');
     }
 
-    final occupiedLengthCm = _calculateOccupiedLength(
-      bedLengthCm,
-    );
+    final occupiedLengthCm = _calculateOccupiedLength(bedLengthCm);
 
-    final freeLengthCm =
-        (bedLengthCm - occupiedLengthCm).clamp(
+    final freeLengthCm = (bedLengthCm - occupiedLengthCm).clamp(
       0.0,
       bedLengthCm,
     );
 
-    final occupationPercentage =
-        occupiedLengthCm / bedLengthCm * 100;
+    final occupationPercentage = occupiedLengthCm / bedLengthCm * 100;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,10 +49,7 @@ class BedLayoutWidget extends StatelessWidget {
               height: 90,
               decoration: BoxDecoration(
                 color: Colors.brown.shade100,
-                border: Border.all(
-                  color: Colors.brown.shade400,
-                  width: 1.5,
-                ),
+                border: Border.all(color: Colors.brown.shade400, width: 1.5),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Stack(
@@ -78,16 +69,11 @@ class BedLayoutWidget extends StatelessWidget {
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('0 cm'),
-            Text('${bed.lengthCm} cm'),
-          ],
+          children: [const Text('0 cm'), Text('${bed.lengthCm} cm')],
         ),
         if (plantings.isEmpty) ...[
           const SizedBox(height: 12),
-          const Text(
-            'Nessuna coltura presente in questa aiuola.',
-          ),
+          const Text('Nessuna coltura presente in questa aiuola.'),
         ],
         const SizedBox(height: 20),
         _buildOccupationCard(
@@ -108,8 +94,7 @@ class BedLayoutWidget extends StatelessWidget {
     required double freeLengthCm,
     required double occupationPercentage,
   }) {
-    final progressValue =
-        (occupationPercentage / 100).clamp(0.0, 1.0);
+    final progressValue = (occupationPercentage / 100).clamp(0.0, 1.0);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -146,8 +131,7 @@ class BedLayoutWidget extends StatelessWidget {
             const Divider(height: 24),
             _buildSummaryRow(
               label: 'Occupazione',
-              value:
-                  '${occupationPercentage.toStringAsFixed(1)}%',
+              value: '${occupationPercentage.toStringAsFixed(1)}%',
               emphasize: true,
             ),
           ],
@@ -162,53 +146,30 @@ class BedLayoutWidget extends StatelessWidget {
     bool emphasize = false,
   }) {
     final style = TextStyle(
-      fontWeight:
-          emphasize ? FontWeight.bold : FontWeight.normal,
+      fontWeight: emphasize ? FontWeight.bold : FontWeight.normal,
       fontSize: emphasize ? 16 : null,
     );
 
     return Row(
       children: [
-        Expanded(
-          child: Text(
-            label,
-            style: style,
-          ),
-        ),
-        Text(
-          value,
-          style: style,
-        ),
+        Expanded(child: Text(label, style: style)),
+        Text(value, style: style),
       ],
     );
   }
 
-  double _calculateOccupiedLength(
-    double bedLengthCm,
-  ) {
+  double _calculateOccupiedLength(double bedLengthCm) {
     final intervals = <_BedInterval>[];
 
     for (final planting in plantings) {
-      final start = planting.startPositionCm.toDouble().clamp(
-            0.0,
-            bedLengthCm,
-          );
+      final start = planting.startPositionCm.toDouble().clamp(0.0, bedLengthCm);
 
-      final end =
-          (planting.startPositionCm + planting.lengthCm)
-              .toDouble()
-              .clamp(
-                0.0,
-                bedLengthCm,
-              );
+      final end = (planting.startPositionCm + planting.lengthCm)
+          .toDouble()
+          .clamp(0.0, bedLengthCm);
 
       if (end > start) {
-        intervals.add(
-          _BedInterval(
-            start: start,
-            end: end,
-          ),
-        );
+        intervals.add(_BedInterval(start: start, end: end));
       }
     }
 
@@ -216,10 +177,7 @@ class BedLayoutWidget extends StatelessWidget {
       return 0;
     }
 
-    intervals.sort(
-      (first, second) =>
-          first.start.compareTo(second.start),
-    );
+    intervals.sort((first, second) => first.start.compareTo(second.start));
 
     var occupiedLength = 0.0;
     var currentStart = intervals.first.start;
@@ -239,10 +197,7 @@ class BedLayoutWidget extends StatelessWidget {
 
     occupiedLength += currentEnd - currentStart;
 
-    return occupiedLength.clamp(
-      0.0,
-      bedLengthCm,
-    );
+    return occupiedLength.clamp(0.0, bedLengthCm);
   }
 
   Widget _buildPlantingBlock({
@@ -250,29 +205,17 @@ class BedLayoutWidget extends StatelessWidget {
     required double bedLengthCm,
     required double availableWidth,
   }) {
-    final startPositionCm =
-        planting.startPositionCm.toDouble();
+    final startPositionCm = planting.startPositionCm.toDouble();
 
-    final plantingLengthCm =
-        planting.lengthCm.toDouble();
+    final plantingLengthCm = planting.lengthCm.toDouble();
 
-    final safeStart = startPositionCm.clamp(
-      0.0,
-      bedLengthCm,
-    );
+    final safeStart = startPositionCm.clamp(0.0, bedLengthCm);
 
-    final safeEnd =
-        (safeStart + plantingLengthCm).clamp(
-      0.0,
-      bedLengthCm,
-    );
+    final safeEnd = (safeStart + plantingLengthCm).clamp(0.0, bedLengthCm);
 
-    final left =
-        safeStart / bedLengthCm * availableWidth;
+    final left = safeStart / bedLengthCm * availableWidth;
 
-    final width = (safeEnd - safeStart) /
-        bedLengthCm *
-        availableWidth;
+    final width = (safeEnd - safeStart) / bedLengthCm * availableWidth;
 
     if (width <= 0) {
       return const SizedBox.shrink();
@@ -288,18 +231,11 @@ class BedLayoutWidget extends StatelessWidget {
       bottom: 8,
       width: width,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 6,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
           color: cropColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: cropColor.withValues(
-              alpha: 0.75,
-            ),
-          ),
+          border: Border.all(color: cropColor.withValues(alpha: 0.75)),
         ),
         child: Tooltip(
           message:
@@ -325,8 +261,7 @@ class BedLayoutWidget extends StatelessWidget {
   }
 
   Color _cropColor(String cropName) {
-    final normalizedName =
-        cropName.trim().toLowerCase();
+    final normalizedName = cropName.trim().toLowerCase();
 
     if (normalizedName.contains('pomodoro')) {
       return Colors.red.shade500;
@@ -360,8 +295,5 @@ class _BedInterval {
   final double start;
   final double end;
 
-  const _BedInterval({
-    required this.start,
-    required this.end,
-  });
+  const _BedInterval({required this.start, required this.end});
 }

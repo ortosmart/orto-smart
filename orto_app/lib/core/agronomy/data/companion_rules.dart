@@ -26,7 +26,6 @@ const companionRules = <CompanionRule>[
     cropAId: CropIds.pomodoro,
     cropBId: CropIds.zucchina,
     compatibility: CompanionCompatibility.neutral,
-    reason:
-        'Non esiste una particolare sinergia o incompatibilità diretta.',
+    reason: 'Non esiste una particolare sinergia o incompatibilità diretta.',
   ),
 ];

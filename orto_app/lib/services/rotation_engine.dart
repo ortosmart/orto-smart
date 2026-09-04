@@ -65,8 +65,7 @@ class RotationEngine {
 
       return historicalFamily == candidateFamily &&
           !planting.sowingDate.isAfter(evaluationDate);
-    }).toList()
-      ..sort((a, b) => b.sowingDate.compareTo(a.sowingDate));
+    }).toList()..sort((a, b) => b.sowingDate.compareTo(a.sowingDate));
 
     if (sameFamilyPlantings.isEmpty) {
       return RotationResult.fromScore(
@@ -166,30 +165,25 @@ class RotationEngine {
     required Map<String, Crop> cropsById,
     DateTime? referenceDate,
   }) {
-    final evaluations = candidateCrops.map((crop) {
-      final result = evaluate(
-        candidateCrop: crop,
-        history: history,
-        cropsById: cropsById,
-        referenceDate: referenceDate,
-      );
+    final evaluations =
+        candidateCrops.map((crop) {
+          final result = evaluate(
+            candidateCrop: crop,
+            history: history,
+            cropsById: cropsById,
+            referenceDate: referenceDate,
+          );
 
-      return CropRotationEvaluation(
-        crop: crop,
-        result: result,
-      );
-    }).toList()
-      ..sort((a, b) {
-        final scoreComparison = b.result.score.compareTo(a.result.score);
+          return CropRotationEvaluation(crop: crop, result: result);
+        }).toList()..sort((a, b) {
+          final scoreComparison = b.result.score.compareTo(a.result.score);
 
-        if (scoreComparison != 0) {
-          return scoreComparison;
-        }
+          if (scoreComparison != 0) {
+            return scoreComparison;
+          }
 
-        return a.crop.name.toLowerCase().compareTo(
-              b.crop.name.toLowerCase(),
-            );
-      });
+          return a.crop.name.toLowerCase().compareTo(b.crop.name.toLowerCase());
+        });
 
     return List.unmodifiable(evaluations);
   }
@@ -244,8 +238,5 @@ class CropRotationEvaluation {
   final Crop crop;
   final RotationResult result;
 
-  const CropRotationEvaluation({
-    required this.crop,
-    required this.result,
-  });
+  const CropRotationEvaluation({required this.crop, required this.result});
 }

@@ -6,10 +6,7 @@ class ActivitiesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-      child: Text(
-        "📅 Attività",
-        style: TextStyle(fontSize: 24),
-      ),
+      child: Text("📅 Attività", style: TextStyle(fontSize: 24)),
     );
   }
 }

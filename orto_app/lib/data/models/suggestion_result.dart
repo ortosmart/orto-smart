@@ -1,11 +1,6 @@
 import 'crop.dart';
 
-enum SuggestionRating {
-  excellent,
-  good,
-  acceptable,
-  notRecommended,
-}
+enum SuggestionRating { excellent, good, acceptable, notRecommended }
 
 class CropSuggestion {
   final Crop crop;

@@ -77,12 +77,9 @@ class CropVariety {
           ? null
           : DateTime.parse(map['created_at'] as String),
       defaultPlantingMethod: map['default_planting_method'] as String?,
-      expectedYieldMin:
-          (map['expected_yield_min'] as num?)?.toDouble(),
-      expectedYieldAvg:
-          (map['expected_yield_avg'] as num?)?.toDouble(),
-      expectedYieldMax:
-          (map['expected_yield_max'] as num?)?.toDouble(),
+      expectedYieldMin: (map['expected_yield_min'] as num?)?.toDouble(),
+      expectedYieldAvg: (map['expected_yield_avg'] as num?)?.toDouble(),
+      expectedYieldMax: (map['expected_yield_max'] as num?)?.toDouble(),
       expectedYieldUnit: map['expected_yield_unit'] as String?,
       yieldSourceName: map['yield_source_name'] as String?,
       yieldSourceUrl: map['yield_source_url'] as String?,

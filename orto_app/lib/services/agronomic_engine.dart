@@ -114,25 +114,21 @@ class AgronomicEngine {
       return const [];
     }
 
-    final validSpaces = occupiedSpaces
-        .where((space) => space.isValid)
-        .map(
-          (space) => OccupiedSpace(
-            startCm: space.startCm.clamp(0, bedLengthCm).toDouble(),
-            endCm: space.endCm.clamp(0, bedLengthCm).toDouble(),
-          ),
-        )
-        .where((space) => space.endCm > space.startCm)
-        .toList()
-      ..sort((a, b) => a.startCm.compareTo(b.startCm));
+    final validSpaces =
+        occupiedSpaces
+            .where((space) => space.isValid)
+            .map(
+              (space) => OccupiedSpace(
+                startCm: space.startCm.clamp(0, bedLengthCm).toDouble(),
+                endCm: space.endCm.clamp(0, bedLengthCm).toDouble(),
+              ),
+            )
+            .where((space) => space.endCm > space.startCm)
+            .toList()
+          ..sort((a, b) => a.startCm.compareTo(b.startCm));
 
     if (validSpaces.isEmpty) {
-      return [
-        FreeSpace(
-          startCm: 0,
-          endCm: bedLengthCm,
-        ),
-      ];
+      return [FreeSpace(startCm: 0, endCm: bedLengthCm)];
     }
 
     final mergedSpaces = <OccupiedSpace>[];
@@ -163,10 +159,7 @@ class AgronomicEngine {
     for (final occupiedSpace in mergedSpaces) {
       if (occupiedSpace.startCm > cursorCm) {
         freeSpaces.add(
-          FreeSpace(
-            startCm: cursorCm,
-            endCm: occupiedSpace.startCm,
-          ),
+          FreeSpace(startCm: cursorCm, endCm: occupiedSpace.startCm),
         );
       }
 
@@ -174,12 +167,7 @@ class AgronomicEngine {
     }
 
     if (cursorCm < bedLengthCm) {
-      freeSpaces.add(
-        FreeSpace(
-          startCm: cursorCm,
-          endCm: bedLengthCm,
-        ),
-      );
+      freeSpaces.add(FreeSpace(startCm: cursorCm, endCm: bedLengthCm));
     }
 
     return freeSpaces;

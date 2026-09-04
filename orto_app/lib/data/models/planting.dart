@@ -55,20 +55,16 @@ class Planting {
       startPositionCm: map['start_position_cm'] as int? ?? 0,
       lengthCm: map['length_cm'] as int? ?? 700,
 
-      plantingMethod:
-          map['planting_method'] as String? ?? 'transplant',
+      plantingMethod: map['planting_method'] as String? ?? 'transplant',
 
       plantSpacingCm: map['plant_spacing_cm'] as int?,
       rowSpacingCm: map['row_spacing_cm'] as int?,
       rowsCount: map['rows_count'] as int?,
       occupiedWidthCm: map['occupied_width_cm'] as int?,
 
-      seedQuantityGrams:
-          (map['seed_quantity_grams'] as num?)?.toDouble(),
+      seedQuantityGrams: (map['seed_quantity_grams'] as num?)?.toDouble(),
 
-      sowingDate: DateTime.parse(
-        map['sowing_date'] as String,
-      ),
+      sowingDate: DateTime.parse(map['sowing_date'] as String),
 
       plantsCount: map['plants_count'] as int?,
       status: map['status'] as String? ?? 'growing',

@@ -1,9 +1,4 @@
-enum RotationRating {
-  recommended,
-  acceptable,
-  discouraged,
-  unknown,
-}
+enum RotationRating { recommended, acceptable, discouraged, unknown }
 
 class RotationResult {
   final int score;
@@ -26,8 +21,7 @@ class RotationResult {
 
   bool get isDiscouraged => rating == RotationRating.discouraged;
 
-  bool get hasEnoughHistory =>
-      rating != RotationRating.unknown;
+  bool get hasEnoughHistory => rating != RotationRating.unknown;
 
   String get label {
     switch (rating) {

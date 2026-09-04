@@ -161,9 +161,7 @@ void main() {
     test('Aiuola completamente occupata', () {
       final spaces = AgronomicEngine.findFreeSpaces(
         bedLengthCm: 700,
-        occupiedSpaces: const [
-          OccupiedSpace(startCm: 0, endCm: 700),
-        ],
+        occupiedSpaces: const [OccupiedSpace(startCm: 0, endCm: 700)],
       );
 
       expect(spaces, isEmpty);

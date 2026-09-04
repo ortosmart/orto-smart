@@ -75,10 +75,7 @@ class AssociationEngine {
       );
 
       reasons.add(
-        _buildReason(
-          cropName: existingCrop.name,
-          association: association,
-        ),
+        _buildReason(cropName: existingCrop.name, association: association),
       );
     }
 
@@ -110,13 +107,15 @@ class AssociationEngine {
       (match) => match.relationship == 'incompatible',
     );
 
-    final averageRelationshipScore = knownMatches
+    final averageRelationshipScore =
+        knownMatches
             .map((match) => match.score)
             .reduce((first, second) => first + second) /
         knownMatches.length;
 
-    final normalizedScore =
-        ((averageRelationshipScore + 100) / 2).round().clamp(0, 100);
+    final normalizedScore = ((averageRelationshipScore + 100) / 2)
+        .round()
+        .clamp(0, 100);
 
     final rating = _calculateRating(
       score: normalizedScore,

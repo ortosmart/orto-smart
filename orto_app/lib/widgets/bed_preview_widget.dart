@@ -108,10 +108,7 @@ class BedPreviewWidget extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          Icons.view_timeline_outlined,
-          color: theme.colorScheme.primary,
-        ),
+        Icon(Icons.view_timeline_outlined, color: theme.colorScheme.primary),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -150,12 +147,9 @@ class BedPreviewWidget extends StatelessWidget {
                   alignment: index == 0
                       ? Alignment.centerLeft
                       : index == scaleValues.length - 1
-                          ? Alignment.centerRight
-                          : Alignment.center,
-                  child: Text(
-                    '${scaleValues[index]}',
-                    style: textStyle,
-                  ),
+                      ? Alignment.centerRight
+                      : Alignment.center,
+                  child: Text('${scaleValues[index]}', style: textStyle),
                 ),
               ),
           ],
@@ -167,8 +161,7 @@ class BedPreviewWidget extends StatelessWidget {
             size: const Size(double.infinity, 8),
             painter: _TimelineScalePainter(
               divisions: math.max(1, scaleValues.length - 1),
-              lineColor:
-                  Theme.of(context).colorScheme.outlineVariant,
+              lineColor: Theme.of(context).colorScheme.outlineVariant,
             ),
           ),
         ),
@@ -180,11 +173,7 @@ class BedPreviewWidget extends StatelessWidget {
     final values = <int>[];
     const preferredStepCm = 100;
 
-    for (
-      var value = 0;
-      value < _safeBedLengthCm;
-      value += preferredStepCm
-    ) {
+    for (var value = 0; value < _safeBedLengthCm; value += preferredStepCm) {
       values.add(value);
     }
 
@@ -194,7 +183,8 @@ class BedPreviewWidget extends StatelessWidget {
 
     return values;
   }
-    Widget _buildEmptyMessage(BuildContext context) {
+
+  Widget _buildEmptyMessage(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -220,9 +210,7 @@ class BedPreviewWidget extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Text(
@@ -254,7 +242,7 @@ class BedPreviewWidget extends StatelessWidget {
             newPlantingFits
                 ? 'Nuova coltura: da $newStartCm cm a $endCm cm.'
                 : 'La nuova coltura non può essere inserita '
-                    'nella posizione selezionata.',
+                      'nella posizione selezionata.',
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: newPlantingFits
@@ -311,9 +299,7 @@ class _BedTimeline extends StatelessWidget {
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant,
-            ),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
           child: Stack(
             clipBehavior: Clip.hardEdge,
@@ -343,15 +329,9 @@ class _BedTimeline extends StatelessWidget {
     required double availableWidth,
   }) {
     final safeStartCm = entry.startCm.clamp(0, bedLengthCm);
-    final safeEndCm = (entry.startCm + entry.lengthCm).clamp(
-      0,
-      bedLengthCm,
-    );
+    final safeEndCm = (entry.startCm + entry.lengthCm).clamp(0, bedLengthCm);
 
-    final visibleLengthCm = math.max(
-      0,
-      safeEndCm - safeStartCm,
-    );
+    final visibleLengthCm = math.max(0, safeEndCm - safeStartCm);
 
     if (visibleLengthCm <= 0) {
       return const SizedBox.shrink();
@@ -359,15 +339,11 @@ class _BedTimeline extends StatelessWidget {
 
     final left = availableWidth * (safeStartCm / bedLengthCm);
 
-    final calculatedWidth =
-        availableWidth * (visibleLengthCm / bedLengthCm);
+    final calculatedWidth = availableWidth * (visibleLengthCm / bedLengthCm);
 
     final width = math.max(3.0, calculatedWidth);
 
-    final maxAvailableWidth = math.max(
-      0.0,
-      availableWidth - left,
-    );
+    final maxAvailableWidth = math.max(0.0, availableWidth - left);
 
     final visibleWidth = math.min(width, maxAvailableWidth);
 
@@ -384,9 +360,7 @@ class _BedTimeline extends StatelessWidget {
 class _TimelineBlock extends StatelessWidget {
   final _TimelineEntry entry;
 
-  const _TimelineBlock({
-    required this.entry,
-  });
+  const _TimelineBlock({required this.entry});
 
   @override
   Widget build(BuildContext context) {
@@ -395,20 +369,20 @@ class _TimelineBlock extends StatelessWidget {
     final backgroundColor = entry.hasError
         ? theme.colorScheme.errorContainer
         : entry.isPreview
-            ? theme.colorScheme.primaryContainer
-            : theme.colorScheme.secondaryContainer;
+        ? theme.colorScheme.primaryContainer
+        : theme.colorScheme.secondaryContainer;
 
     final foregroundColor = entry.hasError
         ? theme.colorScheme.onErrorContainer
         : entry.isPreview
-            ? theme.colorScheme.onPrimaryContainer
-            : theme.colorScheme.onSecondaryContainer;
+        ? theme.colorScheme.onPrimaryContainer
+        : theme.colorScheme.onSecondaryContainer;
 
     final borderColor = entry.hasError
         ? theme.colorScheme.error
         : entry.isPreview
-            ? theme.colorScheme.primary
-            : theme.colorScheme.secondary;
+        ? theme.colorScheme.primary
+        : theme.colorScheme.secondary;
 
     return Tooltip(
       message:
@@ -433,15 +407,14 @@ class _TimelineBlock extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: foregroundColor,
-            fontWeight: entry.isPreview
-                ? FontWeight.bold
-                : FontWeight.w600,
+            fontWeight: entry.isPreview ? FontWeight.bold : FontWeight.w600,
           ),
         ),
       ),
     );
   }
 }
+
 class _TimelineScalePainter extends CustomPainter {
   final int divisions;
   final Color lineColor;
@@ -470,11 +443,7 @@ class _TimelineScalePainter extends CustomPainter {
     for (var index = 0; index <= divisions; index++) {
       final x = size.width * (index / divisions);
 
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(x, size.height),
-        paint,
-      );
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
   }
 

@@ -13,9 +13,7 @@ class CropVarietyRepository {
         .eq('is_active', true)
         .order('name');
 
-    return (response as List)
-        .map((e) => CropVariety.fromMap(e))
-        .toList();
+    return (response as List).map((e) => CropVariety.fromMap(e)).toList();
   }
 
   Future<List<CropVariety>> getAllVarieties() async {
@@ -26,8 +24,6 @@ class CropVarietyRepository {
         .order('crop_id')
         .order('name');
 
-    return (response as List)
-        .map((e) => CropVariety.fromMap(e))
-        .toList();
+    return (response as List).map((e) => CropVariety.fromMap(e)).toList();
   }
 }
