@@ -4,14 +4,14 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 3.3
+**Versione:** 3.4
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 03/09/2026
+**Ultimo aggiornamento:** 06/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 3.3 |
+| Versione | 3.4 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 03/09/2026 |
+| Ultimo aggiornamento | 06/09/2026 |
 
 ---
 
@@ -51,6 +51,7 @@
 | 3.1      | 28/08/2026 | Aggiornamento del Registro Storico con la Sessione S023, consolidamento dei Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e riallineamento definitivo dei tempi S020–S023 |
 | 3.2      | 01/09/2026 | Aggiornamento del Registro Storico con la Sessione S024: Write Path autoritativo di `beds`, geometria storicizzata, integrazione Flutter, versione 0.1.15-alpha e riallineamento degli indicatori evolutivi |
 | 3.3      | 03/09/2026 | Manutenzione straordinaria del Registro Storico: consolidamento dei tempi complessivi delle Sessioni S001–S024, classificazione documentale della S007, riallineamento dei progressivi e aggiornamento del totale progetto a 167 h 51 min |
+| 3.4      | 06/09/2026 | Aggiornamento del Registro Storico con la Sessione S025: completamento dell’integrazione Flutter dei Write Path autoritativi di `beds`, introduzione delle interfacce operative, gestione italiana delle date, verifica con 841/841 test superati e riallineamento degli indicatori al totale progetto di 174 h 47 min |
 
 ---
 
@@ -104,13 +105,13 @@ Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Sma
 
 | Indicatore                          | Valore                                           |
 | ----------------------------------- | ------------------------------------------------ |
-| Sessioni completate                 | 24                                               |
-| Tempo complessivo di sviluppo       | 123 h 37 min                                     |
-| Tempo complessivo di documentazione | 44 h 14 min                                      |
-| Tempo complessivo progetto          | 167 h 51 min                                     |
+| Sessioni completate                 | 25                                               |
+| Tempo complessivo di sviluppo       | 128 h 48 min                                     |
+| Tempo complessivo di documentazione | 45 h 59 min                                      |
+| Tempo complessivo progetto          | 174 h 47 min                                     |
 | Prima sessione                      | S001                                             |
-| Ultima sessione                     | S024                                             |
-| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S024 |
+| Ultima sessione                     | S025                                             |
+| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S025 |
 
 \* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
 
@@ -146,6 +147,7 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo complessiv
 | **S022** | Primo Write Path autoritativo di Categoria A per `gardens` | **9 h 34 min** | **136 h 23 min** |
 | **S023** | Profile Write Authority applicativa, hardening concorrente di `gardens` e Write Path autoritativo di `seasons` | **13 h 25 min** | **149 h 48 min** |
 | **S024** | Write Path autoritativo di `beds`, geometria storicizzata e integrazione Flutter della creazione dell’aiuola | **18 h 03 min** | **167 h 51 min** |
+| **S025** | Completamento dell’integrazione Flutter dei Write Path autoritativi di `beds` | **6 h 56 min** | **174 h 47 min** |
 
 \* La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -198,6 +200,7 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S022** | Primo Write Path autoritativo di Categoria A | Introduzione del primo Write Path autoritativo del Database V1 per `gardens`, con `Profile Write Authority`, RPC `create_garden` e `update_garden`, revoca delle scritture dirette da parte di `authenticated`, validazioni server-side e verifica del comportamento concorrente. |
 | **S023** | Profile Write Authority applicativa e Write Path di `seasons` | Rafforzato `update_garden` contro i lost update, implementato il Write Path autoritativo di `seasons`, introdotte l’identità tecnica del client e della sessione e integrati controller, scheduler, scope e gate fail-closed della Profile Write Authority nel ciclo applicativo Flutter. |
 | **S024** | Write Path autoritativo di `beds` | Implementati `beds`, `bed_geometries` e `bed_geometry_corrections`, introdotte cinque RPC autoritative, integrati `BedRepository`, `ProfileContextScope` e `CreateBedPage`, parametrizzata la configurazione Supabase e verificati 781/781 test. |
+| **S025** | Completamento UI del Write Path autoritativo di `beds` | Integrate modifica dei dati, attivazione e disattivazione, variazione geometrica ordinaria e correzione storica; introdotto `CivilDate`, mantenuta la separazione semantica delle operazioni geometriche, applicate rilettura autoritativa e gestione fail-closed e verificati 841/841 test. |
 
 ---
 
@@ -217,13 +220,13 @@ Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e
 
 | Indicatore                    | Valore attuale |
 | ----------------------------- | -------------- |
-| Sessioni completate           | 24             |
-| Ore di sviluppo consolidate   | 123 h 37 min   |
-| Ore di documentazione         | 44 h 14 min    |
-| Totale ore progetto           | 167 h 51 min   |
+| Sessioni completate           | 25             |
+| Ore di sviluppo consolidate   | 128 h 48 min   |
+| Ore di documentazione         | 45 h 59 min    |
+| Totale ore progetto           | 174 h 47 min   |
 | Motori agronomici completati  | 5              |
 | Documenti ufficiali approvati | 10             |
-| Ultima sessione completata    | S024           |
+| Ultima sessione completata    | S025           |
 | Sessione in corso             | Nessuna        |
 
 Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.

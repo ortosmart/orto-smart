@@ -4,14 +4,14 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 1.8
+**Versione:** 1.9
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 03/09/2026
+**Ultimo aggiornamento:** 06/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | -------------------- | ------------------------------ |
 | Documento            | DOC-011                        |
 | Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 1.8                            |
+| Versione             | 1.9                            |
 | Stato                | In sviluppo                    |
 | Progetto             | Orto Smart                     |
 | Repository           | ortosmart/orto-smart           |
 | Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 03/09/2026                     |
+| Ultimo aggiornamento | 06/09/2026                     |
 
 ---
 
@@ -54,6 +54,7 @@
 | 1.6      | 28/08/2026 | Aggiornamento della DEC-012 con la Sessione S023: hardening concorrente di `update_garden`, estensione del Write Path autoritativo a `seasons`, introduzione dell’identità tecnica del client e della sessione e integrazione Flutter fail-closed della Profile Write Authority |
 | 1.7      | 01/09/2026 | Aggiornamento della DEC-012 con la Sessione S024: estensione del Write Path autoritativo a `beds`, geometria storicizzata, concorrenza ottimistica, correzioni tracciate e integrazione Flutter mediante `ProfileContextScope` e risultati tipizzati |
 | 1.8      | 03/09/2026 | Manutenzione straordinaria delle Decisioni Architetturali: eliminazione della duplicazione relativa all’attivazione atomica della stagione nella DEC-012 |
+| 1.9      | 06/09/2026 | Aggiornamento della DEC-012 con la Sessione S025: completamento dell’integrazione UI dei Write Path di `beds`, separazione delle operazioni geometriche, gestione italiana delle date, rilettura autoritativa e trattamento fail-closed degli esiti incerti |
 
 ---
 
@@ -1523,7 +1524,7 @@ Queste alternative sono state escluse perché avrebbero aumentato la complessit�
 
 **Data:** 01/09/2026
 
-**Sessione:** S020–S024
+**Sessione:** S020–S025
 
 ### Contesto
 
@@ -1718,6 +1719,14 @@ Per `beds` sono disponibili:
 
 Gli intervalli di `bed_geometries` non possono sovrapporsi per la stessa aiuola.
 
+La Sessione S025 ha completato l’integrazione Flutter dei cinque Write Path di `beds`. Le operazioni di modifica, attivazione o disattivazione, variazione geometrica e correzione storica utilizzano la versione letta come versione attesa e richiedono una Profile Write Authority valida.
+
+La variazione geometrica ordinaria e la correzione storica rimangono operazioni semanticamente distinte anche nella UI. Un esito `correction_required` non viene convertito automaticamente in una rettifica: il client informa l’utente e lo indirizza alla funzione dedicata. La correzione storica richiede una motivazione esplicita.
+
+Le date civili vengono presentate e acquisite nel formato italiano `GG/MM/AAAA`, mentre modelli, payload RPC e database mantengono il formato canonico ISO `AAAA-MM-GG`.
+
+Dopo una scrittura riuscita il client rilegge lo stato autoritativo dell’aiuola. Quando l’esito non è confermabile viene applicato un comportamento fail-closed e non viene eseguito alcun retry automatico o inconsapevole. `BedPage` rimane utilizzabile in sola lettura quando la Profile Write Authority non è disponibile.
+
 Le scritture dirette da parte di `authenticated` sono revocate sulle entità protette `public.gardens`, `public.seasons`, `public.beds`, `public.bed_geometries` e `public.bed_geometry_corrections`, secondo il contratto specifico delle rispettive tabelle.
 
 Il preflight eseguito dal client non costituisce una protezione sufficiente e non sostituisce le verifiche autoritative server-side.
@@ -1742,7 +1751,7 @@ L'impiego di `FOR UPDATE` e la rivalidazione dopo l'attesa sul row lock riducono
 
 La scelta di mantenere il protocollo semplice e fail-closed evita di introdurre meccanismi di sincronizzazione aggiuntivi prima che emerga una necessità concreta.
 
-Il protocollo costituisce inoltre la base controllata per il Write Path autoritativo delle entità di Categoria A. La Sessione S022 ha dimostrato l’applicazione concreta di questo modello mediante il Write Path di `gardens`; la Sessione S023 ne ha rafforzato il controllo concorrente e ha applicato lo stesso modello a `seasons`; la Sessione S024 lo ha esteso a `beds`, mantenendo separati identità stabile, geometria storicizzata e correzioni tracciate. Le ulteriori entità saranno implementate progressivamente secondo il rispettivo contratto.
+Il protocollo costituisce inoltre la base controllata per il Write Path autoritativo delle entità di Categoria A. La Sessione S022 ha dimostrato l’applicazione concreta di questo modello mediante il Write Path di `gardens`; la Sessione S023 ne ha rafforzato il controllo concorrente e ha applicato lo stesso modello a `seasons`; la Sessione S024 lo ha esteso a `beds`, mantenendo separati identità stabile, geometria storicizzata e correzioni tracciate; la Sessione S025 ha completato l’integrazione UI delle operazioni autoritative delle aiuole, preservando nel client le medesime separazioni e garanzie. Le ulteriori entità saranno implementate progressivamente secondo il rispettivo contratto.
 
 ### Alternative valutate
 
@@ -1802,7 +1811,7 @@ Il Write Path delle ulteriori entità di Categoria A rimane pertanto un blocco t
 | DEC-009 | 11/08/2026 | S015     | Separazione tra pianificazione temporale e compatibilità agronomica                | Approvata |
 | DEC-010 | 12/08/2026 | S016     | Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza | Approvata |
 | DEC-011 | 16/08/2026 | S017     | Baseline architetturale del Database V1                                               | Approvata |
-| DEC-012 | 01/09/2026 | S020–S024 | Sicurezza e gestione concorrente del `profile_edit_locks` e fondamento del Write Path autoritativo di Categoria A | Approvata |
+| DEC-012 | 06/09/2026 | S020–S025 | Sicurezza e gestione concorrente del `profile_edit_locks` e fondamento del Write Path autoritativo di Categoria A | Approvata |
 
 ---
 

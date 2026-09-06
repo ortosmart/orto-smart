@@ -3,10 +3,10 @@
 | Campo             | Valore               |
 | ----------------- | -------------------- |
 | Progetto          | Orto Smart           |
-| Versione corrente | 0.1.15-alpha         |
-| Versione Flutter  | 0.1.15-alpha+1       |
+| Versione corrente | 0.1.16-alpha         |
+| Versione Flutter  | 0.1.16-alpha+2       |
 | Stato             | Alpha                |
-| Data versione     | 01/09/2026           |
+| Data versione     | 03/09/2026           |
 | Linguaggio        | Flutter / Dart       |
 | Backend           | Supabase             |
 | Repository        | ortosmart/orto-smart |
@@ -126,9 +126,30 @@ Le sei migration della versione risultano allineate tra ambiente locale e databa
 
 La creazione di un’aiuola attraverso interfaccia Flutter e Write Path autoritativo è stata verificata positivamente nell’ambiente Supabase locale.
 
-La suite finale della versione comprende **781/781 test superati**.
+La suite finale della versione `0.1.15-alpha` comprende **781/781 test superati**.
 
-Il successivo blocco tecnico dovrà essere scelto e approvato dopo il consolidamento documentale della S024. `public.plantings`, pur prevista nella baseline Database V1, non è ancora implementata mediante migration.
+Con la versione `0.1.16-alpha` è stata completata l’integrazione Flutter di tutti i Write Path autoritativi già disponibili per `beds`.
+
+Sono state implementate:
+
+- la pagina `EditBedPage` per modificare numero, nome e note dell’aiuola;
+- l’attivazione e la disattivazione dell’aiuola tramite `setBedActive`;
+- la pagina `ChangeBedGeometryPage` per le variazioni geometriche ordinarie;
+- la pagina `CorrectBedGeometryPage` per le correzioni storiche;
+- la motivazione obbligatoria delle correzioni storiche;
+- l’helper `CivilDate` per utilizzare `GG/MM/AAAA` nell’interfaccia, mantenendo `AAAA-MM-GG` nei modelli, nelle RPC e nel database;
+- la gestione della concorrenza ottimistica mediante `expectedRowVersion`;
+- la rilettura autoritativa dell’aiuola dopo ogni scrittura riuscita;
+- il trattamento fail-closed degli esiti non confermabili, senza retry automatici;
+- il funzionamento read-only di `BedPage` quando la Profile Write Authority non è disponibile.
+
+La variazione ordinaria della geometria e la correzione storica rimangono operazioni distinte. Un esito `correction_required` non avvia automaticamente una rettifica storica, ma indirizza l’utente verso la funzione dedicata.
+
+La Sessione S025 non ha introdotto nuove migration Supabase e utilizza le RPC autoritative implementate nella S024.
+
+La suite finale della versione `0.1.16-alpha` comprende **841/841 test superati**. Le operazioni di modifica dati, attivazione e disattivazione, variazione geometrica e correzione storica sono state verificate positivamente anche mediante prova locale end-to-end.
+
+Il successivo blocco tecnico dovrà essere scelto e approvato dopo il consolidamento documentale della S025. `public.plantings`, pur prevista nella baseline Database V1, non è ancora implementata mediante migration.
 
 Le operazioni amministrative protette su `profile_memberships` rimangono un blocco successivo distinto.
 
@@ -152,6 +173,11 @@ Lo sviluppo prosegue secondo le priorità definite nella Roadmap di Sviluppo.
 - Dashboard iniziale
 - Elenco aiuole
 - Creazione autoritativa di una nuova aiuola
+- Modifica dei dati generali dell’aiuola
+- Attivazione e disattivazione dell’aiuola
+- Variazione ordinaria della geometria
+- Correzione storica della geometria con motivazione obbligatoria
+- Formato data italiano `GG/MM/AAAA` nelle operazioni sulle aiuole
 - Visualizzazione grafica delle aiuole
 - Inserimento colture
 
@@ -260,7 +286,8 @@ Il presente documento riporta esclusivamente la versione corrente del software e
 | 0.1.12-alpha | 16/08/2026 | Archiviata | Introdotto il supporto alle finestre agronomiche multiple e predisposto l'ambiente Supabase locale versionato per la futura implementazione incrementale della baseline Database V1; verificati 151/151 test e mantenuto invariato il database remoto. |
 | 0.1.13-alpha | 18/08/2026 | Archiviata | Creata la prima migration Database V1 e implementato e verificato localmente il blocco Fondazioni con schema `private`, helper autorizzativi, trigger metadata e 13 policy RLS; consolidato il primo incremento fisico della baseline Database V1. |
 | 0.1.14-alpha | 28/08/2026 | Archiviata | Completato il protocollo `profile_edit_locks`, introdotta la Profile Write Authority, implementati i Write Path autoritativi di `gardens` e `seasons`, integrata la sessione Profile nel client Flutter e verificati 237/237 test. |
-| 0.1.15-alpha | 01/09/2026 | Corrente | Implementati `beds`, geometria storicizzata e relativo Write Path autoritativo, integrata la creazione dell’aiuola nel client Flutter, parametrizzata la configurazione Supabase e verificati 781/781 test. |
+| 0.1.15-alpha | 01/09/2026 | Archiviata | Implementati `beds`, geometria storicizzata e relativo Write Path autoritativo, integrata la creazione dell’aiuola nel client Flutter, parametrizzata la configurazione Supabase e verificati 781/781 test. |
+| 0.1.16-alpha | 03/09/2026 | Corrente | Completata l’integrazione UI dei Write Path autoritativi di `beds`, introdotte modifica dati, attivazione e disattivazione, variazione geometrica, correzione storica e gestione italiana delle date; verificati 841/841 test. |
 
 ---
 

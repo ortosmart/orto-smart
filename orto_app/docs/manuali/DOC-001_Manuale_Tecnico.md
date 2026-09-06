@@ -4,14 +4,14 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.3
+**Versione:** 2.4
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 01/09/2026
+**Ultimo aggiornamento:** 06/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,14 +23,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.3 |
+| Versione | 2.4 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 01/09/2026 |
+| Ultimo aggiornamento | 06/09/2026 |
 
 ---
 
@@ -54,6 +54,7 @@
 | 2.1      | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, Profile Write Authority, RPC `create_garden` e `update_garden`, blocco delle scritture dirette su `public.gardens` e validazioni server-side del Write Path |
 | 2.2      | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, introduzione dell’identità tecnica del client e della sessione applicativa, integrazione Flutter della Profile Write Authority, gate locale fail-closed e adapter tipizzato per le scritture delle stagioni |
 | 2.3      | 01/09/2026 | Aggiornamento con la Sessione S024: implementazione V1 di `beds` e `bed_geometries`, geometria storicizzata, cinque RPC autoritative, integrazione Flutter del Write Path delle aiuole, nuova `CreateBedPage` e configurazione Supabase parametrizzabile |
+| 2.4      | 06/09/2026 | Aggiornamento con la Sessione S025: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, introduzione di `CivilDate`, nuove pagine di modifica e gestione geometrica, attivazione e disattivazione dell’aiuola, rilettura autoritativa e comportamento fail-closed |
 
 ---
 
@@ -538,15 +539,18 @@ La seguente struttura rappresenta l'organizzazione attuale del progetto.
 ```text
 lib/
 ├── core/
-│   └── config/
+│   ├── config/
+│   ├── date/
+│   ├── identity/
+│   ├── profile/
+│   └── write_authority/
 ├── data/
 │   ├── models/
 │   └── repositories/
 ├── pages/
 ├── services/
 ├── widgets/
-├── main.dart
-└── supabase_config.dart
+└── main.dart
 ```
 
 Ogni directory svolge una responsabilità specifica e contribuisce a mantenere il progetto ordinato e facilmente manutenibile.
@@ -580,9 +584,12 @@ La directory `core/` contiene gli elementi condivisi dall’intera applicazione 
 La struttura comprende attualmente:
 
 - `config/`, per le configurazioni generali del progetto;
+- `date/`, per la validazione e la conversione delle date civili utilizzate dall’interfaccia;
 - `identity/`, per l’identità tecnica persistente del client e l’identità della sessione applicativa;
 - `profile/`, per il contesto del Profile corrente e il gate della sessione Profile;
 - `write_authority/`, per il coordinamento applicativo della Profile Write Authority.
+
+La sottocartella `date/` contiene `CivilDate`, helper condiviso che interpreta e presenta le date civili nel formato italiano `GG/MM/AAAA`, mantenendo il formato canonico ISO `AAAA-MM-GG` nei modelli, nei payload RPC e nel backend. Questa separazione impedisce che una scelta di presentazione dell’interfaccia modifichi il contratto dati autoritativo.
 
 La sottocartella `identity/` distingue due concetti:
 
@@ -1768,6 +1775,10 @@ La Sessione S024 ha esteso il modello autoritativo a `beds` e `bed_geometries`, 
 
 Sono state introdotte le RPC `create_bed`, `update_bed`, `set_bed_active`, `change_bed_geometry` e `correct_bed_geometry`. Le operazioni applicano la Profile Write Authority, la concorrenza ottimistica tramite `row_version`, le invarianti temporali e la distinzione tra normale cambio di geometria e correzione storica tracciata.
 
+La Sessione S025 ha completato l’integrazione Flutter di queste operazioni, rendendo disponibili nella UI la modifica dei dati generali dell’aiuola, l’attivazione e la disattivazione, la variazione geometrica ordinaria e la correzione storica.
+
+Il client mantiene separate la variazione ordinaria e la rettifica storica: un esito `correction_required` non viene trasformato automaticamente in una correzione. Dopo ogni scrittura riuscita `BedPage` rilegge il dato autoritativo, mentre gli esiti non confermabili vengono trattati in modo fail-closed senza retry automatici.
+
 I Write Path delle ulteriori entità di Categoria A restano incrementi successivi. Restano inoltre da implementare le operazioni amministrative protette su `profile_memberships`.
 
 Il **DOC-004 – Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo all'interno dell'architettura complessiva di Orto Smart.
@@ -1855,6 +1866,8 @@ Dalla Sessione S024 integra le RPC autoritative:
 - `correct_bed_geometry`.
 
 Il Repository ottiene il lease dal livello Profile Write Authority, converte le risposte RPC in risultati Dart tipizzati e applica un comportamento fail-closed ai payload sconosciuti, incompleti o incoerenti. Le pagine non gestiscono direttamente il token del lease.
+
+Dalla Sessione S025 le operazioni sono integrate nelle pagine Flutter dedicate. Le modifiche utilizzano la versione letta dell’aiuola o della geometria come `expectedRowVersion`; gli esiti di conflitto, autorizzazione negata, lease non valido, input errato, risorsa non trovata o risposta non confermabile rimangono distinti e vengono gestiti senza scritture dirette sulle tabelle Supabase.
 
 ### CropRepository
 
@@ -2099,9 +2112,40 @@ Consente di creare una nuova aiuola raccogliendo separatamente i dati identifica
 
 La pagina utilizza `BedRepository.createBed`, richiede la disponibilità della Profile Write Authority e non esegue scritture dirette sulle tabelle Supabase.
 
+Dalla Sessione S025 il campo della data utilizza il formato italiano `GG/MM/AAAA`; prima dell’invio il valore viene convertito nel formato canonico ISO richiesto dal contratto applicativo.
+
+### EditBedPage
+
+Consente di modificare numero, nome e note dell’aiuola mediante `BedRepository.updateBed`.
+
+La pagina utilizza la `rowVersion` letta come versione attesa, distingue il caso di dati invariati dai conflitti concorrenti e gestisce in modo specifico numero duplicato, autorizzazione assente, risorsa non trovata, input non valido ed esito non confermabile.
+
+### ChangeBedGeometryPage
+
+Consente di registrare una variazione fisica ordinaria della geometria, raccogliendo larghezza, lunghezza e data di decorrenza nel formato `GG/MM/AAAA`.
+
+La pagina utilizza `BedRepository.changeBedGeometry`. Se il server restituisce che è necessaria una correzione storica, l’operazione non viene convertita automaticamente: l’utente viene indirizzato alla funzione dedicata.
+
+### CorrectBedGeometryPage
+
+Consente di correggere un dato storico errato della geometria mediante `BedRepository.correctBedGeometry`.
+
+La pagina richiede larghezza, lunghezza, data di validità e una motivazione obbligatoria. La motivazione viene normalizzata mediante `trim()` e inviata esplicitamente al Write Path autoritativo insieme agli identificativi e alle versioni attese dell’aiuola e della geometria.
+
 ### BedPage
 
 Mostra il dettaglio di una singola aiuola e ne esegue la rilettura autoritativa tramite `BedRepository`.
+
+Dalla Sessione S025 integra:
+
+- modifica dei dati generali;
+- attivazione e disattivazione;
+- variazione geometrica ordinaria;
+- correzione storica della geometria.
+
+Dopo ogni operazione riuscita la pagina esegue una nuova lettura autoritativa e visualizza i dati restituiti dal repository. Gli esiti non confermabili bloccano retry automatici o inconsapevoli, evitando di ripetere una scrittura il cui risultato effettivo non è noto.
+
+`BedPage` può ricevere opzionalmente il `ProfileWriteAuthorityController`: quando l’autorità non viene fornita, la pagina rimane utilizzabile in un contesto di sola lettura.
 
 La pagina è predisposta per visualizzare le colture e la loro disposizione. Nello stato attuale del Database V1, tuttavia, `public.plantings` non è ancora implementata mediante migration; la relativa sezione resta quindi dipendente da un futuro incremento tecnico.
 

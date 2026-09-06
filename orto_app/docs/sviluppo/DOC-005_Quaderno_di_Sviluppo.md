@@ -4,14 +4,14 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.12
+**Versione:** 0.13
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 03/09/2026
+**Ultimo aggiornamento:** 06/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.12 |
+| Versione | 0.13 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 03/09/2026 |
+| Ultimo aggiornamento | 06/09/2026 |
 
 ---
 
@@ -48,6 +48,7 @@
 | 0.10 | 28/08/2026 | Aggiornamento del Quaderno con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, identità tecnica del client e della sessione, integrazione Flutter della Profile Write Authority e definizione del successivo blocco `beds` e `bed_geometries` |
 | 0.11 | 01/09/2026 | Aggiornamento del Quaderno con la Sessione S024: implementazione V1 di `beds` e `bed_geometries`, geometria storicizzata, Write Path autoritativo delle aiuole, integrazione Flutter, configurazione Supabase parametrizzabile e verifiche locali/end-to-end |
 | 0.12 | 03/09/2026 | Manutenzione straordinaria del Quaderno di Sviluppo: ricostruzione e consolidamento dei tempi complessivi delle Sessioni S001–S024, riallineamento dei progressivi con il DOC-012, classificazione della S007 come attività documentale e formalizzazione della futura verifica controllata degli aggiornamenti ISO 3166-1 alpha-2 |
+| 0.13 | 06/09/2026 | Aggiornamento del Quaderno con la Sessione S025: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, gestione italiana delle date, nuove pagine operative, verifiche automatiche e collaudo locale end-to-end |
 
 ---
 
@@ -81,6 +82,7 @@ La durata riportata comprende il tempo complessivo della sessione, includendo sv
 | S022 | 23–25/08/2026 | 9 h 34 min | 136 h 23 min | Implementazione del Write Path autoritativo di Categoria A per `gardens` | ✅ |
 | S023 | 25–28/08/2026 | 13 h 25 min | 149 h 48 min | Profile Write Authority applicativa, hardening concorrente di `gardens` e Write Path autoritativo di `seasons` | ✅ |
 | S024 | 30/08–01/09/2026 | 18 h 03 min | 167 h 51 min | Implementazione del Write Path autoritativo di `beds` e della geometria storicizzata delle aiuole | ✅ |
+| S025 | 02–06/09/2026 | 6 h 56 min | 174 h 47 min | Completamento dell’integrazione UI dei Write Path autoritativi di `beds` | ✅ |
 
 \* La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -123,6 +125,7 @@ Per le Sessioni S004, S005 e S006 è disponibile il tempo complessivo storico de
 3.22 S022
 3.23 S023
 3.24 S024
+3.25 S025
 
 ## 4. Considerazioni finali
 
@@ -6379,3 +6382,384 @@ Sviluppo: **15 h 02 min**
 Documentazione: **3 h 01 min**
 
 Totale S024: **18 h 03 min**
+
+---
+
+# Sessione S025 — Completamento UI del Write Path autoritativo di `beds`
+
+**Periodo:** 02/09/2026 → 06/09/2026
+**Sviluppo:** concluso
+**Documentazione:** conclusa
+
+## Obiettivo della sessione
+
+La Sessione S025 ha avuto come obiettivo il completamento dell’integrazione Flutter dei Write Path autoritativi di `beds` già implementati nel Repository e nelle RPC durante la Sessione S024.
+
+Il lavoro ha mantenuto:
+
+- Profile Write Authority come prerequisito delle scritture protette;
+- concorrenza ottimistica mediante `row_version`;
+- gestione distinta degli esiti server;
+- comportamento fail-closed;
+- separazione tra variazione ordinaria e correzione storica della geometria;
+- formato italiano delle date nella UI e formato ISO nel contratto applicativo e nel backend.
+
+L’obiettivo tecnico è stato raggiunto.
+
+## Timing dello sviluppo
+
+| Data | Intervallo | Durata netta |
+| --- | --- | ---: |
+| 02/09/2026 | 12:13 → 13:29 | 1 h 16 min |
+| 02/09/2026 | 14:15 → 14:56 | 0 h 41 min |
+| 02/09/2026 | 22:23 → 23:15 | 0 h 52 min |
+| 03/09/2026 | 08:17 → 08:23 | 0 h 06 min |
+| 03/09/2026 | 08:34 → 10:50 | 2 h 16 min |
+| **Totale sviluppo S025** |  | **5 h 11 min** |
+
+La fase sviluppo è iniziata il **02/09/2026 alle 12:13** ed è terminata il **03/09/2026 alle 10:50**. Il tempo riportato è calcolato esclusivamente sugli intervalli effettivi di lavoro, al netto delle sospensioni.
+
+## IMPLEMENTATO E TESTATO
+
+### Gestione delle date civili
+
+È stato introdotto:
+
+```text
+lib/core/date/civil_date.dart
+```
+
+L’helper `CivilDate` espone:
+
+```dart
+CivilDate.parseItalian(...)
+CivilDate.formatItalian(...)
+```
+
+L’interfaccia utilizza il formato:
+
+```text
+GG/MM/AAAA
+```
+
+I modelli, i payload RPC e il database mantengono invece il formato canonico:
+
+```text
+AAAA-MM-GG
+```
+
+`CreateBedPage` è stata adeguata al formato italiano senza modificare il contratto dati utilizzato dal backend.
+
+### Modifica dei dati generali dell’aiuola
+
+È stata introdotta:
+
+```text
+lib/pages/edit_bed_page.dart
+```
+
+La pagina consente di modificare:
+
+- numero;
+- nome;
+- note.
+
+La scrittura utilizza:
+
+```dart
+BedRepository.updateBed(...)
+```
+
+e trasmette la versione letta come `expectedRowVersion`.
+
+Sono gestiti distintamente:
+
+- aggiornamento riuscito;
+- dati invariati;
+- conflitto di versione;
+- numero duplicato;
+- autorizzazione negata;
+- scrittura non consentita;
+- risorsa non trovata;
+- input non valido;
+- Profile Write Authority non disponibile;
+- esito non confermabile.
+
+Quando l’esito non può essere confermato, il retry viene bloccato per evitare una seconda scrittura potenzialmente duplicata.
+
+### Attivazione e disattivazione
+
+`BedPage` integra uno `SwitchListTile` dedicato allo stato dell’aiuola.
+
+L’operazione utilizza:
+
+```dart
+BedRepository.setBedActive(...)
+```
+
+con controllo della Profile Write Authority e della versione attesa.
+
+Dopo un aggiornamento riuscito viene eseguita una nuova lettura autoritativa dell’aiuola.
+
+### Variazione ordinaria della geometria
+
+È stata introdotta:
+
+```text
+lib/pages/change_bed_geometry_page.dart
+```
+
+La pagina raccoglie:
+
+- larghezza;
+- lunghezza;
+- data di decorrenza.
+
+La scrittura utilizza:
+
+```dart
+BedRepository.changeBedGeometry(...)
+```
+
+La variazione ordinaria rappresenta una nuova configurazione fisica valida nel tempo. Se il server restituisce che è necessaria una correzione storica, la UI non converte automaticamente l’operazione, ma informa l’utente e lo indirizza alla funzione dedicata.
+
+### Correzione storica della geometria
+
+È stata introdotta:
+
+```text
+lib/pages/correct_bed_geometry_page.dart
+```
+
+La pagina utilizza:
+
+```dart
+BedRepository.correctBedGeometry(...)
+```
+
+e trasmette esplicitamente:
+
+- identificativo dell’aiuola;
+- identificativo della geometria;
+- versione dell’aiuola;
+- larghezza;
+- lunghezza;
+- data di validità;
+- motivazione della correzione.
+
+La motivazione è obbligatoria e viene inviata dopo la normalizzazione mediante `trim()`.
+
+Non è stato introdotto nel client un limite artificiale alla lunghezza della motivazione, poiché il contratto server corrente non ne definisce uno.
+
+### Integrazione di BedPage
+
+`BedPage` integra:
+
+- pulsante AppBar per la modifica dell’aiuola;
+- controllo dello stato attivo;
+- accesso alla variazione geometrica dalla card delle dimensioni;
+- accesso separato alla correzione storica;
+- rilettura autoritativa dopo ogni operazione riuscita.
+
+La pagina può ricevere opzionalmente:
+
+```dart
+ProfileWriteAuthorityController? authority
+```
+
+Quando l’autorità non viene fornita, `BedPage` rimane utilizzabile in un contesto di sola lettura.
+
+`GardenMap` passa esplicitamente la Profile Write Authority alla pagina di dettaglio dell’aiuola.
+
+## File introdotti e modificati
+
+### Nuovi file
+
+```text
+lib/core/date/civil_date.dart
+lib/pages/edit_bed_page.dart
+lib/pages/change_bed_geometry_page.dart
+lib/pages/correct_bed_geometry_page.dart
+test/core/date/civil_date_test.dart
+test/pages/edit_bed_page_test.dart
+test/pages/change_bed_geometry_page_test.dart
+test/pages/correct_bed_geometry_page_test.dart
+```
+
+### File modificati
+
+```text
+lib/pages/bed_page.dart
+lib/pages/create_bed_page.dart
+lib/widgets/garden/garden_map.dart
+test/pages/bed_page_test.dart
+test/pages/create_bed_page_test.dart
+```
+
+Il commit tecnico della S025 comprende:
+
+```text
+13 file modificati
+4066 inserimenti
+31 eliminazioni
+```
+
+## Migration
+
+La Sessione S025 non ha introdotto nuove migration Supabase.
+
+Le funzionalità UI utilizzano le RPC autoritative di `beds` già implementate e verificate nella Sessione S024.
+
+## Verifiche e test
+
+Le verifiche finali della fase sviluppo hanno prodotto:
+
+- `flutter analyze`: **No issues found**;
+- `flutter test`: **841/841 test superati**;
+- `git diff --check`: pulito;
+- `git diff --cached --check`: pulito;
+- working tree: pulito;
+- branch `main` allineato a `origin/main`.
+
+I test specifici hanno prodotto:
+
+| Componente | Test superati |
+| --- | ---: |
+| `CivilDate` | 7/7 |
+| `CreateBedPage` | 13/13 |
+| `EditBedPage` | 14/14 |
+| `ChangeBedGeometryPage` | 13/13 |
+| `CorrectBedGeometryPage` | 13/13 |
+| `BedPage` | 25/25 |
+
+La S025 ha aggiunto **60 test** alla baseline di **781 test** della S024.
+
+Le verifiche comprendono casi positivi, dati invariati, input non validi, conflitti di versione, numeri duplicati, assenza dell’autorità, errori server ed esiti non confermabili.
+
+## Verifica manuale locale end-to-end
+
+Il collaudo è stato eseguito con Flutter Web/Edge collegato all’ambiente Supabase locale.
+
+Sono state verificate positivamente:
+
+1. modifica dei dati generali dell’aiuola e successiva rilettura;
+2. attivazione e disattivazione mediante controllo dedicato;
+3. variazione ordinaria delle dimensioni con data in formato `GG/MM/AAAA`;
+4. correzione storica di dimensioni e data con motivazione obbligatoria;
+5. rilettura autoritativa dei valori aggiornati dopo ogni operazione riuscita.
+
+La sezione delle colture può continuare a mostrare l’errore noto collegato all’assenza di `public.plantings`. Il problema è preesistente, resta fuori dall’ambito della S025 e non invalida il collaudo dei Write Path UI di `beds`.
+
+## APPROVATO / CONGELATO
+
+Con la conclusione dello sviluppo della Sessione S025 vengono considerati consolidati:
+
+- integrazione UI di tutti i Write Path autoritativi disponibili per `beds`;
+- modifica dei dati generali dell’aiuola mediante operazione dedicata;
+- attivazione e disattivazione mediante `setBedActive`;
+- variazione ordinaria della geometria mediante pagina dedicata;
+- correzione storica della geometria mediante operazione distinta;
+- motivazione obbligatoria per la correzione storica;
+- formato `GG/MM/AAAA` nell’interfaccia;
+- mantenimento del formato ISO `AAAA-MM-GG` nei modelli, nelle RPC e nel database;
+- concorrenza ottimistica mediante versione attesa;
+- rilettura autoritativa dopo ogni scrittura riuscita;
+- trattamento fail-closed degli esiti non confermabili;
+- assenza di retry automatici o inconsapevoli in presenza di esiti incerti;
+- funzionamento read-only di `BedPage` quando la Profile Write Authority non è disponibile;
+- mantenimento del token del lease fuori dalle pagine Flutter.
+
+Il Write Path autoritativo di `beds` è considerato **completo anche sul piano dell’interfaccia utente** nello stato attuale del progetto.
+
+## Commit tecnico S025
+
+Il commit tecnico conclusivo della Sessione S025 è:
+
+- `922c4ad` — **Completa Write Path UI per beds**
+
+Il confine Git tecnico della sessione è:
+
+```text
+a6350f0..922c4ad
+```
+
+Il commit comprende:
+
+```text
+13 file modificati
+4066 inserimenti
+31 eliminazioni
+```
+
+## Stato Git al termine dello sviluppo
+
+Al passaggio dalla fase sviluppo alla fase Manuali risultava:
+
+```text
+branch: main
+HEAD: 922c4ad
+origin/main: 922c4ad
+working tree: clean
+```
+
+Le verifiche confermavano il repository locale allineato al remoto.
+
+Prima dell’avvio della documentazione S025 è stata inoltre completata una manutenzione straordinaria, esclusa dal perimetro e dal conteggio della sessione, mediante i commit:
+
+- `475d1b7` — **Corregge anomalie documentali e versionamento**;
+- `d666e96` — **Uniforma formattazione Dart**.
+
+All’avvio della documentazione S025 risultava pertanto:
+
+```text
+branch: main
+HEAD: d666e96
+origin/main: d666e96
+working tree: clean
+```
+
+## APERTO / FUTURE
+
+Non risultano blocchi tecnici aperti relativi all’integrazione UI del Write Path autoritativo di `beds`.
+
+Restano fuori dall’ambito della Sessione S025:
+
+1. implementazione della tabella e del Write Path V1 di `plantings`;
+2. risoluzione dell’errore `PGRST205` prodotto dalla sezione colture di `BedPage` finché `public.plantings` non sarà disponibile;
+3. operazioni amministrative protette su `profile_memberships`;
+4. selezione del successivo blocco tecnico della baseline Database V1.
+
+La presenza di `plantings` nella baseline architetturale non implica che la relativa tabella sia già stata implementata mediante migration.
+
+## Punto di continuità successivo
+
+Il successivo blocco tecnico dovrà essere scelto e approvato dopo il consolidamento documentale della Sessione S025.
+
+Prima di intervenire su `plantings` dovranno essere verificati:
+
+- contratto V1 dell’entità;
+- relazioni con `beds`, `bed_geometries`, colture, varietà e stagioni;
+- dipendenze della UI esistente;
+- Write Path autoritativo;
+- strategia di migrazione;
+- test positivi, negativi e concorrenti.
+
+## Timing della documentazione
+
+La documentazione della Sessione S025 è iniziata il **04/09/2026 alle 09:38** ed è stata completata il **06/09/2026 alle 22:38**.
+
+Il lavoro è stato sospeso il **04/09/2026 alle 11:29**, escludendo dal conteggio una pausa complessiva di **1 h 00 min**, ed è ripreso il **06/09/2026 alle 21:44**.
+
+| Intervallo | Durata netta |
+| --- | ---: |
+| 04/09/2026, 09:38 → 11:29 | 51 min |
+| 06/09/2026, 21:44 → 22:38 | 54 min |
+| **Totale documentazione S025** | **1 h 45 min** |
+
+## Tempo complessivo della Sessione S025
+
+Sviluppo: **5 h 11 min**
+
+Documentazione: **1 h 45 min**
+
+Totale S025: **6 h 56 min**

@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 1.7
+**Versione:** 1.8
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
@@ -12,7 +12,7 @@
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 03/09/2026
+**Ultimo aggiornamento:** 06/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -24,12 +24,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 1.7 |
+| Versione | 1.8 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 03/09/2026 |
+| Ultimo aggiornamento | 06/09/2026 |
 
 ---
 
@@ -48,6 +48,7 @@
 | 1.5 | 28/08/2026 | Aggiornamento dopo la Sessione S023: completamento del protocollo `profile_edit_locks`, Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e definizione di `beds` e `bed_geometries` come prossimo blocco tecnico |
 | 1.6 | 01/09/2026 | Aggiornamento dopo la Sessione S024: completamento del Write Path autoritativo di `beds`, implementazione della geometria storicizzata, integrazione Flutter della creazione dell’aiuola e rinvio della scelta del successivo blocco tecnico |
 | 1.7 | 03/09/2026 | Manutenzione straordinaria della Roadmap: normalizzazione del nome dell’autore nei metadati del documento |
+| 1.8 | 06/09/2026 | Aggiornamento dopo la Sessione S025: completamento dell’integrazione Flutter dei Write Path autoritativi di `beds`, introduzione delle interfacce di modifica e gestione geometrica, gestione italiana delle date, rilettura autoritativa e verifica con 841/841 test superati |
 
 ---
 
@@ -238,11 +239,11 @@ Le attività riportate in questa sezione rappresentano le principali direttrici 
 
 L'ordine di realizzazione potrà variare in funzione delle esigenze del progetto e delle decisioni architetturali adottate durante lo sviluppo.
 
-## Stato dopo la Sessione S024
+## Stato dopo la Sessione S025
 
-La Sessione S024 ha proseguito il percorso incrementale di implementazione fisica del Database V1 iniziato nella S019.
+La Sessione S025 ha completato l’integrazione Flutter dei Write Path autoritativi di `beds` implementati nella Sessione S024.
 
-Sono stati completati:
+Risultano completati:
 
 - primo blocco Fondazioni della baseline Database V1;
 - schema `private`, helper autorizzativi, trigger metadata e prima matrice RLS;
@@ -255,24 +256,35 @@ Sono stati completati:
 - RPC `create_bed`, `update_bed`, `set_bed_active`, `change_bed_geometry` e `correct_bed_geometry`;
 - separazione tra identità stabile dell’aiuola e geometria valida nel tempo;
 - protezione degli intervalli geometrici dalla sovrapposizione;
-- distinzione tra cambio ordinario della geometria e correzione storica tracciata;
+- distinzione tra variazione geometrica ordinaria e correzione storica tracciata;
 - concorrenza ottimistica mediante `row_version`;
 - integrazione Flutter dei modelli `Bed` e `BedGeometry`;
 - estensione di `BedRepository`;
-- introduzione di `ProfileContextScope` e `CreateBedPage`;
-- integrazione della creazione autoritativa dell’aiuola nella sezione Orto;
+- introduzione di `ProfileContextScope`;
+- creazione autoritativa dell’aiuola mediante `CreateBedPage`;
+- modifica dei dati generali mediante `EditBedPage`;
+- attivazione e disattivazione dell’aiuola mediante `setBedActive`;
+- variazione geometrica ordinaria mediante `ChangeBedGeometryPage`;
+- correzione storica mediante `CorrectBedGeometryPage`;
+- motivazione obbligatoria delle correzioni storiche;
+- introduzione di `CivilDate` per la gestione del formato italiano `GG/MM/AAAA` nell’interfaccia, mantenendo il formato ISO `AAAA-MM-GG` nei modelli, nelle RPC e nel database;
+- rilettura autoritativa dell’aiuola dopo ogni scrittura riuscita;
+- trattamento fail-closed degli esiti non confermabili, senza retry automatici;
+- funzionamento in sola lettura di `BedPage` quando la Profile Write Authority non è disponibile;
 - configurazione Supabase parametrizzabile mediante `--dart-define`;
 - allineamento delle migration locali e remote fino a `20260830140235`;
-- verifica finale mediante `flutter analyze` e **781/781 test superati**;
-- verifica manuale locale positiva della creazione dell’aiuola attraverso UI e Write Path.
+- verifica finale mediante `flutter analyze` e **841/841 test superati**;
+- verifica manuale locale positiva delle operazioni di modifica, attivazione e disattivazione, variazione geometrica e correzione storica.
 
-Lo STEP 35.3 – Costruzione baseline SQL Database V1 rimane **in corso**. Le Fondazioni e i Write Path autoritativi di `gardens`, `seasons` e `beds` sono implementati, mentre le restanti entità devono essere introdotte progressivamente per gruppi coerenti di strutture e dipendenze.
+La Sessione S025 non ha introdotto nuove migration Supabase e ha utilizzato le RPC autoritative implementate nella Sessione S024.
+
+Lo STEP 35.3 – Costruzione baseline SQL Database V1 rimane **in corso**. Le Fondazioni e i Write Path autoritativi di `gardens`, `seasons` e `beds` sono implementati; per `beds` risulta completata anche l’integrazione delle relative operazioni nell’interfaccia Flutter. Le restanti entità devono essere introdotte progressivamente per gruppi coerenti di strutture e dipendenze.
 
 ## Prossimo blocco tecnico
 
 Il successivo blocco tecnico non è ancora stato scelto.
 
-La selezione dovrà avvenire dopo il consolidamento documentale della Sessione S024, verificando:
+La selezione dovrà avvenire dopo il consolidamento documentale della Sessione S025, verificando:
 
 - dipendenze effettive della baseline Database V1;
 - priorità funzionali dell’applicazione;
@@ -283,16 +295,15 @@ La selezione dovrà avvenire dopo il consolidamento documentale della Sessione S
 
 `public.plantings` è prevista nella baseline Database V1 ma non è ancora implementata mediante migration. La sua assenza produce attualmente `PGRST205` nella sezione colture del dettaglio aiuola.
 
-Prima di scegliere `plantings` come incremento successivo dovranno essere verificati il relativo contratto V1, le relazioni con `beds`, `bed_geometries`, colture, varietà e stagioni e le dipendenze della UI esistente.
+Prima di scegliere `plantings` come incremento successivo dovranno essere verificati:
 
-Restano inoltre aperte le interfacce per:
-
-- modifica dei dati dell’aiuola;
-- attivazione e disattivazione;
-- cambio della geometria;
-- correzione della geometria.
-
-Le corrispondenti RPC e operazioni Repository sono già implementate e testate.
+- contratto V1 dell’entità;
+- relazioni con `beds` e `bed_geometries`;
+- relazioni con colture, varietà e stagioni;
+- dipendenze della UI esistente;
+- Write Path autoritativo necessario;
+- strategia di migrazione;
+- copertura dei test positivi, negativi e concorrenti.
 
 Le operazioni amministrative protette su `profile_memberships` rimangono un blocco successivo distinto.
 
@@ -302,7 +313,6 @@ Le operazioni amministrative protette su `profile_memberships` rimangono un bloc
 - prosecuzione incrementale della baseline Database V1 per gruppi coerenti di strutture e dipendenze;
 - estensione progressiva dei Write Path autoritativi alle ulteriori entità di Categoria A;
 - valutazione del contratto V1 e delle dipendenze di `plantings`;
-- completamento progressivo delle interfacce di scrittura delle aiuole;
 - riallineamento progressivo del Repository Layer e del dominio applicativo alla nuova persistenza;
 - consolidamento e ampliamento del Motore Agronomico sulla base della nuova architettura dati;
 - evoluzione della gestione dell’irrigazione;
@@ -328,6 +338,7 @@ La pianificazione dettagliata delle singole sessioni di sviluppo viene documenta
 | 1.5 | 28/08/2026 | Aggiornamento dopo la Sessione S023: completamento del protocollo `profile_edit_locks`, Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e definizione di `beds` e `bed_geometries` come prossimo blocco tecnico |
 | 1.6 | 01/09/2026 | Aggiornamento dopo la Sessione S024: completamento del Write Path autoritativo di `beds`, implementazione della geometria storicizzata, integrazione Flutter della creazione dell’aiuola e rinvio della scelta del successivo blocco tecnico |
 | 1.7 | 03/09/2026 | Manutenzione straordinaria della Roadmap: normalizzazione del nome dell’autore nei metadati del documento |
+| 1.8 | 06/09/2026 | Aggiornamento dopo la Sessione S025: completamento dell’integrazione Flutter dei Write Path autoritativi di `beds`, introduzione delle interfacce di modifica e gestione geometrica, gestione italiana delle date, rilettura autoritativa e verifica con 841/841 test superati |
 
 ---
 
