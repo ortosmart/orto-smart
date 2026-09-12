@@ -4,14 +4,17 @@
 
 # Registro delle modifiche
 
-**Versione:** 2.3
+**Versione:** 2.4
+
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
+
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 06/09/2026
+
+**Ultimo aggiornamento:** 11/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -19,39 +22,40 @@
 
 # Informazioni sul documento
 
-| Campo                | Valore                   |
-| -------------------- | ------------------------ |
-| Documento            | CHANGELOG                |
-| Titolo               | Registro delle modifiche |
-| Versione             | 2.3                      |
-| Stato                | Approvato                |
-| Progetto             | Orto Smart               |
-| Repository           | ortosmart/orto-smart     |
-| Prima emissione      | 27/07/2026               |
-| Ultimo aggiornamento | 06/09/2026               |
+| Campo | Valore |
+|-------|--------|
+| Documento | CHANGELOG |
+| Titolo | Registro delle modifiche |
+| Versione | 2.4 |
+| Stato | Approvato |
+| Progetto | Orto Smart |
+| Repository | ortosmart/orto-smart |
+| Prima emissione | 27/07/2026 |
+| Ultimo aggiornamento | 11/09/2026 |
 
 ---
 
 # Cronologia delle revisioni
 
-| Versione | Data       | Descrizione                                                                                                               |
-| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------- |
-| 0.1      | 27/07/2026 | Prima emissione del documento CHANGELOG                                                                                   |
-| 0.2      | 01/08/2026 | Revisione della struttura documentale e allineamento con la documentazione tecnica                                        |
-| 1.0      | 01/08/2026 | Revisione completa e approvazione del CHANGELOG                                                                           |
-| 1.1      | 08/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.4-alpha e introduzione di DecisionWeights                                 |
-| 1.2      | 09/08/2026 | Aggiornamento del CHANGELOG con la prima implementazione del FamilyNeedsEngine                                            |
-| 1.3      | 09/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.6-alpha e integrazione del FamilyNeedsEngine nella RecommendationPipeline |
-| 1.4      | 10/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.7-alpha e introduzione dei fabbisogni quantitativi e dei lotti pianificati |
-| 1.5      | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.8-alpha e prima implementazione del SuccessionPlanningEngine               |
-| 1.6      | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.9-alpha e prima implementazione delle finestre agronomiche                 |
-| 1.7      | 12/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.10-alpha e associazione delle finestre agronomiche a colture e varietà |
-| 1.8      | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.11-alpha e completamento della progettazione e del congelamento della baseline Database V1 nella Sessione S017 |
-| 1.9      | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.12-alpha: supporto alle finestre agronomiche multiple e predisposizione dell'ambiente Supabase locale per la futura implementazione della baseline Database V1 |
-| 2.0      | 18/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.13-alpha: prima migration Database V1, implementazione e verifica locale delle Fondazioni, introduzione della prima sicurezza RLS e consolidamento del primo incremento fisico della baseline |
-| 2.1      | 28/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.14-alpha: protocollo completo `profile_edit_locks`, Profile Write Authority, Write Path autoritativi di `gardens` e `seasons` e integrazione Flutter fail-closed |
-| 2.2      | 01/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.15-alpha: implementazione di `beds`, geometria storicizzata, Write Path autoritativo delle aiuole, integrazione Flutter e configurazione Supabase parametrizzabile |
-| 2.3      | 06/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.16-alpha: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, gestione italiana delle date e verifica completa con 841/841 test superati |
+| Versione | Data | Descrizione |
+|----------|------|-------------|
+| 0.1 | 27/07/2026 | Prima emissione del documento CHANGELOG |
+| 0.2 | 01/08/2026 | Revisione della struttura documentale e allineamento con la documentazione tecnica |
+| 1.0 | 01/08/2026 | Revisione completa e approvazione del CHANGELOG |
+| 1.1 | 08/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.4-alpha e introduzione di DecisionWeights |
+| 1.2 | 09/08/2026 | Aggiornamento del CHANGELOG con la prima implementazione del FamilyNeedsEngine |
+| 1.3 | 09/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.6-alpha e integrazione del FamilyNeedsEngine nella RecommendationPipeline |
+| 1.4 | 10/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.7-alpha e introduzione dei fabbisogni quantitativi e dei lotti pianificati |
+| 1.5 | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.8-alpha e prima implementazione del SuccessionPlanningEngine |
+| 1.6 | 11/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.9-alpha e prima implementazione delle finestre agronomiche |
+| 1.7 | 12/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.10-alpha e associazione delle finestre agronomiche a colture e varietà |
+| 1.8 | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.11-alpha e completamento della progettazione e del congelamento della baseline Database V1 nella Sessione S017 |
+| 1.9 | 16/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.12-alpha: supporto alle finestre agronomiche multiple e predisposizione dell'ambiente Supabase locale per la futura implementazione della baseline Database V1 |
+| 2.0 | 18/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.13-alpha: prima migration Database V1, implementazione e verifica locale delle Fondazioni, introduzione della prima sicurezza RLS e consolidamento del primo incremento fisico della baseline |
+| 2.1 | 28/08/2026 | Aggiornamento del CHANGELOG con la versione 0.1.14-alpha: protocollo completo `profile_edit_locks`, Profile Write Authority, Write Path autoritativi di `gardens` e `seasons` e integrazione Flutter fail-closed |
+| 2.2 | 01/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.15-alpha: implementazione di `beds`, geometria storicizzata, Write Path autoritativo delle aiuole, integrazione Flutter e configurazione Supabase parametrizzabile |
+| 2.3 | 06/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.16-alpha: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, gestione italiana delle date e verifica completa con 841/841 test superati |
+| 2.4 | 11/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.17-alpha: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, sicurezza RLS, Profile Write Authority, concorrenza ottimistica e allineamento delle migration locali e remote |
 
 ---
 
@@ -64,22 +68,40 @@
 ## 3. Registro delle versioni
 
 3.1 Versione 0.1.0-alpha
+
 3.2 Versione 0.1.1-alpha
+
 3.3 Versione 0.1.2-alpha
+
 3.4 Versione 0.1.3-alpha
+
 3.5 Versione 0.1.4-alpha
+
 3.6 Versione 0.1.5-alpha
+
 3.7 Versione 0.1.6-alpha
+
 3.8 Versione 0.1.7-alpha
+
 3.9 Versione 0.1.8-alpha
+
 3.10 Versione 0.1.9-alpha
+
 3.11 Versione 0.1.10-alpha
+
 3.12 Versione 0.1.11-alpha
+
 3.13 Versione 0.1.12-alpha
+
 3.14 Versione 0.1.13-alpha
+
 3.15 Versione 0.1.14-alpha
+
 3.16 Versione 0.1.15-alpha
+
 3.17 Versione 0.1.16-alpha
+
+3.18 Versione 0.1.17-alpha
 
 ## 4. Cronologia versioni
 
@@ -875,29 +897,311 @@ Nessuna correzione specifica separata dalle modifiche descritte sopra.
 - `public.plantings` non è ancora implementata nell’attuale schema Database V1; il problema è preesistente e non costituisce una regressione della S025.
 - Il successivo blocco tecnico dovrà essere scelto dopo il consolidamento documentale della Sessione S025.
 
+## 3.18 Versione 0.1.17-alpha
+
+**Data:** 11/09/2026
+
+### Aggiunto
+
+- Implementato il Catalogo DB V1 mediante le tabelle:
+  - `botanical_families`;
+  - `crops`;
+  - `crop_varieties`.
+
+- Introdotti identificativi UUID per le entità del nuovo catalogo.
+
+- Introdotta la migration:
+
+```text
+20260911084752_add_crop_catalog.sql
+```
+
+con tabelle, vincoli, indici, trigger metadata, RLS e privilegi.
+
+- Introdotta la migration:
+
+```text
+20260911091047_add_crop_catalog_write_rpcs.sql
+```
+
+con nove RPC autoritative:
+
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+create_crop
+update_crop
+set_crop_active
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
+
+- Introdotta la gestione server-side dei dati agronomici generali della Crop e degli override specifici della Crop Variety.
+
+- Introdotti i campi quantitativi per il fabbisogno idrico con basi canoniche:
+
+```text
+per_plant
+per_m2
+```
+
+- Introdotto il blocco della resa prevista con valori minimo, medio e massimo, unità canonica e informazioni opzionali sulla fonte.
+
+### Modificato
+
+- Consolidata la gerarchia persistente del catalogo:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+- Stabilito che il catalogo è Profile-owned e condiviso tra i Gardens appartenenti allo stesso Profile.
+
+- Sostituita la precedente rappresentazione legacy della varietà incorporata nella Crop con l’entità autonoma `crop_varieties`.
+
+- Sostituito il riferimento testuale alla famiglia botanica con `botanical_family_id`.
+
+- Consolidato `default_start_method` come metodo di avvio canonico.
+
+- Definiti i valori canonici:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
+
+- Definito il fallback campo-per-campo Crop → Crop Variety per i valori agronomici che consentono specializzazione varietale.
+
+- Mantenuto `rotation_seasons` esclusivamente a livello Crop.
+
+- Definito il principio:
+
+> **catalogo corrente + snapshot storico**
+
+per evitare che future modifiche al catalogo riscrivano retroattivamente calcoli o decisioni storiche.
+
+### Architettura
+
+- Confermato il flusso autoritativo:
+
+```text
+Supabase Auth
+        ↓
+autorizzazione server-side
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+FOR UPDATE / row_version
+        ↓
+scrittura
+```
+
+- Applicata la concorrenza ottimistica mediante `row_version` ed `expected_row_version`.
+
+- Introdotto il locking dei parent quando necessario per serializzare creazioni, riattivazioni, disattivazioni e cambi gerarchici concorrenti.
+
+- Stabilito che `crop_varieties.crop_id` è immutabile dopo la creazione.
+
+- Stabilito che una Botanical Family non può essere disattivata in presenza di Crop attive.
+
+- Stabilito che una Crop non può essere disattivata in presenza di Crop Variety attive.
+
+- Stabilito che la riattivazione di un parent non riattiva automaticamente i figli.
+
+- Confermato che i record inattivi restano modificabili.
+
+- Confermato che `plantings` dipende dal catalogo operativo e non viene implementata nella S026.
+
+### Sicurezza
+
+- Abilitata la lettura delle tre tabelle del catalogo tramite RLS e verifica della membership del Profile.
+
+- Revocati ad `authenticated` i privilegi diretti:
+
+```text
+INSERT
+UPDATE
+DELETE
+```
+
+su:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+- Concentrate le scritture nelle RPC autoritative.
+
+- Utilizzato `SECURITY DEFINER`.
+
+- Impostato:
+
+```text
+search_path = ''
+```
+
+nelle RPC autoritative.
+
+- Concesso `EXECUTE` ad `authenticated` e revocato ad `anon` e `public`.
+
+- Rivalidato il lease della Profile Write Authority dopo eventuali attese sui row lock.
+
+- Verificato che un membro del Profile possa leggere il proprio catalogo e che un non membro non possa leggerlo.
+
+### Validazioni
+
+- Introdotta unicità case-insensitive dei nomi secondo il relativo perimetro.
+
+- Normalizzati `name` e `scientific_name` mediante trim e collasso degli spazi.
+
+- Normalizzati gli altri testi mediante trim e conversione delle stringhe opzionali vuote a `NULL`.
+
+- Validata la coerenza delle temperature anche dopo il fallback Crop → Crop Variety.
+
+- Vietati override quantitativi parziali del fabbisogno idrico varietale.
+
+- Validato il blocco della resa mediante:
+
+```text
+min <= avg <= max
+```
+
+quando i valori sono presenti.
+
+- Resa obbligatoria l’unità quando esiste almeno un valore di resa.
+
+- Definite unità canoniche della resa:
+
+```text
+kg_per_m2
+kg_per_plant
+g_per_m2
+g_per_plant
+pieces_per_m2
+pieces_per_plant
+```
+
+### Test
+
+- Eseguiti test SQL funzionali positivi e negativi mediante dati fittizi all’interno di transazioni:
+
+```text
+BEGIN
+...
+ROLLBACK
+```
+
+senza dati persistenti.
+
+- Verificati:
+  - creazione;
+  - normalizzazione;
+  - duplicati case-insensitive;
+  - autorizzazioni;
+  - owner/non-owner;
+  - modifica;
+  - `unchanged`;
+  - `version_conflict`;
+  - stato attivo e inattivo;
+  - disattivazione e riattivazione;
+  - vincoli parent/child;
+  - fallback Crop → Crop Variety;
+  - validazione termica;
+  - fabbisogno idrico;
+  - resa prevista;
+  - RLS;
+  - privilegi RPC.
+
+- Eseguito:
+
+```text
+supabase db lint --local
+```
+
+senza nuovi problemi introdotti dalla S026.
+
+- Eseguito:
+
+```text
+supabase db diff --local
+```
+
+con risultato:
+
+```text
+No schema changes found
+```
+
+- Applicate le migration al database remoto.
+
+- Verificato tramite `supabase migration list` l’allineamento locale/remoto fino a:
+
+```text
+20260911091047
+```
+
+### Aperto / Future
+
+- Il Catalogo DB V1 è implementato e verificato lato PostgreSQL/Supabase ma non è ancora integrato nel client Flutter.
+
+- Il successivo blocco approvato è:
+
+> **S027 — Integrazione Flutter del Catalogo V1**
+
+- La S027 dovrà comprendere modelli Dart, result type, Repository, letture RLS, scritture RPC-only, Profile Write Authority, gestione `row_version` e test di mapping.
+
+- `public.plantings` non è ancora implementata.
+
+- La sequenza approvata rimane:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+        ↓
+plantings
+```
+
+- `heavy_feeder` rimane escluso dal V1 e classificato FUTURE.
+
 ---
 
 # 4. Cronologia versioni
 
-| Versione    | Data       | Stato      | Note                                                                                                                                                              |
-| ----------- | ---------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto.                                                                                                                          |
-| 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico.                                                                                |
-| 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche.                                      |
-| 0.1.3-alpha | 06/08/2026 | Archiviata | Introdotta `RecommendationPipeline` come orchestratore del processo di raccomandazione e consolidata la nuova architettura del Motore Agronomico.                 |
-| 0.1.4-alpha | 08/08/2026 | Archiviata | Introdotto `DecisionWeights` e resa configurabile la ponderazione dei criteri utilizzati dal `DecisionEngine`.                                                    |
-| 0.1.5-alpha | 09/08/2026 | Archiviata | Implementata la prima versione del `FamilyNeedsEngine` per la valutazione delle priorità e dei fabbisogni familiari.                                              |
+| Versione | Data | Stato | Note |
+|----------|------|-------|------|
+| 0.1.0-alpha | 27/07/2026 | Archiviata | Prima versione documentata del progetto. |
+| 0.1.1-alpha | 27/07/2026 | Archiviata | Introdotto il Companion Engine e consolidata l'architettura del motore agronomico. |
+| 0.1.2-alpha | 28/07/2026 | Archiviata | Introdotto `BedAnalysisService`, implementato `BedCompanionAnalyzer` e consolidata l'architettura delle analisi agronomiche. |
+| 0.1.3-alpha | 06/08/2026 | Archiviata | Introdotta `RecommendationPipeline` come orchestratore del processo di raccomandazione e consolidata la nuova architettura del Motore Agronomico. |
+| 0.1.4-alpha | 08/08/2026 | Archiviata | Introdotto `DecisionWeights` e resa configurabile la ponderazione dei criteri utilizzati dal `DecisionEngine`. |
+| 0.1.5-alpha | 09/08/2026 | Archiviata | Implementata la prima versione del `FamilyNeedsEngine` per la valutazione delle priorità e dei fabbisogni familiari. |
 | 0.1.6-alpha | 09/08/2026 | Archiviata | Integrato il `FamilyNeedsEngine` nella `RecommendationPipeline` mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
 | 0.1.7-alpha | 10/08/2026 | Archiviata | Introdotti fabbisogni familiari quantitativi e lotti di coltivazione pianificati come fondamenta del futuro `SuccessionPlanningEngine`. |
-| 0.1.8-alpha | 11/08/2026 | Archiviata   | Implementata la prima versione del `SuccessionPlanningEngine` per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
-| 0.1.9-alpha | 11/08/2026 | Archiviata   | Introdotte le finestre agronomiche mediante `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`, mantenendo separata la compatibilità agronomica dalla pianificazione temporale del `SuccessionPlanningEngine`. |
+| 0.1.8-alpha | 11/08/2026 | Archiviata | Implementata la prima versione del `SuccessionPlanningEngine` per generare una sequenza temporale validata di lotti pianificati a partire dal fabbisogno familiare quantitativo e periodico. |
+| 0.1.9-alpha | 11/08/2026 | Archiviata | Introdotte le finestre agronomiche mediante `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`, mantenendo separata la compatibilità agronomica dalla pianificazione temporale del `SuccessionPlanningEngine`. |
 | 0.1.10-alpha | 12/08/2026 | Archiviata | Associate le finestre agronomiche a colture e varietà mediante `CropAgronomicWindowRule`, `AgronomicWindowResolver`, `AgronomicWindowEvaluation` e `AgronomicWindowService`, introducendo il fallback varietà → coltura e la distinzione tra `unknown` e `incompatible`. |
 | 0.1.11-alpha | 16/08/2026 | Archiviata | Completata e congelata nella S017 la progettazione della baseline Database V1: 52 entità di dominio più la struttura tecnica `profile_edit_locks`, con ownership, accesso familiare monoutente, modello single-writer, temporalità, sicurezza, invarianti e strategia di implementazione incrementale in Supabase. |
 | 0.1.12-alpha | 16/08/2026 | Archiviata | Introdotto il supporto alle finestre agronomiche multiple e predisposto l'ambiente Supabase locale versionato per la futura implementazione incrementale della baseline Database V1; verificati 151/151 test e mantenuto invariato il database remoto. |
 | 0.1.13-alpha | 18/08/2026 | Archiviata | Creata la prima migration Database V1 e implementato e verificato localmente il blocco Fondazioni con schema `private`, helper autorizzativi, trigger metadata e 13 policy RLS; consolidato il primo incremento fisico della baseline Database V1. |
 | 0.1.14-alpha | 28/08/2026 | Archiviata | Completato il protocollo `profile_edit_locks`, introdotta la Profile Write Authority, implementati i Write Path autoritativi di `gardens` e `seasons`, integrata la sessione Profile nel client Flutter e verificati 237/237 test. |
 | 0.1.15-alpha | 01/09/2026 | Archiviata | Implementati `beds`, geometria storicizzata e relativo Write Path autoritativo, integrata la creazione dell’aiuola nel client Flutter, parametrizzata la configurazione Supabase e verificati 781/781 test. |
-| 0.1.16-alpha | 03/09/2026 | Corrente | Completata l’integrazione UI dei Write Path autoritativi di `beds`, introdotte modifica dati, attivazione e disattivazione, variazione geometrica, correzione storica e gestione italiana delle date; verificati 841/841 test. |
+| 0.1.16-alpha | 03/09/2026 | Archiviata | Completata l’integrazione UI dei Write Path autoritativi di `beds`, introdotte modifica dati, attivazione e disattivazione, variazione geometrica, correzione storica e gestione italiana delle date; verificati 841/841 test. |
+| 0.1.17-alpha | 11/09/2026 | Corrente | Implementato e verificato il Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, introdotte nove RPC autoritative, RLS, Profile Write Authority, concorrenza ottimistica e migration locali/remoto allineate; integrazione Flutter rinviata alla S027. |
 
 ---
 

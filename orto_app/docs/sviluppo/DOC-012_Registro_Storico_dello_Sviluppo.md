@@ -4,14 +4,17 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 3.4
+**Versione:** 3.5
+
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
+
 **Progetto:** Orto Smart
 
-**Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 06/09/2026
+**Data prima emissione:** 29/07/2026
+
+**Ultimo aggiornamento:** 12/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,35 +26,36 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 3.4 |
+| Versione | 3.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 06/09/2026 |
+| Ultimo aggiornamento | 12/09/2026 |
 
 ---
 
 # Cronologia delle revisioni
 
-| Versione | Data       | Descrizione                                                                                                                                                  |
-| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1.0      | 29/07/2026 | Prima emissione del documento                                                                                                                                |
-| 2.0      | 05/08/2026 | Revisione strutturale del documento, trasformazione del Registro Storico in cruscotto dell'evoluzione del progetto e uniformazione allo Standard Documentale |
-| 2.1      | 08/08/2026 | Aggiornamento del Registro Storico con la Sessione S010 e consolidamento dell'evoluzione del sistema decisionale del Motore Agronomico                       |
-| 2.2      | 09/08/2026 | Aggiornamento del Registro Storico con la Sessione S011 e introduzione della prima versione del FamilyNeedsEngine                                            |
-| 2.3      | 09/08/2026 | Aggiornamento del Registro Storico con la Sessione S012 e integrazione del FamilyNeedsEngine nella RecommendationPipeline                                    |
-| 2.4      | 10/08/2026 | Aggiornamento del Registro Storico con la Sessione S013 e predisposizione delle fondamenta del futuro SuccessionPlanningEngine                               |
-| 2.5      | 11/08/2026 | Aggiornamento del Registro Storico con la Sessione S014 e prima implementazione del SuccessionPlanningEngine                                                      |
-| 2.6      | 11/08/2026 | Aggiornamento del Registro Storico con la Sessione S015 e introduzione della prima infrastruttura delle finestre agronomiche                                                |
-| 2.7      | 12/08/2026 | Aggiornamento del Registro Storico con la Sessione S016 e associazione delle finestre agronomiche a colture e varietà |
-| 2.8      | 16/08/2026 | Aggiornamento del Registro Storico con la Sessione S017, completamento e congelamento della baseline Database V1 e consolidamento dei tempi complessivi di sviluppo e documentazione |
-| 2.9      | 16/08/2026 | Aggiornamento del Registro Storico con la Sessione S018: supporto alle finestre agronomiche multiple, predisposizione dell'ambiente locale Supabase e riallineamento degli indicatori evolutivi |
-| 3.0      | 25/08/2026 | Aggiornamento del Registro Storico con le Sessioni S019, S020, S021 e S022, consolidamento dei tempi di sviluppo e documentazione e aggiornamento degli indicatori evolutivi |
-| 3.1      | 28/08/2026 | Aggiornamento del Registro Storico con la Sessione S023, consolidamento dei Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e riallineamento definitivo dei tempi S020–S023 |
-| 3.2      | 01/09/2026 | Aggiornamento del Registro Storico con la Sessione S024: Write Path autoritativo di `beds`, geometria storicizzata, integrazione Flutter, versione 0.1.15-alpha e riallineamento degli indicatori evolutivi |
-| 3.3      | 03/09/2026 | Manutenzione straordinaria del Registro Storico: consolidamento dei tempi complessivi delle Sessioni S001–S024, classificazione documentale della S007, riallineamento dei progressivi e aggiornamento del totale progetto a 167 h 51 min |
-| 3.4      | 06/09/2026 | Aggiornamento del Registro Storico con la Sessione S025: completamento dell’integrazione Flutter dei Write Path autoritativi di `beds`, introduzione delle interfacce operative, gestione italiana delle date, verifica con 841/841 test superati e riallineamento degli indicatori al totale progetto di 174 h 47 min |
+| Versione | Data | Descrizione |
+|----------|------|-------------|
+| 1.0 | 29/07/2026 | Prima emissione del documento |
+| 2.0 | 05/08/2026 | Revisione strutturale del documento, trasformazione del Registro Storico in cruscotto dell'evoluzione del progetto e uniformazione allo Standard Documentale |
+| 2.1 | 08/08/2026 | Aggiornamento del Registro Storico con la Sessione S010 e consolidamento dell'evoluzione del sistema decisionale del Motore Agronomico |
+| 2.2 | 09/08/2026 | Aggiornamento del Registro Storico con la Sessione S011 e introduzione della prima versione del FamilyNeedsEngine |
+| 2.3 | 09/08/2026 | Aggiornamento del Registro Storico con la Sessione S012 e integrazione del FamilyNeedsEngine nella RecommendationPipeline |
+| 2.4 | 10/08/2026 | Aggiornamento del Registro Storico con la Sessione S013 e predisposizione delle fondamenta del futuro SuccessionPlanningEngine |
+| 2.5 | 11/08/2026 | Aggiornamento del Registro Storico con la Sessione S014 e prima implementazione del SuccessionPlanningEngine |
+| 2.6 | 11/08/2026 | Aggiornamento del Registro Storico con la Sessione S015 e introduzione della prima infrastruttura delle finestre agronomiche |
+| 2.7 | 12/08/2026 | Aggiornamento del Registro Storico con la Sessione S016 e associazione delle finestre agronomiche a colture e varietà |
+| 2.8 | 16/08/2026 | Aggiornamento del Registro Storico con la Sessione S017, completamento e congelamento della baseline Database V1 e consolidamento dei tempi complessivi di sviluppo e documentazione |
+| 2.9 | 16/08/2026 | Aggiornamento del Registro Storico con la Sessione S018: supporto alle finestre agronomiche multiple, predisposizione dell'ambiente locale Supabase e riallineamento degli indicatori evolutivi |
+| 3.0 | 25/08/2026 | Aggiornamento del Registro Storico con le Sessioni S019, S020, S021 e S022, consolidamento dei tempi di sviluppo e documentazione e aggiornamento degli indicatori evolutivi |
+| 3.1 | 28/08/2026 | Aggiornamento del Registro Storico con la Sessione S023, consolidamento dei Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e riallineamento definitivo dei tempi S020–S023 |
+| 3.2 | 01/09/2026 | Aggiornamento del Registro Storico con la Sessione S024: Write Path autoritativo di `beds`, geometria storicizzata, integrazione Flutter, versione 0.1.15-alpha e riallineamento degli indicatori evolutivi |
+| 3.3 | 03/09/2026 | Manutenzione straordinaria del Registro Storico: consolidamento dei tempi complessivi delle Sessioni S001–S024, classificazione documentale della S007, riallineamento dei progressivi e aggiornamento del totale progetto a 167 h 51 min |
+| 3.4 | 06/09/2026 | Aggiornamento del Registro Storico con la Sessione S025: completamento dell’integrazione Flutter dei Write Path autoritativi di `beds`, introduzione delle interfacce operative, gestione italiana delle date, verifica con 841/841 test superati e riallineamento degli indicatori al totale progetto di 174 h 47 min |
+| 3.5 | 12/09/2026 | Aggiornamento con la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, sicurezza e concorrenza server-side, versione 0.1.17-alpha e definizione della S027 come integrazione Flutter del Catalogo V1; timing documentale S026 ancora in corso |
 
 ---
 
@@ -101,19 +105,57 @@ Le informazioni riportate nel presente capitolo vengono aggiornate al termine de
 
 ## 2.1 Stato attuale del progetto
 
-Alla data dell'ultimo aggiornamento del presente documento, il progetto Orto Smart presenta i seguenti indicatori storici.
+Alla data dell'ultimo aggiornamento del presente documento, la Sessione S026 è conclusa sia nella fase di sviluppo sia nella fase documentale.
 
-| Indicatore                          | Valore                                           |
-| ----------------------------------- | ------------------------------------------------ |
-| Sessioni completate                 | 25                                               |
-| Tempo complessivo di sviluppo       | 128 h 48 min                                     |
-| Tempo complessivo di documentazione | 45 h 59 min                                      |
-| Tempo complessivo progetto          | 174 h 47 min                                     |
-| Prima sessione                      | S001                                             |
-| Ultima sessione                     | S025                                             |
-| Stato della documentazione          | Aggiornata e consolidata fino alla Sessione S025 |
+Gli indicatori consolidati risultano:
 
-\* Valore riferito alle sole ore di sviluppo software consolidate. Il tempo di documentazione è riportato separatamente.
+| Indicatore | Valore |
+|------------|--------|
+| Sessioni completate | 26 |
+| Tempo complessivo di sviluppo | 135 h 52 min |
+| Tempo complessivo di documentazione | 47 h 50 min |
+| Tempo complessivo progetto | 183 h 42 min |
+| Prima sessione | S001 |
+| Ultima sessione completata | S026 |
+| Stato della documentazione | Aggiornata e consolidata fino alla Sessione S026 |
+
+Il tempo complessivo di sviluppo deriva da:
+
+```text
+128 h 48 min
++
+7 h 04 min
+=
+135 h 52 min
+```
+
+Il tempo complessivo di documentazione deriva da:
+
+```text
+45 h 59 min
++
+1 h 51 min
+=
+47 h 50 min
+```
+
+Il totale complessivo del progetto deriva da:
+
+```text
+174 h 47 min
++
+8 h 55 min
+=
+183 h 42 min
+```
+
+La Sessione S026 ha richiesto complessivamente:
+
+| Attività | Durata |
+|----------|-------:|
+| Sviluppo | 7 h 04 min |
+| Documentazione | 1 h 51 min |
+| **Totale S026** | **8 h 55 min** |
 
 # 3. Cronologia sintetica dello sviluppo
 
@@ -146,12 +188,22 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo complessiv
 | **S021** | Completamento e hardening del protocollo `profile_edit_locks` e verifica delle transizioni concorrenti | **9 h 57 min** | **126 h 49 min** |
 | **S022** | Primo Write Path autoritativo di Categoria A per `gardens` | **9 h 34 min** | **136 h 23 min** |
 | **S023** | Profile Write Authority applicativa, hardening concorrente di `gardens` e Write Path autoritativo di `seasons` | **13 h 25 min** | **149 h 48 min** |
-| **S024** | Write Path autoritativo di `beds`, geometria storicizzata e integrazione Flutter della creazione dell’aiuola | **18 h 03 min** | **167 h 51 min** |
-| **S025** | Completamento dell’integrazione Flutter dei Write Path autoritativi di `beds` | **6 h 56 min** | **174 h 47 min** |
+| **S024** | Write Path autoritativo di `beds`, geometria storicizzata e integrazione Flutter della creazione dell'aiuola | **18 h 03 min** | **167 h 51 min** |
+| **S025** | Completamento dell'integrazione Flutter dei Write Path autoritativi di `beds` | **6 h 56 min** | **174 h 47 min** |
+| **S026** | Implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties` e dei relativi Write Path autoritativi | **8 h 55 min** | **183 h 42 min** |
 
 \* La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
 Per le Sessioni S004, S005 e S006 è disponibile il tempo complessivo storico della sessione, ma non la ripartizione attendibile tra sviluppo e documentazione.
+
+Per la Sessione S026 il tempo complessivo di **8 h 55 min** è composto da:
+
+```text
+Sviluppo        7 h 04 min
+Documentazione  1 h 51 min
+-------------------------
+Totale          8 h 55 min
+```
 
 ---
 
@@ -165,6 +217,8 @@ Essa consente di:
 - monitorare la crescita del progetto nel tempo;
 - valutare l'impegno complessivamente dedicato allo sviluppo;
 - mantenere uno storico sintetico delle attività svolte.
+
+---
 
 # 4. Milestone del progetto
 
@@ -201,6 +255,7 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S023** | Profile Write Authority applicativa e Write Path di `seasons` | Rafforzato `update_garden` contro i lost update, implementato il Write Path autoritativo di `seasons`, introdotte l’identità tecnica del client e della sessione e integrati controller, scheduler, scope e gate fail-closed della Profile Write Authority nel ciclo applicativo Flutter. |
 | **S024** | Write Path autoritativo di `beds` | Implementati `beds`, `bed_geometries` e `bed_geometry_corrections`, introdotte cinque RPC autoritative, integrati `BedRepository`, `ProfileContextScope` e `CreateBedPage`, parametrizzata la configurazione Supabase e verificati 781/781 test. |
 | **S025** | Completamento UI del Write Path autoritativo di `beds` | Integrate modifica dei dati, attivazione e disattivazione, variazione geometrica ordinaria e correzione storica; introdotto `CivilDate`, mantenuta la separazione semantica delle operazioni geometriche, applicate rilettura autoritativa e gestione fail-closed e verificati 841/841 test. |
+| **S026** | Catalogo DB V1 | Implementate `botanical_families`, `crops` e `crop_varieties` come catalogo Profile-owned con UUID, gerarchia e fallback Crop → Crop Variety, blocchi agronomici per acqua e resa, nove RPC autoritative, RLS in lettura, revoca delle scritture dirette, Profile Write Authority, concorrenza ottimistica e principio **catalogo corrente + snapshot storico**. |
 
 ---
 
@@ -216,20 +271,45 @@ Il presente capitolo raccoglie gli indicatori che consentono di monitorare l'evo
 
 A differenza degli indicatori storici riportati nel capitolo 2, che rappresentano una fotografia dello stato attuale del progetto, gli indicatori evolutivi consentono di osservare la crescita di Orto Smart sotto il profilo organizzativo, tecnico e documentale.
 
-Essi vengono aggiornati progressivamente al termine delle sessioni di sviluppo e costituiscono uno strumento di monitoraggio dell'evoluzione complessiva del progetto.
+Alla data del presente aggiornamento la Sessione S026 è conclusa e la relativa documentazione è consolidata.
 
-| Indicatore                    | Valore attuale |
-| ----------------------------- | -------------- |
-| Sessioni completate           | 25             |
-| Ore di sviluppo consolidate   | 128 h 48 min   |
-| Ore di documentazione         | 45 h 59 min    |
-| Totale ore progetto           | 174 h 47 min   |
-| Motori agronomici completati  | 5              |
-| Documenti ufficiali approvati | 10             |
-| Ultima sessione completata    | S025           |
-| Sessione in corso             | Nessuna        |
+| Indicatore | Valore attuale |
+|------------|----------------|
+| Sessioni completate | 26 |
+| Ore di sviluppo consolidate | 135 h 52 min |
+| Ore di documentazione consolidate | 47 h 50 min |
+| Totale ore progetto | 183 h 42 min |
+| Motori agronomici completati | 5 |
+| Documenti ufficiali approvati | 10 |
+| Ultima sessione completata | S026 |
+| Sessione in corso | Nessuna |
 
-Gli indicatori evolutivi vengono aggiornati al termine delle sessioni di sviluppo concluse e consentono di monitorare l'evoluzione del progetto sotto il profilo tecnico, organizzativo e documentale.
+La S026 ha introdotto un nuovo incremento significativo della baseline Database V1 mediante il Catalogo DB V1:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+Il Catalogo DB V1 è implementato e verificato lato PostgreSQL/Supabase.
+
+Il successivo blocco tecnico approvato è:
+
+> **S027 — Integrazione Flutter del Catalogo V1**
+
+`plantings` rimane un incremento successivo e non è stata implementata nella S026.
+
+I tempi consolidati alla chiusura della S026 sono:
+
+```text
+Sviluppo complessivo        135 h 52 min
+Documentazione complessiva   47 h 50 min
+----------------------------------------
+Totale progetto             183 h 42 min
+```
 
 ---
 

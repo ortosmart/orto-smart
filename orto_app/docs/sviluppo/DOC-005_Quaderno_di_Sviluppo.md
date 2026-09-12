@@ -4,14 +4,17 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.13
+**Versione:** 0.14
+
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
+
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 06/09/2026
+
+**Ultimo aggiornamento:** 11/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.13 |
+| Versione | 0.14 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 06/09/2026 |
+| Ultimo aggiornamento | 11/09/2026 |
 
 ---
 
@@ -38,7 +41,7 @@
 |-----------|------------|----------------------------------------------|
 | 0.1 | 26/07/2026 | Prima emissione del Quaderno di Sviluppo |
 | 0.2 | 31/07/2026 | Riorganizzazione della struttura documentale e uniformazione al DOC-001 |
-| 0.3      | 08/08/2026 | Aggiornamento del Quaderno con consolidamento delle Sessioni S009 e S010 |
+| 0.3 | 08/08/2026 | Aggiornamento del Quaderno con consolidamento delle Sessioni S009 e S010 |
 | 0.4 | 16/08/2026 | Riallineamento strutturale del Quaderno fino alla S017 e documentazione della progettazione e del congelamento del Database V1 |
 | 0.5 | 16/08/2026 | Aggiornamento del Quaderno con la Sessione S018: supporto alle finestre agronomiche multiple, preparazione dell'ambiente Supabase locale e predisposizione della futura baseline SQL Database V1 |
 | 0.6 | 18/08/2026 | Aggiornamento del Quaderno con la Sessione S019: prima migration Database V1, implementazione delle Fondazioni, schema `private`, helper autorizzativi, trigger metadata, prima matrice RLS e verifiche locali di sicurezza |
@@ -49,12 +52,15 @@
 | 0.11 | 01/09/2026 | Aggiornamento del Quaderno con la Sessione S024: implementazione V1 di `beds` e `bed_geometries`, geometria storicizzata, Write Path autoritativo delle aiuole, integrazione Flutter, configurazione Supabase parametrizzabile e verifiche locali/end-to-end |
 | 0.12 | 03/09/2026 | Manutenzione straordinaria del Quaderno di Sviluppo: ricostruzione e consolidamento dei tempi complessivi delle Sessioni S001–S024, riallineamento dei progressivi con il DOC-012, classificazione della S007 come attività documentale e formalizzazione della futura verifica controllata degli aggiornamenti ISO 3166-1 alpha-2 |
 | 0.13 | 06/09/2026 | Aggiornamento del Quaderno con la Sessione S025: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, gestione italiana delle date, nuove pagine operative, verifiche automatiche e collaudo locale end-to-end |
+| 0.14 | 11/09/2026 | Aggiornamento del Quaderno con la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, Profile Write Authority, RLS, concorrenza ottimistica, validazioni agronomiche e definizione della S027 come integrazione Flutter del Catalogo V1 |
 
 ---
 
 # Registro delle sessioni di sviluppo
 
-La durata riportata comprende il tempo complessivo della sessione, includendo sviluppo e documentazione quando entrambi presenti.
+La durata riportata comprende il tempo complessivo della sessione, includendo sviluppo e documentazione quando entrambi risultano conclusi.
+
+Per una sessione ancora in corso viene riportato soltanto il tempo già consolidato; il totale definitivo viene aggiornato alla chiusura della relativa fase documentale.
 
 | Sessione | Periodo | Durata | Totale progetto | Attività principale | Stato |
 |-----------|---------|:------:|:---------------:|---------------------|:-----:|
@@ -82,11 +88,27 @@ La durata riportata comprende il tempo complessivo della sessione, includendo sv
 | S022 | 23–25/08/2026 | 9 h 34 min | 136 h 23 min | Implementazione del Write Path autoritativo di Categoria A per `gardens` | ✅ |
 | S023 | 25–28/08/2026 | 13 h 25 min | 149 h 48 min | Profile Write Authority applicativa, hardening concorrente di `gardens` e Write Path autoritativo di `seasons` | ✅ |
 | S024 | 30/08–01/09/2026 | 18 h 03 min | 167 h 51 min | Implementazione del Write Path autoritativo di `beds` e della geometria storicizzata delle aiuole | ✅ |
-| S025 | 02–06/09/2026 | 6 h 56 min | 174 h 47 min | Completamento dell’integrazione UI dei Write Path autoritativi di `beds` | ✅ |
+| S025 | 02–06/09/2026 | 6 h 56 min | 174 h 47 min | Completamento dell'integrazione UI dei Write Path autoritativi di `beds` | ✅ |
+| S026 | 10–12/09/2026 | 8 h 55 min | 183 h 42 min | Implementazione del Catalogo DB V1 e dei relativi Write Path autoritativi | ✅ |
 
 \* La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
 Per le Sessioni S004, S005 e S006 è disponibile il tempo complessivo storico della sessione, ma non la ripartizione attendibile tra sviluppo e documentazione.
+
+Per la Sessione S026 il tempo complessivo è composto da:
+
+```text
+Sviluppo        7 h 04 min
+Documentazione  1 h 51 min
+-------------------------
+Totale          8 h 55 min
+```
+
+Il totale progressivo del progetto alla chiusura della S026 è:
+
+```text
+183 h 42 min
+```
 
 ---
 
@@ -126,6 +148,7 @@ Per le Sessioni S004, S005 e S006 è disponibile il tempo complessivo storico de
 3.23 S023
 3.24 S024
 3.25 S025
+3.26 S026
 
 ## 4. Considerazioni finali
 
@@ -6763,3 +6786,867 @@ Sviluppo: **5 h 11 min**
 Documentazione: **1 h 45 min**
 
 Totale S025: **6 h 56 min**
+
+# Sessione S026 — Catalogo DB V1 e Write Path autoritativi
+
+**Periodo:** 10/09/2026 → 11/09/2026
+
+**Sviluppo:** concluso
+
+**Documentazione:** in corso
+
+## Obiettivo della sessione
+
+La Sessione S026 è stata avviata con l'obiettivo iniziale di analizzare e preparare il futuro Write Path autoritativo di `plantings`.
+
+L'analisi delle dipendenze ha evidenziato che `plantings` non poteva essere implementata correttamente senza disporre prima di un catalogo agronomico operativo coerente con la baseline Database V1.
+
+È stata quindi approvata la sequenza:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+        ↓
+plantings
+```
+
+La Sessione S026 ha completato i primi tre livelli mediante l'implementazione del **Catalogo DB V1**:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+`plantings` non è stata implementata nella S026.
+
+L'obiettivo tecnico effettivamente consolidato è stato quindi:
+
+> **implementazione e verifica del Catalogo DB V1 e dei relativi Write Path autoritativi.**
+
+## Timing della Sessione S026
+
+### Sviluppo
+
+La fase sviluppo è iniziata il **10/09/2026 alle 12:03** ed è terminata il **11/09/2026 alle 17:08**.
+
+Il tempo netto complessivo di sviluppo della Sessione S026 è:
+
+> **7 h 04 min**
+
+Il tempo è calcolato esclusivamente sugli intervalli effettivi di lavoro, al netto delle sospensioni registrate durante la sessione.
+
+### Documentazione
+
+La fase Manuali S026 è iniziata il **11/09/2026 alle 17:18**.
+
+Gli intervalli documentali registrati sono:
+
+```text
+11/09/2026  17:18 → 18:46 = 1 h 28 min
+12/09/2026  17:19 → 17:42 = 0 h 23 min
+```
+
+Il tempo netto complessivo di documentazione della Sessione S026 è:
+
+> **1 h 51 min**
+
+### Totale Sessione S026
+
+| Voce | Durata |
+| --- | ---: |
+| Sviluppo | 7 h 04 min |
+| Documentazione | 1 h 51 min |
+| **Totale S026** | **8 h 55 min** |
+
+Alla chiusura della S026 i progressivi complessivi del progetto risultano:
+
+| Indicatore | Totale |
+| --- | ---: |
+| Sviluppo complessivo | 135 h 52 min |
+| Documentazione complessiva | 47 h 50 min |
+| **Totale progetto** | **183 h 42 min** |
+
+## IMPLEMENTATO E TESTATO
+
+### Catalogo DB V1
+
+Sono state introdotte le strutture persistenti:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+La gerarchia approvata è:
+
+```text
+Botanical Family
+        ↓
+Crop
+        ↓
+Crop Variety
+```
+
+Il catalogo è **Profile-owned** e viene condiviso tra tutti i Gardens appartenenti allo stesso Profile.
+
+Gli identificativi utilizzano UUID.
+
+Nel dominio Dart gli UUID continueranno a essere rappresentati come `String`.
+
+### Botanical Families
+
+`botanical_families` rappresenta il livello gerarchico superiore del catalogo.
+
+Sono consolidate le seguenti regole:
+
+- nome univoco case-insensitive all'interno dello stesso Profile;
+- `scientific_name` univoco case-insensitive nello stesso Profile quando valorizzato;
+- nuova Botanical Family inizialmente attiva;
+- impossibilità di disattivare una Botanical Family che possiede Crop attive;
+- record inattivi ancora modificabili;
+- riattivazione esplicita;
+- nessuna eliminazione fisica attraverso l'applicazione.
+
+### Crops
+
+`crops` rappresenta la coltura generale.
+
+Ogni Crop appartiene a una Botanical Family mediante:
+
+```text
+botanical_family_id
+```
+
+La precedente rappresentazione testuale della famiglia botanica non costituisce il contratto del nuovo Database V1.
+
+Sono consolidate le seguenti regole:
+
+- nome univoco case-insensitive per Profile;
+- `scientific_name` univoco case-insensitive per Profile quando valorizzato;
+- creazione consentita soltanto sotto una Botanical Family attiva;
+- cambio della Botanical Family consentito soltanto verso una Family attiva dello stesso Profile;
+- riattivazione consentita soltanto se la Botanical Family padre è attiva;
+- impossibilità di disattivare una Crop che possiede Crop Variety attive;
+- record inattivi ancora modificabili;
+- riattivare una Botanical Family non riattiva automaticamente le Crop figlie.
+
+### Crop Varieties
+
+`crop_varieties` rappresenta la varietà come entità autonoma.
+
+La precedente rappresentazione legacy della varietà incorporata nella Crop viene superata dal nuovo contratto persistente.
+
+Ogni Crop Variety appartiene a una Crop mediante:
+
+```text
+crop_id
+```
+
+Sono consolidate le seguenti regole:
+
+- nome univoco case-insensitive all'interno della stessa Crop;
+- stesso nome consentito in Crop differenti;
+- `scientific_name` non univoco;
+- creazione consentita soltanto sotto una Crop attiva;
+- riattivazione consentita soltanto se la Crop padre è attiva;
+- disattivazione diretta consentita;
+- record inattivi ancora modificabili;
+- riattivare la Crop padre non riattiva automaticamente le varietà;
+- `crop_varieties.crop_id` è immutabile dopo la creazione.
+
+Quando una varietà è stata associata alla Crop errata, la strategia prevista è:
+
+```text
+disattivazione
+        +
+nuova creazione corretta
+```
+
+e non il cambio del parent.
+
+## Metodo di avvio
+
+La precedente terminologia legacy relativa a semina e trapianto è stata consolidata nel campo:
+
+```text
+default_start_method
+```
+
+I valori canonici approvati sono:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
+
+## Fallback Crop → Crop Variety
+
+La Crop contiene i valori generali o di default.
+
+La Crop Variety può specializzarli mediante override nullable.
+
+Il fallback campo-per-campo è previsto per:
+
+- `default_start_method`;
+- `row_spacing_cm`;
+- `plant_spacing_cm`;
+- `sowing_depth_cm`;
+- `germination_days`;
+- `harvest_days`;
+- `min_temperature`;
+- `optimal_temperature`;
+- `productivity`;
+- `water_requirement`.
+
+`rotation_seasons` rimane definito esclusivamente a livello Crop.
+
+Il principio è:
+
+```text
+valore varietale presente
+        ↓
+usa override varietale
+
+valore varietale assente
+        ↓
+usa valore della Crop
+```
+
+La validazione deve essere effettuata anche sul risultato effettivo del fallback.
+
+Esempio:
+
+```text
+Crop:
+min_temperature = 10
+optimal_temperature = 24
+
+Crop Variety:
+min_temperature = 25
+optimal_temperature = NULL
+```
+
+produce il risultato effettivo:
+
+```text
+min = 25
+optimal = 24
+```
+
+che è incoerente e deve quindi restituire:
+
+```text
+invalid_input
+```
+
+## Fabbisogno idrico
+
+Il catalogo distingue il fabbisogno qualitativo dal nuovo blocco quantitativo.
+
+I campi quantitativi sono:
+
+```text
+water_requirement_value
+water_requirement_basis
+water_interval_days
+```
+
+Le basi canoniche sono:
+
+```text
+per_plant
+per_m2
+```
+
+Per la Crop Variety il blocco quantitativo segue la regola:
+
+```text
+tutti NULL
+        ↓
+fallback completo alla Crop
+
+tutti valorizzati
+        ↓
+override varietale completo
+
+override parziale
+        ↓
+invalid_input
+```
+
+Non sono stati introdotti:
+
+```text
+water_requirement_period
+per_week
+per_irrigation
+```
+
+Il dato del catalogo rappresenta una baseline agronomica.
+
+Le future correzioni dovute a:
+
+- pioggia;
+- siccità;
+- temperatura;
+- condizioni operative;
+- meteo locale;
+
+dovranno modificare il calcolo dinamico e non riscrivere la baseline del catalogo.
+
+## Resa prevista
+
+Sono stati introdotti i campi:
+
+```text
+expected_yield_min
+expected_yield_avg
+expected_yield_max
+expected_yield_unit
+yield_source_name
+yield_source_url
+yield_source_year
+yield_notes
+```
+
+Le unità canoniche sono:
+
+```text
+kg_per_m2
+kg_per_plant
+g_per_m2
+g_per_plant
+pieces_per_m2
+pieces_per_plant
+```
+
+Le regole consolidate sono:
+
+- min/avg/max devono essere maggiori o uguali a zero;
+- i valori devono essere ordinati e coerenti;
+- se esiste almeno un valore di resa, `expected_yield_unit` è obbligatorio;
+- se non esiste alcun valore di resa, unità e fonte devono essere `NULL`;
+- i dati della fonte sono opzionali e possono essere parziali quando la resa è presente;
+- `yield_source_year`, quando presente, deve essere maggiore o uguale a 1800.
+
+Per Crop Variety:
+
+```text
+nessuna resa varietale
+        ↓
+eredita l'intero blocco Crop
+
+almeno un valore di resa varietale
+        ↓
+blocco varietale autonomo
+```
+
+Non viene effettuato fallback campo-per-campo del blocco resa.
+
+## Normalizzazione e limiti testuali
+
+Sono stati consolidati i limiti:
+
+```text
+name                80
+scientific_name    120
+description        300
+water_requirement  180
+productivity       180
+yield_source_name  150
+yield_source_url   300
+yield_notes        300
+```
+
+Le RPC normalizzano:
+
+- `name` mediante trim e collasso degli spazi;
+- `scientific_name` mediante trim e collasso degli spazi;
+- gli altri testi mediante trim;
+- stringhe opzionali vuote convertite a `NULL`.
+
+## Catalogo corrente e snapshot storico
+
+È stato approvato il principio:
+
+> **catalogo corrente + snapshot storico**
+
+Le future modifiche ai valori correnti del catalogo non devono riscrivere retroattivamente:
+
+- calcoli storici;
+- decisioni agronomiche già consolidate;
+- fabbisogni utilizzati nel passato;
+- valutazioni di resa;
+- decisioni irrigue future quando queste utilizzeranno il catalogo.
+
+Lo stesso principio dovrà essere applicato alle future informazioni decisionali relative all'acqua e agli altri dati agronomici che possono cambiare nel tempo.
+
+## Sicurezza e Write Path autoritativi
+
+Il catalogo utilizza il percorso:
+
+```text
+Supabase Auth
+        ↓
+autorizzazione server-side
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+FOR UPDATE / row_version
+        ↓
+scrittura
+```
+
+Flutter rimane un client non fidato.
+
+Il controllo locale rappresenta un preflight preventivo e non sostituisce l'autorità server-side.
+
+Le RPC utilizzano:
+
+```text
+SECURITY DEFINER
+```
+
+con:
+
+```text
+search_path = ''
+```
+
+I privilegi `EXECUTE` sono concessi al ruolo `authenticated`.
+
+I privilegi per `anon` e `public` sono revocati.
+
+Le scritture dirette:
+
+```text
+INSERT
+UPDATE
+DELETE
+```
+
+sulle tre tabelle del catalogo sono revocate ad `authenticated`.
+
+Le letture sono protette tramite RLS e:
+
+```text
+private.is_profile_member(profile_id)
+```
+
+## Concorrenza
+
+La concorrenza ottimistica utilizza:
+
+```text
+row_version
+expected_row_version
+```
+
+quando previsto dalle operazioni.
+
+Le righe vengono protette mediante:
+
+```text
+FOR UPDATE
+```
+
+quando necessario.
+
+La Profile Write Authority viene rivalidata dopo eventuali attese sul row lock.
+
+I parent vengono lockati per serializzare correttamente le operazioni concorrenti che possono modificare la validità della gerarchia.
+
+Questo comprende, secondo il caso:
+
+- creazione di un figlio;
+- riattivazione di un figlio;
+- disattivazione di un parent;
+- cambio della Botanical Family di una Crop.
+
+## Migration introdotte
+
+La Sessione S026 ha introdotto:
+
+```text
+supabase/migrations/20260911084752_add_crop_catalog.sql
+supabase/migrations/20260911091047_add_crop_catalog_write_rpcs.sql
+```
+
+La prima migration introduce:
+
+- `botanical_families`;
+- `crops`;
+- `crop_varieties`;
+- vincoli;
+- indici;
+- trigger metadata;
+- RLS;
+- privilegi.
+
+La seconda migration introduce nove RPC autoritative:
+
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+create_crop
+update_crop
+set_crop_active
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
+
+## Verifiche e test
+
+I test funzionali SQL sono stati eseguiti utilizzando dati fittizi all'interno di transazioni:
+
+```text
+BEGIN
+...
+ROLLBACK
+```
+
+senza lasciare dati persistenti.
+
+Sono stati verificati casi positivi, negativi e concorrenti relativi a:
+
+### Botanical Families
+
+- creazione;
+- normalizzazione;
+- nome duplicato case-insensitive;
+- `scientific_name` duplicato;
+- input non valido;
+- Profile Write Authority;
+- owner/non-owner;
+- update;
+- dati invariati;
+- `version_conflict`;
+- modifica di record inattivi;
+- blocco della disattivazione in presenza di Crop attive.
+
+### Crops
+
+- creazione completa;
+- `default_start_method`;
+- fabbisogno idrico;
+- resa;
+- ordine dei valori di resa;
+- temperature;
+- anno della fonte;
+- cambio Botanical Family;
+- Family target inattiva;
+- modifica di Crop inattiva;
+- duplicati;
+- disattivazione;
+- riattivazione;
+- blocco in presenza di Crop Variety attive;
+- blocco della riattivazione quando il parent è inattivo.
+
+### Crop Varieties
+
+- creazione;
+- fallback alla Crop;
+- validazione della temperatura effettiva;
+- rifiuto dell'override idrico parziale;
+- rifiuto della resa senza unità;
+- blocco della creazione sotto Crop inattiva;
+- duplicato nella stessa Crop;
+- stesso nome consentito in Crop differenti;
+- stesso `scientific_name` consentito;
+- update;
+- dati invariati;
+- `version_conflict`;
+- modifica della Variety inattiva;
+- modifica con Crop inattiva;
+- fallback termico non valido;
+- duplicato durante update;
+- disattivazione;
+- riattivazione;
+- blocco della riattivazione con parent inattivo;
+- conferma che la riattivazione del parent non riattiva automaticamente il figlio;
+- stato già invariato.
+
+## RLS e privilegi
+
+È stato verificato che per:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+il ruolo `authenticated` disponga di:
+
+```text
+SELECT
+```
+
+ma non di:
+
+```text
+INSERT
+UPDATE
+DELETE
+```
+
+È stata verificata l'attivazione della Row Level Security.
+
+Le policy di lettura utilizzano la membership del Profile.
+
+È stato inoltre verificato che:
+
+- un membro possa leggere il catalogo del proprio Profile;
+- un non membro non possa leggerlo;
+- le nove RPC siano eseguibili da `authenticated`;
+- `anon` e `public` non dispongano di `EXECUTE`.
+
+## Verifiche Supabase
+
+È stato eseguito:
+
+```text
+supabase db lint --local
+```
+
+Il comando non ha rilevato nuovi problemi introdotti dalla S026.
+
+Rimangono tre warning preesistenti relativi a variabili della funzione:
+
+```text
+public.request_profile_edit_takeover
+```
+
+e in particolare:
+
+```text
+current_takeover_requested_by_auth_user_id
+current_takeover_requested_by_client_id
+current_takeover_requested_by_session_id
+```
+
+Questi warning sono preesistenti e non appartengono al perimetro tecnico della S026.
+
+È stato inoltre eseguito:
+
+```text
+supabase db diff --local
+```
+
+con risultato:
+
+```text
+No schema changes found
+```
+
+Le migration sono state applicate anche al database remoto.
+
+La verifica mediante:
+
+```text
+supabase migration list
+```
+
+ha confermato l'allineamento:
+
+```text
+Local = Remote
+```
+
+fino a:
+
+```text
+20260911091047
+```
+
+## APPROVATO / CONGELATO
+
+Con la conclusione dello sviluppo della Sessione S026 vengono considerati consolidati:
+
+- Catalogo DB V1 composto da `botanical_families`, `crops` e `crop_varieties`;
+- ownership del catalogo a livello Profile;
+- condivisione del catalogo tra i Gardens dello stesso Profile;
+- identificativi UUID;
+- rappresentazione Dart futura mediante `String`;
+- `crop_varieties` come entità autonoma;
+- `botanical_family_id` come relazione persistente della Crop;
+- `default_start_method` con valori canonici;
+- fallback Crop → Crop Variety per i campi previsti;
+- `rotation_seasons` soltanto a livello Crop;
+- blocco quantitativo del fabbisogno idrico;
+- blocco della resa prevista;
+- regole gerarchiche di attivazione e disattivazione;
+- assenza di eliminazione fisica applicativa;
+- immutabilità di `crop_varieties.crop_id`;
+- Profile Write Authority;
+- concorrenza ottimistica;
+- locking gerarchico;
+- RLS in lettura;
+- revoca delle scritture dirette;
+- nove RPC autoritative;
+- principio **catalogo corrente + snapshot storico**.
+
+Il Catalogo DB V1 è considerato:
+
+> **implementato e verificato lato PostgreSQL/Supabase.**
+
+Non è ancora integrato nel client Flutter.
+
+## Commit tecnico S026
+
+Il commit tecnico conclusivo della Sessione S026 è:
+
+- `e471c63` — **Aggiunge catalogo colture e Write Path autoritativo**
+
+SHA completo:
+
+```text
+e471c63d2046646720485abad95c51dc53b35c02
+```
+
+Il confine Git tecnico della Sessione S026 è:
+
+```text
+cab6260..e471c63
+```
+
+Il commit tecnico comprende esclusivamente due nuove migration:
+
+```text
+supabase/migrations/20260911084752_add_crop_catalog.sql
+supabase/migrations/20260911091047_add_crop_catalog_write_rpcs.sql
+```
+
+Diff tecnico:
+
+```text
+2 file modificati
+4968 inserimenti
+```
+
+La Sessione S026 non ha introdotto modifiche Dart/Flutter.
+
+## Stato Git al termine dello sviluppo
+
+Al passaggio dalla fase sviluppo alla fase Manuali risultava:
+
+```text
+branch: main
+
+HEAD: e471c63d2046646720485abad95c51dc53b35c02
+
+origin/main: e471c63d2046646720485abad95c51dc53b35c02
+
+working tree: clean
+```
+
+Il commit tecnico è stato pubblicato sul repository remoto mediante:
+
+```text
+cab6260..e471c63  main -> main
+```
+
+## APERTO / FUTURE
+
+Restano fuori dal perimetro della Sessione S026:
+
+1. integrazione Flutter del Catalogo DB V1;
+
+2. implementazione del Write Path completo di `plantings`;
+
+3. risoluzione definitiva della dipendenza legacy della sezione colture di `BedPage` da `public.plantings`;
+
+4. operazioni amministrative protette su `profile_memberships`;
+
+5. futura persistenza di `agronomic_window_rules`;
+
+6. integrazione del principio di snapshot storico nei futuri dati decisionali;
+
+7. eventuale supporto futuro a `heavy_feeder`, escluso dal V1.
+
+`heavy_feeder` rimane classificato:
+
+```text
+FUTURE
+```
+
+e non deve essere introdotto implicitamente nel Database V1.
+
+## Punto di continuità successivo
+
+Il successivo blocco approvato è:
+
+> **S027 — Integrazione Flutter del Catalogo V1**
+
+La S027 dovrà comprendere:
+
+- modelli Dart;
+- result type per create/update/set active;
+- Repository;
+- letture dirette protette da RLS;
+- scritture esclusivamente mediante RPC autoritative;
+- integrazione della Profile Write Authority;
+- gestione di `row_version`;
+- mapping completo degli status RPC;
+- test di Repository e result mapping;
+- successiva valutazione della UI minima del catalogo.
+
+La sequenza tecnica rimane:
+
+```text
+Catalogo DB V1
+        ↓
+integrazione Flutter Catalogo V1
+        ↓
+plantings
+```
+
+Il Write Path completo di `plantings` non deve essere anticipato nella S027, salvo l'eventuale analisi finale delle dipendenze.
+
+## Timing della documentazione
+
+La documentazione della Sessione S026 è iniziata il:
+
+> **11/09/2026 alle 17:18**
+
+Gli intervalli documentali registrati sono:
+
+```text
+11/09/2026  17:18 → 18:46 = 1 h 28 min
+12/09/2026  17:19 → 17:42 = 0 h 23 min
+```
+
+Il tempo netto complessivo della documentazione della Sessione S026 è:
+
+> **1 h 51 min**
+
+La fase documentale della S026 si considera conclusa il **12/09/2026 alle 17:42**.
+
+## Tempo complessivo della Sessione S026
+
+Il tempo complessivo consolidato della Sessione S026 è:
+
+| Attività | Durata |
+|----------|-------:|
+| Sviluppo | 7 h 04 min |
+| Documentazione | 1 h 51 min |
+| **Totale S026** | **8 h 55 min** |
+
+Alla chiusura della Sessione S026 i progressivi complessivi del progetto risultano:
+
+| Indicatore | Totale |
+|------------|-------:|
+| Sviluppo complessivo | 135 h 52 min |
+| Documentazione complessiva | 47 h 50 min |
+| **Totale progetto** | **183 h 42 min** |

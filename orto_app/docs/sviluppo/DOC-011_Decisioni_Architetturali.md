@@ -4,14 +4,17 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 1.9
+**Versione:** 2.0
+
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
+
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 06/09/2026
+
+**Ultimo aggiornamento:** 11/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -19,42 +22,43 @@
 
 # Informazioni sul documento
 
-| Campo                | Valore                         |
-| -------------------- | ------------------------------ |
-| Documento            | DOC-011                        |
-| Titolo               | Decisioni Architetturali (ADR) |
-| Versione             | 1.9                            |
-| Stato                | In sviluppo                    |
-| Progetto             | Orto Smart                     |
-| Repository           | ortosmart/orto-smart           |
-| Prima emissione      | 28/07/2026                     |
-| Ultimo aggiornamento | 06/09/2026                     |
+| Campo | Valore |
+|-------|--------|
+| Documento | DOC-011 |
+| Titolo | Decisioni Architetturali (ADR) |
+| Versione | 2.0 |
+| Stato | In sviluppo |
+| Progetto | Orto Smart |
+| Repository | ortosmart/orto-smart |
+| Prima emissione | 28/07/2026 |
+| Ultimo aggiornamento | 11/09/2026 |
 
 ---
 
 # Cronologia delle revisioni
 
-| Versione | Data       | Descrizione                                                                                                                |
-| -------- | ---------- | -------------------------------------------------------------------------------------------------------------------------- |
-| 0.1      | 28/07/2026 | Prima emissione del documento Decisioni Architetturali                                                                     |
-| 0.2      | 01/08/2026 | Riorganizzazione della struttura documentale e aggiornamento delle decisioni architetturali                                |
-| 0.3      | 08/08/2026 | Aggiornamento della DEC-003 con l'evoluzione introdotta nella Sessione S010 mediante DecisionWeights                       |
-| 0.4      | 09/08/2026 | Introduzione della DEC-005 sulla separazione tra fabbisogno familiare e pianificazione temporale                           |
-| 0.5      | 09/08/2026 | Introduzione della DEC-006 sull'integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione            |
-| 0.6      | 10/08/2026 | Introduzione della DEC-007 sulla separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato           |
-| 0.7      | 11/08/2026 | Introduzione della DEC-008 sul divieto di conversioni implicite non supportate nella pianificazione                        |
-| 0.8      | 11/08/2026 | Introduzione della DEC-009 sulla separazione tra pianificazione temporale e compatibilità agronomica                       |
-| 0.9      | 12/08/2026 | Introduzione della DEC-010 sulla risoluzione gerarchica delle regole agronomiche e sulla distinzione tra assenza di conoscenza e incompatibilità |
-| 1.0      | 16/08/2026 | Introduzione della DEC-011 sulla baseline architetturale del Database V1 e congelamento della progettazione S017 |
-| 1.1      | 16/08/2026 | Aggiornamento della DEC-010 con l'evoluzione introdotta nella Sessione S018: supporto a più finestre agronomiche applicabili, fallback tra livelli di specificità e distinzione tra `matchedWindow` ed `evaluatedWindows` |
-| 1.2      | 20/08/2026 | Introduzione della DEC-012 sulla sicurezza e gestione concorrente di `profile_edit_locks` nella Sessione S020, con definizione del protocollo server-side, token, lease, heartbeat, takeover, controllo della concorrenza e privilegi delle RPC |
-| 1.3      | 21/08/2026 | Aggiornamento della DEC-012 con l'hardening della concorrenza introdotto nella Sessione S021, audit finale del protocollo `profile_edit_lock` e definizione del confine con il futuro Write Path autoritativo Categoria A |
-| 1.4      | 23/08/2026 | Consolidamento della DEC-012 con il completamento e l'hardening del protocollo `profile_edit_locks` nella Sessione S021 e definizione del confine architetturale con il futuro Write Path autoritativo Categoria A |
-| 1.5      | 24/08/2026 | Aggiornamento della DEC-012 con la Sessione S022: applicazione del protocollo `profile_edit_locks` come fondamento del primo Write Path autoritativo di Categoria A per `gardens`, introduzione di `Profile Write Authority`, RPC `create_garden` e `update_garden` e definizione del confine con le ulteriori entità di Categoria A |
-| 1.6      | 28/08/2026 | Aggiornamento della DEC-012 con la Sessione S023: hardening concorrente di `update_garden`, estensione del Write Path autoritativo a `seasons`, introduzione dell’identità tecnica del client e della sessione e integrazione Flutter fail-closed della Profile Write Authority |
-| 1.7      | 01/09/2026 | Aggiornamento della DEC-012 con la Sessione S024: estensione del Write Path autoritativo a `beds`, geometria storicizzata, concorrenza ottimistica, correzioni tracciate e integrazione Flutter mediante `ProfileContextScope` e risultati tipizzati |
-| 1.8      | 03/09/2026 | Manutenzione straordinaria delle Decisioni Architetturali: eliminazione della duplicazione relativa all’attivazione atomica della stagione nella DEC-012 |
-| 1.9      | 06/09/2026 | Aggiornamento della DEC-012 con la Sessione S025: completamento dell’integrazione UI dei Write Path di `beds`, separazione delle operazioni geometriche, gestione italiana delle date, rilettura autoritativa e trattamento fail-closed degli esiti incerti |
+| Versione | Data | Descrizione |
+|----------|------|-------------|
+| 0.1 | 28/07/2026 | Prima emissione del documento Decisioni Architetturali |
+| 0.2 | 01/08/2026 | Riorganizzazione della struttura documentale e aggiornamento delle decisioni architetturali |
+| 0.3 | 08/08/2026 | Aggiornamento della DEC-003 con l'evoluzione introdotta nella Sessione S010 mediante DecisionWeights |
+| 0.4 | 09/08/2026 | Introduzione della DEC-005 sulla separazione tra fabbisogno familiare e pianificazione temporale |
+| 0.5 | 09/08/2026 | Introduzione della DEC-006 sull'integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione |
+| 0.6 | 10/08/2026 | Introduzione della DEC-007 sulla separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato |
+| 0.7 | 11/08/2026 | Introduzione della DEC-008 sul divieto di conversioni implicite non supportate nella pianificazione |
+| 0.8 | 11/08/2026 | Introduzione della DEC-009 sulla separazione tra pianificazione temporale e compatibilità agronomica |
+| 0.9 | 12/08/2026 | Introduzione della DEC-010 sulla risoluzione gerarchica delle regole agronomiche e sulla distinzione tra assenza di conoscenza e incompatibilità |
+| 1.0 | 16/08/2026 | Introduzione della DEC-011 sulla baseline architetturale del Database V1 e congelamento della progettazione S017 |
+| 1.1 | 16/08/2026 | Aggiornamento della DEC-010 con l'evoluzione introdotta nella Sessione S018: supporto a più finestre agronomiche applicabili, fallback tra livelli di specificità e distinzione tra `matchedWindow` ed `evaluatedWindows` |
+| 1.2 | 20/08/2026 | Introduzione della DEC-012 sulla sicurezza e gestione concorrente di `profile_edit_locks` nella Sessione S020, con definizione del protocollo server-side, token, lease, heartbeat, takeover, controllo della concorrenza e privilegi delle RPC |
+| 1.3 | 21/08/2026 | Aggiornamento della DEC-012 con l'hardening della concorrenza introdotto nella Sessione S021, audit finale del protocollo `profile_edit_lock` e definizione del confine con il futuro Write Path autoritativo Categoria A |
+| 1.4 | 23/08/2026 | Consolidamento della DEC-012 con il completamento e l'hardening del protocollo `profile_edit_locks` nella Sessione S021 e definizione del confine architetturale con il futuro Write Path autoritativo Categoria A |
+| 1.5 | 24/08/2026 | Aggiornamento della DEC-012 con la Sessione S022: applicazione del protocollo `profile_edit_locks` come fondamento del primo Write Path autoritativo di Categoria A per `gardens`, introduzione di `Profile Write Authority`, RPC `create_garden` e `update_garden` e definizione del confine con le ulteriori entità di Categoria A |
+| 1.6 | 28/08/2026 | Aggiornamento della DEC-012 con la Sessione S023: hardening concorrente di `update_garden`, estensione del Write Path autoritativo a `seasons`, introduzione dell’identità tecnica del client e della sessione e integrazione Flutter fail-closed della Profile Write Authority |
+| 1.7 | 01/09/2026 | Aggiornamento della DEC-012 con la Sessione S024: estensione del Write Path autoritativo a `beds`, geometria storicizzata, concorrenza ottimistica, correzioni tracciate e integrazione Flutter mediante `ProfileContextScope` e risultati tipizzati |
+| 1.8 | 03/09/2026 | Manutenzione straordinaria delle Decisioni Architetturali: eliminazione della duplicazione relativa all’attivazione atomica della stagione nella DEC-012 |
+| 1.9 | 06/09/2026 | Aggiornamento della DEC-012 con la Sessione S025: completamento dell’integrazione UI dei Write Path di `beds`, separazione delle operazioni geometriche, gestione italiana delle date, rilettura autoritativa e trattamento fail-closed degli esiti incerti |
+| 2.0 | 11/09/2026 | Introduzione della DEC-013: architettura del Catalogo DB V1, gerarchia `botanical_families` → `crops` → `crop_varieties`, ownership a livello Profile, UUID, fallback Crop → Crop Variety, Write Path autoritativi e principio catalogo corrente + snapshot storico |
 
 ---
 
@@ -67,17 +71,30 @@
 ## 3. Decisioni Architetturali
 
 3.1 DEC-001 – Standardizzazione degli identificativi delle colture
+
 3.2 DEC-002 – Introduzione di BedAnalysisService
+
 3.3 DEC-003 – Introduzione del Decision Engine
+
 3.4 DEC-004 – Chiusura formale delle sessioni di sviluppo
+
 3.5 DEC-005 – Separazione tra fabbisogno familiare e pianificazione temporale
+
 3.6 DEC-006 – Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione
+
 3.7 DEC-007 – Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato
+
 3.8 DEC-008 – Divieto di conversioni implicite non supportate nella pianificazione
+
 3.9 DEC-009 – Separazione tra pianificazione temporale e compatibilità agronomica
+
 3.10 DEC-010 – Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza
+
 3.11 DEC-011 – Baseline architetturale del Database V1
+
 3.12 DEC-012 – Sicurezza e gestione concorrente del `profile_edit_lock`
+
+3.13 DEC-013 – Architettura del Catalogo DB V1 e specializzazione Crop → Crop Variety
 
 ## 4. Registro delle decisioni
 
@@ -1090,11 +1107,11 @@ Questo approccio consente di:
 
 ### Persistenza
 
-La Sessione S016 non introduce ancora la persistenza delle regole agronomiche in Supabase.
+La Sessione S016 non aveva ancora introdotto la persistenza delle regole agronomiche in Supabase.
 
-La persistenza viene deliberatamente rinviata fino alla stabilizzazione del dominio e del comportamento applicativo.
+In quella fase la persistenza era stata deliberatamente rinviata fino alla stabilizzazione del dominio e del comportamento applicativo.
 
-Il principio adottato è:
+Il principio adottato era:
 
 ```text
 dominio
@@ -1106,15 +1123,47 @@ contratto stabile
 progettazione della persistenza
 ```
 
-La futura struttura Supabase dovrà quindi adattarsi al dominio consolidato e non determinare prematuramente la struttura dei componenti applicativi.
+Tale principio rimane valido.
 
-Prima della progettazione dello schema persistente dovranno essere verificati:
+La Sessione S026 ha successivamente risolto una parte importante delle dipendenze che nella S016 erano ancora aperte, introducendo il Catalogo DB V1:
 
-- struttura reale di `crops`;
-- struttura reale di `crop_varieties`;
-- foreign key e vincoli esistenti;
-- differenza tra gli identificativi `String` utilizzati dal dominio agronomico, gli identificativi `int` attualmente utilizzati da `CropVariety` e i `bigint` presenti in Supabase;
-- possibilità che una coltura e uno stesso metodo di avvio possiedano più finestre agronomiche nello stesso anno.
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+Il nuovo contratto persistente utilizza identificativi UUID per:
+
+```text
+botanical_families.id
+crops.id
+crop_varieties.id
+crop_varieties.crop_id
+```
+
+Nel dominio Dart tali identificativi devono essere rappresentati mediante `String`.
+
+La precedente discrepanza tra identificativi `String`, `int` e `bigint` apparteneva quindi allo stato legacy precedente alla S026 e non costituisce il contratto corrente del Catalogo DB V1.
+
+La S026 ha inoltre consolidato `crop_varieties` come entità autonoma collegata a `crops` mediante `crop_id`.
+
+La persistenza delle regole agronomiche specifiche di `agronomic_window_rules` non è tuttavia ancora stata implementata.
+
+Prima della futura implementazione della relativa persistenza dovranno quindi essere verificati:
+
+- contratto definitivo di `agronomic_window_rules`;
+- collegamento alle nuove entità UUID `crops` e `crop_varieties`;
+- eventuale relazione con `default_start_method`;
+- possibilità che una Crop e uno stesso metodo di avvio possiedano più finestre agronomiche nello stesso anno;
+- mantenimento del fallback tra Crop e Crop Variety;
+- compatibilità con il principio **catalogo corrente + snapshot storico**;
+- strategia di migrazione dei componenti legacy;
+- copertura dei test del Repository Layer e del mapping applicativo.
+
+La futura struttura persistente delle regole agronomiche dovrà quindi integrarsi con il Catalogo DB V1 senza reintrodurre identificativi numerici come nuovo contratto e senza modificare retroattivamente le decisioni storiche già consolidate.
 
 ### Separazione dalle future correzioni climatiche e meteorologiche
 
@@ -1796,22 +1845,555 @@ Il Write Path delle ulteriori entità di Categoria A rimane pertanto un blocco t
 
 ---
 
+## 3.13 DEC-013 – Architettura del Catalogo DB V1 e specializzazione Crop → Crop Variety
+
+**Stato:** Approvata
+
+**Data:** 11/09/2026
+
+**Sessione:** S026
+
+### Contesto
+
+La baseline Database V1 prevedeva la persistenza delle colture e delle varietà, ma prima della Sessione S026 il progetto utilizzava ancora una rappresentazione applicativa legacy non adeguata al nuovo modello persistente.
+
+L'obiettivo iniziale della S026 era analizzare il futuro Write Path autoritativo di `plantings`.
+
+L'analisi delle dipendenze ha evidenziato che `plantings` non poteva essere introdotta correttamente senza disporre prima di un catalogo agronomico persistente, coerente e autoritativo.
+
+È stata quindi consolidata la sequenza:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+        ↓
+plantings
+```
+
+La Sessione S026 ha implementato i primi tre livelli mediante il Catalogo DB V1.
+
+### Decisione
+
+Il Catalogo DB V1 è costituito da:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+e costituisce il riferimento persistente autoritativo per le entità agronomiche generali necessarie alle future coltivazioni.
+
+Il catalogo è posseduto dal Profile e condiviso tra tutti i Gardens appartenenti allo stesso Profile.
+
+La proprietà del catalogo non è quindi legata al singolo Garden.
+
+### Ownership
+
+Le entità del Catalogo DB V1 utilizzano:
+
+```text
+profile_id
+```
+
+come perimetro di appartenenza.
+
+La scelta consente allo stesso Profile di utilizzare lo stesso catalogo in più Gardens evitando duplicazioni inutili.
+
+Le letture sono protette tramite RLS e membership del Profile.
+
+### Identificativi
+
+Le entità del Catalogo DB V1 utilizzano identificativi UUID.
+
+In particolare:
+
+```text
+botanical_families.id
+crops.id
+crop_varieties.id
+crop_varieties.crop_id
+```
+
+utilizzano UUID nel database.
+
+Nel dominio Dart gli UUID devono essere rappresentati mediante `String`.
+
+Il precedente utilizzo di identificativi numerici in componenti legacy non costituisce il contratto del nuovo Database V1.
+
+### Gerarchia
+
+La gerarchia autoritativa è:
+
+```text
+Botanical Family
+        ↓
+Crop
+        ↓
+Crop Variety
+```
+
+Una Crop appartiene a una Botanical Family mediante:
+
+```text
+botanical_family_id
+```
+
+Una Crop Variety appartiene a una Crop mediante:
+
+```text
+crop_id
+```
+
+`crop_varieties.crop_id` è immutabile dopo la creazione.
+
+Una Variety associata alla Crop errata deve essere disattivata e ricreata correttamente, evitando il trasferimento arbitrario tra Crop.
+
+`crops.botanical_family_id` può invece essere corretto, purché la nuova Botanical Family:
+
+- appartenga allo stesso Profile;
+- sia attiva;
+- soddisfi le invarianti previste dal contratto server-side.
+
+### Crop Variety come entità autonoma
+
+La varietà non viene più rappresentata come semplice testo incorporato nella Crop.
+
+`crop_varieties` costituisce una entità autonoma con:
+
+- identità propria;
+- stato proprio;
+- versione propria;
+- parametri agronomici specifici;
+- possibilità di specializzare i valori della Crop.
+
+Questa separazione consente di evitare duplicazioni dei dati generali della coltura e di modellare soltanto le differenze effettivamente varietali.
+
+### Metodo di avvio
+
+Il Catalogo DB V1 utilizza:
+
+```text
+default_start_method
+```
+
+come campo canonico per rappresentare il metodo di avvio della coltura.
+
+I valori approvati sono:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
+
+Le precedenti rappresentazioni legacy basate su campi distinti non costituiscono il contratto del nuovo catalogo.
+
+### Fallback Crop → Crop Variety
+
+La Crop rappresenta il livello generale.
+
+La Crop Variety può specializzare i valori mediante override nullable.
+
+Il fallback campo-per-campo è applicato ai valori previsti dal contratto, tra cui:
+
+- `default_start_method`;
+- `row_spacing_cm`;
+- `plant_spacing_cm`;
+- `sowing_depth_cm`;
+- `germination_days`;
+- `harvest_days`;
+- `min_temperature`;
+- `optimal_temperature`;
+- `productivity`;
+- `water_requirement`.
+
+La regola è:
+
+```text
+override varietale presente
+        ↓
+usa valore della Variety
+
+override varietale assente
+        ↓
+usa valore della Crop
+```
+
+`rotation_seasons` rimane definito esclusivamente a livello Crop.
+
+Le validazioni devono essere eseguite anche sul valore effettivo risultante dal fallback.
+
+Un insieme di valori singolarmente validi ma incoerente dopo il fallback deve essere rifiutato.
+
+### Fabbisogno idrico
+
+Il Catalogo DB V1 distingue il valore qualitativo del fabbisogno idrico dal blocco quantitativo.
+
+Il blocco quantitativo utilizza:
+
+```text
+water_requirement_value
+water_requirement_basis
+water_interval_days
+```
+
+Le basi canoniche sono:
+
+```text
+per_plant
+per_m2
+```
+
+Per una Crop Variety il blocco quantitativo deve essere trattato come unità coerente:
+
+```text
+tutti NULL
+        ↓
+fallback completo alla Crop
+
+tutti valorizzati
+        ↓
+override varietale completo
+
+override parziale
+        ↓
+invalid_input
+```
+
+Non vengono introdotte basi come:
+
+```text
+per_week
+per_irrigation
+```
+
+né il campo:
+
+```text
+water_requirement_period
+```
+
+La quantità memorizzata nel catalogo rappresenta una baseline agronomica e non deve essere modificata per rappresentare condizioni temporanee come pioggia, siccità o temperatura.
+
+### Resa prevista
+
+Il blocco della resa utilizza:
+
+```text
+expected_yield_min
+expected_yield_avg
+expected_yield_max
+expected_yield_unit
+yield_source_name
+yield_source_url
+yield_source_year
+yield_notes
+```
+
+Le unità canoniche sono:
+
+```text
+kg_per_m2
+kg_per_plant
+g_per_m2
+g_per_plant
+pieces_per_m2
+pieces_per_plant
+```
+
+I valori devono rispettare:
+
+```text
+min <= avg <= max
+```
+
+quando presenti.
+
+Se viene valorizzato almeno un valore di resa, l'unità è obbligatoria.
+
+Per Crop Variety il blocco resa non utilizza un fallback campo-per-campo.
+
+La regola è:
+
+```text
+nessuna resa varietale
+        ↓
+eredita l'intero blocco della Crop
+
+almeno un valore di resa varietale
+        ↓
+usa un blocco varietale autonomo
+```
+
+La scelta evita la costruzione di blocchi di resa ibridi ottenuti combinando valori provenienti da livelli differenti.
+
+### Stato e ciclo di vita
+
+Le nuove Botanical Family, Crop e Crop Variety vengono create attive.
+
+Il Catalogo DB V1 non prevede eliminazione fisica mediante l'applicazione.
+
+Gli elementi vengono disattivati preservando identità e riferimenti storici.
+
+Le regole gerarchiche prevedono che:
+
+- una Botanical Family non possa essere disattivata se possiede Crop attive;
+- una Crop non possa essere disattivata se possiede Crop Variety attive;
+- una Crop Variety possa essere disattivata direttamente;
+- una Crop possa essere creata soltanto sotto una Botanical Family attiva;
+- una Crop Variety possa essere creata soltanto sotto una Crop attiva;
+- una Crop possa essere riattivata soltanto se la Botanical Family padre è attiva;
+- una Crop Variety possa essere riattivata soltanto se la Crop padre è attiva.
+
+La riattivazione di un parent non riattiva automaticamente i figli.
+
+I record inattivi rimangono modificabili.
+
+### Unicità
+
+Per `botanical_families`:
+
+- `name` è univoco case-insensitive all'interno del Profile;
+- `scientific_name`, quando presente, è univoco case-insensitive all'interno del Profile.
+
+Per `crops`:
+
+- `name` è univoco case-insensitive all'interno del Profile;
+- `scientific_name`, quando presente, è univoco case-insensitive all'interno del Profile.
+
+Per `crop_varieties`:
+
+- `name` è univoco case-insensitive all'interno della stessa Crop;
+- lo stesso nome può esistere sotto Crop differenti;
+- `scientific_name` non è univoco.
+
+L'unicità comprende anche i record inattivi.
+
+Un record disattivato deve quindi essere riattivato e non ricreato come duplicato.
+
+### Normalizzazione
+
+Le RPC autoritative normalizzano:
+
+- `name` mediante trim e collasso degli spazi;
+- `scientific_name` mediante trim e collasso degli spazi;
+- gli altri testi mediante trim;
+- le stringhe opzionali vuote in `NULL`.
+
+La normalizzazione fa parte del contratto server-side e non deve dipendere esclusivamente dal comportamento del client.
+
+### Catalogo corrente + snapshot storico
+
+Viene approvato il principio:
+
+> **catalogo corrente + snapshot storico**
+
+Il catalogo rappresenta lo stato corrente delle conoscenze e dei valori agronomici.
+
+Le modifiche future al catalogo non devono riscrivere retroattivamente:
+
+- calcoli storici;
+- decisioni agronomiche;
+- quantità utilizzate in decisioni precedenti;
+- valori di resa già utilizzati;
+- future decisioni irrigue già consolidate.
+
+Le entità o i processi che richiedono riproducibilità storica dovranno conservare uno snapshot sufficiente dei valori effettivamente utilizzati oppure un equivalente meccanismo di storicizzazione.
+
+Lo stesso principio dovrà essere applicato ai futuri dati decisionali relativi all'irrigazione e alle altre elaborazioni agronomiche.
+
+### Write Path autoritativo
+
+Le scritture del Catalogo DB V1 utilizzano lo stesso principio generale consolidato dalla DEC-012:
+
+```text
+Supabase Auth
+        ↓
+autorizzazione server-side
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+FOR UPDATE / row_version
+        ↓
+scrittura
+```
+
+Sono disponibili nove RPC:
+
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+
+create_crop
+update_crop
+set_crop_active
+
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
+
+Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono revocate.
+
+Le RPC sono `SECURITY DEFINER`, utilizzano:
+
+```text
+search_path = ''
+```
+
+e sono eseguibili esclusivamente dal ruolo applicativo previsto.
+
+Il client Flutter rimane non fidato.
+
+La Profile Write Authority verificata localmente costituisce soltanto un preflight e non sostituisce la verifica server-side.
+
+### Concorrenza e gerarchia
+
+Gli update utilizzano la concorrenza ottimistica mediante:
+
+```text
+row_version
+expected_row_version
+```
+
+quando prevista dal contratto.
+
+Le righe vengono protette mediante `FOR UPDATE` nei punti necessari.
+
+La validità del lease viene rivalidata dopo eventuali attese sul row lock.
+
+Le righe parent vengono lockate quando necessario per impedire race condition tra:
+
+- creazione di figli;
+- riattivazione di figli;
+- disattivazione di parent;
+- cambio della Botanical Family di una Crop.
+
+La gerarchia deve quindi rimanere valida anche sotto concorrenza e non soltanto nel caso sequenziale.
+
+### Relazione con Flutter
+
+Alla conclusione della S026 il Catalogo DB V1 è implementato e verificato lato PostgreSQL/Supabase ma non ancora integrato nel client Flutter.
+
+Il successivo blocco approvato è:
+
+> **S027 — Integrazione Flutter del Catalogo V1**
+
+La S027 dovrà introdurre:
+
+- modelli Dart;
+- result type;
+- Repository;
+- letture RLS;
+- scritture RPC-only;
+- Profile Write Authority;
+- gestione `row_version`;
+- mapping completo degli status RPC;
+- test del Repository e del result mapping;
+- successiva valutazione della UI minima necessaria.
+
+### Relazione con `plantings`
+
+`plantings` rimane non implementata alla conclusione della S026.
+
+La sequenza approvata è:
+
+```text
+Catalogo DB V1
+        ↓
+Integrazione Flutter Catalogo V1
+        ↓
+plantings
+```
+
+Il Write Path completo di `plantings` non deve essere anticipato nella S027, salvo l'eventuale analisi conclusiva delle dipendenze.
+
+### Motivazione
+
+La separazione tra Botanical Family, Crop e Crop Variety consente di rappresentare il dominio agronomico senza duplicare sistematicamente i dati generali delle colture.
+
+L'ownership a livello Profile evita di replicare lo stesso catalogo in ogni Garden.
+
+L'utilizzo di UUID rende coerenti le nuove entità con il modello identificativo adottato nel Database V1 e rimuove la precedente ambiguità rispetto agli identificativi numerici legacy.
+
+Il fallback Crop → Crop Variety consente di mantenere valori generali a livello Crop e registrare soltanto le differenze varietali.
+
+La gestione unitaria dei blocchi acqua e resa impedisce la formazione di stati parziali o semanticamente ambigui.
+
+Le regole gerarchiche impediscono la creazione di stati impossibili, come figli attivi sotto parent inattivi.
+
+Il principio **catalogo corrente + snapshot storico** consente al catalogo di evolvere senza compromettere la riproducibilità delle decisioni storiche.
+
+L'utilizzo del Write Path autoritativo preserva inoltre il modello di sicurezza e concorrenza già consolidato nel progetto.
+
+### Alternative valutate
+
+Sono state scartate o rinviate le seguenti alternative:
+
+- implementare direttamente `plantings` prima del catalogo;
+- mantenere la varietà come semplice testo all'interno della Crop;
+- duplicare il catalogo per ciascun Garden;
+- utilizzare identificativi numerici come nuovo contratto del Catalogo DB V1;
+- trasferire liberamente una Crop Variety da una Crop a un'altra;
+- consentire l'eliminazione fisica delle entità del catalogo;
+- consentire figli attivi sotto parent inattivi;
+- applicare fallback indiscriminato campo-per-campo anche al blocco della resa;
+- consentire override quantitativi parziali del fabbisogno idrico;
+- modificare la baseline idrica del catalogo per rappresentare condizioni meteorologiche temporanee;
+- affidare esclusivamente al client le validazioni e le regole gerarchiche;
+- consentire scritture dirette alle tabelle del catalogo;
+- implementare contemporaneamente il catalogo, la relativa integrazione Flutter e `plantings`.
+
+Le alternative sono state escluse perché avrebbero aumentato l'ambiguità del modello, introdotto duplicazioni, indebolito la consistenza storica oppure ampliato eccessivamente il perimetro tecnico della sessione.
+
+### Conseguenze
+
+- Il Catalogo DB V1 è una struttura Profile-owned.
+- Lo stesso catalogo può essere condiviso da più Gardens dello stesso Profile.
+- `botanical_families`, `crops` e `crop_varieties` utilizzano UUID.
+- Il dominio Dart dovrà utilizzare `String` per rappresentare tali identificativi.
+- `crop_varieties` è una entità autonoma.
+- La relazione Variety → Crop è immutabile.
+- La relazione Crop → Botanical Family può essere corretta nel rispetto delle invarianti.
+- Il fallback Crop → Crop Variety costituisce parte del contratto applicativo.
+- Il blocco quantitativo dell'acqua e il blocco della resa applicano regole di ereditarietà specifiche e differenti.
+- Il catalogo utilizza disattivazione e riattivazione invece dell'eliminazione fisica applicativa.
+- Le invarianti gerarchiche devono essere garantite server-side anche sotto concorrenza.
+- Le letture sono protette da RLS.
+- Le scritture avvengono esclusivamente mediante RPC autoritative.
+- La Profile Write Authority rimane prerequisito delle scritture protette.
+- Il catalogo corrente può evolvere senza modificare retroattivamente dati e decisioni storiche.
+- Il client Flutter deve essere riallineato al nuovo contratto nella S027.
+- `plantings` rimane un incremento successivo.
+- `heavy_feeder` rimane escluso dal V1 e classificato FUTURE.
+
+---
+
 # 4. Registro delle decisioni
 
-| ID      | Data       | Sessione | Titolo                                                                                | Stato     |
-| ------- | ---------- | -------- | ------------------------------------------------------------------------------------- | --------- |
-| DEC-001 | 28/07/2026 | S005     | Standardizzazione degli identificativi delle colture                                  | Approvata |
-| DEC-002 | 28/07/2026 | S005     | Introduzione di BedAnalysisService                                                    | Approvata |
-| DEC-003 | 29/07/2026 | S006     | Introduzione del Decision Engine                                                      | Approvata |
-| DEC-004 | 01/08/2026 | S007     | Chiusura formale delle sessioni di sviluppo                                           | Approvata |
-| DEC-005 | 09/08/2026 | S011     | Separazione tra fabbisogno familiare e pianificazione temporale                       | Approvata |
-| DEC-006 | 09/08/2026 | S012     | Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione       | Approvata |
-| DEC-007 | 10/08/2026 | S013     | Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato       | Approvata |
-| DEC-008 | 11/08/2026 | S014     | Divieto di conversioni implicite non supportate nella pianificazione                      | Approvata |
-| DEC-009 | 11/08/2026 | S015     | Separazione tra pianificazione temporale e compatibilità agronomica                | Approvata |
-| DEC-010 | 12/08/2026 | S016     | Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza | Approvata |
-| DEC-011 | 16/08/2026 | S017     | Baseline architetturale del Database V1                                               | Approvata |
+| ID | Data | Sessione | Titolo | Stato |
+|----|------|----------|--------|-------|
+| DEC-001 | 28/07/2026 | S005 | Standardizzazione degli identificativi delle colture | Approvata |
+| DEC-002 | 28/07/2026 | S005 | Introduzione di BedAnalysisService | Approvata |
+| DEC-003 | 29/07/2026 | S006 | Introduzione del Decision Engine | Approvata |
+| DEC-004 | 01/08/2026 | S007 | Chiusura formale delle sessioni di sviluppo | Approvata |
+| DEC-005 | 09/08/2026 | S011 | Separazione tra fabbisogno familiare e pianificazione temporale | Approvata |
+| DEC-006 | 09/08/2026 | S012 | Integrazione gerarchica del fabbisogno familiare nel sistema di raccomandazione | Approvata |
+| DEC-007 | 10/08/2026 | S013 | Separazione tra priorità familiare, fabbisogno quantitativo e lotto pianificato | Approvata |
+| DEC-008 | 11/08/2026 | S014 | Divieto di conversioni implicite non supportate nella pianificazione | Approvata |
+| DEC-009 | 11/08/2026 | S015 | Separazione tra pianificazione temporale e compatibilità agronomica | Approvata |
+| DEC-010 | 12/08/2026 | S016 | Risoluzione gerarchica delle regole agronomiche e distinzione dell'assenza di conoscenza | Approvata |
+| DEC-011 | 16/08/2026 | S017 | Baseline architetturale del Database V1 | Approvata |
 | DEC-012 | 06/09/2026 | S020–S025 | Sicurezza e gestione concorrente del `profile_edit_locks` e fondamento del Write Path autoritativo di Categoria A | Approvata |
+| DEC-013 | 11/09/2026 | S026 | Architettura del Catalogo DB V1 e specializzazione Crop → Crop Variety | Approvata |
 
 ---
 

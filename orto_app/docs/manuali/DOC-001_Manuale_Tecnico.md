@@ -4,14 +4,17 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.4
+**Versione:** 2.5
+
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
+
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 26/07/2026
-**Ultimo aggiornamento:** 06/09/2026
+
+**Ultimo aggiornamento:** 11/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,38 +26,39 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.4 |
+| Versione | 2.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 06/09/2026 |
+| Ultimo aggiornamento | 11/09/2026 |
 
 ---
 
 # Cronologia delle revisioni
 
-| Versione | Data       | Descrizione                                                                                                                                                            |
-| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0.1      | 26/07/2026 | Prima emissione del Manuale Tecnico                                                                                                                                    |
-| 0.2      | 27/07/2026 | Aggiornamento architettura e struttura documentale                                                                                                                     |
-| 1.0      | 31/07/2026 | Revisione completa e approvazione del Manuale Tecnico                                                                                                                  |
-| 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico con RecommendationPipeline, DecisionEngine e DecisionWeights                                                                       |
-| 1.2      | 10/08/2026 | Consolidamento dell'evoluzione del Motore Agronomico con FamilyNeedsEngine, integrazione delle priorità familiari e fondamenta dati e di validazione del futuro SuccessionPlanningEngine |
-| 1.3      | 11/08/2026 | Prima implementazione del SuccessionPlanningEngine, generazione temporale dei lotti e introduzione della regola sulle conversioni supportate |
-| 1.4      | 11/08/2026 | Introduzione di AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per la prima verifica separata della compatibilità agronomica dei lotti pianificati |
-| 1.5      | 12/08/2026 | Associazione delle finestre agronomiche a colture e varietà mediante CropAgronomicWindowRule, AgronomicWindowResolver, AgronomicWindowEvaluation e AgronomicWindowService |
-| 1.6      | 16/08/2026 | Aggiornamento dell'architettura di persistenza con la baseline Database V1 congelata nella Sessione S017: 52 entità di dominio, struttura tecnica `profile_edit_locks`, ownership, accesso familiare monoutente, modello single-writer, sicurezza, integrità e strategia di implementazione incrementale |
-| 1.7      | 16/08/2026 | Aggiornamento della S018 con supporto alle finestre agronomiche multiple e predisposizione dell'ambiente locale Supabase mediante WSL 2, Docker Desktop e Supabase CLI per la futura implementazione incrementale della baseline Database V1 |
-| 1.8      | 18/08/2026 | Aggiornamento della S019 con prima migration Database V1, implementazione delle Fondazioni, schema `private`, helper autorizzativi, trigger metadata, prima matrice di sicurezza con 13 policy RLS, verifiche locali positive e negative e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
-| 1.9      | 20/08/2026 | Aggiornamento della S020 con hardening di `profile_edit_locks`, implementazione e verifica delle prime cinque RPC server-side per acquisizione, heartbeat, rilascio, richiesta e annullamento del takeover, consolidamento delle regole di sicurezza concorrente e distinzione delle operazioni di takeover ancora da completare |
-| 2.0      | 23/08/2026 | Aggiornamento con la Sessione S021: completamento del protocollo `profile_edit_locks`, hardening delle transizioni concorrenti, audit server-side e definizione del successivo Write Path autoritativo delle entità di Categoria A |
-| 2.1      | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, Profile Write Authority, RPC `create_garden` e `update_garden`, blocco delle scritture dirette su `public.gardens` e validazioni server-side del Write Path |
-| 2.2      | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, introduzione dell’identità tecnica del client e della sessione applicativa, integrazione Flutter della Profile Write Authority, gate locale fail-closed e adapter tipizzato per le scritture delle stagioni |
-| 2.3      | 01/09/2026 | Aggiornamento con la Sessione S024: implementazione V1 di `beds` e `bed_geometries`, geometria storicizzata, cinque RPC autoritative, integrazione Flutter del Write Path delle aiuole, nuova `CreateBedPage` e configurazione Supabase parametrizzabile |
-| 2.4      | 06/09/2026 | Aggiornamento con la Sessione S025: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, introduzione di `CivilDate`, nuove pagine di modifica e gestione geometrica, attivazione e disattivazione dell’aiuola, rilettura autoritativa e comportamento fail-closed |
+| Versione | Data | Descrizione |
+| -------- | ---- | ----------- |
+| 0.1 | 26/07/2026 | Prima emissione del Manuale Tecnico |
+| 0.2 | 27/07/2026 | Aggiornamento architettura e struttura documentale |
+| 1.0 | 31/07/2026 | Revisione completa e approvazione del Manuale Tecnico |
+| 1.1 | 08/08/2026 | Aggiornamento del Motore Agronomico con RecommendationPipeline, DecisionEngine e DecisionWeights |
+| 1.2 | 10/08/2026 | Consolidamento dell'evoluzione del Motore Agronomico con FamilyNeedsEngine, integrazione delle priorità familiari e fondamenta dati e di validazione del futuro SuccessionPlanningEngine |
+| 1.3 | 11/08/2026 | Prima implementazione del SuccessionPlanningEngine, generazione temporale dei lotti e introduzione della regola sulle conversioni supportate |
+| 1.4 | 11/08/2026 | Introduzione di AgronomicWindow, AgronomicWindowValidator e AgronomicWindowEngine per la prima verifica separata della compatibilità agronomica dei lotti pianificati |
+| 1.5 | 12/08/2026 | Associazione delle finestre agronomiche a colture e varietà mediante CropAgronomicWindowRule, AgronomicWindowResolver, AgronomicWindowEvaluation e AgronomicWindowService |
+| 1.6 | 16/08/2026 | Aggiornamento dell'architettura di persistenza con la baseline Database V1 congelata nella Sessione S017: 52 entità di dominio, struttura tecnica `profile_edit_locks`, ownership, accesso familiare monoutente, modello single-writer, sicurezza, integrità e strategia di implementazione incrementale |
+| 1.7 | 16/08/2026 | Aggiornamento della S018 con supporto alle finestre agronomiche multiple e predisposizione dell'ambiente locale Supabase mediante WSL 2, Docker Desktop e Supabase CLI per la futura implementazione incrementale della baseline Database V1 |
+| 1.8 | 18/08/2026 | Aggiornamento della S019 con prima migration Database V1, implementazione delle Fondazioni, schema `private`, helper autorizzativi, trigger metadata, prima matrice di sicurezza con 13 policy RLS, verifiche locali positive e negative e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
+| 1.9 | 20/08/2026 | Aggiornamento della S020 con hardening di `profile_edit_locks`, implementazione e verifica delle prime cinque RPC server-side per acquisizione, heartbeat, rilascio, richiesta e annullamento del takeover, consolidamento delle regole di sicurezza concorrente e distinzione delle operazioni di takeover ancora da completare |
+| 2.0 | 23/08/2026 | Aggiornamento con la Sessione S021: completamento del protocollo `profile_edit_locks`, hardening delle transizioni concorrenti, audit server-side e definizione del successivo Write Path autoritativo delle entità di Categoria A |
+| 2.1 | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, Profile Write Authority, RPC `create_garden` e `update_garden`, blocco delle scritture dirette su `public.gardens` e validazioni server-side del Write Path |
+| 2.2 | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, introduzione dell’identità tecnica del client e della sessione applicativa, integrazione Flutter della Profile Write Authority, gate locale fail-closed e adapter tipizzato per le scritture delle stagioni |
+| 2.3 | 01/09/2026 | Aggiornamento con la Sessione S024: implementazione V1 di `beds` e `bed_geometries`, geometria storicizzata, cinque RPC autoritative, integrazione Flutter del Write Path delle aiuole, nuova `CreateBedPage` e configurazione Supabase parametrizzabile |
+| 2.4 | 06/09/2026 | Aggiornamento con la Sessione S025: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, introduzione di `CivilDate`, nuove pagine di modifica e gestione geometrica, attivazione e disattivazione dell’aiuola, rilettura autoritativa e comportamento fail-closed |
+| 2.5 | 11/09/2026 | Aggiornamento con la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, identificativi UUID, Profile ownership, nove RPC autoritative, RLS in lettura, revoca delle scritture dirette, Profile Write Authority, concorrenza ottimistica, validazioni gerarchiche e agronomiche, allineamento locale/remoto delle migration e definizione della S027 come integrazione Flutter del Catalogo V1 |
 
 ---
 
@@ -1716,7 +1720,7 @@ Con la Sessione S019 è iniziata la sua implementazione fisica mediante la prima
 supabase/migrations/20260817103916_database_v1_baseline.sql
 ```
 
-Il primo incremento implementato comprende le sei tabelle Fondazioni:
+Il primo incremento implementato comprende le sei strutture Fondazioni:
 
 - `profiles`;
 - `profile_memberships`;
@@ -1729,7 +1733,7 @@ Sono stati inoltre introdotti e verificati lo schema `private`, gli helper autor
 
 La baseline completa non coincide ancora con lo schema fisicamente implementato: la S019 rappresenta il **primo incremento verificato** di un processo di implementazione che deve proseguire progressivamente.
 
-L'evoluzione della persistenza deve preservare i principi stabiliti durante la progettazione S017 e applicati concretamente nella S019:
+L'evoluzione della persistenza deve preservare i principi stabiliti durante la progettazione S017 e applicati concretamente nelle sessioni successive:
 
 - integrità prima della comodità del client;
 - ownership verificabile;
@@ -1743,13 +1747,16 @@ L'evoluzione della persistenza deve preservare i principi stabiliti durante la p
 - riduzione delle duplicazioni;
 - persistenza soltanto delle informazioni necessarie;
 - separazione tra database, Repository Layer e dominio applicativo;
-- implementazione incrementale senza migrazioni big bang.
+- implementazione incrementale senza migration big bang;
+- comportamento fail-closed quando l'esito di una operazione non è confermabile;
+- nessun retry automatico di una scrittura dal risultato incerto;
+- concorrenza ottimistica mediante `row_version` ed `expected_row_version` quando prevista dal contratto.
 
 La Sessione S020 ha avviato il successivo incremento tecnico relativo alle **RPC sicure e atomiche** per le operazioni sensibili, con particolare attenzione alla gestione di `profile_edit_locks`.
 
 La Sessione S021 ha completato il protocollo delle RPC per `profile_edit_locks` e ne ha effettuato l'hardening mediante un audit incrociato dell'intero percorso concorrente.
 
-Sono ora implementate e verificate:
+Sono implementate e verificate:
 
 - `acquire_profile_edit_lock`;
 - `heartbeat_profile_edit_lock`;
@@ -1761,29 +1768,319 @@ Sono ora implementate e verificate:
 - `complete_profile_edit_takeover`;
 - `get_profile_edit_lock_state`.
 
-L'hardening della S021 ha verificato in particolare la serializzazione delle transizioni concorrenti mediante `FOR UPDATE`, la rivalidazione server-side dopo l'eventuale attesa sul row lock, l'utilizzo dell'orologio PostgreSQL nei punti temporali autoritativi, la protezione del lease durante il grant di takeover, il trasferimento atomico del lock e la generazione di un nuovo token al completamento del trasferimento.
+L'hardening della S021 ha verificato in particolare:
 
-Il protocollo `profile_edit_locks` è considerato architetturalmente coerente allo stato attuale. Nella Sessione S022 è stato utilizzato come fondamento del primo **Write Path autoritativo di Categoria A**, implementato per `gardens`.
+- serializzazione delle transizioni concorrenti mediante `FOR UPDATE`;
+- rivalidazione server-side dopo l'eventuale attesa sul row lock;
+- utilizzo dell'orologio PostgreSQL nei punti temporali autoritativi;
+- protezione del lease durante il grant di takeover;
+- trasferimento atomico del lock;
+- generazione di un nuovo token al completamento del trasferimento.
 
-Per `gardens` sono implementate e verificate le RPC autoritative `create_garden` e `update_garden`, con controllo server-side della Profile Write Authority, validazione degli input, controllo dell’appartenenza del Garden al Profile e scrittura atomica. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono revocate. Nella Sessione S023 `update_garden` è stata ulteriormente protetta mediante `expected_row_version` e gestione esplicita di `version_conflict`.
+Il protocollo `profile_edit_locks` è considerato architetturalmente coerente allo stato attuale.
 
-La Sessione S023 ha esteso il medesimo modello a `seasons`, introducendo `create_season`, `update_season` e `activate_season`, revocando le scritture dirette e concentrando nel database la validazione, il controllo della Profile Write Authority, la concorrenza ottimistica e l’attivazione atomica della stagione.
+Nella Sessione S022 è stato utilizzato come fondamento del primo **Write Path autoritativo**, implementato per `gardens`.
 
-Sul lato Flutter sono ora implementati l’identità tecnica persistente del client, l’identità distinta della sessione applicativa, il contesto Profile, il Repository del lock, lo scheduler, il controller, lo scope e il gate della Profile Write Authority. Le scritture protette vengono bloccate localmente in assenza di un lease valido, fermo restando che l’autorità definitiva appartiene alle RPC server-side.
+Per `gardens` sono implementate e verificate le RPC autoritative:
 
-La Sessione S024 ha esteso il modello autoritativo a `beds` e `bed_geometries`, separando l’identità stabile dell’aiuola dalla geometria valida nel tempo.
+```text
+create_garden
+update_garden
+```
 
-Sono state introdotte le RPC `create_bed`, `update_bed`, `set_bed_active`, `change_bed_geometry` e `correct_bed_geometry`. Le operazioni applicano la Profile Write Authority, la concorrenza ottimistica tramite `row_version`, le invarianti temporali e la distinzione tra normale cambio di geometria e correzione storica tracciata.
+Il Write Path verifica server-side:
 
-La Sessione S025 ha completato l’integrazione Flutter di queste operazioni, rendendo disponibili nella UI la modifica dei dati generali dell’aiuola, l’attivazione e la disattivazione, la variazione geometrica ordinaria e la correzione storica.
+- identità autenticata;
+- ownership attiva del Profile;
+- Profile Write Authority;
+- client;
+- sessione;
+- token;
+- lease;
+- stato del takeover;
+- validità degli input.
 
-Il client mantiene separate la variazione ordinaria e la rettifica storica: un esito `correction_required` non viene trasformato automaticamente in una correzione. Dopo ogni scrittura riuscita `BedPage` rilegge il dato autoritativo, mentre gli esiti non confermabili vengono trattati in modo fail-closed senza retry automatici.
+Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono revocate.
 
-I Write Path delle ulteriori entità di Categoria A restano incrementi successivi. Restano inoltre da implementare le operazioni amministrative protette su `profile_memberships`.
+Nella Sessione S023 `update_garden` è stata ulteriormente protetta mediante `expected_row_version` e gestione esplicita di:
 
-Il **DOC-004 – Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo all'interno dell'architettura complessiva di Orto Smart.
+```text
+version_conflict
+```
 
-Le future modifiche strutturali al Database V1 dovranno mantenere allineati schema, sicurezza, codice applicativo e documentazione, ed eventuali variazioni della baseline congelata dovranno essere motivate e formalmente tracciate.
+La Sessione S023 ha esteso il medesimo modello a `seasons`, introducendo:
+
+```text
+create_season
+update_season
+activate_season
+```
+
+Le scritture dirette sono revocate e la validazione, la Profile Write Authority, la concorrenza ottimistica e l'attivazione atomica della stagione sono concentrate nel database.
+
+Sul lato Flutter sono implementati:
+
+- identità tecnica persistente del client;
+- identità distinta della sessione applicativa;
+- contesto Profile;
+- Repository del lock;
+- scheduler;
+- controller;
+- scope;
+- gate della Profile Write Authority.
+
+Le scritture protette vengono bloccate localmente in assenza di un lease valido, fermo restando che l'autorità definitiva appartiene alle RPC server-side.
+
+La Sessione S024 ha esteso il modello autoritativo a:
+
+```text
+beds
+bed_geometries
+bed_geometry_corrections
+```
+
+separando l'identità stabile dell'aiuola dalla geometria valida nel tempo.
+
+Sono state introdotte le RPC:
+
+```text
+create_bed
+update_bed
+set_bed_active
+change_bed_geometry
+correct_bed_geometry
+```
+
+Le operazioni applicano:
+
+- Profile Write Authority;
+- concorrenza ottimistica;
+- `row_version`;
+- invarianti temporali;
+- distinzione tra normale cambio di geometria e correzione storica tracciata.
+
+La Sessione S025 ha completato l'integrazione Flutter di queste operazioni, rendendo disponibili nella UI:
+
+- modifica dei dati generali dell'aiuola;
+- attivazione e disattivazione;
+- variazione geometrica ordinaria;
+- correzione storica.
+
+Il client mantiene separate la variazione ordinaria e la rettifica storica.
+
+Un esito:
+
+```text
+correction_required
+```
+
+non viene trasformato automaticamente in una correzione.
+
+Dopo ogni scrittura riuscita `BedPage` rilegge il dato autoritativo, mentre gli esiti non confermabili vengono trattati in modo fail-closed senza retry automatici.
+
+La Sessione S026 ha introdotto il **Catalogo DB V1**, costituito da:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+Il catalogo è **Profile-owned** e condiviso tra i Gardens appartenenti allo stesso Profile.
+
+Gli identificativi delle tre entità utilizzano UUID.
+
+Sono state introdotte le migration:
+
+```text
+20260911084752_add_crop_catalog.sql
+20260911091047_add_crop_catalog_write_rpcs.sql
+```
+
+La prima migration introduce le tre tabelle, i relativi vincoli, indici, trigger metadata, RLS e privilegi.
+
+La seconda introduce le nove RPC autoritative:
+
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+create_crop
+update_crop
+set_crop_active
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
+
+Le scritture dirette:
+
+```text
+INSERT
+UPDATE
+DELETE
+```
+
+sono revocate ad `authenticated`.
+
+La lettura è regolata mediante RLS e verifica dell'appartenenza al Profile.
+
+Il Write Path del catalogo segue il flusso:
+
+```text
+Supabase Auth
+        ↓
+autorizzazione server-side
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+FOR UPDATE / row_version
+        ↓
+scrittura
+```
+
+Le RPC applicano il principio del privilegio minimo mediante:
+
+- `SECURITY DEFINER`;
+- `search_path = ''`;
+- privilegi `EXECUTE` controllati;
+- identità autenticata verificata server-side;
+- impossibilità per il client di attribuirsi autonomamente privilegi;
+- rivalidazione del lease dopo eventuali attese sui row lock.
+
+La concorrenza ottimistica utilizza:
+
+```text
+row_version
+expected_row_version
+```
+
+quando previsto dal contratto.
+
+Il locking dei parent viene utilizzato quando necessario per serializzare correttamente operazioni concorrenti sulle gerarchie:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+La Sessione S026 ha inoltre consolidato server-side regole relative a:
+
+- unicità case-insensitive;
+- normalizzazione degli input;
+- gerarchia parent/child;
+- stato attivo e inattivo;
+- disattivazione e riattivazione;
+- immutabilità di `crop_varieties.crop_id`;
+- fallback Crop → Variety;
+- validazione delle temperature;
+- fabbisogno idrico qualitativo e quantitativo;
+- resa prevista;
+- fonti e anno della fonte.
+
+I test SQL della S026 sono stati eseguiti con dati fittizi in transazioni:
+
+```text
+BEGIN
+...
+ROLLBACK
+```
+
+senza lasciare dati persistenti.
+
+Sono stati verificati casi positivi, negativi e concorrenti, oltre a:
+
+```text
+supabase db lint --local
+```
+
+senza nuovi problemi introdotti dalla S026, e:
+
+```text
+supabase db diff --local
+```
+
+con risultato:
+
+```text
+No schema changes found
+```
+
+Le migration locali e remote risultano allineate fino a:
+
+```text
+20260911091047
+```
+
+Il Catalogo DB V1 è quindi implementato e verificato lato PostgreSQL/Supabase.
+
+Non è invece ancora integrato nel client Flutter.
+
+Il successivo blocco approvato è:
+
+> **S027 — Integrazione Flutter del Catalogo V1**
+
+La S027 dovrà comprendere:
+
+- modelli Dart;
+- result type per create/update/set active;
+- Repository;
+- letture protette da RLS;
+- scritture esclusivamente tramite RPC autoritative;
+- Profile Write Authority;
+- gestione di `row_version`;
+- mapping completo degli status RPC;
+- test di Repository e result mapping;
+- successiva valutazione della UI minima di gestione del catalogo.
+
+`public.plantings`, pur prevista nella baseline Database V1, non è ancora implementata.
+
+La S026 ha confermato che la corretta sequenza delle dipendenze è:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+        ↓
+plantings
+```
+
+I primi tre livelli sono stati completati lato database.
+
+`plantings` rimane un incremento successivo alla S027.
+
+Restano inoltre da implementare le operazioni amministrative protette su `profile_memberships`.
+
+Il **DOC-004 — Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo all'interno dell'architettura complessiva di Orto Smart.
+
+Le future modifiche strutturali al Database V1 dovranno mantenere allineati:
+
+```text
+schema
++
+sicurezza
++
+Repository
++
+dominio applicativo
++
+UI
++
+test
++
+documentazione
+```
+
+ed eventuali variazioni della baseline congelata dovranno essere motivate e formalmente tracciate.
 
 # 6. Repository Layer
 
@@ -1871,7 +2168,128 @@ Dalla Sessione S025 le operazioni sono integrate nelle pagine Flutter dedicate. 
 
 ### CropRepository
 
-Gestisce il catalogo delle colture disponibili, rendendo accessibili le caratteristiche agronomiche utilizzate dall’applicazione e dal Motore Agronomico.
+`CropRepository` rappresenta il punto di accesso applicativo al catalogo delle colture.
+
+Nello stato precedente alla Sessione S026 il Repository utilizza ancora il modello legacy del progetto e non rappresenta integralmente il nuovo contratto del Catalogo DB V1.
+
+La Sessione S026 ha infatti introdotto lato PostgreSQL/Supabase il nuovo catalogo persistente:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+Il nuovo Catalogo DB V1 è:
+
+- Profile-owned;
+- condiviso tra i Gardens appartenenti allo stesso Profile;
+- basato su identificativi UUID;
+- protetto in lettura mediante RLS;
+- modificabile esclusivamente attraverso RPC autoritative;
+- soggetto alla Profile Write Authority;
+- protetto mediante `row_version` ed `expected_row_version` quando previsto dal contratto.
+
+Le nove RPC autoritative disponibili lato database sono:
+
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+create_crop
+update_crop
+set_crop_active
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
+
+Le scritture dirette:
+
+```text
+INSERT
+UPDATE
+DELETE
+```
+
+su:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+sono revocate ad `authenticated`.
+
+Alla conclusione della Sessione S026 il client Flutter non utilizza ancora questo nuovo contratto.
+
+Di conseguenza il `CropRepository` attualmente presente nel codice deve essere considerato un componente legacy in attesa di integrazione con il Catalogo DB V1.
+
+Il successivo blocco approvato è:
+
+> **S027 — Integrazione Flutter del Catalogo V1**
+
+Durante la S027 il Repository Layer dovrà essere adeguato al nuovo schema mediante:
+
+- modelli Dart coerenti con `botanical_families`, `crops` e `crop_varieties`;
+- identificativi UUID rappresentati come `String`;
+- result type tipizzati per create/update/set active;
+- letture dirette consentite dalla RLS;
+- scritture esclusivamente tramite RPC autoritative;
+- integrazione della Profile Write Authority;
+- gestione di `row_version`;
+- mapping completo degli status restituiti dalle RPC;
+- comportamento fail-closed per payload sconosciuti, incompleti o incoerenti;
+- test di mapping e Repository.
+
+Il principio architetturale previsto è:
+
+```text
+lettura catalogo
+        ↓
+RLS
+        ↓
+Repository
+        ↓
+dominio Dart
+```
+
+e per le scritture:
+
+```text
+UI / dominio
+        ↓
+Repository
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+PostgreSQL
+```
+
+Il Repository non deve quindi eseguire scritture dirette sulle tre tabelle del catalogo né riprodurre lato client le invarianti già protette dal database.
+
+Le validazioni Flutter potranno migliorare l'esperienza utente, ma l'autorità definitiva resterà server-side.
+
+Il nuovo Repository dovrà inoltre rispettare il principio di fallback definito nel Catalogo DB V1:
+
+```text
+Crop
+        ↓
+valore generale / default
+
+CropVariety
+        ↓
+override specifico quando presente
+```
+
+per i campi che prevedono specializzazione varietale.
+
+Il passaggio dal Repository legacy al nuovo contratto dovrà essere esplicito e testato, senza assumere compatibilità automatica tra le strutture precedenti e il Catalogo DB V1.
 
 ### SeasonRepository
 
@@ -3073,7 +3491,7 @@ regola specifica della varietà
 
 Questa struttura consente di mantenere una regola generale per la coltura e introdurre override specifici per le varietà soltanto quando necessari.
 
-Il principio adottato riduce la duplicazione dei dati e prepara la futura persistenza secondo una struttura compatta:
+Il principio adottato riduce la duplicazione dei dati:
 
 ```text
 dato generale della coltura
@@ -3081,14 +3499,80 @@ dato generale della coltura
 override specifico della varietà solo quando necessario
 ```
 
-La Sessione S016 mantiene nel dominio agronomico gli identificativi `cropId` e `varietyId` come `String`.
+Nel dominio agronomico gli identificativi `cropId` e `varietyId` sono rappresentati come `String`.
 
-Rimane tuttavia da risolvere, nella futura progettazione della persistenza, la differenza esistente con:
+La differenza storica presente nelle versioni precedenti del progetto, nelle quali alcuni componenti legacy utilizzavano identificativi numerici, è stata risolta sul lato Database V1 con la Sessione S026.
 
-- `CropVariety`, che utilizza attualmente identificativi `int`;
-- Supabase, dove `crops.id`, `crop_varieties.id` e `crop_varieties.crop_id` sono attualmente `bigint`.
+Il nuovo Catalogo DB V1 utilizza identificativi UUID per:
 
-Questa differenza non è stata affrontata nella S016 per evitare un refactoring trasversale non necessario prima della definizione dello schema persistente.
+```text
+botanical_families.id
+crops.id
+crop_varieties.id
+crop_varieties.crop_id
+```
+
+La rappresentazione Dart mediante `String` è quindi coerente con gli UUID PostgreSQL/Supabase utilizzati dal nuovo catalogo.
+
+La Sessione S026 ha inoltre separato esplicitamente il concetto di varietà dalla precedente rappresentazione legacy incorporata nella coltura.
+
+La struttura persistente approvata è:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+`crop_varieties` costituisce quindi una entità autonoma collegata a `crops` mediante `crop_id`.
+
+La relazione gerarchica persistente è:
+
+```text
+Crop
+        ↓
+CropVariety
+```
+
+mentre `CropAgronomicWindowRule` mantiene nel dominio la possibilità di associare una regola:
+
+```text
+alla Crop
+        oppure
+alla CropVariety specifica
+```
+
+Il principio di fallback rimane coerente con l'architettura agronomica:
+
+```text
+regola varietale disponibile
+        ↓
+utilizzo della specializzazione della varietà
+
+regola varietale assente
+        ↓
+fallback alla regola generale della coltura
+```
+
+La persistenza definitiva di `agronomic_window_rules` non è ancora stata implementata alla conclusione della Sessione S026.
+
+Di conseguenza, il modello `CropAgronomicWindowRule` continua a rappresentare il contratto del dominio agronomico e costituisce il riferimento per la futura integrazione della relativa struttura persistente.
+
+La futura implementazione dovrà mantenere coerenti:
+
+```text
+UUID del Catalogo DB V1
+        ↓
+Repository
+        ↓
+String nel dominio Dart
+        ↓
+CropAgronomicWindowRule
+```
+
+senza reintrodurre identificativi `int` o `bigint` come contratto del nuovo Database V1.
 
 ### AgronomicWindowResolver
 

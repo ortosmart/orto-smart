@@ -4,7 +4,8 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 1.8
+**Versione:** 1.9
+
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
@@ -12,7 +13,8 @@
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 06/09/2026
+
+**Ultimo aggiornamento:** 11/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -24,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 1.8 |
+| Versione | 1.9 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 06/09/2026 |
+| Ultimo aggiornamento | 11/09/2026 |
 
 ---
 
@@ -40,15 +42,16 @@
 | 0.1 | 27/07/2026 | Prima emissione della Roadmap di Sviluppo |
 | 0.2 | 27/07/2026 | Aggiornamento della roadmap dopo la Sessione S004 |
 | 0.3 | 01/08/2026 | Revisione della struttura documentale e aggiornamento della roadmap |
-| 1.0      | 01/08/2026 | Revisione completa e approvazione della Roadmap di Sviluppo            |
-| 1.1      | 08/08/2026 | Aggiornamento del Motore Agronomico e pianificazione delle evoluzioni successive |
-| 1.2      | 16/08/2026 | Aggiornamento della roadmap dopo la Sessione S017: completamento e congelamento della progettazione Database V1, pianificazione dell'implementazione incrementale in Supabase e riallineamento delle priorità di sviluppo |
+| 1.0 | 01/08/2026 | Revisione completa e approvazione della Roadmap di Sviluppo |
+| 1.1 | 08/08/2026 | Aggiornamento del Motore Agronomico e pianificazione delle evoluzioni successive |
+| 1.2 | 16/08/2026 | Aggiornamento della roadmap dopo la Sessione S017: completamento e congelamento della progettazione Database V1, pianificazione dell'implementazione incrementale in Supabase e riallineamento delle priorità di sviluppo |
 | 1.3 | 16/08/2026 | Aggiornamento dopo la Sessione S018: completamento dei prerequisiti locali Supabase, consolidamento delle finestre agronomiche multiple e definizione dello STEP 35.3 come punto di avvio della baseline SQL Database V1 |
 | 1.4 | 18/08/2026 | Aggiornamento dopo la Sessione S019: prima migration Database V1, implementazione e verifica locale delle Fondazioni, prima matrice di 13 policy RLS e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
 | 1.5 | 28/08/2026 | Aggiornamento dopo la Sessione S023: completamento del protocollo `profile_edit_locks`, Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e definizione di `beds` e `bed_geometries` come prossimo blocco tecnico |
 | 1.6 | 01/09/2026 | Aggiornamento dopo la Sessione S024: completamento del Write Path autoritativo di `beds`, implementazione della geometria storicizzata, integrazione Flutter della creazione dell’aiuola e rinvio della scelta del successivo blocco tecnico |
 | 1.7 | 03/09/2026 | Manutenzione straordinaria della Roadmap: normalizzazione del nome dell’autore nei metadati del documento |
 | 1.8 | 06/09/2026 | Aggiornamento dopo la Sessione S025: completamento dell’integrazione Flutter dei Write Path autoritativi di `beds`, introduzione delle interfacce di modifica e gestione geometrica, gestione italiana delle date, rilettura autoritativa e verifica con 841/841 test superati |
+| 1.9 | 11/09/2026 | Aggiornamento dopo la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, RLS, Profile Write Authority, concorrenza ottimistica, validazioni gerarchiche e agronomiche e definizione della S027 come integrazione Flutter del Catalogo V1 |
 
 ---
 
@@ -239,116 +242,147 @@ Le attività riportate in questa sezione rappresentano le principali direttrici 
 
 L'ordine di realizzazione potrà variare in funzione delle esigenze del progetto e delle decisioni architetturali adottate durante lo sviluppo.
 
-## Stato dopo la Sessione S025
+## Stato dopo la Sessione S026
 
-La Sessione S025 ha completato l’integrazione Flutter dei Write Path autoritativi di `beds` implementati nella Sessione S024.
+La Sessione S026 ha proseguito la costruzione incrementale della baseline Database V1 introducendo il **Catalogo DB V1** necessario prima della futura implementazione di `plantings`.
+
+L'analisi delle dipendenze ha consolidato la sequenza:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+        ↓
+plantings
+```
 
 Risultano completati:
 
 - primo blocco Fondazioni della baseline Database V1;
+
 - schema `private`, helper autorizzativi, trigger metadata e prima matrice RLS;
+
 - protocollo server-side completo di `profile_edit_locks`;
+
 - Profile Write Authority server-side e integrazione Flutter fail-closed;
+
 - Write Path autoritativo di `gardens`;
+
 - Write Path autoritativo di `seasons`;
+
 - implementazione di `beds`, `bed_geometries` e `bed_geometry_corrections`;
+
 - Write Path autoritativo di `beds`;
-- RPC `create_bed`, `update_bed`, `set_bed_active`, `change_bed_geometry` e `correct_bed_geometry`;
-- separazione tra identità stabile dell’aiuola e geometria valida nel tempo;
-- protezione degli intervalli geometrici dalla sovrapposizione;
-- distinzione tra variazione geometrica ordinaria e correzione storica tracciata;
+
+- integrazione Flutter completa dei Write Path disponibili per `beds`;
+
+- Catalogo DB V1 composto da:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+- ownership del catalogo a livello Profile;
+
+- condivisione del catalogo tra i Gardens appartenenti allo stesso Profile;
+
+- identificativi UUID per le entità del Catalogo DB V1;
+
+- separazione della Crop Variety come entità autonoma rispetto alla precedente rappresentazione legacy;
+
+- relazione persistente tra Crop e Botanical Family mediante `botanical_family_id`;
+
+- relazione persistente tra Crop Variety e Crop mediante `crop_id`;
+
+- definizione di `default_start_method` con valori canonici;
+
+- fallback Crop → Crop Variety per i parametri agronomici previsti;
+
+- blocco quantitativo del fabbisogno idrico;
+
+- blocco della resa prevista;
+
+- validazioni server-side di gerarchia, temperature, acqua, resa e unicità;
+
+- regole di attivazione, disattivazione e riattivazione coerenti con la gerarchia;
+
+- immutabilità di `crop_varieties.crop_id`;
+
+- assenza di eliminazione fisica applicativa del catalogo;
+
 - concorrenza ottimistica mediante `row_version`;
-- integrazione Flutter dei modelli `Bed` e `BedGeometry`;
-- estensione di `BedRepository`;
-- introduzione di `ProfileContextScope`;
-- creazione autoritativa dell’aiuola mediante `CreateBedPage`;
-- modifica dei dati generali mediante `EditBedPage`;
-- attivazione e disattivazione dell’aiuola mediante `setBedActive`;
-- variazione geometrica ordinaria mediante `ChangeBedGeometryPage`;
-- correzione storica mediante `CorrectBedGeometryPage`;
-- motivazione obbligatoria delle correzioni storiche;
-- introduzione di `CivilDate` per la gestione del formato italiano `GG/MM/AAAA` nell’interfaccia, mantenendo il formato ISO `AAAA-MM-GG` nei modelli, nelle RPC e nel database;
-- rilettura autoritativa dell’aiuola dopo ogni scrittura riuscita;
-- trattamento fail-closed degli esiti non confermabili, senza retry automatici;
-- funzionamento in sola lettura di `BedPage` quando la Profile Write Authority non è disponibile;
-- configurazione Supabase parametrizzabile mediante `--dart-define`;
-- allineamento delle migration locali e remote fino a `20260830140235`;
-- verifica finale mediante `flutter analyze` e **841/841 test superati**;
-- verifica manuale locale positiva delle operazioni di modifica, attivazione e disattivazione, variazione geometrica e correzione storica.
 
-La Sessione S025 non ha introdotto nuove migration Supabase e ha utilizzato le RPC autoritative implementate nella Sessione S024.
+- locking server-side mediante `FOR UPDATE` dove necessario;
 
-Lo STEP 35.3 – Costruzione baseline SQL Database V1 rimane **in corso**. Le Fondazioni e i Write Path autoritativi di `gardens`, `seasons` e `beds` sono implementati; per `beds` risulta completata anche l’integrazione delle relative operazioni nell’interfaccia Flutter. Le restanti entità devono essere introdotte progressivamente per gruppi coerenti di strutture e dipendenze.
+- locking dei parent per serializzare correttamente le operazioni gerarchiche concorrenti;
 
-## Prossimo blocco tecnico
+- Profile Write Authority applicata alle scritture del catalogo;
 
-Il successivo blocco tecnico non è ancora stato scelto.
+- nove RPC autoritative:
 
-La selezione dovrà avvenire dopo il consolidamento documentale della Sessione S025, verificando:
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+create_crop
+update_crop
+set_crop_active
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
 
-- dipendenze effettive della baseline Database V1;
-- priorità funzionali dell’applicazione;
-- stato del Repository Layer e dell’interfaccia esistente;
-- sicurezza e Write Path necessari;
-- perimetro verificabile della sessione successiva;
-- test positivi, negativi e concorrenti richiesti.
+- RLS in lettura mediante membership del Profile;
 
-`public.plantings` è prevista nella baseline Database V1 ma non è ancora implementata mediante migration. La sua assenza produce attualmente `PGRST205` nella sezione colture del dettaglio aiuola.
+- revoca delle scritture dirette `INSERT`, `UPDATE` e `DELETE` ad `authenticated`;
 
-Prima di scegliere `plantings` come incremento successivo dovranno essere verificati:
+- RPC `SECURITY DEFINER` con `search_path = ''`;
 
-- contratto V1 dell’entità;
-- relazioni con `beds` e `bed_geometries`;
-- relazioni con colture, varietà e stagioni;
-- dipendenze della UI esistente;
-- Write Path autoritativo necessario;
-- strategia di migrazione;
-- copertura dei test positivi, negativi e concorrenti.
+- revoca di `EXECUTE` ad `anon` e `public`;
 
-Le operazioni amministrative protette su `profile_memberships` rimangono un blocco successivo distinto.
+- principio:
 
-## Priorità attuali
+> **catalogo corrente + snapshot storico**
 
-- scelta e approvazione del successivo blocco tecnico;
-- prosecuzione incrementale della baseline Database V1 per gruppi coerenti di strutture e dipendenze;
-- estensione progressiva dei Write Path autoritativi alle ulteriori entità di Categoria A;
-- valutazione del contratto V1 e delle dipendenze di `plantings`;
-- riallineamento progressivo del Repository Layer e del dominio applicativo alla nuova persistenza;
-- consolidamento e ampliamento del Motore Agronomico sulla base della nuova architettura dati;
-- evoluzione della gestione dell’irrigazione;
-- sviluppo del modulo Attività e Piano di Lavoro;
-- ampliamento della Dashboard con informazioni agronomiche e meteorologiche.
+per evitare modifiche retroattive a calcoli e decisioni storiche;
 
-La pianificazione dettagliata delle singole sessioni di sviluppo viene documentata nel **DOC-005 – Quaderno di Sviluppo**, mentre il presente documento mantiene una visione strategica dell'evoluzione del progetto.
+- verifica funzionale mediante test SQL positivi, negativi e concorrenti eseguiti in transazioni con rollback;
 
----
+- verifica dei privilegi e delle policy RLS;
 
-# 5. Cronologia delle revisioni
+- verifica mediante `supabase db lint --local` senza nuovi problemi introdotti dalla S026;
 
-| Versione | Data | Descrizione |
-|-----------|------------|------------------------------------------------|
-| 0.1 | 27/07/2026 | Prima emissione della Roadmap di Sviluppo |
-| 0.2 | 27/07/2026 | Aggiornamento della roadmap dopo la Sessione S004 |
-| 0.3 | 01/08/2026 | Revisione della struttura documentale e aggiornamento della roadmap |
-| 1.0 | 01/08/2026 | Revisione completa e approvazione della Roadmap di Sviluppo |
-| 1.1 | 08/08/2026 | Aggiornamento del Motore Agronomico e pianificazione delle evoluzioni successive |
-| 1.2 | 16/08/2026 | Aggiornamento della roadmap dopo la Sessione S017: completamento e congelamento della progettazione Database V1, pianificazione dell'implementazione incrementale in Supabase e riallineamento delle priorità di sviluppo |
-| 1.3 | 16/08/2026 | Aggiornamento dopo la Sessione S018: completamento dei prerequisiti locali Supabase, consolidamento delle finestre agronomiche multiple e definizione dello STEP 35.3 come punto di avvio della baseline SQL Database V1 |
-| 1.4 | 18/08/2026 | Aggiornamento dopo la Sessione S019: prima migration Database V1, implementazione e verifica locale delle Fondazioni, prima matrice di 13 policy RLS e definizione delle RPC sicure e atomiche come prossimo incremento tecnico |
-| 1.5 | 28/08/2026 | Aggiornamento dopo la Sessione S023: completamento del protocollo `profile_edit_locks`, Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e definizione di `beds` e `bed_geometries` come prossimo blocco tecnico |
-| 1.6 | 01/09/2026 | Aggiornamento dopo la Sessione S024: completamento del Write Path autoritativo di `beds`, implementazione della geometria storicizzata, integrazione Flutter della creazione dell’aiuola e rinvio della scelta del successivo blocco tecnico |
-| 1.7 | 03/09/2026 | Manutenzione straordinaria della Roadmap: normalizzazione del nome dell’autore nei metadati del documento |
-| 1.8 | 06/09/2026 | Aggiornamento dopo la Sessione S025: completamento dell’integrazione Flutter dei Write Path autoritativi di `beds`, introduzione delle interfacce di modifica e gestione geometrica, gestione italiana delle date, rilettura autoritativa e verifica con 841/841 test superati |
+- verifica mediante `supabase db diff --local` con risultato:
 
----
+```text
+No schema changes found
+```
 
-# 6. Considerazioni finali
+- applicazione delle migration al database remoto;
 
-La Roadmap di Sviluppo rappresenta il documento di riferimento per la pianificazione strategica dell'evoluzione di Orto Smart.
+- allineamento locale/remoto delle migration fino a:
 
-A differenza del Quaderno di Sviluppo (DOC-005), che documenta le attività svolte nelle singole sessioni, la Roadmap mantiene una visione di medio e lungo periodo, evidenziando gli obiettivi generali del progetto e le principali direttrici di sviluppo.
+```text
+20260911091047
+```
 
-Il documento viene aggiornato in occasione del completamento di funzionalità significative o quando intervengono modifiche sostanziali nella pianificazione del progetto, mantenendo la coerenza con il Manuale Tecnico (DOC-001), il Quaderno di Sviluppo (DOC-005), le Decisioni Architetturali (DOC-011) e il CHANGELOG.
+Le migration introdotte nella S026 sono:
 
-La Roadmap costituisce pertanto uno strumento di pianificazione e di orientamento dello sviluppo, contribuendo a garantire una crescita ordinata, coerente e sostenibile del progetto Orto Smart.
+```text
+20260911084752_add_crop_catalog.sql
+20260911091047_add_crop_catalog_write_rpcs.sql
+```
 
+Lo STEP 35.3 – Costruzione baseline SQL Database V1 rimane **in corso**.
+
+Le Fondazioni, i Write Path autoritativi di `gardens`, `seasons` e `beds` e il Catalogo DB V1 sono ora implementati lato PostgreSQL/Supabase.
+
+Il Catalogo DB V1 non è ancora integrato nel client Flutter.
+
+`public.plantings` rimane non implementata.
+
+La S026 ha confermato che `plantings` non deve essere introdotta prima del completamento dell'integrazione Flutter del Catalogo V1.

@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 1.8
+**Versione:** 1.9
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 03/09/2026
+**Ultimo aggiornamento:** 11/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 1.8 |
+| Versione | 1.9 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 03/09/2026 |
+| Ultimo aggiornamento | 11/09/2026 |
 
 ---
 
@@ -45,6 +45,7 @@
 | 1.6 | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, introduzione del Write Path autoritativo di `seasons` mediante `create_season`, `update_season` e `activate_season`, revoca delle scritture dirette, concorrenza ottimistica tramite `row_version` e attivazione atomica della stagione |
 | 1.7 | 01/09/2026 | Aggiornamento con la Sessione S024: implementazione V1 di `beds`, `bed_geometries` e `bed_geometry_corrections`, Write Path autoritativo delle aiuole, storicizzazione geometrica, concorrenza ottimistica, tracciamento delle correzioni e allineamento delle migration locale/remoto |
 | 1.8 | 03/09/2026 | Manutenzione straordinaria del Manuale Database: chiarimento della distinzione tra componenti legacy e schema Database V1 implementato, documentazione dell’assenza corrente di `public.plantings` e separazione delle otto tabelle di dominio dalla struttura tecnica `profile_edit_locks` |
+| 1.9 | 11/09/2026 | Aggiornamento con la Sessione S026: implementazione del Catalogo DB V1 costituito da `botanical_families`, `crops` e `crop_varieties`, introduzione dei relativi Write Path autoritativi, validazioni agronomiche e gerarchiche, concorrenza ottimistica, Profile Write Authority, RLS, revoca delle scritture dirette e allineamento delle migration locale/remoto |
 
 ---
 
@@ -123,7 +124,11 @@ Nel codice applicativo sono ancora presenti componenti e Repository appartenenti
 
 La presenza di questi riferimenti nel codice legacy non implica che tutte le corrispondenti tabelle siano già disponibili nello schema Database V1 ricostruito mediante le migration correnti.
 
-In particolare, al termine della Sessione S024, `public.plantings` non è ancora implementata nello schema Database V1. I componenti applicativi che tentano di utilizzarla possono pertanto ricevere `PGRST205` fino alla relativa implementazione mediante una futura migration.
+Al termine della Sessione S026, `public.plantings` non è ancora implementata nello schema Database V1. I componenti applicativi legacy che tentano di utilizzarla possono pertanto continuare a ricevere `PGRST205` fino alla relativa implementazione mediante una futura migration.
+
+La Sessione S026 ha tuttavia completato il blocco propedeutico del **Catalogo DB V1**, introducendo nello schema reale `botanical_families`, `crops` e `crop_varieties`.
+
+Il nuovo Catalogo DB V1 non è ancora integrato nel client Flutter; tale integrazione costituisce il blocco tecnico approvato per la Sessione S027.
 
 Lo stato fisicamente implementato del Database V1 è riportato nel paragrafo 2.3 e deve essere distinto sia dalla baseline completa progettata sia dai componenti legacy ancora presenti nel codice Flutter.
 
@@ -161,11 +166,11 @@ e sostituisce la precedente denominazione provvisoria `zone_target_assignments`.
 
 ## 2.3 Stato di implementazione
 
-Al termine della Sessione S024 la situazione del Database V1 è la seguente:
+Al termine della Sessione S026 la situazione del Database V1 è la seguente:
 
 - la progettazione logica e architetturale completata nella S017 rimane la baseline ufficiale congelata;
 - l’ambiente locale Supabase predisposto nella S018 è operativo per sviluppo, ricostruzione e collaudo;
-- le migration locali e remote risultano allineate fino a `20260830140235`;
+- le migration locali e remote risultano allineate fino a `20260911091047`;
 - è implementato il gruppo **Fondazioni**;
 - sono presenti lo schema `private`, gli helper autorizzativi, i trigger metadata e la matrice RLS;
 - è completato e verificato il protocollo server-side `profile_edit_locks`;
@@ -173,13 +178,20 @@ Al termine della Sessione S024 la situazione del Database V1 è la seguente:
 - `gardens` dispone del Write Path autoritativo mediante `create_garden` e `update_garden`;
 - `seasons` dispone del Write Path autoritativo mediante `create_season`, `update_season` e `activate_season`;
 - `beds` dispone del Write Path autoritativo mediante `create_bed`, `update_bed`, `set_bed_active`, `change_bed_geometry` e `correct_bed_geometry`;
-- l’identità stabile dell’aiuola è separata dalla geometria valida nel tempo;
-- le correzioni geometriche sono registrate separatamente;
-- le scritture dirette sulle entità protette da parte di `authenticated` sono revocate;
-- il Database V1 completo non è ancora implementato;
-- `public.plantings` non è ancora presente nell’attuale schema implementato.
+- il Catalogo DB V1 dispone delle tabelle `botanical_families`, `crops` e `crop_varieties`;
+- il catalogo è Profile-owned e condiviso tra tutti i Gardens appartenenti allo stesso Profile;
+- il Write Path autoritativo del catalogo è implementato mediante nove RPC dedicate di creazione, aggiornamento e variazione dello stato attivo;
+- le scritture dirette `INSERT`, `UPDATE` e `DELETE` su `botanical_families`, `crops` e `crop_varieties` sono revocate ad `authenticated`;
+- la lettura del catalogo è protetta mediante RLS e `private.is_profile_member(profile_id)`;
+- le operazioni di modifica richiedono una Profile Write Authority valida;
+- la concorrenza ottimistica utilizza `row_version` ed `expected_row_version`;
+- i parent vengono lockati quando necessario per serializzare correttamente operazioni concorrenti sulle gerarchie padre/figlio;
+- le validazioni agronomiche e gerarchiche del catalogo vengono eseguite server-side;
+- il Catalogo DB V1 non è ancora integrato lato Flutter;
+- `public.plantings` non è ancora presente nell’attuale schema implementato;
+- il Database V1 completo non è ancora implementato.
 
-Le otto tabelle di dominio Database V1 attualmente implementate sono:
+Le strutture applicative e di dominio attualmente implementate comprendono:
 
 ```text
 profiles
@@ -190,6 +202,9 @@ seasons
 beds
 bed_geometries
 bed_geometry_corrections
+botanical_families
+crops
+crop_varieties
 ```
 
 A queste si aggiunge la struttura tecnica separata:
@@ -209,11 +224,102 @@ Le migration introdotte nella Sessione S024 sono:
 20260830140235_add_correct_bed_geometry_rpc.sql
 ```
 
-La prima migration introduce l’identità stabile delle aiuole, la geometria storicizzata e il registro delle correzioni. Le cinque migration successive implementano progressivamente le RPC autoritative di creazione, aggiornamento, variazione dello stato attivo, cambio ordinario della geometria e correzione geometrica.
+La prima migration della S024 introduce l’identità stabile delle aiuole, la geometria storicizzata e il registro delle correzioni. Le cinque migration successive implementano progressivamente le RPC autoritative di creazione, aggiornamento, variazione dello stato attivo, cambio ordinario della geometria e correzione geometrica.
 
-Le sessioni da S019 a S024 rappresentano la progressiva traduzione della baseline congelata in strutture, sicurezza e operazioni server-side verificate. L’implementazione dovrà continuare incrementalmente senza riaprire lo STEP 34 salvo l’emersione di un errore concreto o di una necessità architetturale esplicitamente valutata.
+Le migration introdotte nella Sessione S026 sono:
 
-Le operazioni amministrative protette su `profile_memberships` e i Write Path delle ulteriori entità di Categoria A restano incrementi successivi.
+```text
+20260911084752_add_crop_catalog.sql
+20260911091047_add_crop_catalog_write_rpcs.sql
+```
+
+La prima migration della S026 introduce:
+
+- `botanical_families`;
+- `crops`;
+- `crop_varieties`;
+- i relativi vincoli;
+- gli indici;
+- i trigger metadata;
+- la RLS;
+- i privilegi.
+
+La seconda migration introduce le nove RPC autoritative del Catalogo DB V1:
+
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+create_crop
+update_crop
+set_crop_active
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
+
+I test SQL della Sessione S026 hanno verificato, mediante dati fittizi e transazioni `BEGIN ... ROLLBACK`, il comportamento positivo e negativo delle operazioni principali, comprese:
+
+- normalizzazione degli input;
+- unicità case-insensitive;
+- validazioni agronomiche;
+- validazioni gerarchiche;
+- stato attivo e riattivazione;
+- concorrenza ottimistica;
+- `version_conflict`;
+- fallback Crop → Variety;
+- validazione del fabbisogno idrico quantitativo;
+- validazione della resa;
+- coerenza delle temperature effettive dopo fallback;
+- Profile Write Authority;
+- RLS;
+- privilegi di esecuzione delle RPC.
+
+Per `botanical_families`, `crops` e `crop_varieties`, il ruolo `authenticated` dispone della lettura regolata da RLS ma non dei privilegi diretti di `INSERT`, `UPDATE` o `DELETE`.
+
+Le nove RPC autoritative risultano eseguibili da `authenticated` e non da `anon` o `public`.
+
+La Sessione S026 ha inoltre verificato:
+
+```text
+supabase db lint --local
+```
+
+senza introdurre nuovi problemi. Restano esclusivamente tre warning preesistenti nella funzione `public.request_profile_edit_takeover`.
+
+Il controllo:
+
+```text
+supabase db diff --local
+```
+
+ha restituito:
+
+```text
+No schema changes found
+```
+
+Le migration della S026 sono state applicate anche al database Supabase remoto e la successiva verifica mediante:
+
+```text
+supabase migration list
+```
+
+ha confermato l’allineamento locale/remoto fino a:
+
+```text
+20260911091047
+```
+
+Le sessioni da S019 a S026 rappresentano la progressiva traduzione della baseline congelata in strutture, sicurezza e operazioni server-side verificate.
+
+La Sessione S026 ha esteso tale implementazione al Catalogo DB V1 senza riaprire la baseline nominale definita nella S017.
+
+Il nuovo catalogo costituisce il prerequisito strutturale necessario per la futura implementazione di `plantings`, ma nella Sessione S026 `public.plantings` non è stata ancora introdotta.
+
+Il successivo blocco approvato è la Sessione S027 — **Integrazione Flutter del Catalogo V1**.
+
+Le operazioni amministrative protette su `profile_memberships`, `plantings` e le ulteriori entità ancora mancanti della baseline restano incrementi successivi.
 
 ---
 
@@ -830,7 +936,178 @@ Una coltura appartiene alla relativa famiglia botanica.
 
 Una varietà specializza una coltura senza duplicarne inutilmente le informazioni generali.
 
-Le regole agronomiche seguono il principio:
+Dalla Sessione S026 questa relazione non è più soltanto parte della baseline progettata, ma è implementata fisicamente nel Database V1 mediante:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+Le tre entità sono **Profile-owned** e condivise tra tutti i Gardens appartenenti allo stesso Profile.
+
+Gli identificativi utilizzati dal nuovo Catalogo DB V1 sono UUID.
+
+Il modello applica una separazione tra:
+
+- valori generali e predefiniti della Crop;
+- eventuali specializzazioni della Crop Variety.
+
+La Crop contiene i valori di riferimento generali della coltura.
+
+La Crop Variety contiene gli eventuali override varietali.
+
+Per i campi che ammettono specializzazione viene applicato un fallback campo-per-campo dalla Variety verso la Crop.
+
+Il fallback è previsto per:
+
+```text
+default_start_method
+row_spacing_cm
+plant_spacing_cm
+sowing_depth_cm
+germination_days
+harvest_days
+min_temperature
+optimal_temperature
+productivity
+water_requirement
+```
+
+`rotation_seasons` rimane invece una proprietà esclusiva della Crop e non viene ridefinita dalla Variety.
+
+Il valore canonico utilizzato per il metodo di avvio è:
+
+```text
+default_start_method
+```
+
+I valori ammessi nella V1 sono:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
+
+Il precedente concetto testuale di famiglia botanica viene sostituito dalla relazione mediante:
+
+```text
+botanical_family_id
+```
+
+e il precedente concetto `Crop.variety` viene sostituito dall’entità autonoma:
+
+```text
+crop_varieties
+```
+
+La coerenza dei valori termici viene verificata anche dopo l’applicazione del fallback.
+
+Ad esempio, se una Crop definisce:
+
+```text
+min_temperature = 10
+optimal_temperature = 24
+```
+
+e una Variety definisce:
+
+```text
+min_temperature = 25
+optimal_temperature = NULL
+```
+
+il risultato effettivo dopo fallback sarebbe:
+
+```text
+min_temperature = 25
+optimal_temperature = 24
+```
+
+e deve pertanto essere rifiutato come `invalid_input`.
+
+Il fabbisogno idrico qualitativo rimane rappresentato da:
+
+```text
+water_requirement
+```
+
+Per il fabbisogno idrico quantitativo vengono utilizzati:
+
+```text
+water_requirement_value
+water_requirement_basis
+water_interval_days
+```
+
+I valori ammessi per `water_requirement_basis` sono:
+
+```text
+per_plant
+per_m2
+```
+
+Per una Crop Variety il blocco quantitativo dell’acqua segue una regola atomica:
+
+- tutti i campi NULL → fallback completo dalla Crop;
+- tutti i campi valorizzati → override completo della Variety;
+- override parziale → non ammesso.
+
+Non appartengono al contratto V1:
+
+```text
+water_requirement_period
+per_week
+per_irrigation
+```
+
+Il fabbisogno idrico contenuto nel catalogo rappresenta un riferimento agronomico di base.
+
+Condizioni quali pioggia, temperatura, siccità, umidità del suolo e altri fattori ambientali potranno influenzare in futuro il calcolo operativo dell’irrigazione senza modificare retroattivamente il valore base del catalogo.
+
+La resa prevista utilizza:
+
+```text
+expected_yield_min
+expected_yield_avg
+expected_yield_max
+expected_yield_unit
+yield_source_name
+yield_source_url
+yield_source_year
+yield_notes
+```
+
+Le unità canoniche ammesse sono:
+
+```text
+kg_per_m2
+kg_per_plant
+g_per_m2
+g_per_plant
+pieces_per_m2
+pieces_per_plant
+```
+
+Le regole principali prevedono che:
+
+- `expected_yield_min`, `expected_yield_avg` ed `expected_yield_max` siano maggiori o uguali a zero;
+- i valori min/avg/max siano reciprocamente coerenti;
+- se almeno un valore di resa è valorizzato, `expected_yield_unit` sia obbligatoria;
+- se nessun valore di resa è valorizzato, unità e informazioni di fonte siano NULL;
+- la fonte sia opzionale e possa essere anche parziale quando esiste almeno una resa;
+- `yield_source_year` sia maggiore o uguale a `1800`.
+
+Per le Crop Variety il blocco resa non utilizza fallback campo-per-campo.
+
+La regola è:
+
+- nessuna resa varietale → eredita l’intero blocco resa dalla Crop;
+- almeno una resa varietale → utilizza un blocco resa autonomo della Variety.
+
+Le regole agronomiche seguono inoltre il principio:
 
 ```text
 Crop
@@ -847,6 +1124,14 @@ AgronomicWindow calcolata
 Quando esiste una specializzazione varietale applicabile, questa può prevalere sulla regola generale della coltura secondo la logica definita dal dominio applicativo.
 
 Il database conserva le regole e i relativi dati persistenti; la determinazione della `AgronomicWindow` applicabile rimane responsabilità del dominio.
+
+Il Catalogo DB V1 segue infine il principio:
+
+**catalogo corrente + snapshot storico**
+
+Le modifiche future ai valori correnti del catalogo non devono modificare retroattivamente decisioni, calcoli o risultati storici che abbiano già utilizzato quei valori.
+
+Lo stesso principio dovrà essere mantenuto, quando applicabile, anche per dati agronomici futuri utilizzati nelle decisioni operative.
 
 ## 5.3 Struttura fisica e geometria
 
@@ -1643,6 +1928,8 @@ Questo principio deve essere applicato alle operazioni di:
 - eliminazione;
 - operazioni server-side che producono effetti persistenti.
 
+Il comportamento fail-closed costituisce parte dello stesso principio: una risposta RPC sconosciuta, incompleta o non interpretabile in modo sicuro non deve essere considerata equivalente a una scrittura riuscita.
+
 ## 9.2 Row Level Security
 
 PostgreSQL Row Level Security costituisce una delle principali barriere di autorizzazione del Database V1.
@@ -1708,7 +1995,38 @@ deve fallire
 
 Il superamento dei soli casi positivi non è quindi sufficiente per considerare verificata una policy di sicurezza.
 
-Le **13 policy RLS** implementate nella S019 costituiscono la prima matrice di sicurezza del Database V1 e non rappresentano ancora la protezione definitiva dell'intera baseline: le successive tabelle dovranno essere protette e collaudate progressivamente secondo lo stesso principio deny-by-default.
+Le **13 policy RLS** implementate nella S019 costituiscono la prima matrice di sicurezza del Database V1 e non rappresentano la protezione definitiva dell'intera baseline.
+
+Le tabelle introdotte successivamente devono essere protette e collaudate progressivamente secondo lo stesso principio deny-by-default.
+
+Nella Sessione S026 questo criterio è stato applicato anche al Catalogo DB V1.
+
+Per:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+il ruolo `authenticated` dispone della lettura regolata da RLS ma non dei privilegi diretti di:
+
+```text
+INSERT
+UPDATE
+DELETE
+```
+
+La lettura del catalogo verifica l'appartenenza al Profile mediante:
+
+```text
+private.is_profile_member(profile_id)
+```
+
+I test runtime della S026 hanno verificato che:
+
+- un membro del Profile possa leggere il relativo catalogo;
+- un utente autenticato non membro del Profile non possa leggerlo.
 
 ## 9.3 Autorizzazione server-side
 
@@ -1732,6 +2050,10 @@ operazione consentita o rifiutata
 
 Le operazioni che non possono essere protette in modo sufficientemente robusto mediante accesso diretto alle tabelle devono essere esposte attraverso funzioni o procedure server-side opportunamente autorizzate.
 
+L'identità autenticata viene determinata server-side tramite i meccanismi messi a disposizione da Supabase/PostgreSQL, tra cui `auth.uid()` quando previsto dal contratto della funzione.
+
+Gli identificativi e gli attributi trasmessi dal client devono essere considerati dati di input e non prove di autorizzazione.
+
 ## 9.4 Flutter come client non fidato
 
 L'applicazione Flutter deve essere progettata assumendo che le richieste provenienti dal client possano essere manipolate.
@@ -1742,15 +2064,20 @@ Pertanto non devono essere considerate garanzie di sicurezza:
 - valori di ownership forniti dal client;
 - stato locale dell'applicazione;
 - controlli di visibilità dei componenti UI;
-- sequenze operative che il client potrebbe aggirare.
+- sequenze operative che il client potrebbe aggirare;
+- presenza locale di un token o di uno stato che non sia stato rivalidato server-side.
 
-Le validazioni client-side rimangono utili per l'esperienza utente, ma le invarianti di sicurezza devono essere verificate nuovamente dal backend o dal database.
+Le validazioni client-side rimangono utili per l'esperienza utente e per prevenire richieste manifestamente errate, ma le invarianti di sicurezza devono essere verificate nuovamente dal backend o dal database.
+
+Il controllo Flutter costituisce quindi un **preflight preventivo** e non sostituisce mai l'autorità server-side.
+
+Il client non deve inoltre eseguire retry automatici quando l'esito effettivo di una scrittura non è confermabile, perché una ritrasmissione potrebbe duplicare o alterare un'operazione già eseguita.
 
 ## 9.5 Invarianti protette dal database
 
 Le condizioni che devono essere vere indipendentemente dal client devono essere protette mediante gli strumenti appropriati del database.
 
-A seconda del caso potranno essere utilizzati:
+A seconda del caso possono essere utilizzati:
 
 - `NOT NULL`;
 - foreign key;
@@ -1760,11 +2087,22 @@ A seconda del caso potranno essere utilizzati:
 - RLS;
 - funzioni server-side;
 - transazioni;
+- row lock;
 - altri vincoli PostgreSQL appropriati.
 
-La scelta concreta deve essere effettuata durante la traduzione della baseline logica in SQL.
+La logica decisionale agronomica non deve essere trasferita indiscriminatamente nel database, ma le invarianti necessarie a impedire stati persistenti impossibili, incoerenti o non autorizzati devono essere protette lato server.
 
-La logica decisionale agronomica non deve essere trasferita indiscriminatamente nel database, ma le invarianti necessarie a impedire stati persistenti impossibili o non autorizzati devono essere protette lato server.
+La Sessione S026 ha applicato concretamente questo principio al Catalogo DB V1, introducendo validazioni server-side relative, tra l'altro, a:
+
+- unicità case-insensitive;
+- gerarchia Botanical Family → Crop → Crop Variety;
+- stato attivo dei parent;
+- valori ammessi per `default_start_method`;
+- coerenza delle temperature;
+- blocco quantitativo del fabbisogno idrico;
+- blocco della resa;
+- anno della fonte;
+- immutabilità di `crop_varieties.crop_id`.
 
 ## 9.6 Operazioni atomiche e transazioni
 
@@ -1778,9 +2116,25 @@ tutta l'operazione riesce
 nessuna modifica viene consolidata
 ```
 
-Quando una operazione critica richiede più verifiche e modifiche coordinate, deve essere valutato l'utilizzo di una transazione o di una funzione server-side.
+Quando una operazione critica richiede più verifiche e modifiche coordinate, deve essere utilizzata una transazione o una funzione server-side appropriata.
 
 Questo evita stati intermedi incoerenti prodotti da richieste separate del client.
+
+Le operazioni autoritative introdotte nelle Sessioni S022–S026 centralizzano progressivamente:
+
+```text
+autorizzazione
+        +
+validazione
+        +
+concorrenza
+        +
+invarianti
+        +
+scrittura
+```
+
+nello stesso perimetro server-side.
 
 ## 9.7 Sicurezza del modello single-writer
 
@@ -1805,7 +2159,7 @@ Il lock non attribuisce automaticamente autorizzazioni aggiuntive e non sostitui
 - invarianti;
 - controlli server-side.
 
-La gestione del lock supporta o dovrà supportare in modo controllato:
+La gestione del lock supporta:
 
 - acquisizione;
 - verifica del writer corrente;
@@ -1816,7 +2170,7 @@ La gestione del lock supporta o dovrà supportare in modo controllato:
 - concorrenza tra client;
 - controllo dello stato e delle transizioni autorizzate.
 
-Con la Sessione S020 è stata implementata e testata una prima parte delle operazioni server-side del protocollo di lock:
+Con la Sessione S020 è stata implementata e testata una prima parte delle operazioni server-side del protocollo:
 
 - `acquire_profile_edit_lock`;
 - `heartbeat_profile_edit_lock`;
@@ -1824,11 +2178,22 @@ Con la Sessione S020 è stata implementata e testata una prima parte delle opera
 - `request_profile_edit_takeover`;
 - `cancel_profile_edit_takeover`.
 
-L'acquisizione del lock è riservata all'`owner` del Profile. I ruoli `worker` e `viewer` non possono acquisirlo.
+La Sessione S021 ha successivamente completato e rafforzato il protocollo con:
+
+- `reject_profile_edit_takeover`;
+- `grant_profile_edit_takeover`;
+- `complete_profile_edit_takeover`;
+- `get_profile_edit_lock_state`.
+
+L'acquisizione del lock è riservata all'`owner` del Profile.
+
+I ruoli `worker` e `viewer` non possono acquisirlo.
 
 `client_id` e `session_id` identificano il contesto tecnico della richiesta, ma non costituiscono autenticazione e non possono sostituire l'identità determinata server-side.
 
-Il `lock_token` viene generato esclusivamente lato server mediante materiale casuale di 32 byte. Nel database viene conservato solamente il relativo hash SHA-256; il token in chiaro non deve essere persistito in log, UI, URL o storage persistente.
+Il `lock_token` viene generato esclusivamente lato server mediante materiale casuale di 32 byte.
+
+Nel database viene conservato solamente il relativo hash SHA-256; il token in chiaro non deve essere persistito in log, UI, URL o storage persistente.
 
 Il protocollo utilizza:
 
@@ -1838,7 +2203,9 @@ Il protocollo utilizza:
 - validità del grant di takeover pari a **60 secondi**;
 - silenziamento delle nuove richieste di takeover pari a **5, 15 o 30 minuti**.
 
-L'orologio PostgreSQL costituisce l'autorità temporale del protocollo. Un lock scaduto non può essere resuscitato mediante heartbeat.
+L'orologio PostgreSQL costituisce l'autorità temporale del protocollo.
+
+Un lock scaduto non può essere resuscitato mediante heartbeat.
 
 Le operazioni concorrenti sulle righe di lock esistenti utilizzano `FOR UPDATE`; la prima acquisizione o il riciclo di un lock scaduto utilizza `INSERT ... ON CONFLICT`.
 
@@ -1848,7 +2215,7 @@ Il client non può modificare direttamente `profile_edit_locks` per attribuirsi 
 
 Il single-writer costituisce quindi un meccanismo di coordinamento e non sostituisce RLS o le normali verifiche di ownership e autorizzazione.
 
-## 9.8 Protezione delle operazioni sensibili
+## 9.8 Protezione delle operazioni sensibili e Write Path autoritativi
 
 Le operazioni sensibili non devono dipendere da una successione di controlli effettuati esclusivamente dal client.
 
@@ -1872,29 +2239,19 @@ Questo principio riduce il rischio di race condition e di modifiche effettuate t
 
 La Sessione S019 ha confermato che alcune operazioni delle Fondazioni richiedono una protezione ulteriore rispetto al semplice accesso diretto alle tabelle mediante RLS.
 
-La Sessione S020 ha avviato l'implementazione concreta delle RPC sicure e atomiche relative a `profile_edit_locks`. La Sessione S021 ha completato il protocollo e ne ha effettuato l'hardening mediante un audit incrociato delle transizioni concorrenti.
+La Sessione S020 ha avviato l'implementazione concreta delle RPC sicure e atomiche relative a `profile_edit_locks`.
 
-Sono state implementate e testate le seguenti operazioni:
+La Sessione S021 ha completato il protocollo e ne ha effettuato l'hardening mediante un audit incrociato delle transizioni concorrenti.
 
-- `acquire_profile_edit_lock`;
-- `heartbeat_profile_edit_lock`;
-- `release_profile_edit_lock`;
-- `request_profile_edit_takeover`;
-- `cancel_profile_edit_takeover`;
-- `reject_profile_edit_takeover`;
-- `grant_profile_edit_takeover`;
-- `complete_profile_edit_takeover`;
-- `get_profile_edit_lock_state`.
+Le RPC del protocollo applicano i seguenti criteri:
 
-Le RPC implementate applicano i seguenti criteri:
-
-- identità ricavata tramite `auth.uid()`;
+- identità ricavata server-side;
 - nessuna fiducia nei dati di autorizzazione forniti dal client;
 - privilegio minimo;
 - utilizzo di `SECURITY DEFINER`;
 - `search_path = ''`;
 - `PUBLIC EXECUTE` revocato;
-- `EXECUTE` concesso esplicitamente a `authenticated` e `postgres`;
+- `EXECUTE` concesso esclusivamente ai ruoli previsti dal contratto;
 - operazioni atomiche quando richiesto;
 - test positivi e negativi;
 - verifica dei principali tentativi di bypass.
@@ -1913,27 +2270,227 @@ L'hardening della Sessione S021 ha inoltre verificato:
 
 Il protocollo `profile_edit_locks` è considerato architetturalmente coerente allo stato attuale.
 
-Il completamento del protocollo `profile_edit_locks` ha consentito nella Sessione S022 l’introduzione del primo **Write Path autoritativo di Categoria A**, applicato a `gardens`.
+### Write Path di `gardens`
 
-Il Write Path di `gardens` verifica server-side l’identità autenticata, l’ownership attiva del Profile, la Profile Write Authority, il client, la sessione, il token, il lease e lo stato del takeover. Le RPC `create_garden` e `update_garden` centralizzano validazione e scrittura atomica; i privilegi diretti `INSERT`, `UPDATE` e `DELETE` su `public.gardens` sono revocati ad `authenticated`.
+Il completamento del protocollo `profile_edit_locks` ha consentito nella Sessione S022 l'introduzione del primo Write Path autoritativo di Categoria A, applicato a `gardens`.
 
-Nella Sessione S023 `update_garden` è stata rafforzata rendendo obbligatorio `expected_row_version`. La versione viene verificata sia sullo stato letto sia nella condizione della scrittura finale. Se la riga non corrisponde più alla versione attesa, la RPC restituisce `version_conflict` e non applica l’aggiornamento.
+Sono disponibili:
 
-La Sessione S023 ha inoltre introdotto il Write Path autoritativo di `seasons` mediante:
+```text
+create_garden
+update_garden
+```
 
-- `create_season`;
-- `update_season`;
-- `activate_season`.
+Il Write Path verifica server-side:
+
+- identità autenticata;
+- ownership attiva del Profile;
+- Profile Write Authority;
+- client;
+- sessione;
+- token;
+- lease;
+- stato del takeover.
+
+Le RPC centralizzano validazione e scrittura atomica.
+
+I privilegi diretti `INSERT`, `UPDATE` e `DELETE` su `public.gardens` sono revocati ad `authenticated`.
+
+Nella Sessione S023 `update_garden` è stata rafforzata rendendo obbligatorio `expected_row_version`.
+
+La versione viene verificata sia sullo stato letto sia nella condizione della scrittura finale.
+
+Se la riga non corrisponde più alla versione attesa, la RPC restituisce:
+
+```text
+version_conflict
+```
+
+e non applica l'aggiornamento.
+
+### Write Path di `seasons`
+
+La Sessione S023 ha introdotto il Write Path autoritativo di `seasons` mediante:
+
+```text
+create_season
+update_season
+activate_season
+```
 
 I privilegi diretti `INSERT`, `UPDATE` e `DELETE` su `public.seasons` sono revocati ad `authenticated`, mentre `SELECT` rimane regolato dalle autorizzazioni previste.
 
-`create_season` crea la stagione inizialmente inattiva e impedisce la duplicazione dell’anno nello stesso Garden. `update_season` modifica esclusivamente i dati descrittivi e temporali, mantiene immutabile `garden_id` e non modifica `is_active`.
+`create_season` crea la stagione inizialmente inattiva e impedisce la duplicazione dell'anno nello stesso Garden.
 
-`activate_season` costituisce l’unica operazione applicativa autorizzata a cambiare lo stato attivo. La RPC attiva la stagione target e disattiva atomicamente l’eventuale stagione precedentemente attiva nello stesso Garden.
+`update_season` modifica esclusivamente i dati descrittivi e temporali, mantiene immutabile `garden_id` e non modifica `is_active`.
 
-`update_season` e `activate_season` richiedono `expected_row_version` e restituiscono `version_conflict` quando lo stato corrente non coincide più con quello atteso. Gli altri esiti del contratto comprendono `created`, `updated`, `activated`, `unchanged`, `duplicate_year`, `forbidden`, `write_forbidden`, `not_found` e `invalid_input`.
+`activate_season` costituisce l'unica operazione applicativa autorizzata a cambiare lo stato attivo.
 
-I Write Path di `gardens` e `seasons` sono considerati completati e coerenti allo stato attuale. Le operazioni amministrative protette su `profile_memberships` e i Write Path delle ulteriori entità di Categoria A restano incrementi successivi.
+La RPC attiva la stagione target e disattiva atomicamente l'eventuale stagione precedentemente attiva nello stesso Garden.
+
+`update_season` e `activate_season` richiedono `expected_row_version` e restituiscono `version_conflict` quando lo stato corrente non coincide più con quello atteso.
+
+### Write Path di `beds`
+
+La Sessione S024 ha introdotto il Write Path autoritativo di `beds` mediante:
+
+```text
+create_bed
+update_bed
+set_bed_active
+change_bed_geometry
+correct_bed_geometry
+```
+
+L'identità stabile dell'aiuola è mantenuta in `beds`.
+
+La geometria valida nel tempo viene conservata in `bed_geometries`.
+
+Le variazioni geometriche ordinarie e le correzioni storiche restano operazioni semanticamente distinte.
+
+Le correzioni storiche vengono registrate separatamente in `bed_geometry_corrections`.
+
+La concorrenza ottimistica utilizza le versioni attese previste dal contratto delle singole RPC.
+
+Le scritture dirette sulle tabelle protette rimangono revocate.
+
+La Sessione S025 ha completato l'integrazione Flutter dei cinque Write Path, mantenendo il controllo server-side come autorità definitiva.
+
+### Write Path del Catalogo DB V1
+
+La Sessione S026 ha introdotto il Write Path autoritativo del Catalogo DB V1 per:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+Il catalogo è Profile-owned e condiviso tra i Gardens dello stesso Profile.
+
+Le nove RPC autoritative sono:
+
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+create_crop
+update_crop
+set_crop_active
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
+
+Le scritture applicative sulle tre tabelle sono consentite esclusivamente attraverso le RPC previste.
+
+Le scritture dirette:
+
+```text
+INSERT
+UPDATE
+DELETE
+```
+
+sono revocate ad `authenticated`.
+
+Le RPC sono definite con:
+
+```text
+SECURITY DEFINER
+```
+
+e:
+
+```text
+search_path = ''
+```
+
+Il privilegio `EXECUTE` è concesso ad `authenticated` e revocato ad `anon` e `public`.
+
+Le scritture autoritative seguono il flusso:
+
+```text
+Supabase Auth
+        ↓
+autorizzazione server-side
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+FOR UPDATE / row_version
+        ↓
+scrittura
+```
+
+Il lease della Profile Write Authority viene rivalidato dopo eventuali attese sui row lock.
+
+La concorrenza ottimistica utilizza:
+
+```text
+expected_row_version
+```
+
+e:
+
+```text
+row_version
+```
+
+quando previsto dall'operazione.
+
+I parent vengono lockati quando necessario per serializzare correttamente operazioni concorrenti quali:
+
+- creazione di un figlio;
+- riattivazione di un figlio;
+- disattivazione di un parent;
+- cambio della Botanical Family di una Crop.
+
+Le principali regole gerarchiche protette server-side sono:
+
+- una Botanical Family non può essere disattivata se contiene Crop attive;
+- una Crop non può essere disattivata se contiene Crop Variety attive;
+- una Crop può essere creata soltanto sotto una Botanical Family attiva;
+- una Crop può essere spostata soltanto verso una Botanical Family attiva dello stesso Profile;
+- una Crop può essere riattivata soltanto se la Botanical Family padre è attiva;
+- una Crop Variety può essere creata soltanto sotto una Crop attiva;
+- una Crop Variety può essere riattivata soltanto se la Crop padre è attiva;
+- riattivare un parent non riattiva automaticamente i figli;
+- i record inattivi rimangono modificabili;
+- `crop_varieties.crop_id` è immutabile dopo la creazione.
+
+La Sessione S026 ha verificato mediante test SQL positivi e negativi:
+
+- Profile Write Authority;
+- owner/non-owner;
+- normalizzazione degli input;
+- unicità case-insensitive;
+- stato attivo e riattivazione;
+- gerarchie padre/figlio;
+- concorrenza ottimistica;
+- `unchanged`;
+- `version_conflict`;
+- fallback Crop → Variety;
+- coerenza delle temperature dopo fallback;
+- blocco quantitativo dell'acqua;
+- blocco della resa;
+- RLS;
+- privilegi di esecuzione delle RPC.
+
+I test sono stati eseguiti con dati fittizi all'interno di transazioni:
+
+```text
+BEGIN
+...
+ROLLBACK
+```
+
+senza lasciare dati persistenti.
+
+I Write Path di `gardens`, `seasons`, `beds` e del Catalogo DB V1 sono considerati completati e coerenti allo stato attuale.
+
+Le operazioni amministrative protette su `profile_memberships`, `plantings` e le ulteriori entità della baseline rimangono incrementi successivi.
 
 ## 9.9 Identità tecnica per dispositivi futuri
 
@@ -2024,12 +2581,46 @@ Il primo incremento è stato verificato mediante:
 - test manuali negativi;
 - controllo dei tentativi di accesso e modifica non autorizzati.
 
-Il principio operativo consolidato diventa quindi:
+Le Sessioni successive hanno mantenuto lo stesso principio estendendolo progressivamente ai Write Path autoritativi.
+
+Nella Sessione S026 sono state verificate anche:
+
+```text
+supabase db lint --local
+```
+
+che non ha rilevato nuovi problemi introdotti dalla sessione, e:
+
+```text
+supabase db diff --local
+```
+
+che ha restituito:
+
+```text
+No schema changes found
+```
+
+Le due migration S026 sono state applicate anche al database Supabase remoto.
+
+La verifica mediante:
+
+```text
+supabase migration list
+```
+
+ha confermato l'allineamento locale/remoto fino a:
+
+```text
+20260911091047
+```
+
+Il principio operativo consolidato rimane:
 
 ```text
 migration
         ↓
-ricostruzione da zero
+ricostruzione / applicazione controllata
         ↓
 verifica struttura
         ↓
@@ -2042,11 +2633,11 @@ test negativi
 incremento verificato
 ```
 
-Ogni successivo gruppo di migration dovrà essere verificato anche dal punto di vista della sicurezza prima di essere considerato completato.
+Ogni successivo gruppo di migration deve essere verificato anche dal punto di vista della sicurezza prima di essere considerato completato.
 
 Il Database V1 non sarà quindi considerato implementato soltanto perché le 52 entità esistono fisicamente: dovranno essere operative e collaudate anche le protezioni previste dalla baseline.
 
-Le future RPC sicure e atomiche costituiranno un ulteriore livello di protezione per le operazioni sensibili e dovranno essere verificate con lo stesso metodo prima di essere considerate consolidate.
+Le RPC sicure e atomiche costituiscono parte integrante del modello di protezione delle operazioni sensibili e devono essere verificate con lo stesso metodo prima di essere considerate consolidate.
 
 ---
 
@@ -2365,11 +2956,11 @@ Repository, servizi e mapping applicativi hanno il compito di adattare il domini
 
 # 11. Strategie di implementazione e migrazione
 
-La baseline Database V1 definita nella Sessione S017 costituisce il riferimento logico e architetturale per la futura implementazione PostgreSQL/Supabase.
+La baseline Database V1 definita nella Sessione S017 costituisce il riferimento logico e architetturale per l'implementazione PostgreSQL/Supabase.
 
-La sua approvazione non comporta una trasformazione immediata del database operativo esistente.
+La sua approvazione non comporta una trasformazione immediata e monolitica del database operativo esistente.
 
-L'implementazione deve procedere in modo incrementale, verificabile e reversibile per quanto ragionevolmente possibile, mantenendo funzionante il progetto durante il passaggio dalla struttura attuale alla nuova baseline.
+L'implementazione deve procedere in modo incrementale, verificabile e reversibile per quanto ragionevolmente possibile, mantenendo il progetto in uno stato controllabile durante la progressiva traduzione della baseline in strutture fisiche, sicurezza, Write Path autoritativi e integrazione applicativa.
 
 ## 11.1 Baseline congelata come riferimento
 
@@ -2392,12 +2983,14 @@ Una modifica della baseline deve essere valutata soltanto quando emerge:
 
 Una semplice preferenza implementativa non costituisce motivo sufficiente per modificare la baseline.
 
+Le strutture tecniche introdotte successivamente per sicurezza, autorizzazione o tracciamento devono essere documentate distinguendole dalle 52 entità di dominio congelate.
+
 ## 11.2 Stato attuale e stato obiettivo
 
-Durante la migrazione devono essere mantenuti distinti:
+Durante l'implementazione devono essere mantenuti distinti:
 
 ```text
-database operativo attuale
+database effettivamente implementato
 ```
 
 e:
@@ -2406,11 +2999,29 @@ e:
 Database V1 progettato
 ```
 
-Il primo rappresenta ciò che Supabase contiene e che l'applicazione può utilizzare realmente in un determinato momento.
+Il primo rappresenta ciò che Supabase contiene realmente e che l'applicazione può utilizzare in un determinato momento.
 
-Il secondo rappresenta lo schema obiettivo approvato.
+Il secondo rappresenta la baseline obiettivo approvata.
 
 La documentazione e le verifiche non devono dichiarare come implementata una struttura che esiste soltanto nella baseline progettuale.
+
+Alla conclusione della Sessione S026 il Database V1 rimane quindi parzialmente implementato.
+
+Sono già disponibili, tra le altre strutture:
+
+```text
+Fondazioni
+gardens
+seasons
+beds
+bed_geometries
+bed_geometry_corrections
+botanical_families
+crops
+crop_varieties
+```
+
+mentre ulteriori entità della baseline, tra cui `plantings`, devono ancora essere introdotte.
 
 ## 11.3 Implementazione incrementale
 
@@ -2463,9 +3074,16 @@ e mediante test manuali positivi e negativi delle policy RLS.
 
 La S019 costituisce il primo incremento fisicamente implementato e verificato della baseline Database V1.
 
-Le Sessioni S020 e S021 hanno progressivamente completato e rafforzato il protocollo server-side `profile_edit_locks`. La S022 ha introdotto la Profile Write Authority e il primo Write Path autoritativo per `gardens`. La S023 ha rafforzato il controllo versione di `update_garden` e ha applicato il Write Path autoritativo a `seasons`. La S024 ha implementato `beds`, la geometria storicizzata e il relativo Write Path autoritativo.
+Le Sessioni successive hanno proseguito secondo lo stesso criterio:
 
-La sequenza delle migration implementate e allineate fino alla S024 è:
+- S020 e S021 hanno progressivamente completato e rafforzato il protocollo server-side `profile_edit_locks`;
+- S022 ha introdotto la Profile Write Authority e il primo Write Path autoritativo per `gardens`;
+- S023 ha rafforzato il controllo concorrente di `update_garden` e ha introdotto il Write Path autoritativo di `seasons`;
+- S024 ha implementato `beds`, `bed_geometries`, `bed_geometry_corrections` e il relativo Write Path autoritativo;
+- S025 ha completato l'integrazione Flutter dei Write Path autoritativi di `beds`;
+- S026 ha implementato il Catalogo DB V1 costituito da `botanical_families`, `crops` e `crop_varieties` e i relativi nove Write Path autoritativi.
+
+La sequenza delle migration implementate e allineate fino alla S026 è:
 
 ```text
 20260817103916_database_v1_baseline.sql
@@ -2483,17 +3101,57 @@ La sequenza delle migration implementate e allineate fino alla S024 è:
 20260830103544_add_set_bed_active_rpc.sql
 20260830133429_add_change_bed_geometry_rpc.sql
 20260830140235_add_correct_bed_geometry_rpc.sql
+20260911084752_add_crop_catalog.sql
+20260911091047_add_crop_catalog_write_rpcs.sql
 ```
 
-Le restanti entità della baseline, i relativi Write Path autoritativi e le operazioni amministrative protette su `profile_memberships` rimangono da implementare progressivamente secondo dipendenze e perimetro approvato.
+Le migration locali e remote risultano allineate fino a:
+
+```text
+20260911091047
+```
+
+La Sessione S026 ha verificato tale allineamento mediante:
+
+```text
+supabase migration list
+```
+
+Il Catalogo DB V1 introdotto nella S026 comprende:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+e dispone delle RPC autoritative:
+
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+create_crop
+update_crop
+set_crop_active
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
+
+`crop_associations`, `agronomic_window_rules`, `plantings` e le ulteriori entità non ancora implementate rimangono incrementi successivi.
+
+Anche le operazioni amministrative protette su `profile_memberships` costituiscono un blocco distinto ancora da completare.
 
 ## 11.4 Ordine delle dipendenze
 
-Le migration devono rispettare le dipendenze tra le entità.
+Le migration devono rispettare le dipendenze effettive tra le entità.
 
 In linea generale devono essere introdotte prima le strutture dalle quali dipendono le successive.
 
-Un possibile ordine logico di alto livello è:
+Un ordine logico di alto livello della baseline è:
 
 ```text
 identità e ownership
@@ -2513,9 +3171,19 @@ economia e contesto ambientale
 infrastruttura tecnica necessaria
 ```
 
-L'ordine SQL concreto dovrà essere definito analizzando foreign key, vincoli, funzioni, policy e dipendenze effettive.
+Questo schema rappresenta un criterio architetturale e non una sequenza SQL rigida.
 
-La Sessione S019 ha applicato concretamente questo criterio introducendo per primo il gruppo **Fondazioni**, dal quale dipenderanno numerose strutture successive della baseline.
+L'ordine SQL concreto deve essere definito analizzando:
+
+- foreign key;
+- vincoli;
+- helper autorizzativi;
+- funzioni;
+- policy RLS;
+- dipendenze applicative;
+- invarianti da proteggere.
+
+La Sessione S019 ha applicato concretamente questo criterio introducendo per primo il gruppo **Fondazioni**, necessario per stabilire identità, ownership, membership, contesto Garden e coordinamento single-writer.
 
 L'ordine adottato nel primo incremento è stato:
 
@@ -2531,13 +3199,33 @@ seasons / workers
 profile_edit_locks
 ```
 
-Questo ordine non rappresenta una sequenza lineare assoluta di tutte le dipendenze interne, ma documenta il criterio con cui sono state introdotte per prime le strutture necessarie a stabilire identità, ownership, contesto Garden, partecipazione e coordinamento single-writer.
+La Sessione S026 ha confermato nuovamente il principio delle dipendenze.
 
-Per gli incrementi successivi l'ordine SQL dovrà continuare a essere determinato dalle dipendenze effettive tra foreign key, vincoli, helper autorizzativi, policy RLS e funzioni server-side.
+L'obiettivo iniziale era analizzare e preparare il futuro Write Path di `plantings`.
+
+Durante l'analisi è emerso che `plantings` dipende da un catalogo agronomico operativo non ancora disponibile nel Database V1 implementato.
+
+È stato quindi approvato il percorso:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+        ↓
+plantings
+```
+
+La S026 ha completato i primi tre livelli.
+
+`plantings` rimane un incremento successivo.
+
+Prima di implementarla verrà completata nella Sessione S027 l'integrazione Flutter del Catalogo V1.
 
 ## 11.5 Schema e sicurezza insieme
 
-La creazione di una tabella non è considerata completa se la relativa sicurezza prevista dalla baseline non è stata affrontata.
+La creazione di una tabella non è considerata completa se la relativa sicurezza prevista dal contratto non è stata affrontata.
 
 Ogni gruppo di migration deve valutare insieme:
 
@@ -2556,6 +3244,8 @@ policy
 +
 eventuali funzioni server-side
 +
+privilegi
++
 test
 ```
 
@@ -2563,9 +3253,7 @@ Non deve essere rimandata sistematicamente a una fase finale l'introduzione dell
 
 Una tabella esposta senza le protezioni richieste non rappresenta una implementazione completa del Database V1.
 
-La Sessione S019 ha applicato concretamente questo criterio alle Fondazioni del Database V1.
-
-Il primo incremento non è stato considerato completo con la sola creazione delle tabelle, ma ha incluso anche:
+La Sessione S019 ha applicato concretamente questo criterio alle Fondazioni mediante:
 
 - schema `private`;
 - helper autorizzativi;
@@ -2576,7 +3264,39 @@ Il primo incremento non è stato considerato completo con la sola creazione dell
 - test manuali negativi;
 - verifica dei tentativi di accesso, modifica ed eliminazione non autorizzati.
 
-Il metodo adottato è quindi:
+La Sessione S026 ha applicato lo stesso principio alle tre tabelle del Catalogo DB V1.
+
+Per:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+sono stati introdotti e verificati:
+
+- vincoli;
+- indici;
+- trigger metadata;
+- RLS;
+- privilegi;
+- RPC autoritative;
+- concorrenza ottimistica;
+- validazioni server-side;
+- test positivi e negativi.
+
+Il ruolo `authenticated` dispone della lettura regolata da RLS ma non dei privilegi diretti di:
+
+```text
+INSERT
+UPDATE
+DELETE
+```
+
+Le scritture applicative avvengono esclusivamente tramite le RPC autorizzate.
+
+Il metodo consolidato è quindi:
 
 ```text
 struttura persistente
@@ -2585,6 +3305,8 @@ ownership
         +
 sicurezza
         +
+Write Path autoritativo quando necessario
+        +
 test positivi
         +
 test negativi
@@ -2592,11 +3314,9 @@ test negativi
 incremento verificato
 ```
 
-Questo criterio dovrà essere mantenuto per tutti i successivi gruppi della baseline Database V1.
-
 ## 11.6 Migrazione dei dati esistenti
 
-Quando una nuova struttura sostituisce o specializza dati già presenti nel database operativo, deve essere definita esplicitamente la strategia di migrazione.
+Quando una nuova struttura sostituisce o specializza dati già presenti nel database operativo o nel codice legacy, deve essere definita esplicitamente la strategia di migrazione.
 
 Prima di modificare o rimuovere una struttura esistente devono essere verificati:
 
@@ -2605,11 +3325,18 @@ Prima di modificare o rimuovere una struttura esistente devono essere verificati
 - repository interessati;
 - foreign key esistenti;
 - policy RLS esistenti;
+- compatibilità con il nuovo contratto;
 - possibilità di trasformare i dati senza perdita informativa.
 
 La migrazione deve privilegiare la conservazione dei dati validi già presenti.
 
 Non devono essere cancellati dati esistenti soltanto per semplificare l'adozione della nuova struttura.
+
+La Sessione S026 ha mantenuto separato il nuovo Catalogo DB V1 dai componenti Flutter legacy.
+
+Il vecchio modello/repository utilizzato per le colture e `plantings` non è stato modificato durante la sessione.
+
+La successiva integrazione Flutter dovrà quindi effettuare esplicitamente il passaggio dal modello legacy al nuovo contratto autoritativo senza assumere equivalenza automatica tra le due rappresentazioni.
 
 ## 11.7 Compatibilità con il codice applicativo
 
@@ -2621,6 +3348,7 @@ Quando cambia la struttura persistente devono essere verificati almeno:
 modelli
 repository
 mapping
+result type
 servizi
 motori che consumano i dati
 test
@@ -2628,7 +3356,38 @@ test
 
 Non deve essere introdotta una dipendenza del codice applicativo da una struttura che non è ancora disponibile nel database utilizzato.
 
-Quando necessario potranno essere adottati passaggi transitori compatibili con lo schema precedente e quello nuovo.
+Allo stesso modo, l'esistenza di una nuova struttura nel database non implica automaticamente che il client Flutter la utilizzi già.
+
+Questo principio è particolarmente evidente dopo la Sessione S026:
+
+```text
+Catalogo DB V1
+        =
+implementato nel database
+
+Catalogo Flutter V1
+        =
+non ancora integrato
+```
+
+Il successivo blocco approvato per la Sessione S027 è quindi:
+
+**Integrazione Flutter del Catalogo V1**
+
+e comprende:
+
+- modelli Dart;
+- result type per create/update/set active;
+- Repository;
+- letture dirette protette da RLS;
+- scritture esclusivamente tramite RPC autoritative;
+- integrazione della Profile Write Authority;
+- gestione di `row_version`;
+- mapping completo degli status RPC;
+- test Repository/result mapping;
+- successiva valutazione della UI minima di gestione del catalogo.
+
+Il Write Path completo di `plantings` non deve essere anticipato nella S027.
 
 ## 11.8 Repository come confine di persistenza
 
@@ -2648,13 +3407,33 @@ dominio Dart
 
 Il dominio non deve dipendere direttamente dai dettagli della rappresentazione SQL quando tali dettagli possono essere confinati nel livello di persistenza.
 
-Questo principio è particolarmente importante per la futura integrazione di:
+Il Repository deve inoltre costituire il confine applicativo verso le RPC autoritative quando una entità non consente scritture dirette.
+
+Per il Catalogo DB V1 il modello previsto è:
+
+```text
+lettura
+        ↓
+RLS
+        ↓
+Repository
+
+scrittura
+        ↓
+Repository
+        ↓
+RPC autoritativa
+        ↓
+PostgreSQL
+```
+
+La futura integrazione di:
 
 ```text
 agronomic_window_rules
 ```
 
-con:
+dovrà continuare a preservare la separazione tra persistenza e logica decisionale già consolidata negli engine Dart:
 
 ```text
 CropAgronomicWindowRule
@@ -2663,13 +3442,13 @@ AgronomicWindowEngine
 AgronomicWindowService
 ```
 
-La struttura persistente deve alimentare il dominio senza trasferire nel database la logica decisionale già consolidata negli engine Dart.
+La struttura persistente deve alimentare il dominio senza trasferire indiscriminatamente nel database la logica decisionale degli engine applicativi.
 
 ## 11.9 Migration tracciabili
 
-Ogni modifica strutturale al database deve essere rappresentata da migration versionate e conservate nel repository secondo la struttura che verrà adottata per Supabase.
+Ogni modifica strutturale al database deve essere rappresentata da migration versionate e conservate nel repository.
 
-Non devono essere considerate sufficienti modifiche manuali eseguite esclusivamente dalla Dashboard senza una corrispondente rappresentazione riproducibile nel progetto.
+Non devono essere considerate sufficienti modifiche manuali eseguite esclusivamente dalla Dashboard Supabase senza una corrispondente rappresentazione riproducibile nel progetto.
 
 Il principio è:
 
@@ -2689,21 +3468,32 @@ La Sessione S019 ha applicato concretamente questo principio mediante la prima m
 supabase/migrations/20260817103916_database_v1_baseline.sql
 ```
 
-La migration contiene il primo incremento implementativo della baseline ed è conservata nel repository Git insieme al codice e alla documentazione del progetto.
-
-La relativa implementazione è stata consolidata nel commit:
+La Sessione S026 ha continuato lo stesso modello mediante:
 
 ```text
-f5cd6cf  Crea baseline Database V1 e sicurezza RLS
+supabase/migrations/20260911084752_add_crop_catalog.sql
+supabase/migrations/20260911091047_add_crop_catalog_write_rpcs.sql
 ```
 
-Da questo punto l'evoluzione fisica del Database V1 deve quindi continuare attraverso migration versionate e riproducibili, evitando modifiche strutturali permanenti eseguite esclusivamente sulla Dashboard Supabase e non rappresentate nel repository.
+Le due migration sono state applicate anche al database Supabase remoto mediante:
+
+```text
+supabase db push
+```
+
+e la successiva verifica ha confermato:
+
+```text
+Local = Remote fino a 20260911091047
+```
+
+L'evoluzione fisica del Database V1 deve quindi continuare attraverso migration versionate e riproducibili, evitando modifiche strutturali permanenti eseguite esclusivamente sulla Dashboard e non rappresentate nel repository.
 
 ## 11.10 Verifica delle migration
 
 Ogni gruppo di migration deve essere sottoposto a verifiche appropriate prima di essere considerato completato.
 
-Le verifiche dovranno comprendere, secondo il contenuto della migration:
+Le verifiche devono comprendere, secondo il contenuto della migration:
 
 - creazione corretta delle strutture;
 - foreign key;
@@ -2711,19 +3501,20 @@ Le verifiche dovranno comprendere, secondo il contenuto della migration:
 - intervalli temporali;
 - ownership;
 - RLS;
+- privilegi;
 - operazioni consentite;
 - operazioni che devono essere rifiutate;
-- compatibilità con repository e dominio;
+- concorrenza;
+- invarianti;
+- compatibilità con Repository e dominio;
 - eventuale migrazione dei dati preesistenti.
 
 I test devono includere anche casi negativi, non soltanto operazioni autorizzate e valide.
 
-La Sessione S019 ha applicato concretamente questi criteri alla prima migration Database V1.
+La Sessione S019 ha applicato concretamente questi criteri alla prima migration Database V1 mediante:
 
-La verifica è stata eseguita mediante:
-
-- `supabase db reset` per ricostruire il database locale da zero;
-- controllo della creazione delle sei tabelle Fondazioni;
+- `supabase db reset`;
+- controllo delle sei tabelle Fondazioni;
 - verifica dello schema `private`;
 - verifica degli helper autorizzativi;
 - verifica dei trigger metadata;
@@ -2734,27 +3525,82 @@ La verifica è stata eseguita mediante:
 - tentativi di scrittura non autorizzati;
 - tentativi di eliminazione non autorizzati.
 
-La struttura effettivamente generata è stata inoltre controllata mediante un dump diagnostico locale temporaneo.
+La Sessione S026 ha esteso il metodo di verifica al Catalogo DB V1.
 
-Il dump è stato utilizzato esclusivamente come supporto alla verifica ed è stato successivamente eliminato, evitando di conservarlo nel repository come artefatto non necessario.
+I test funzionali SQL sono stati eseguiti con dati fittizi all'interno di transazioni:
 
-Il criterio applicato nella S019 è quindi:
+```text
+BEGIN
+...
+ROLLBACK
+```
+
+senza lasciare dati persistenti.
+
+Sono stati verificati, tra gli altri:
+
+- creazione delle entità;
+- normalizzazione degli input;
+- unicità case-insensitive;
+- Profile Write Authority;
+- owner/non-owner;
+- aggiornamenti;
+- `unchanged`;
+- `version_conflict`;
+- modifica di record inattivi;
+- vincoli gerarchici;
+- disattivazione e riattivazione;
+- validazione di `default_start_method`;
+- validazione del fabbisogno idrico quantitativo;
+- validazione della resa;
+- coerenza min/avg/max;
+- validazione delle temperature;
+- fallback Crop → Variety;
+- blocco degli override parziali non ammessi;
+- RLS;
+- privilegi delle RPC.
+
+Sono stati inoltre eseguiti:
+
+```text
+supabase db lint --local
+```
+
+senza nuovi problemi introdotti dalla S026, e:
+
+```text
+supabase db diff --local
+```
+
+con risultato:
+
+```text
+No schema changes found
+```
+
+Una migration non deve essere considerata verificata soltanto perché viene applicata senza errori.
+
+Deve essere controllato anche il comportamento effettivo della struttura, delle autorizzazioni e delle invarianti introdotte.
+
+Il criterio consolidato è:
 
 ```text
 migration versionata
         ↓
-ricostruzione completa
+applicazione / ricostruzione controllata
         ↓
 verifica struttura effettiva
+        ↓
+verifica sicurezza
         ↓
 test positivi
         ↓
 test negativi
         ↓
+verifica allineamento locale/remoto
+        ↓
 commit e push
 ```
-
-Una migration non deve essere considerata verificata soltanto perché viene applicata senza errori: deve essere controllato anche il comportamento effettivo della struttura e delle protezioni introdotte.
 
 ## 11.11 Backup e possibilità di recupero
 
@@ -2768,6 +3614,10 @@ In particolare, prima di operazioni che possano comportare perdita o trasformazi
 - procedura di ripristino quando un rollback automatico non è realistico.
 
 La possibilità di applicare una migration non implica che essa debba essere eseguita senza una strategia di recupero.
+
+Il principio operativo rimane coerente con le regole generali del progetto:
+
+> **Sicurezza prima di tutto.**
 
 ## 11.12 Nessun big bang
 
@@ -2783,7 +3633,23 @@ baseline completa
 implementazione simultanea
 ```
 
-L'obiettivo è raggiungere progressivamente la baseline V1 mantenendo in ogni fase controllo tecnico, testabilità e tracciabilità.
+La Sessione S026 costituisce un esempio concreto di questo metodo.
+
+L'obiettivo iniziale era avvicinarsi a `plantings`, ma l'analisi delle dipendenze ha evidenziato la necessità di implementare prima il Catalogo DB V1.
+
+È stato quindi completato esclusivamente il blocco propedeutico:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+senza anticipare `plantings`.
+
+L'obiettivo rimane raggiungere progressivamente la baseline V1 mantenendo in ogni fase controllo tecnico, testabilità e tracciabilità.
 
 ## 11.13 Criterio di completamento
 
@@ -2800,8 +3666,9 @@ Il completamento richiederà almeno:
 - ownership;
 - RLS e autorizzazioni;
 - infrastruttura tecnica necessaria;
+- Write Path autoritativi dove previsti;
 - migrazione dei dati esistenti quando applicabile;
-- integrazione con repository e dominio;
+- integrazione con Repository e dominio;
 - test di integrazione e sicurezza;
 - documentazione aggiornata.
 
@@ -2812,6 +3679,12 @@ Database V1 progettato
         ≠
 Database V1 completamente implementato
 ```
+
+Alla conclusione della S026 il Catalogo DB V1 è implementato e verificato lato PostgreSQL/Supabase, ma non è ancora integrato nel client Flutter.
+
+La Sessione S027 costituisce il successivo incremento approvato e sarà dedicata all'integrazione Flutter del Catalogo V1.
+
+`plantings` rimane un blocco successivo.
 
 ---
 
@@ -3058,12 +3931,16 @@ La progettazione ha portato alla definizione di:
 1 struttura tecnica profile_edit_locks
 ```
 
-per un totale previsto di **53 strutture fisiche**, fermo restando che `profile_edit_locks` non appartiene al conteggio delle entità di dominio.
+`profile_edit_locks` rimane una struttura tecnica separata e non appartiene al conteggio delle 52 entità di dominio.
 
 Il controllo nominale finale **52/52** ha inoltre consolidato due decisioni importanti:
 
 - `agronomic_windows` non costituisce una tabella persistente del Database V1, poiché `AgronomicWindow` rimane un risultato calcolato a partire da `agronomic_window_rules`;
 - `irrigation_zone_target_assignments` costituisce il nome SQL definitivo e sostituisce la precedente denominazione provvisoria `zone_target_assignments`.
+
+L'implementazione fisica del Database V1 è iniziata nella Sessione S019 e procede incrementalmente mediante migration versionate, controlli di sicurezza, test positivi e negativi e Write Path autoritativi.
+
+Alla conclusione della Sessione S026 il Database V1 rimane parzialmente implementato.
 
 ## 13.1 Principi consolidati
 
@@ -3081,49 +3958,65 @@ La baseline Database V1 è fondata sui seguenti principi:
 - Flutter considerato client non fidato;
 - separazione tra persistenza e logica decisionale del dominio;
 - implementazione incrementale mediante migration tracciate;
+- Write Path autoritativi per le operazioni che richiedono protezione server-side;
+- concorrenza ottimistica mediante `row_version` ed `expected_row_version` quando prevista dal contratto;
+- comportamento fail-closed in presenza di esiti sconosciuti, incompleti o non verificabili;
+- nessun retry automatico quando l'esito effettivo di una scrittura non è confermabile;
+- rilettura del dato autoritativo dopo una scrittura riuscita quando prevista dal flusso applicativo;
 - estensioni future introdotte soltanto in presenza di requisiti concreti.
 
-Questi principi devono essere preservati durante la futura implementazione SQL/Supabase.
+Questi principi devono essere preservati durante la progressiva implementazione SQL/Supabase e durante la successiva integrazione Flutter.
+
+Il principio operativo generale rimane coerente con le regole del progetto:
+
+> **Presto e bene non conviene.**
+
+e:
+
+> **Sicurezza prima di tutto.**
 
 ## 13.2 Stato raggiunto
 
-Con la Sessione S018 il progetto ha predisposto l'ambiente locale necessario alla futura implementazione della baseline.
-
-Con la Sessione S019 è stato compiuto il passaggio successivo: è iniziata concretamente l'implementazione fisica del Database V1 mediante la prima migration versionata e verificata localmente.
-
-Lo stato raggiunto è:
+Il percorso di implementazione può essere sintetizzato come:
 
 ```text
 Database V1 progettato
         ✓
-
 controllato nominalmente
         ✓
-
 congelato
         ✓
-
 documentato
         ✓
-
 ambiente locale Supabase predisposto
         ✓
-
-struttura per migration versionate inizializzata
+migration versionate
         ✓
-
-prima migration Database V1 creata
+Fondazioni implementate
         ✓
-
-primo gruppo Fondazioni implementato
+protocollo single-writer verificato
         ✓
-
-prima matrice RLS verificata
+Profile Write Authority implementata
         ✓
-
+Write Path gardens verificato
+        ✓
+Write Path seasons verificato
+        ✓
+Write Path beds verificato
+        ✓
+Catalogo DB V1 implementato
+        ✓
+Write Path Catalogo DB V1 verificato
+        ✓
+integrazione Flutter Catalogo V1
+        ✗
+plantings
+        ✗
 Database V1 completo
         ✗
 ```
+
+L'ambiente locale Supabase predisposto nella Sessione S018 rimane il riferimento per sviluppo, ricostruzione e verifica.
 
 La prima migration Database V1 è:
 
@@ -3131,16 +4024,53 @@ La prima migration Database V1 è:
 supabase/migrations/20260817103916_database_v1_baseline.sql
 ```
 
-Il primo gruppo implementato comprende le sei strutture Fondazioni:
+Il primo gruppo implementato comprende le strutture Fondazioni:
 
-- `profiles`;
-- `profile_memberships`;
-- `gardens`;
-- `workers`;
-- `seasons`;
-- `profile_edit_locks`.
+```text
+profiles
+profile_memberships
+gardens
+workers
+seasons
+profile_edit_locks
+```
 
-Sono stati inoltre introdotti e verificati:
+Sono stati inoltre introdotti nel corso delle sessioni successive:
+
+```text
+beds
+bed_geometries
+bed_geometry_corrections
+botanical_families
+crops
+crop_varieties
+```
+
+`profile_edit_locks` rimane infrastruttura tecnica separata.
+
+`profile_memberships` costituisce una struttura di sicurezza e accesso introdotta nell'implementazione fisica e deve essere distinta dalle 52 entità di dominio congelate.
+
+Alla conclusione della Sessione S026 le migration locali e remote risultano allineate fino a:
+
+```text
+20260911091047
+```
+
+Il Database V1 completo non è ancora implementato.
+
+In particolare:
+
+```text
+public.plantings
+```
+
+non è ancora presente nello schema implementato.
+
+## 13.3 Evoluzione dell'implementazione dalla S019 alla S026
+
+La Sessione S019 ha avviato concretamente la traduzione della baseline Database V1 congelata nella S017 in strutture PostgreSQL/Supabase versionate e verificabili.
+
+Il primo incremento ha riguardato il blocco **Fondazioni** e ha introdotto:
 
 - schema `private`;
 - helper autorizzativi;
@@ -3150,198 +4080,229 @@ Sono stati inoltre introdotti e verificati:
 - test manuali positivi;
 - test manuali negativi.
 
-La migration è stata verificata mediante ricostruzione completa dell'ambiente locale con:
+La Sessione S020 ha avviato l'implementazione delle RPC server-side del protocollo `profile_edit_locks`.
 
-```text
-supabase db reset
-```
+La Sessione S021 ha completato e rafforzato il protocollo single-writer, verificando tra l'altro:
 
-La struttura effettivamente generata è stata controllata anche mediante un dump diagnostico locale temporaneo, successivamente eliminato.
-
-La presenza del primo incremento implementato non deve essere confusa con il completamento dell'intera baseline Database V1.
-
-Le restanti entità e i successivi meccanismi server-side devono ancora essere implementati progressivamente.
-
-Durante la Sessione S018 è stato predisposto l'ambiente locale composto da:
-
-- WSL 2 `2.7.11.0`;
-- Ubuntu `24.04.4 LTS`;
-- Docker Desktop con backend WSL 2;
-- Docker Engine/CLI `29.7.2`;
-- Supabase CLI `2.114.0`.
-
-È stato eseguito:
-
-```text
-supabase init
-```
-
-creando nel repository:
-
-```text
-supabase/
-├── .gitignore
-├── config.toml
-└── seed.sql
-```
-
-Il file `supabase/seed.sql` è intenzionalmente vuoto in questa fase.
-
-Il precedente file:
-
-```text
-database/database_v1.sql
-```
-
-appartiene alla prima struttura sperimentale del database e non rappresenta la baseline Database V1 congelata nella S017.
-
-Per conservarne il valore storico senza confonderlo con la nuova baseline è stato rinominato:
-
-```text
-database/database_legacy_initial.sql
-```
-
-La versione PostgreSQL del progetto Supabase remoto è stata verificata mediante una query esclusivamente di lettura:
-
-```sql
-select version();
-```
-
-ottenendo:
-
-```text
-PostgreSQL 17.6
-```
-
-La configurazione locale generata dalla Supabase CLI con:
-
-```text
-major_version = 17
-```
-
-è pertanto coerente con il database remoto.
-
-Durante la Sessione S018 **non è stata effettuata alcuna modifica al database remoto**.
-
-Le 52 entità della baseline non sono ancora tutte presenti in Supabase e devono ancora essere implementati progressivamente:
-
-- migration SQL;
-- relazioni e vincoli;
-- invarianti;
-- policy RLS;
-- eventuali funzioni server-side previste;
-- verifiche e test della nuova struttura.
-
-La prima migration della baseline Database V1 non è stata volutamente creata durante la S018.
-
-## 13.3 Implementazione raggiunta con la Sessione S019
-
-La Sessione S019 ha avviato concretamente la traduzione della baseline Database V1 congelata nella S017 in strutture PostgreSQL/Supabase versionate e verificabili.
-
-È stata creata la prima migration della baseline:
-
-```text
-supabase/migrations/20260817103916_database_v1_baseline.sql
-```
-
-e il primo incremento implementativo ha riguardato il blocco **Fondazioni**, composto da:
-
-- `profiles`;
-- `profile_memberships`;
-- `gardens`;
-- `workers`;
-- `seasons`;
-- `profile_edit_locks`.
-
-L'incremento comprende inoltre:
-
-- schema `private`;
-- helper autorizzativi;
-- trigger metadata;
-- Row Level Security;
-- **13 policy RLS**.
-
-La migration è stata verificata mediante ricostruzione completa dell'ambiente locale:
-
-```text
-supabase db reset
-```
-
-e mediante test manuali positivi e negativi delle policy RLS.
-
-La Sessione S019 rappresenta quindi il passaggio da:
-
-```text
-baseline progettata e congelata
-        ↓
-ambiente locale predisposto
-        ↓
-prima migration creata
-        ↓
-Fondazioni implementate
-        ↓
-sicurezza RLS verificata
-        ↓
-primo incremento Database V1 verificato
-```
-
-Il completamento di questo primo incremento non equivale al completamento dell'intera baseline Database V1.
-
-L'implementazione deve continuare **incrementalmente per gruppi coerenti di strutture e dipendenze**, mantenendo i criteri già adottati:
-
-- la baseline congelata nella S017 rimane il riferimento architetturale;
-- non devono essere introdotte nuove entità implicitamente durante l'implementazione;
-- eventuali necessità architetturali devono essere valutate esplicitamente prima di modificare la baseline;
-- le dipendenze effettive devono determinare l'ordine di implementazione;
-- schema, vincoli, ownership e sicurezza devono essere sviluppati congiuntamente;
-- ogni incremento deve essere ricostruibile mediante migration versionate;
-- i test devono comprendere sia operazioni autorizzate sia operazioni che devono essere rifiutate;
-- l'ambiente Docker/Supabase locale rimane il riferimento per la verifica prima degli interventi applicabili al database remoto.
-
-La Sessione S020 ha avviato il successivo incremento tecnico dedicato alle operazioni server-side necessarie a completare la protezione delle Fondazioni. La Sessione S021 ha completato il protocollo `profile_edit_locks` e ne ha verificato l'hardening concorrente.
-
-Per `profile_edit_locks` risultano implementate e testate:
-
-- acquisizione del lock mediante `acquire_profile_edit_lock`;
-- heartbeat mediante `heartbeat_profile_edit_lock`;
-- rilascio mediante `release_profile_edit_lock`;
-- richiesta di takeover mediante `request_profile_edit_takeover`;
-- annullamento della richiesta mediante `cancel_profile_edit_takeover`;
-- rifiuto del takeover mediante `reject_profile_edit_takeover`;
-- concessione del takeover mediante `grant_profile_edit_takeover`;
-- completamento del takeover mediante `complete_profile_edit_takeover`;
-- lettura dello stato mediante `get_profile_edit_lock_state`.
-
-La Sessione S021 ha inoltre verificato la serializzazione delle transizioni concorrenti mediante `FOR UPDATE`, la rivalidazione server-side dopo l'eventuale attesa sul row lock, l'utilizzo di `clock_timestamp()` nei punti temporali autoritativi interessati, la protezione del lease durante il grant e il trasferimento atomico del lock.
+- serializzazione mediante `FOR UPDATE`;
+- rivalidazione server-side dopo eventuali attese sui row lock;
+- utilizzo dell'orologio PostgreSQL come autorità temporale;
+- protezione del lease;
+- gestione sicura del takeover;
+- trasferimento atomico del lock.
 
 Il protocollo `profile_edit_locks` è considerato completato e coerente allo stato attuale.
 
-La Sessione S022 ha utilizzato il protocollo `profile_edit_locks` come fondamento del primo **Write Path autoritativo di Categoria A**, implementato per `gardens`.
+La Sessione S022 ha introdotto la Profile Write Authority e il primo Write Path autoritativo per:
 
-Per `gardens` sono disponibili `create_garden` e `update_garden`. Il Write Path verifica server-side la Profile Write Authority, l’identità autenticata, l’ownership attiva del Profile, il client, la sessione, il token, il lease e lo stato del takeover. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono revocate.
+```text
+gardens
+```
 
-Nella Sessione S023 `update_garden` è stata rafforzata mediante `expected_row_version`, controllo condizionale della scrittura e restituzione di `version_conflict` in presenza di dati obsoleti.
+mediante:
 
-La Sessione S023 ha inoltre introdotto il Write Path autoritativo di `seasons` mediante `create_season`, `update_season` e `activate_season`. Le scritture dirette sono revocate, la concorrenza ottimistica utilizza `row_version` e l’attivazione della stagione target con la disattivazione della precedente avviene atomicamente.
+```text
+create_garden
+update_garden
+```
 
-La Sessione S024 ha introdotto il Write Path autoritativo di `beds` mediante `create_bed`, `update_bed`, `set_bed_active`, `change_bed_geometry` e `correct_bed_geometry`.
+La Sessione S023 ha rafforzato `update_garden` mediante `expected_row_version` e ha introdotto il Write Path autoritativo di:
 
-L’identità stabile dell’aiuola è mantenuta in `beds`, mentre `bed_geometries` conserva le configurazioni valide nel tempo mediante intervalli non sovrapposti. Le normali variazioni fisiche chiudono la geometria precedente e ne creano una nuova; le rettifiche storiche utilizzano un’operazione distinta e vengono registrate in `bed_geometry_corrections`.
+```text
+seasons
+```
 
-Le scritture dirette sulle tabelle protette sono revocate, le operazioni applicano la Profile Write Authority e la concorrenza ottimistica utilizza `row_version` ed `expected_row_version` secondo il contratto delle singole RPC.
+mediante:
 
-I Write Path di `gardens`, `seasons` e `beds` sono considerati completati e coerenti allo stato attuale.
+```text
+create_season
+update_season
+activate_season
+```
 
-Restano da implementare progressivamente i Write Path delle ulteriori entità della baseline e le operazioni amministrative protette su `profile_memberships`. `public.plantings`, pur prevista nella baseline, non è ancora presente nello schema implementato.
+La Sessione S024 ha introdotto:
 
-Le operazioni già implementate e quelle ancora da completare devono rispettare i principi già stabiliti per il Database V1:
+```text
+beds
+bed_geometries
+bed_geometry_corrections
+```
+
+e il relativo Write Path autoritativo mediante:
+
+```text
+create_bed
+update_bed
+set_bed_active
+change_bed_geometry
+correct_bed_geometry
+```
+
+L'identità stabile dell'aiuola è mantenuta in `beds`.
+
+La geometria valida nel tempo è conservata in `bed_geometries`.
+
+Le variazioni geometriche ordinarie e le correzioni storiche rimangono operazioni semanticamente distinte.
+
+La Sessione S025 ha completato l'integrazione Flutter dei Write Path autoritativi di `beds`, mantenendo:
+
+- Profile Write Authority;
+- concorrenza ottimistica;
+- rilettura autoritativa;
+- comportamento fail-closed;
+- separazione tra variazione geometrica ordinaria e correzione storica;
+- gestione italiana delle date civili mediante `CivilDate`.
+
+La Sessione S026 ha introdotto il **Catalogo DB V1**:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+Il catalogo è Profile-owned e condiviso tra tutti i Gardens appartenenti allo stesso Profile.
+
+Gli identificativi del nuovo catalogo sono UUID.
+
+Sono state introdotte le migration:
+
+```text
+20260911084752_add_crop_catalog.sql
+20260911091047_add_crop_catalog_write_rpcs.sql
+```
+
+La prima migration introduce:
+
+- `botanical_families`;
+- `crops`;
+- `crop_varieties`;
+- vincoli;
+- indici;
+- trigger metadata;
+- RLS;
+- privilegi.
+
+La seconda migration introduce le nove RPC autoritative:
+
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+create_crop
+update_crop
+set_crop_active
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
+
+Il Write Path del Catalogo DB V1 applica:
+
+```text
+Supabase Auth
+        ↓
+autorizzazione server-side
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+FOR UPDATE / row_version
+        ↓
+scrittura
+```
+
+Le scritture dirette `INSERT`, `UPDATE` e `DELETE` sulle tre tabelle sono revocate ad `authenticated`.
+
+Le letture sono protette mediante RLS e:
+
+```text
+private.is_profile_member(profile_id)
+```
+
+La concorrenza ottimistica utilizza `row_version` ed `expected_row_version` quando previsto.
+
+I parent vengono lockati quando necessario per serializzare correttamente operazioni concorrenti sulle gerarchie padre/figlio.
+
+Sono state inoltre consolidate le regole relative a:
+
+- unicità case-insensitive;
+- stato attivo;
+- disattivazione e riattivazione;
+- gerarchie Botanical Family → Crop → Crop Variety;
+- fallback Crop → Variety;
+- fabbisogno idrico qualitativo e quantitativo;
+- resa prevista;
+- temperature;
+- fonti;
+- immutabilità di `crop_varieties.crop_id`.
+
+I test SQL della S026 sono stati eseguiti mediante dati fittizi e transazioni:
+
+```text
+BEGIN
+...
+ROLLBACK
+```
+
+senza lasciare dati persistenti.
+
+Sono stati inoltre verificati:
+
+```text
+supabase db lint --local
+```
+
+senza nuovi problemi introdotti dalla S026, e:
+
+```text
+supabase db diff --local
+```
+
+con risultato:
+
+```text
+No schema changes found
+```
+
+Le migration sono state applicate anche al database remoto e:
+
+```text
+supabase migration list
+```
+
+ha confermato l'allineamento locale/remoto fino a:
+
+```text
+20260911091047
+```
+
+## 13.4 Stato dei Write Path autoritativi
+
+Alla conclusione della Sessione S026 risultano completati e coerenti allo stato attuale i Write Path autoritativi di:
+
+```text
+gardens
+seasons
+beds
+botanical_families
+crops
+crop_varieties
+```
+
+Le scritture protette seguono il principio:
 
 ```text
 autenticazione
         +
 ownership
         +
-eventuale lock
+Profile Write Authority quando prevista
+        +
+concorrenza
         +
 invarianti
         +
@@ -3350,29 +4311,46 @@ operazione atomica
 modifica autorizzata
 ```
 
-Le RPC devono essere progettate e implementate secondo il principio del privilegio minimo, con particolare attenzione a `SECURITY DEFINER`, `search_path`, privilegi `EXECUTE`, `REVOKE` e `GRANT`, controllo dell'identità autenticata e impossibilità per il client di attribuirsi autonomamente privilegi o stato di writer.
+Le RPC devono continuare a essere progettate secondo il principio del privilegio minimo, con particolare attenzione a:
 
-Il percorso di implementazione prosegue pertanto come:
+- `SECURITY DEFINER`;
+- `search_path = ''`;
+- privilegi `EXECUTE`;
+- `REVOKE`;
+- `GRANT`;
+- identità autenticata;
+- impossibilità per il client di attribuirsi autonomamente privilegi;
+- concorrenza;
+- rivalidazione del lease;
+- comportamento fail-closed.
+
+Il percorso raggiunto è:
 
 ```text
 Fondazioni e protocollo single-writer verificati
         ↓
-Write Path gardens, seasons e beds verificati
+Write Path gardens verificato
         ↓
-ulteriori entità secondo dipendenze e perimetro approvato
+Write Path seasons verificato
         ↓
-verifica positiva e negativa della sicurezza
+Write Path beds verificato
         ↓
-integrazione Repository / dominio
+integrazione Flutter beds completata
         ↓
-documentazione
+Catalogo DB V1 implementato
         ↓
-commit e push
+Write Path Catalogo DB V1 verificato
+        ↓
+integrazione Flutter Catalogo V1
+        ↓
+plantings
+        ↓
+ulteriori entità della baseline
 ```
 
-La S019 ha costituito il primo incremento fisicamente implementato e verificato del Database V1. Le Sessioni S020 e S021 hanno completato e rafforzato il protocollo `profile_edit_locks`; la S022 ha introdotto il Write Path autoritativo di `gardens`; la S023 ha rafforzato `update_garden` e completato il Write Path autoritativo di `seasons`; la S024 ha implementato l’identità stabile, la geometria storicizzata e il Write Path autoritativo di `beds`. Le ulteriori strutture e operazioni della baseline continueranno a essere introdotte progressivamente secondo il perimetro approvato.
+Le operazioni amministrative protette su `profile_memberships` rimangono un blocco separato ancora da implementare.
 
-## 13.4 Relazione con il dominio applicativo
+## 13.5 Relazione con il dominio applicativo
 
 Il Database V1 non sostituisce il dominio Dart.
 
@@ -3390,11 +4368,19 @@ dominio Dart
 servizi ed engine
 ```
 
-Il database conserva dati, relazioni, ownership, invarianti e informazioni necessarie alla ricostruibilità.
+Il database conserva:
+
+- dati persistenti;
+- relazioni;
+- ownership;
+- autorizzazioni;
+- invarianti;
+- stato concorrente;
+- informazioni necessarie alla ricostruibilità.
 
 Il dominio applicativo mantiene invece la responsabilità delle valutazioni e delle decisioni agronomiche.
 
-Un esempio fondamentale è:
+Un esempio fondamentale rimane:
 
 ```text
 agronomic_window_rules
@@ -3410,13 +4396,76 @@ AgronomicWindowEngine
 AgronomicWindowService
 ```
 
-Questo consente alla persistenza di adattarsi al dominio consolidato senza trasferire impropriamente nel database la logica degli engine.
+Il Database V1 conserva le regole persistenti.
 
-## 13.5 Evoluzione del documento
+La determinazione della `AgronomicWindow` applicabile rimane responsabilità del dominio.
 
-Il presente Manuale Database dovrà essere aggiornato insieme all'implementazione effettiva del Database V1.
+Lo stesso principio vale per il Catalogo DB V1.
 
-Durante le future migration dovranno essere documentati almeno:
+Il database conserva i valori di riferimento, le relazioni e le invarianti, mentre il dominio applicativo utilizza tali dati nei calcoli e nelle decisioni agronomiche.
+
+Il catalogo segue inoltre il principio:
+
+> **catalogo corrente + snapshot storico**
+
+Le future modifiche ai valori correnti del catalogo non devono riscrivere retroattivamente calcoli, decisioni o risultati storici già consolidati.
+
+## 13.6 Prossimo incremento approvato
+
+La Sessione S026 era stata avviata con l'obiettivo di analizzare il futuro Write Path di `plantings`.
+
+L'analisi delle dipendenze ha evidenziato che prima di `plantings` era necessario disporre di un catalogo agronomico operativo.
+
+È stato quindi approvato e realizzato il percorso:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+        ↓
+plantings
+```
+
+La Sessione S026 ha completato i primi tre livelli.
+
+Il prossimo blocco approvato è:
+
+> **S027 — Integrazione Flutter del Catalogo V1**
+
+L'obiettivo della S027 è portare nel client Flutter il modello autoritativo:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+Le attività previste comprendono:
+
+- modelli Dart;
+- result type per create/update/set active;
+- Repository;
+- letture dirette protette da RLS;
+- scritture esclusivamente tramite RPC autoritative;
+- integrazione della Profile Write Authority;
+- gestione di `row_version`;
+- mapping completo degli status RPC;
+- test Repository/result mapping;
+- valutazione successiva della UI minima di gestione del catalogo.
+
+Il Write Path completo di `plantings` non deve essere implementato nella S027, salvo eventuale analisi finale delle dipendenze.
+
+`plantings` rimane il blocco successivo.
+
+## 13.7 Evoluzione del documento
+
+Il presente Manuale Database deve essere aggiornato insieme all'implementazione effettiva del Database V1.
+
+Durante le future migration devono essere documentati almeno:
 
 - schema SQL realmente implementato;
 - tipi e precisioni definitivi;
@@ -3425,13 +4474,16 @@ Durante le future migration dovranno essere documentati almeno:
 - indici;
 - policy RLS;
 - funzioni server-side;
+- privilegi;
 - strategie di migrazione dei dati;
+- concorrenza;
+- Write Path autoritativi;
 - test di integrazione e sicurezza;
 - eventuali differenze motivate rispetto alla baseline progettuale.
 
-Qualora emerga la necessità di modificare una decisione congelata, la variazione dovrà essere tracciata nella documentazione architetturale e non introdotta silenziosamente durante l'implementazione.
+Qualora emerga la necessità di modificare una decisione congelata, la variazione deve essere valutata e tracciata nella documentazione architetturale e non introdotta silenziosamente durante l'implementazione.
 
-## 13.6 Documentazione correlata
+## 13.8 Documentazione correlata
 
 Il presente documento deve essere letto insieme agli altri documenti ufficiali di Orto Smart.
 
@@ -3451,7 +4503,7 @@ Il **DOC-004 — Manuale Database** costituisce il riferimento specifico per la 
 
 ---
 
-La baseline descritta nel presente documento costituisce il riferimento architetturale controllato per l'implementazione del Database V1 di Orto Smart, avviata concretamente nella Sessione S019 con il primo incremento Fondazioni.
+La baseline descritta nel presente documento costituisce il riferimento architetturale controllato per l'implementazione del Database V1 di Orto Smart.
 
 Il principio da mantenere durante le successive sessioni è:
 
@@ -3464,3 +4516,7 @@ sempre verificare
 ```
 
 La progettazione S017 non deve essere riaperta durante l'implementazione salvo l'emersione di un errore concreto o di una necessità architetturale dimostrata.
+
+Alla conclusione della Sessione S026 il Catalogo DB V1 è implementato e verificato lato PostgreSQL/Supabase.
+
+Il successivo passo approvato è l'integrazione Flutter del Catalogo V1 nella Sessione S027.
