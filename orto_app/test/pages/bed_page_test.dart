@@ -103,7 +103,7 @@ class _CropRepositoryFake extends Fake implements CropRepository {
   int calls = 0;
 
   @override
-  Future<List<Crop>> getCrops() async {
+  Future<List<Crop>> getCrops({bool activeOnly = true}) async {
     calls++;
     return [];
   }
