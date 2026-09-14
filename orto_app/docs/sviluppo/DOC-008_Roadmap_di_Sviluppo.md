@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 1.9
+**Versione:** 2.0
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 11/09/2026
+**Ultimo aggiornamento:** 14/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 1.9 |
+| Versione | 2.0 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 11/09/2026 |
+| Ultimo aggiornamento | 14/09/2026 |
 
 ---
 
@@ -52,6 +52,7 @@
 | 1.7 | 03/09/2026 | Manutenzione straordinaria della Roadmap: normalizzazione del nome dell’autore nei metadati del documento |
 | 1.8 | 06/09/2026 | Aggiornamento dopo la Sessione S025: completamento dell’integrazione Flutter dei Write Path autoritativi di `beds`, introduzione delle interfacce di modifica e gestione geometrica, gestione italiana delle date, rilettura autoritativa e verifica con 841/841 test superati |
 | 1.9 | 11/09/2026 | Aggiornamento dopo la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, RLS, Profile Write Authority, concorrenza ottimistica, validazioni gerarchiche e agronomiche e definizione della S027 come integrazione Flutter del Catalogo V1 |
+| 2.0 | 14/09/2026 | Aggiornamento dopo la Sessione S027: completamento dell'integrazione Flutter del Catalogo V1, introduzione di `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy controllata e verifica con 914/914 test; prossimo incremento tecnico non ancora approvato |
 
 ---
 
@@ -157,7 +158,6 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | AgronomicWindowEvaluation | ✅ Completato | Risultato strutturato introdotto nella S016 per distinguere gli stati `compatible`, `incompatible` e `unknown`, evitando di interpretare l'assenza di dati come incompatibilità. |
 | AgronomicWindowService | ✅ V1 completata | Servizio introdotto nella S016 per coordinare `AgronomicWindowResolver` e `AgronomicWindowEngine` nella valutazione stagionale dei `PlannedPlantingBatch`. |
 | Progettazione della persistenza delle regole agronomiche | ✅ Completato | Obiettivo iniziale S017 completato ed esteso alla progettazione dell'intero Database V1. Le regole saranno persistite mediante `agronomic_window_rules`; `AgronomicWindow` rimane un risultato calcolato e non viene introdotta una tabella persistente `agronomic_windows`. L'implementazione SQL/Supabase resta da eseguire incrementalmente. |
-| 1.3 | 16/08/2026 | Aggiornamento dopo la Sessione S018: completamento dei prerequisiti locali Supabase, consolidamento delle finestre agronomiche multiple e definizione dello STEP 35.3 come punto di avvio della baseline SQL Database V1 |
 
 ---
 
@@ -240,13 +240,13 @@ Assistente intelligente dedicato alla gestione completa dell'orto.
 
 Le attività riportate in questa sezione rappresentano le principali direttrici di sviluppo previste per le prossime versioni di Orto Smart.
 
-L'ordine di realizzazione potrà variare in funzione delle esigenze del progetto e delle decisioni architetturali adottate durante lo sviluppo.
+L'ordine di realizzazione può variare in funzione delle esigenze del progetto e delle decisioni architetturali approvate durante lo sviluppo.
 
-## Stato dopo la Sessione S026
+## Stato dopo la Sessione S027
 
-La Sessione S026 ha proseguito la costruzione incrementale della baseline Database V1 introducendo il **Catalogo DB V1** necessario prima della futura implementazione di `plantings`.
+La Sessione S027 ha completato l'integrazione Flutter del **Catalogo DB V1** introdotto nella S026.
 
-L'analisi delle dipendenze ha consolidato la sequenza:
+La sequenza tecnica consolidata rimane:
 
 ```text
 botanical_families
@@ -258,6 +258,8 @@ crop_varieties
 plantings
 ```
 
+I primi tre livelli risultano ora implementati sia lato PostgreSQL/Supabase sia nel Repository Layer Flutter.
+
 Risultano completati:
 
 - primo blocco Fondazioni della baseline Database V1;
@@ -266,13 +268,18 @@ Risultano completati:
 
 - protocollo server-side completo di `profile_edit_locks`;
 
-- Profile Write Authority server-side e integrazione Flutter fail-closed;
+- Profile Write Authority server-side;
+
+- integrazione Flutter fail-closed della Profile Write Authority;
 
 - Write Path autoritativo di `gardens`;
 
 - Write Path autoritativo di `seasons`;
 
-- implementazione di `beds`, `bed_geometries` e `bed_geometry_corrections`;
+- implementazione di:
+  - `beds`;
+  - `bed_geometries`;
+  - `bed_geometry_corrections`;
 
 - Write Path autoritativo di `beds`;
 
@@ -292,19 +299,19 @@ crop_varieties
 
 - identificativi UUID per le entità del Catalogo DB V1;
 
-- separazione della Crop Variety come entità autonoma rispetto alla precedente rappresentazione legacy;
+- separazione della Crop Variety come entità autonoma;
 
-- relazione persistente tra Crop e Botanical Family mediante `botanical_family_id`;
+- relazione persistente Crop → Botanical Family mediante `botanical_family_id`;
 
-- relazione persistente tra Crop Variety e Crop mediante `crop_id`;
+- relazione persistente Crop Variety → Crop mediante `crop_id`;
 
-- definizione di `default_start_method` con valori canonici;
+- `default_start_method` con valori canonici;
 
-- fallback Crop → Crop Variety per i parametri agronomici previsti;
+- fallback agronomico Crop → Crop Variety;
 
-- blocco quantitativo del fabbisogno idrico;
+- gestione quantitativa del fabbisogno idrico;
 
-- blocco della resa prevista;
+- gestione strutturata della resa prevista;
 
 - validazioni server-side di gerarchia, temperature, acqua, resa e unicità;
 
@@ -316,11 +323,7 @@ crop_varieties
 
 - concorrenza ottimistica mediante `row_version`;
 
-- locking server-side mediante `FOR UPDATE` dove necessario;
-
-- locking dei parent per serializzare correttamente le operazioni gerarchiche concorrenti;
-
-- Profile Write Authority applicata alle scritture del catalogo;
+- locking server-side e gerarchico dove necessario;
 
 - nove RPC autoritative:
 
@@ -328,9 +331,11 @@ crop_varieties
 create_botanical_family
 update_botanical_family
 set_botanical_family_active
+
 create_crop
 update_crop
 set_crop_active
+
 create_crop_variety
 update_crop_variety
 set_crop_variety_active
@@ -338,51 +343,191 @@ set_crop_variety_active
 
 - RLS in lettura mediante membership del Profile;
 
-- revoca delle scritture dirette `INSERT`, `UPDATE` e `DELETE` ad `authenticated`;
-
-- RPC `SECURITY DEFINER` con `search_path = ''`;
-
-- revoca di `EXECUTE` ad `anon` e `public`;
+- revoca delle scritture dirette sulle entità protette;
 
 - principio:
 
 > **catalogo corrente + snapshot storico**
 
-per evitare modifiche retroattive a calcoli e decisioni storiche;
-
-- verifica funzionale mediante test SQL positivi, negativi e concorrenti eseguiti in transazioni con rollback;
-
-- verifica dei privilegi e delle policy RLS;
-
-- verifica mediante `supabase db lint --local` senza nuovi problemi introdotti dalla S026;
-
-- verifica mediante `supabase db diff --local` con risultato:
+- modello Flutter:
 
 ```text
-No schema changes found
+BotanicalFamily
 ```
 
-- applicazione delle migration al database remoto;
-
-- allineamento locale/remoto delle migration fino a:
+- riallineamento al Database V1 dei modelli:
 
 ```text
-20260911091047
+Crop
+CropVariety
 ```
 
-Le migration introdotte nella S026 sono:
+- Repository Flutter:
 
 ```text
-20260911084752_add_crop_catalog.sql
+BotanicalFamilyRepository
+CropRepository
+CropVarietyRepository
+```
+
+- letture del Catalogo V1 sotto protezione RLS;
+
+- scritture del Catalogo V1 esclusivamente tramite RPC autoritative;
+
+- integrazione della Profile Write Authority nei Repository del catalogo;
+
+- gestione applicativa di `row_version`;
+
+- result type dedicati e mapping esplicito degli status RPC;
+
+- comportamento fail-closed degli esiti non riconosciuti o non confermabili;
+
+- rimozione di `CropVariety.toMap()` per evitare un percorso generico di scrittura diretta;
+
+- verifica dell'assenza nei Repository del catalogo di:
+
+```text
+.insert()
+.update()
+.delete()
+.upsert()
+```
+
+- compatibilità legacy temporanea mediante:
+
+```text
+Crop.sowingMethod
+Crop.botanicalFamily
+heavyFeeder
+CropVariety.defaultPlantingMethod
+```
+
+- suite mirata del Catalogo V1:
+
+```text
+124 test superati
+```
+
+- suite Flutter completa:
+
+```text
+914/914 test superati
+```
+
+- `flutter analyze` con risultato:
+
+```text
+No issues found!
+```
+
+La Sessione S027 non ha introdotto nuove migration Supabase.
+
+Le migration locali e remote rimangono allineate fino a:
+
+```text
 20260911091047_add_crop_catalog_write_rpcs.sql
 ```
 
-Lo STEP 35.3 – Costruzione baseline SQL Database V1 rimane **in corso**.
-
-Le Fondazioni, i Write Path autoritativi di `gardens`, `seasons` e `beds` e il Catalogo DB V1 sono ora implementati lato PostgreSQL/Supabase.
-
-Il Catalogo DB V1 non è ancora integrato nel client Flutter.
+Lo STEP 35.3 – Costruzione baseline SQL Database V1 rimane **in corso**, poiché la baseline completa delle 52 entità non è ancora fisicamente implementata.
 
 `public.plantings` rimane non implementata.
 
-La S026 ha confermato che `plantings` non deve essere introdotta prima del completamento dell'integrazione Flutter del Catalogo V1.
+## Blocchi tecnici ancora aperti
+
+Alla conclusione della S027 risultano aperti due principali incrementi tecnici distinti.
+
+### UI minima di gestione del Catalogo V1
+
+Il Catalogo V1 dispone ora del modello persistente, delle RPC e del Repository Layer Flutter, ma non di una UI amministrativa dedicata completa.
+
+Un possibile incremento successivo consiste quindi nell'introdurre la minima interfaccia necessaria per:
+
+- gestione delle famiglie botaniche;
+- gestione delle colture;
+- gestione delle varietà;
+- attivazione e disattivazione;
+- utilizzo dei Write Path autoritativi già disponibili.
+
+Questo incremento riguarda esclusivamente l'interfaccia e non richiede la ridefinizione del contratto persistente già consolidato.
+
+### Write Path autoritativo di `plantings`
+
+Il secondo principale incremento consiste nell'implementazione di:
+
+```text
+public.plantings
+```
+
+secondo il contratto Database V1.
+
+L'implementazione dovrà rispettare:
+
+- Profile ownership;
+- relazioni con Garden, Bed, Crop e Crop Variety;
+- Profile Write Authority;
+- RLS;
+- RPC autoritative;
+- concorrenza;
+- invarianti;
+- eventuale storicizzazione richiesta dal contratto Database V1;
+- integrazione Flutter;
+- compatibilità con il Motore Agronomico.
+
+Il prerequisito precedentemente fissato dalla S026 è ora soddisfatto:
+
+> il Catalogo DB V1 è integrato nel client Flutter.
+
+Ciò rende tecnicamente possibile affrontare `plantings`, ma **non determina automaticamente che questo debba essere il prossimo incremento**.
+
+## Consolidamento legacy
+
+Prima o durante i successivi incrementi dovrà essere gestita anche la compatibilità residua con il modello applicativo precedente.
+
+Rimangono da affrontare:
+
+- adattatore esplicito tra `defaultStartMethod` e i planting method legacy;
+
+- migrazione dei consumer ancora dipendenti da:
+
+```text
+Crop.sowingMethod
+Crop.botanicalFamily
+heavyFeeder
+CropVariety.defaultPlantingMethod
+```
+
+- successiva rimozione degli alias legacy quando non saranno più necessari.
+
+Gli alias mantenuti nella S027 sono temporanei e non devono diventare nuove dipendenze architetturali.
+
+## Altri blocchi futuri
+
+Restano inoltre pianificati:
+
+- operazioni amministrative protette su `profile_memberships`;
+
+- persistenza di `agronomic_window_rules`;
+
+- prosecuzione dell'implementazione incrementale delle restanti entità Database V1;
+
+- integrazione progressiva del principio **catalogo corrente + snapshot storico** nei dati decisionali;
+
+- evoluzione successiva delle aree irrigazione, attività, dashboard e statistiche.
+
+## Prossimo incremento
+
+Alla conclusione della S027 **non viene dichiarata una S028 né viene fissato automaticamente il prossimo blocco tecnico**.
+
+I due candidati principali sono:
+
+```text
+A. UI minima di gestione del Catalogo V1
+
+B. Write Path autoritativo di plantings
+```
+
+La scelta dovrà essere effettuata esplicitamente all'avvio della successiva sessione di sviluppo sulla base delle dipendenze, del valore operativo e del rischio tecnico.
+
+Fino a tale decisione entrambi i blocchi rimangono:
+
+> **APERTO / PIANIFICATO**

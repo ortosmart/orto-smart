@@ -4,7 +4,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 2.4
+**Versione:** 2.5
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 11/09/2026
+**Ultimo aggiornamento:** 13/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |-------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 2.4 |
+| Versione | 2.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 11/09/2026 |
+| Ultimo aggiornamento | 13/09/2026 |
 
 ---
 
@@ -56,6 +56,7 @@
 | 2.2 | 01/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.15-alpha: implementazione di `beds`, geometria storicizzata, Write Path autoritativo delle aiuole, integrazione Flutter e configurazione Supabase parametrizzabile |
 | 2.3 | 06/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.16-alpha: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, gestione italiana delle date e verifica completa con 841/841 test superati |
 | 2.4 | 11/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.17-alpha: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, sicurezza RLS, Profile Write Authority, concorrenza ottimistica e allineamento delle migration locali e remote |
+| 2.5 | 13/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.18-alpha: integrazione Flutter del Catalogo V1, nuovi modelli e Repository, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy temporanea e verifica completa con 914/914 test superati |
 
 ---
 
@@ -102,6 +103,8 @@
 3.17 Versione 0.1.16-alpha
 
 3.18 Versione 0.1.17-alpha
+
+3.19 Versione 0.1.18-alpha
 
 ## 4. Cronologia versioni
 
@@ -1178,6 +1181,239 @@ plantings
 
 - `heavy_feeder` rimane escluso dal V1 e classificato FUTURE.
 
+## 3.19 Versione 0.1.18-alpha
+
+**Data:** 13/09/2026
+
+### Aggiunto
+
+- Introdotto il modello Dart dedicato:
+
+```text
+BotanicalFamily
+```
+
+- Introdotto:
+
+```text
+BotanicalFamilyRepository
+```
+
+per la gestione applicativa delle famiglie botaniche del Catalogo V1.
+
+- Introdotti result type dedicati per:
+
+```text
+BotanicalFamily
+Crop
+CropVariety
+```
+
+- Introdotto il mapping tipizzato degli status restituiti dalle nove RPC autoritative del catalogo.
+
+### Modificato
+
+- Riallineato `Crop` al contratto Database V1 mediante:
+  - UUID rappresentati come `String`;
+  - `profileId`;
+  - `botanicalFamilyId`;
+  - `defaultStartMethod`;
+  - parametri agronomici;
+  - fabbisogno idrico quantitativo;
+  - dati di resa;
+  - `isActive`;
+  - `rowVersion`;
+  - timestamp.
+
+- Riallineato `CropVariety` al contratto Database V1 mediante:
+  - `id`, `profileId` e `cropId` come UUID `String`;
+  - override agronomici V1;
+  - fabbisogno idrico quantitativo;
+  - dati di resa;
+  - `rowVersion`;
+  - timestamp.
+
+- Aggiornato `CropRepository` per utilizzare il Catalogo DB V1.
+
+- Aggiornato `CropVarietyRepository` per utilizzare il Catalogo DB V1.
+
+- Mantenuti temporaneamente alcuni alias legacy per compatibilità controllata:
+
+```text
+Crop.sowingMethod
+Crop.botanicalFamily
+heavyFeeder
+CropVariety.defaultPlantingMethod
+```
+
+### Rimosso
+
+- Rimosso:
+
+```text
+CropVariety.toMap()
+```
+
+per evitare un percorso generico di scrittura diretta non coerente con il modello RPC-only.
+
+### Architettura
+
+- Completata l'integrazione Flutter del Catalogo V1 introdotto nella Sessione S026.
+
+- Consolidato il modello:
+
+```text
+lettura
+        ↓
+RLS
+        ↓
+Repository
+        ↓
+dominio Dart
+```
+
+- Consolidato per le scritture il modello:
+
+```text
+UI / dominio
+        ↓
+Repository
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+PostgreSQL
+```
+
+- Confermato che l'autorità definitiva sulle invarianti rimane server-side.
+
+- Confermato il principio di fallback:
+
+```text
+Crop
+        ↓
+valore generale / default
+
+CropVariety
+        ↓
+override specifico quando presente
+```
+
+### Sicurezza
+
+- Mantenute le letture dirette del catalogo sotto protezione RLS.
+
+- Mantenute le scritture esclusivamente tramite le nove RPC autoritative introdotte nella S026.
+
+- Verificata nei Repository del catalogo l'assenza di utilizzi diretti di:
+
+```text
+.insert()
+.update()
+.delete()
+.upsert()
+```
+
+- Mantenuta la Profile Write Authority in modalità fail-closed.
+
+- Mantenuta la gestione della concorrenza ottimistica mediante `row_version`.
+
+- Gestiti esplicitamente gli esiti server-side, compresi:
+
+```text
+created
+updated
+unchanged
+version_conflict
+forbidden
+write_forbidden
+not_found
+invalid_input
+```
+
+oltre agli esiti relativi a duplicati e vincoli gerarchici.
+
+### Test
+
+- Eseguita la suite mirata relativa al Catalogo V1:
+
+```text
+124 test superati
+```
+
+- Eseguita la suite completa Flutter:
+
+```text
+914/914 test superati
+```
+
+- Eseguito:
+
+```text
+flutter analyze
+```
+
+con risultato:
+
+```text
+No issues found!
+```
+
+- Verificati inoltre:
+
+```text
+git diff --check
+git diff --cached --check
+```
+
+senza errori.
+
+### Database
+
+- La Sessione S027 non ha introdotto nuove migration Supabase.
+
+- Il database rimane allineato alle migration della S026:
+
+```text
+20260911084752_add_crop_catalog.sql
+20260911091047_add_crop_catalog_write_rpcs.sql
+```
+
+### Versionamento Flutter
+
+- La versione pubblica del progetto passa a:
+
+```text
+0.1.18-alpha
+```
+
+- La versione Flutter in `pubspec.yaml` viene riallineata a:
+
+```text
+0.1.18-alpha+3
+```
+
+### Aperto / Future
+
+- La UI dedicata alla gestione amministrativa del Catalogo V1 non è ancora implementata.
+
+- `public.plantings` non è ancora implementata.
+
+- Rimane da introdurre un adattatore esplicito tra:
+
+```text
+defaultStartMethod
+```
+
+e i planting method legacy ancora utilizzati da alcuni componenti.
+
+- Gli alias legacy mantenuti nella S027 dovranno essere rimossi progressivamente dopo la migrazione dei relativi consumer.
+
+- Alla conclusione della S027 restano distinti due possibili incrementi tecnici successivi:
+  1. UI minima di gestione del Catalogo V1;
+  2. Write Path autoritativo di `plantings`.
+
 ---
 
 # 4. Cronologia versioni
@@ -1201,7 +1437,8 @@ plantings
 | 0.1.14-alpha | 28/08/2026 | Archiviata | Completato il protocollo `profile_edit_locks`, introdotta la Profile Write Authority, implementati i Write Path autoritativi di `gardens` e `seasons`, integrata la sessione Profile nel client Flutter e verificati 237/237 test. |
 | 0.1.15-alpha | 01/09/2026 | Archiviata | Implementati `beds`, geometria storicizzata e relativo Write Path autoritativo, integrata la creazione dell’aiuola nel client Flutter, parametrizzata la configurazione Supabase e verificati 781/781 test. |
 | 0.1.16-alpha | 03/09/2026 | Archiviata | Completata l’integrazione UI dei Write Path autoritativi di `beds`, introdotte modifica dati, attivazione e disattivazione, variazione geometrica, correzione storica e gestione italiana delle date; verificati 841/841 test. |
-| 0.1.17-alpha | 11/09/2026 | Corrente | Implementato e verificato il Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, introdotte nove RPC autoritative, RLS, Profile Write Authority, concorrenza ottimistica e migration locali/remoto allineate; integrazione Flutter rinviata alla S027. |
+| 0.1.17-alpha | 11/09/2026 | Archiviata | Implementato e verificato il Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, introdotte nove RPC autoritative, RLS, Profile Write Authority, concorrenza ottimistica e migration locali/remoto allineate; integrazione Flutter rinviata alla S027. |
+| 0.1.18-alpha | 13/09/2026 | Corrente | Completata l'integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, `Crop` e `CropVariety`, introdotti e riallineati i Repository dedicati, consolidate letture RLS e scritture RPC-only, mantenuta la Profile Write Authority fail-closed e verificati 914/914 test. |
 
 ---
 

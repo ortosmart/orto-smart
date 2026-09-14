@@ -4,7 +4,7 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 2.0
+**Versione:** 2.1
 
 **Stato:** In sviluppo
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 28/07/2026
 
-**Ultimo aggiornamento:** 11/09/2026
+**Ultimo aggiornamento:** 14/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |-------|--------|
 | Documento | DOC-011 |
 | Titolo | Decisioni Architetturali (ADR) |
-| Versione | 2.0 |
+| Versione | 2.1 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 11/09/2026 |
+| Ultimo aggiornamento | 14/09/2026 |
 
 ---
 
@@ -59,6 +59,7 @@
 | 1.8 | 03/09/2026 | Manutenzione straordinaria delle Decisioni Architetturali: eliminazione della duplicazione relativa all’attivazione atomica della stagione nella DEC-012 |
 | 1.9 | 06/09/2026 | Aggiornamento della DEC-012 con la Sessione S025: completamento dell’integrazione UI dei Write Path di `beds`, separazione delle operazioni geometriche, gestione italiana delle date, rilettura autoritativa e trattamento fail-closed degli esiti incerti |
 | 2.0 | 11/09/2026 | Introduzione della DEC-013: architettura del Catalogo DB V1, gerarchia `botanical_families` → `crops` → `crop_varieties`, ownership a livello Profile, UUID, fallback Crop → Crop Variety, Write Path autoritativi e principio catalogo corrente + snapshot storico |
+| 2.1 | 14/09/2026 | Aggiornamento della DEC-013 dopo la Sessione S027: completamento dell'integrazione Flutter del Catalogo V1, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy temporanea e conferma di `plantings` come incremento successivo distinto |
 
 ---
 
@@ -2281,30 +2282,89 @@ La gerarchia deve quindi rimanere valida anche sotto concorrenza e non soltanto 
 
 ### Relazione con Flutter
 
-Alla conclusione della S026 il Catalogo DB V1 è implementato e verificato lato PostgreSQL/Supabase ma non ancora integrato nel client Flutter.
+Alla conclusione della S027 il Catalogo DB V1 è integrato nel client Flutter.
 
-Il successivo blocco approvato è:
+L'integrazione comprende:
 
-> **S027 — Integrazione Flutter del Catalogo V1**
+- modello dedicato `BotanicalFamily`;
+- riallineamento di `Crop` al contratto Database V1;
+- riallineamento di `CropVariety` al contratto Database V1;
+- utilizzo di UUID rappresentati mediante `String`;
+- `BotanicalFamilyRepository`;
+- `CropRepository`;
+- `CropVarietyRepository`;
+- letture dirette protette da RLS;
+- scritture esclusivamente mediante RPC autoritative;
+- integrazione della Profile Write Authority;
+- gestione di `row_version`;
+- result type dedicati;
+- mapping esplicito degli status RPC;
+- comportamento fail-closed;
+- rimozione di `CropVariety.toMap()`.
 
-La S027 dovrà introdurre:
+Il percorso applicativo delle letture è:
 
-- modelli Dart;
-- result type;
-- Repository;
-- letture RLS;
-- scritture RPC-only;
-- Profile Write Authority;
-- gestione `row_version`;
-- mapping completo degli status RPC;
-- test del Repository e del result mapping;
-- successiva valutazione della UI minima necessaria.
+```text
+Supabase
+        ↓
+RLS
+        ↓
+Repository
+        ↓
+dominio Dart
+```
+
+Il percorso delle scritture è:
+
+```text
+UI / dominio
+        ↓
+Repository
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+PostgreSQL
+```
+
+Nei Repository del catalogo non vengono utilizzate scritture dirette:
+
+```text
+.insert()
+.update()
+.delete()
+.upsert()
+```
+
+L'autorità definitiva sulle invarianti rimane server-side.
+
+Per garantire la compatibilità con componenti applicativi non ancora migrati sono mantenuti temporaneamente alcuni alias legacy:
+
+```text
+Crop.sowingMethod
+Crop.botanicalFamily
+heavyFeeder
+CropVariety.defaultPlantingMethod
+```
+
+Tali alias non costituiscono il nuovo contratto persistente e dovranno essere rimossi dopo la migrazione dei rispettivi consumer.
+
+L'integrazione Flutter del Catalogo V1 è stata verificata mediante:
+
+```text
+124 test mirati superati
+914/914 test complessivi superati
+flutter analyze: No issues found!
+```
+
+La UI amministrativa dedicata alla gestione del Catalogo V1 rimane un incremento distinto e non è stata introdotta nella S027.
 
 ### Relazione con `plantings`
 
-`plantings` rimane non implementata alla conclusione della S026.
+`public.plantings` rimane non implementata alla conclusione della S027.
 
-La sequenza approvata è:
+La sequenza architetturale consolidata rimane:
 
 ```text
 Catalogo DB V1
@@ -2314,7 +2374,22 @@ Integrazione Flutter Catalogo V1
 plantings
 ```
 
-Il Write Path completo di `plantings` non deve essere anticipato nella S027, salvo l'eventuale analisi conclusiva delle dipendenze.
+I primi due livelli sono ora completati.
+
+Il prerequisito definito nella S026 è quindi soddisfatto:
+
+> il Catalogo DB V1 è implementato lato PostgreSQL/Supabase ed è integrato nel client Flutter.
+
+L'implementazione del Write Path autoritativo di `plantings` può pertanto essere affrontata in una sessione successiva.
+
+Questo non implica tuttavia che `plantings` debba essere automaticamente il prossimo incremento tecnico.
+
+Alla conclusione della S027 rimangono distinti almeno due blocchi:
+
+1. UI minima di gestione del Catalogo V1;
+2. Write Path autoritativo di `plantings`.
+
+La scelta del successivo incremento deve essere approvata esplicitamente in una nuova sessione di sviluppo.
 
 ### Motivazione
 
@@ -2359,7 +2434,7 @@ Le alternative sono state escluse perché avrebbero aumentato l'ambiguità del m
 - Il Catalogo DB V1 è una struttura Profile-owned.
 - Lo stesso catalogo può essere condiviso da più Gardens dello stesso Profile.
 - `botanical_families`, `crops` e `crop_varieties` utilizzano UUID.
-- Il dominio Dart dovrà utilizzare `String` per rappresentare tali identificativi.
+- Il dominio Dart utilizza `String` per rappresentare tali identificativi.
 - `crop_varieties` è una entità autonoma.
 - La relazione Variety → Crop è immutabile.
 - La relazione Crop → Botanical Family può essere corretta nel rispetto delle invarianti.
@@ -2371,9 +2446,14 @@ Le alternative sono state escluse perché avrebbero aumentato l'ambiguità del m
 - Le scritture avvengono esclusivamente mediante RPC autoritative.
 - La Profile Write Authority rimane prerequisito delle scritture protette.
 - Il catalogo corrente può evolvere senza modificare retroattivamente dati e decisioni storiche.
-- Il client Flutter deve essere riallineato al nuovo contratto nella S027.
+- Il client Flutter è stato riallineato al contratto del Catalogo DB V1 nella S027.
+- Il Repository Layer Flutter comprende `BotanicalFamilyRepository`, `CropRepository` e `CropVarietyRepository`.
+- I result type del catalogo gestiscono esplicitamente gli esiti delle RPC in modalità fail-closed.
+- `CropVariety.toMap()` è stato rimosso per evitare un percorso generico di scrittura diretta.
+- Gli alias legacy mantenuti nella S027 sono temporanei e non devono diventare nuove dipendenze architetturali.
+- La UI amministrativa del Catalogo V1 rimane separata dall'integrazione infrastrutturale completata nella S027.
 - `plantings` rimane un incremento successivo.
-- `heavy_feeder` rimane escluso dal V1 e classificato FUTURE.
+- `heavy_feeder` rimane escluso dal Database V1 e classificato FUTURE; il relativo alias applicativo temporaneo non ne modifica lo stato architetturale.
 
 ---
 

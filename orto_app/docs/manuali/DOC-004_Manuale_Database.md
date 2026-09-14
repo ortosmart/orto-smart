@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 1.9
+**Versione:** 2.0
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 11/09/2026
+**Ultimo aggiornamento:** 13/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 1.9 |
+| Versione | 2.0 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 11/09/2026 |
+| Ultimo aggiornamento | 13/09/2026 |
 
 ---
 
@@ -44,8 +44,9 @@
 | 1.5 | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, helper `Profile Write Authority`, RPC `create_garden` e `update_garden`, revoca delle scritture dirette da parte di `authenticated`, validazioni server-side e controllo della concorrenza |
 | 1.6 | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, introduzione del Write Path autoritativo di `seasons` mediante `create_season`, `update_season` e `activate_season`, revoca delle scritture dirette, concorrenza ottimistica tramite `row_version` e attivazione atomica della stagione |
 | 1.7 | 01/09/2026 | Aggiornamento con la Sessione S024: implementazione V1 di `beds`, `bed_geometries` e `bed_geometry_corrections`, Write Path autoritativo delle aiuole, storicizzazione geometrica, concorrenza ottimistica, tracciamento delle correzioni e allineamento delle migration locale/remoto |
-| 1.8 | 03/09/2026 | Manutenzione straordinaria del Manuale Database: chiarimento della distinzione tra componenti legacy e schema Database V1 implementato, documentazione dell’assenza corrente di `public.plantings` e separazione delle otto tabelle di dominio dalla struttura tecnica `profile_edit_locks` |
+| 1.8 | 03/09/2026 | Manutenzione straordinaria del Manuale Database: chiarimento della distinzione tra componenti legacy e schema Database V1 implementato, documentazione dell'assenza corrente di `public.plantings` e separazione delle otto tabelle di dominio dalla struttura tecnica `profile_edit_locks` |
 | 1.9 | 11/09/2026 | Aggiornamento con la Sessione S026: implementazione del Catalogo DB V1 costituito da `botanical_families`, `crops` e `crop_varieties`, introduzione dei relativi Write Path autoritativi, validazioni agronomiche e gerarchiche, concorrenza ottimistica, Profile Write Authority, RLS, revoca delle scritture dirette e allineamento delle migration locale/remoto |
+| 2.0 | 13/09/2026 | Aggiornamento con la Sessione S027: integrazione Flutter del Catalogo DB V1 mediante `BotanicalFamily`, `Crop` e `CropVariety`, introduzione e riallineamento dei Repository dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, result type tipizzati, compatibilità legacy temporanea e verifica applicativa con 914/914 test superati |
 
 ---
 
@@ -73,14 +74,24 @@ Il presente Manuale Database descrive l'architettura, l'organizzazione e i princ
 
 Il documento distingue esplicitamente:
 
-- il database Supabase operativo preesistente utilizzato dall'applicazione;
+- il database Supabase operativo utilizzato dall'applicazione;
 - la baseline logica del **Database V1**, progettata e congelata durante la Sessione S017;
-- la prima implementazione fisica della baseline avviata nella Sessione S019;
-- le successive attività di implementazione SQL, sicurezza, collaudo e integrazione ancora da eseguire.
+- l'implementazione fisica progressiva della baseline, avviata nella Sessione S019;
+- i Write Path autoritativi e i meccanismi di sicurezza già implementati;
+- l'integrazione Flutter delle strutture già portate nel contratto applicativo;
+- le entità e i flussi della baseline che devono ancora essere implementati.
 
-La baseline Database V1 costituisce il riferimento ufficiale per la sua traduzione progressiva in PostgreSQL/Supabase.
+La baseline Database V1 costituisce il riferimento ufficiale per la sua traduzione progressiva in PostgreSQL/Supabase e per il successivo allineamento del client Flutter.
 
-La progettazione V1 comprende **52 entità di dominio**. A queste si aggiunge `profile_edit_locks`, prevista come struttura tecnica separata per il controllo della concorrenza e pertanto non conteggiata come 53ª entità di dominio.
+La progettazione V1 comprende **52 entità di dominio**.
+
+A queste si aggiunge:
+
+```text
+profile_edit_locks
+```
+
+prevista come struttura tecnica separata per il controllo della concorrenza e pertanto non conteggiata come 53ª entità di dominio.
 
 Con la Sessione S019 è stata creata la prima migration Database V1:
 
@@ -88,21 +99,44 @@ Con la Sessione S019 è stata creata la prima migration Database V1:
 supabase/migrations/20260817103916_database_v1_baseline.sql
 ```
 
-ed è stato implementato e verificato localmente il primo gruppo coerente della baseline, denominato **Fondazioni**.
+Da allora l'implementazione procede per incrementi verificabili.
 
-L'implementazione fisica dell'intero Database V1 non è ancora completa e dovrà proseguire incrementalmente a partire dalla baseline congelata.
+Alla conclusione della Sessione S027 risultano, tra gli altri, implementati:
 
-Il presente documento ha inoltre lo scopo di mantenere separati:
+- Fondazioni Database V1;
+- protocollo `profile_edit_locks`;
+- Profile Write Authority;
+- Write Path autoritativi di `gardens`;
+- Write Path autoritativi di `seasons`;
+- Write Path autoritativi di `beds`;
+- Catalogo DB V1:
+  - `botanical_families`;
+  - `crops`;
+  - `crop_varieties`;
+- nove RPC autoritative del catalogo;
+- integrazione Flutter del Catalogo V1 tramite modelli, Repository, result type e mapping tipizzato.
 
-- struttura persistente e logica decisionale del dominio Dart;
-- configurazioni e fatti realmente avvenuti;
-- pianificazione e realtà;
-- dati operativi e informazioni derivate o calcolate;
-- stato corrente e informazioni che richiedono storicizzazione.
+La Sessione S027 non ha introdotto nuove migration.
 
-Il dettaglio storico delle decisioni e delle attività che hanno portato alla definizione del Database V1 è documentato nel **DOC-005 – Quaderno di Sviluppo** e nel **DOC-011 – Decisioni Architetturali**.
+Le migration locali e remote rimangono allineate fino a:
 
----
+```text
+20260911091047_add_crop_catalog_write_rpcs.sql
+```
+
+Il Database V1 non è ancora completamente implementato.
+
+In particolare:
+
+```text
+public.plantings
+```
+
+non è ancora presente nello schema corrente.
+
+La UI amministrativa dedicata al Catalogo V1 non è ancora implementata.
+
+Il presente manuale documenta quindi sia la **baseline congelata** sia lo **stato effettivamente raggiunto**, mantenendo distinta la progettazione completa dall'implementazione progressiva.
 
 # 2. Stato del database
 
@@ -114,23 +148,63 @@ Il progetto Orto Smart si trova in una fase di transizione tra il database opera
 
 L'applicazione utilizza **Supabase**, basato su PostgreSQL, come backend persistente.
 
-Nel codice applicativo sono ancora presenti componenti e Repository appartenenti alla persistenza precedente alla riprogettazione Database V1, riferiti principalmente a:
+Nel codice applicativo sono presenti componenti appartenenti a fasi evolutive differenti del progetto.
+
+Le strutture del Database V1 già implementate e utilizzabili comprendono:
 
 - `gardens`;
 - `beds`;
-- `crops`;
 - `seasons`;
-- `plantings`.
+- `botanical_families`;
+- `crops`;
+- `crop_varieties`.
 
-La presenza di questi riferimenti nel codice legacy non implica che tutte le corrispondenti tabelle siano già disponibili nello schema Database V1 ricostruito mediante le migration correnti.
+Rimangono inoltre componenti applicativi legacy collegati a funzionalità non ancora completamente migrate, in particolare per:
 
-Al termine della Sessione S026, `public.plantings` non è ancora implementata nello schema Database V1. I componenti applicativi legacy che tentano di utilizzarla possono pertanto continuare a ricevere `PGRST205` fino alla relativa implementazione mediante una futura migration.
+- gestione delle piantagioni;
+- alcuni utilizzi storici dei dati delle colture;
+- motore di rotazione;
+- `AddPlantingPage`.
 
-La Sessione S026 ha tuttavia completato il blocco propedeutico del **Catalogo DB V1**, introducendo nello schema reale `botanical_families`, `crops` e `crop_varieties`.
+La presenza di riferimenti applicativi non implica che tutte le corrispondenti tabelle della baseline Database V1 siano già disponibili nello schema ricostruito mediante le migration correnti.
 
-Il nuovo Catalogo DB V1 non è ancora integrato nel client Flutter; tale integrazione costituisce il blocco tecnico approvato per la Sessione S027.
+Alla conclusione della Sessione S027:
 
-Lo stato fisicamente implementato del Database V1 è riportato nel paragrafo 2.3 e deve essere distinto sia dalla baseline completa progettata sia dai componenti legacy ancora presenti nel codice Flutter.
+```text
+public.plantings
+```
+
+non è ancora implementata nello schema Database V1.
+
+I componenti applicativi che tentano di utilizzarla possono pertanto continuare a ricevere `PGRST205` fino alla relativa implementazione mediante una futura migration.
+
+La Sessione S026 ha completato il blocco propedeutico del **Catalogo DB V1**, introducendo nello schema reale:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+La Sessione S027 ha completato la relativa integrazione Flutter mediante:
+
+- modello dedicato `BotanicalFamily`;
+- riallineamento di `Crop`;
+- riallineamento di `CropVariety`;
+- `BotanicalFamilyRepository`;
+- `CropRepository`;
+- `CropVarietyRepository`;
+- letture sotto protezione RLS;
+- scritture esclusivamente mediante le nove RPC autoritative;
+- Profile Write Authority fail-closed;
+- gestione di `row_version`;
+- result type e mapping esplicito degli status RPC.
+
+La S027 non ha introdotto nuove migration Supabase.
+
+Lo stato fisicamente implementato del Database V1 è riportato nel paragrafo 2.3 e deve essere distinto sia dalla baseline completa progettata sia dagli eventuali componenti legacy ancora presenti nel codice Flutter.
 
 La presenza di una entità nella baseline Database V1 non implica che la relativa tabella, relazione, policy o migration sia già stata realizzata in Supabase.
 
@@ -166,10 +240,10 @@ e sostituisce la precedente denominazione provvisoria `zone_target_assignments`.
 
 ## 2.3 Stato di implementazione
 
-Al termine della Sessione S026 la situazione del Database V1 è la seguente:
+Al termine della Sessione S027 la situazione del Database V1 è la seguente:
 
 - la progettazione logica e architetturale completata nella S017 rimane la baseline ufficiale congelata;
-- l’ambiente locale Supabase predisposto nella S018 è operativo per sviluppo, ricostruzione e collaudo;
+- l'ambiente locale Supabase predisposto nella S018 è operativo per sviluppo, ricostruzione e collaudo;
 - le migration locali e remote risultano allineate fino a `20260911091047`;
 - è implementato il gruppo **Fondazioni**;
 - sono presenti lo schema `private`, gli helper autorizzativi, i trigger metadata e la matrice RLS;
@@ -187,8 +261,14 @@ Al termine della Sessione S026 la situazione del Database V1 è la seguente:
 - la concorrenza ottimistica utilizza `row_version` ed `expected_row_version`;
 - i parent vengono lockati quando necessario per serializzare correttamente operazioni concorrenti sulle gerarchie padre/figlio;
 - le validazioni agronomiche e gerarchiche del catalogo vengono eseguite server-side;
-- il Catalogo DB V1 non è ancora integrato lato Flutter;
-- `public.plantings` non è ancora presente nell’attuale schema implementato;
+- il Catalogo DB V1 è integrato nel client Flutter;
+- sono implementati `BotanicalFamilyRepository`, `CropRepository` e `CropVarietyRepository`;
+- le letture Flutter del catalogo utilizzano direttamente la RLS;
+- le scritture Flutter del catalogo utilizzano esclusivamente le nove RPC autoritative;
+- nei Repository del catalogo non vengono utilizzate scritture dirette `.insert()`, `.update()`, `.delete()` o `.upsert()`;
+- il mapping degli esiti RPC è tipizzato e fail-closed;
+- `public.plantings` non è ancora presente nell'attuale schema implementato;
+- la UI amministrativa dedicata al Catalogo V1 non è ancora implementata;
 - il Database V1 completo non è ancora implementato.
 
 Le strutture applicative e di dominio attualmente implementate comprendono:
@@ -224,7 +304,9 @@ Le migration introdotte nella Sessione S024 sono:
 20260830140235_add_correct_bed_geometry_rpc.sql
 ```
 
-La prima migration della S024 introduce l’identità stabile delle aiuole, la geometria storicizzata e il registro delle correzioni. Le cinque migration successive implementano progressivamente le RPC autoritative di creazione, aggiornamento, variazione dello stato attivo, cambio ordinario della geometria e correzione geometrica.
+La prima migration della S024 introduce l'identità stabile delle aiuole, la geometria storicizzata e il registro delle correzioni.
+
+Le cinque migration successive implementano progressivamente le RPC autoritative di creazione, aggiornamento, variazione dello stato attivo, cambio ordinario della geometria e correzione geometrica.
 
 Le migration introdotte nella Sessione S026 sono:
 
@@ -250,9 +332,11 @@ La seconda migration introduce le nove RPC autoritative del Catalogo DB V1:
 create_botanical_family
 update_botanical_family
 set_botanical_family_active
+
 create_crop
 update_crop
 set_crop_active
+
 create_crop_variety
 update_crop_variety
 set_crop_variety_active
@@ -285,7 +369,9 @@ La Sessione S026 ha inoltre verificato:
 supabase db lint --local
 ```
 
-senza introdurre nuovi problemi. Restano esclusivamente tre warning preesistenti nella funzione `public.request_profile_edit_takeover`.
+senza introdurre nuovi problemi.
+
+Restano esclusivamente tre warning preesistenti nella funzione `public.request_profile_edit_takeover`.
 
 Il controllo:
 
@@ -305,21 +391,60 @@ Le migration della S026 sono state applicate anche al database Supabase remoto e
 supabase migration list
 ```
 
-ha confermato l’allineamento locale/remoto fino a:
+ha confermato l'allineamento locale/remoto fino a:
 
 ```text
 20260911091047
 ```
 
-Le sessioni da S019 a S026 rappresentano la progressiva traduzione della baseline congelata in strutture, sicurezza e operazioni server-side verificate.
+La Sessione S027 non ha introdotto migration né modifiche allo schema PostgreSQL/Supabase.
 
-La Sessione S026 ha esteso tale implementazione al Catalogo DB V1 senza riaprire la baseline nominale definita nella S017.
+Ha invece completato l'integrazione Flutter del Catalogo V1 mediante:
 
-Il nuovo catalogo costituisce il prerequisito strutturale necessario per la futura implementazione di `plantings`, ma nella Sessione S026 `public.plantings` non è stata ancora introdotta.
+```text
+BotanicalFamily
+Crop
+CropVariety
+```
 
-Il successivo blocco approvato è la Sessione S027 — **Integrazione Flutter del Catalogo V1**.
+e:
 
-Le operazioni amministrative protette su `profile_memberships`, `plantings` e le ulteriori entità ancora mancanti della baseline restano incrementi successivi.
+```text
+BotanicalFamilyRepository
+CropRepository
+CropVarietyRepository
+```
+
+con:
+
+- UUID rappresentati come `String`;
+- Profile ownership;
+- letture protette da RLS;
+- scritture RPC-only;
+- Profile Write Authority fail-closed;
+- gestione di `row_version`;
+- mapping completo degli status RPC;
+- result type dedicati;
+- compatibilità legacy temporanea e non persistente.
+
+La verifica S027 ha prodotto:
+
+```text
+124 test mirati superati
+914 test complessivi superati
+flutter analyze: No issues found
+```
+
+Le sessioni da S019 a S027 rappresentano quindi la progressiva traduzione della baseline congelata in strutture, sicurezza, operazioni server-side e integrazione applicativa verificata.
+
+Il Catalogo DB V1 costituisce il prerequisito strutturale per la futura implementazione di `plantings`.
+
+Alla conclusione della S027 restano distinti due incrementi tecnici aperti:
+
+1. UI minima di gestione del Catalogo V1;
+2. Write Path autoritativo di `plantings`.
+
+Le operazioni amministrative protette su `profile_memberships` e le ulteriori entità ancora mancanti della baseline restano incrementi successivi.
 
 ---
 
@@ -327,7 +452,7 @@ Le operazioni amministrative protette su `profile_memberships`, `plantings` e le
 
 La progettazione del Database V1 è stata guidata da un insieme di principi architetturali destinati a preservare coerenza, tracciabilità, efficienza e possibilità di evoluzione.
 
-## 3.1 Separazione tra pianificazione e realtà
+## 3.1 Separazione tra pianificazione e realt�
 
 Orto Smart distingue formalmente ciò che viene pianificato da ciò che viene realmente eseguito.
 
@@ -644,8 +769,8 @@ Le due entità rappresentano concetti distinti.
 Questa distinzione preserva la separazione tra:
 
 ```text
-preferenza / priorità
-        ≠
+preferenza / priorit�
+        �
 fabbisogno quantitativo nel tempo
 ```
 
@@ -714,7 +839,7 @@ La separazione fondamentale rimane:
 
 ```text
 Task
-        ≠
+        �
 WorkLog
 ```
 
@@ -1153,7 +1278,7 @@ La separazione permette di modificare dimensioni o configurazione fisica senza a
 
 Le ulteriori relazioni fisiche vengono rappresentate mediante entità dedicate quando possiedono una propria semantica o validità temporale.
 
-## 5.4 Pianificazione e realtà
+## 5.4 Pianificazione e realt�
 
 Uno dei principi centrali del Database V1 è la separazione tra ciò che viene pianificato e ciò che accade realmente.
 
@@ -1390,8 +1515,8 @@ Il principio fondamentale è:
 
 ```text
 pianificazione
-        ≠
-realtà
+        �
+realt�
 ```
 
 Per esempio:
@@ -1476,11 +1601,11 @@ Il principio generale è:
 
 ```text
 dato sconosciuto
-        ≠
+        �
 zero
-        ≠
+        �
 false
-        ≠
+        �
 stringa vuota
 ```
 
@@ -1624,11 +1749,11 @@ Pertanto:
 
 ```text
 NULL
-        ≠
+        �
 0
-        ≠
+        �
 false
-        ≠
+        �
 ''
 ```
 
@@ -1771,7 +1896,7 @@ Il principio è:
 
 ```text
 Worker
-        ≠
+        �
 necessariamente account applicativo
 ```
 
@@ -1799,7 +1924,7 @@ Rimane pertanto valido che:
 
 ```text
 worker
-        ≠
+        �
 necessariamente utente autenticato
 ```
 
@@ -2761,11 +2886,11 @@ In particolare:
 
 ```text
 planned_plantings
-        ≠
+        �
 plantings
 
 tasks
-        ≠
+        �
 work_logs
 ```
 
@@ -2791,7 +2916,7 @@ Il principio rimane:
 
 ```text
 NULL
-        ≠
+        �
 0
 ```
 
@@ -3147,7 +3272,7 @@ Anche le operazioni amministrative protette su `profile_memberships` costituisco
 
 ## 11.4 Ordine delle dipendenze
 
-Le migration devono rispettare le dipendenze effettive tra le entità.
+Le migration devono rispettare le dipendenze tra le entità.
 
 In linea generale devono essere introdotte prima le strutture dalle quali dipendono le successive.
 
@@ -3217,11 +3342,38 @@ crop_varieties
 plantings
 ```
 
-La S026 ha completato i primi tre livelli.
+La S026 ha completato i primi tre livelli lato PostgreSQL/Supabase.
+
+La Sessione S027 ha successivamente completato l'integrazione Flutter dei medesimi livelli mediante:
+
+```text
+BotanicalFamily
+        ↓
+Crop
+        ↓
+CropVariety
+```
+
+e i relativi Repository.
+
+Alla conclusione della S027 la sequenza risulta quindi:
+
+```text
+Catalogo DB V1
+        ✓
+Write Path Catalogo V1
+        ✓
+integrazione Flutter Catalogo V1
+        ✓
+plantings
+        ✗
+```
 
 `plantings` rimane un incremento successivo.
 
-Prima di implementarla verrà completata nella Sessione S027 l'integrazione Flutter del Catalogo V1.
+La UI amministrativa del Catalogo V1 costituisce invece un blocco applicativo distinto e non modifica l'ordine delle dipendenze persistenti.
+
+Per gli incrementi successivi l'ordine SQL dovrà continuare a essere determinato dalle dipendenze effettive tra foreign key, vincoli, helper autorizzativi, policy RLS e funzioni server-side.
 
 ## 11.5 Schema e sicurezza insieme
 
@@ -3322,7 +3474,7 @@ Prima di modificare o rimuovere una struttura esistente devono essere verificati
 
 - dati realmente presenti;
 - utilizzo da parte del codice Flutter;
-- repository interessati;
+- Repository interessati;
 - foreign key esistenti;
 - policy RLS esistenti;
 - compatibilità con il nuovo contratto;
@@ -3334,9 +3486,44 @@ Non devono essere cancellati dati esistenti soltanto per semplificare l'adozione
 
 La Sessione S026 ha mantenuto separato il nuovo Catalogo DB V1 dai componenti Flutter legacy.
 
-Il vecchio modello/repository utilizzato per le colture e `plantings` non è stato modificato durante la sessione.
+La Sessione S027 ha eseguito il primo riallineamento applicativo esplicito tra il contratto legacy e il Catalogo V1.
 
-La successiva integrazione Flutter dovrà quindi effettuare esplicitamente il passaggio dal modello legacy al nuovo contratto autoritativo senza assumere equivalenza automatica tra le due rappresentazioni.
+In particolare:
+
+- `BotanicalFamily` è stato introdotto come modello dedicato;
+- `Crop` è stato riallineato al contratto V1;
+- `CropVariety` è stato riallineato al contratto V1;
+- gli identificativi del catalogo sono rappresentati come UUID `String`;
+- `CropVariety.toMap()` è stato rimosso;
+- i Repository utilizzano letture RLS e scritture RPC-only.
+
+La migrazione applicativa non è tuttavia ancora completa.
+
+Sono stati mantenuti temporaneamente alcuni alias legacy:
+
+```text
+Crop.sowingMethod
+Crop.botanicalFamily
+heavyFeeder
+CropVariety.defaultPlantingMethod
+```
+
+per non interrompere flussi applicativi ancora dipendenti dalle rappresentazioni precedenti.
+
+Questi alias:
+
+- non costituiscono il nuovo contratto persistente;
+- non devono essere utilizzati per introdurre nuove dipendenze;
+- devono essere rimossi soltanto dopo la migrazione esplicita dei rispettivi consumer.
+
+Rimangono in particolare da migrare o riallineare completamente:
+
+- `AddPlantingPage`;
+- alcuni utilizzi del motore di rotazione;
+- i relativi widget e test;
+- la relazione tra `defaultStartMethod` V1 e i planting method legacy.
+
+La migrazione dal modello legacy al contratto V1 deve quindi continuare in modo esplicito, incrementale e verificato, senza assumere equivalenza automatica tra le due rappresentazioni.
 
 ## 11.7 Compatibilità con il codice applicativo
 
@@ -3358,7 +3545,9 @@ Non deve essere introdotta una dipendenza del codice applicativo da una struttur
 
 Allo stesso modo, l'esistenza di una nuova struttura nel database non implica automaticamente che il client Flutter la utilizzi già.
 
-Questo principio è particolarmente evidente dopo la Sessione S026:
+La sequenza S026–S027 costituisce un esempio concreto di questo principio.
+
+Dopo la Sessione S026:
 
 ```text
 Catalogo DB V1
@@ -3370,24 +3559,69 @@ Catalogo Flutter V1
 non ancora integrato
 ```
 
-Il successivo blocco approvato per la Sessione S027 è quindi:
+La Sessione S027 ha completato il passaggio applicativo e lo stato corrente è:
 
-**Integrazione Flutter del Catalogo V1**
+```text
+Catalogo DB V1
+        =
+implementato
 
-e comprende:
+Write Path autoritativo
+        =
+implementato
 
-- modelli Dart;
-- result type per create/update/set active;
-- Repository;
+Catalogo Flutter V1
+        =
+integrato
+```
+
+L'integrazione comprende:
+
+- `BotanicalFamily`;
+- `Crop`;
+- `CropVariety`;
+- `BotanicalFamilyRepository`;
+- `CropRepository`;
+- `CropVarietyRepository`;
+- result type per le operazioni di scrittura;
 - letture dirette protette da RLS;
 - scritture esclusivamente tramite RPC autoritative;
 - integrazione della Profile Write Authority;
 - gestione di `row_version`;
-- mapping completo degli status RPC;
-- test Repository/result mapping;
-- successiva valutazione della UI minima di gestione del catalogo.
+- mapping esplicito degli status RPC;
+- comportamento fail-closed;
+- test di Repository e result mapping.
 
-Il Write Path completo di `plantings` non deve essere anticipato nella S027.
+La verifica finale della S027 ha confermato:
+
+```text
+124 test mirati superati
+914 test complessivi superati
+flutter analyze: No issues found
+```
+
+La compatibilità con il codice applicativo precedente non è stata ottenuta mediante una conversione implicita del nuovo contratto.
+
+Sono invece stati mantenuti temporaneamente alcuni alias legacy controllati.
+
+Questo permette di evitare regressioni immediate mantenendo esplicito il debito di migrazione residuo.
+
+Restano ancora distinti:
+
+```text
+integrazione dati Catalogo V1
+        ✓
+
+UI amministrativa Catalogo V1
+        ✗
+
+Write Path plantings
+        ✗
+```
+
+Il Write Path completo di `plantings` non è stato anticipato nella S027.
+
+La futura evoluzione deve evitare che gli alias legacy temporanei diventino nuovamente parte stabile del contratto applicativo.
 
 ## 11.8 Repository come confine di persistenza
 
@@ -3409,7 +3643,7 @@ Il dominio non deve dipendere direttamente dai dettagli della rappresentazione S
 
 Il Repository deve inoltre costituire il confine applicativo verso le RPC autoritative quando una entità non consente scritture dirette.
 
-Per il Catalogo DB V1 il modello previsto è:
+Per il Catalogo DB V1 il modello implementato dalla Sessione S027 è:
 
 ```text
 lettura
@@ -3417,15 +3651,51 @@ lettura
 RLS
         ↓
 Repository
+        ↓
+dominio Dart
+```
 
+e:
+
+```text
 scrittura
         ↓
 Repository
+        ↓
+Profile Write Authority
         ↓
 RPC autoritativa
         ↓
 PostgreSQL
 ```
+
+I Repository del catalogo sono:
+
+```text
+BotanicalFamilyRepository
+CropRepository
+CropVarietyRepository
+```
+
+Nei tre Repository non devono essere introdotte scritture dirette mediante:
+
+```text
+.insert()
+.update()
+.delete()
+.upsert()
+```
+
+Le invarianti autoritative rimangono responsabilità del database.
+
+Le eventuali validazioni Flutter servono a migliorare l'esperienza utente ma non sostituiscono i controlli server-side.
+
+Il mapping delle risposte RPC deve rimanere:
+
+- esplicito;
+- tipizzato;
+- fail-closed;
+- coerente con gli status effettivamente restituiti dal server.
 
 La futura integrazione di:
 
@@ -3629,7 +3899,7 @@ Il principio è:
 
 ```text
 baseline completa
-        ≠
+        �
 implementazione simultanea
 ```
 
@@ -3676,15 +3946,43 @@ Fino a quel momento deve essere mantenuta esplicita la distinzione:
 
 ```text
 Database V1 progettato
-        ≠
+        �
 Database V1 completamente implementato
 ```
 
-Alla conclusione della S026 il Catalogo DB V1 è implementato e verificato lato PostgreSQL/Supabase, ma non è ancora integrato nel client Flutter.
+Alla conclusione della S027:
 
-La Sessione S027 costituisce il successivo incremento approvato e sarà dedicata all'integrazione Flutter del Catalogo V1.
+```text
+Catalogo DB V1
+        ✓
 
-`plantings` rimane un blocco successivo.
+Write Path Catalogo V1
+        ✓
+
+integrazione Flutter Catalogo V1
+        ✓
+
+UI amministrativa Catalogo V1
+        ✗
+
+plantings
+        ✗
+```
+
+Il Catalogo DB V1 è quindi implementato e verificato lato PostgreSQL/Supabase e il relativo Repository Layer Flutter è integrato e verificato.
+
+La S027 non ha introdotto nuove migration.
+
+`public.plantings` rimane non implementata.
+
+La UI minima di gestione del Catalogo V1 rimane un incremento applicativo distinto.
+
+Il successivo blocco tecnico dovrà essere scelto esplicitamente tra:
+
+1. UI minima di gestione del Catalogo V1;
+2. Write Path autoritativo di `plantings`.
+
+Il Database V1 continuerà quindi a essere considerato **parzialmente implementato** fino al completamento progressivo delle ulteriori entità previste dalla baseline.
 
 ---
 
@@ -3940,7 +4238,7 @@ Il controllo nominale finale **52/52** ha inoltre consolidato due decisioni impo
 
 L'implementazione fisica del Database V1 è iniziata nella Sessione S019 e procede incrementalmente mediante migration versionate, controlli di sicurezza, test positivi e negativi e Write Path autoritativi.
 
-Alla conclusione della Sessione S026 il Database V1 rimane parzialmente implementato.
+Alla conclusione della Sessione S027 il Database V1 rimane parzialmente implementato, ma il Catalogo DB V1 introdotto nella S026 risulta ora integrato anche nel client Flutter.
 
 ## 13.1 Principi consolidati
 
@@ -3963,9 +4261,11 @@ La baseline Database V1 è fondata sui seguenti principi:
 - comportamento fail-closed in presenza di esiti sconosciuti, incompleti o non verificabili;
 - nessun retry automatico quando l'esito effettivo di una scrittura non è confermabile;
 - rilettura del dato autoritativo dopo una scrittura riuscita quando prevista dal flusso applicativo;
+- letture dirette consentite soltanto quando protette dalle policy RLS previste;
+- scritture del Catalogo V1 esclusivamente mediante RPC autoritative;
 - estensioni future introdotte soltanto in presenza di requisiti concreti.
 
-Questi principi devono essere preservati durante la progressiva implementazione SQL/Supabase e durante la successiva integrazione Flutter.
+Questi principi devono essere preservati durante la progressiva implementazione SQL/Supabase e durante l'integrazione Flutter.
 
 Il principio operativo generale rimane coerente con le regole del progetto:
 
@@ -4009,6 +4309,8 @@ Catalogo DB V1 implementato
 Write Path Catalogo DB V1 verificato
         ✓
 integrazione Flutter Catalogo V1
+        ✓
+UI gestione Catalogo V1
         ✗
 plantings
         ✗
@@ -4050,7 +4352,9 @@ crop_varieties
 
 `profile_memberships` costituisce una struttura di sicurezza e accesso introdotta nell'implementazione fisica e deve essere distinta dalle 52 entità di dominio congelate.
 
-Alla conclusione della Sessione S026 le migration locali e remote risultano allineate fino a:
+La Sessione S027 non ha introdotto nuove migration.
+
+Le migration locali e remote rimangono quindi allineate fino a:
 
 ```text
 20260911091047
@@ -4066,7 +4370,7 @@ public.plantings
 
 non è ancora presente nello schema implementato.
 
-## 13.3 Evoluzione dell'implementazione dalla S019 alla S026
+## 13.3 Evoluzione dell'implementazione dalla S019 alla S027
 
 La Sessione S019 ha avviato concretamente la traduzione della baseline Database V1 congelata nella S017 in strutture PostgreSQL/Supabase versionate e verificabili.
 
@@ -4191,9 +4495,11 @@ La seconda migration introduce le nove RPC autoritative:
 create_botanical_family
 update_botanical_family
 set_botanical_family_active
+
 create_crop
 update_crop
 set_crop_active
+
 create_crop_variety
 update_crop_variety
 set_crop_variety_active
@@ -4280,9 +4586,84 @@ ha confermato l'allineamento locale/remoto fino a:
 20260911091047
 ```
 
+La Sessione S027 non ha modificato lo schema PostgreSQL/Supabase.
+
+Ha invece completato l'integrazione applicativa Flutter del Catalogo V1.
+
+Sono stati introdotti o riallineati i modelli:
+
+```text
+BotanicalFamily
+Crop
+CropVariety
+```
+
+Sono ora disponibili i Repository:
+
+```text
+BotanicalFamilyRepository
+CropRepository
+CropVarietyRepository
+```
+
+Le letture vengono effettuate direttamente sotto protezione RLS.
+
+Le scritture utilizzano esclusivamente le nove RPC autoritative introdotte nella S026.
+
+Nei Repository del catalogo è stata verificata l'assenza di:
+
+```text
+.insert()
+.update()
+.delete()
+.upsert()
+```
+
+Sono stati inoltre introdotti result type dedicati per le operazioni sulle tre entità del catalogo.
+
+Il mapping applicativo gestisce gli status reali restituiti dalle RPC, compresi:
+
+```text
+created
+updated
+unchanged
+version_conflict
+forbidden
+write_forbidden
+not_found
+invalid_input
+```
+
+oltre agli esiti specifici relativi a duplicati e vincoli gerarchici.
+
+La Profile Write Authority rimane fail-closed.
+
+La concorrenza ottimistica applicativa utilizza `row_version` secondo il contratto delle RPC.
+
+La Sessione S027 ha mantenuto temporaneamente alcuni alias legacy per garantire compatibilità con flussi applicativi non ancora migrati.
+
+Tra questi:
+
+- `Crop.sowingMethod`;
+- `Crop.botanicalFamily`;
+- `heavyFeeder`;
+- `CropVariety.defaultPlantingMethod`.
+
+Tali alias non costituiscono il nuovo contratto persistente del Database V1 e dovranno essere eliminati soltanto quando i relativi flussi saranno migrati esplicitamente.
+
+La verifica S027 ha confermato:
+
+```text
+124 test mirati superati
+914 test complessivi superati
+flutter analyze: No issues found
+git diff --check: pulito
+git diff --cached --check: pulito
+```
+
 ## 13.4 Stato dei Write Path autoritativi
 
-Alla conclusione della Sessione S026 risultano completati e coerenti allo stato attuale i Write Path autoritativi di:
+Alla conclusione della Sessione S027 risultano completati e coerenti allo stato attuale i Write Path autoritativi di:
 
 ```text
 gardens
@@ -4292,6 +4673,8 @@ botanical_families
 crops
 crop_varieties
 ```
+
+Per il Catalogo DB V1 risulta inoltre completata l'integrazione del relativo Repository Layer Flutter.
 
 Le scritture protette seguono il principio:
 
@@ -4341,9 +4724,9 @@ Catalogo DB V1 implementato
         ↓
 Write Path Catalogo DB V1 verificato
         ↓
-integrazione Flutter Catalogo V1
+integrazione Flutter Catalogo V1 completata
         ↓
-plantings
+UI minima Catalogo / plantings
         ↓
 ulteriori entità della baseline
 ```
@@ -4404,62 +4787,60 @@ Lo stesso principio vale per il Catalogo DB V1.
 
 Il database conserva i valori di riferimento, le relazioni e le invarianti, mentre il dominio applicativo utilizza tali dati nei calcoli e nelle decisioni agronomiche.
 
+La S027 ha completato il collegamento tra la persistenza del Catalogo V1 e il Repository Layer Flutter senza trasferire al client l'autorità sulle invarianti server-side.
+
 Il catalogo segue inoltre il principio:
 
 > **catalogo corrente + snapshot storico**
 
 Le future modifiche ai valori correnti del catalogo non devono riscrivere retroattivamente calcoli, decisioni o risultati storici già consolidati.
 
-## 13.6 Prossimo incremento approvato
+## 13.6 Prossimo incremento tecnico
 
-La Sessione S026 era stata avviata con l'obiettivo di analizzare il futuro Write Path di `plantings`.
-
-L'analisi delle dipendenze ha evidenziato che prima di `plantings` era necessario disporre di un catalogo agronomico operativo.
-
-È stato quindi approvato e realizzato il percorso:
+La sequenza tecnica consolidata fino alla S027 è:
 
 ```text
-botanical_families
+Catalogo DB V1
         ↓
-crops
+Write Path Catalogo V1
         ↓
-crop_varieties
+integrazione Flutter Catalogo V1
         ↓
-plantings
+prossimo incremento applicativo
 ```
 
-La Sessione S026 ha completato i primi tre livelli.
-
-Il prossimo blocco approvato è:
-
-> **S027 — Integrazione Flutter del Catalogo V1**
-
-L'obiettivo della S027 è portare nel client Flutter il modello autoritativo:
-
-```text
-botanical_families
-        ↓
-crops
-        ↓
-crop_varieties
-```
-
-Le attività previste comprendono:
+La Sessione S027 ha completato l'integrazione Flutter mediante:
 
 - modelli Dart;
 - result type per create/update/set active;
 - Repository;
 - letture dirette protette da RLS;
 - scritture esclusivamente tramite RPC autoritative;
-- integrazione della Profile Write Authority;
+- Profile Write Authority;
 - gestione di `row_version`;
-- mapping completo degli status RPC;
-- test Repository/result mapping;
-- valutazione successiva della UI minima di gestione del catalogo.
+- mapping degli status RPC;
+- test di Repository e result mapping.
 
-Il Write Path completo di `plantings` non deve essere implementato nella S027, salvo eventuale analisi finale delle dipendenze.
+Non è stata introdotta una UI dedicata alla gestione amministrativa del Catalogo V1.
 
-`plantings` rimane il blocco successivo.
+Non è stato implementato il Write Path completo di `plantings`.
+
+Alla conclusione della S027 restano quindi aperti due blocchi tecnici distinti:
+
+1. **UI minima di gestione del Catalogo V1**;
+2. **Write Path autoritativo di `plantings`**.
+
+La scelta del successivo blocco dovrà essere approvata esplicitamente prima dell'avvio della nuova sessione di sviluppo.
+
+Rimane inoltre aperta la necessità di introdurre un adattatore esplicito tra:
+
+```text
+defaultStartMethod V1
+```
+
+e i planting method legacy ancora utilizzati da alcuni componenti applicativi.
+
+Gli alias legacy dovranno essere rimossi progressivamente soltanto dopo la migrazione dei relativi flussi.
 
 ## 13.7 Evoluzione del documento
 
@@ -4480,6 +4861,8 @@ Durante le future migration devono essere documentati almeno:
 - Write Path autoritativi;
 - test di integrazione e sicurezza;
 - eventuali differenze motivate rispetto alla baseline progettuale.
+
+Anche le integrazioni Flutter che modificano il rapporto tra Repository Layer e contratti persistenti devono essere riportate quando incidono sull'architettura complessiva di accesso ai dati.
 
 Qualora emerga la necessità di modificare una decisione congelata, la variazione deve essere valutata e tracciata nella documentazione architetturale e non introdotta silenziosamente durante l'implementazione.
 
@@ -4517,6 +4900,14 @@ sempre verificare
 
 La progettazione S017 non deve essere riaperta durante l'implementazione salvo l'emersione di un errore concreto o di una necessità architetturale dimostrata.
 
-Alla conclusione della Sessione S026 il Catalogo DB V1 è implementato e verificato lato PostgreSQL/Supabase.
+Alla conclusione della Sessione S027:
 
-Il successivo passo approvato è l'integrazione Flutter del Catalogo V1 nella Sessione S027.
+- il Catalogo DB V1 è implementato e verificato lato PostgreSQL/Supabase;
+- il Repository Layer Flutter del catalogo è integrato e verificato;
+- le scritture del catalogo rimangono esclusivamente RPC-only;
+- le letture rimangono protette mediante RLS;
+- non sono state introdotte nuove migration;
+- la UI dedicata al Catalogo V1 non è ancora implementata;
+- `public.plantings` non è ancora implementata.
+
+Il successivo incremento tecnico dovrà essere scelto esplicitamente tra la UI minima del Catalogo V1 e il Write Path autoritativo di `plantings`.

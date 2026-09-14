@@ -4,7 +4,7 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.14
+**Versione:** 0.15
 
 **Stato:** In sviluppo
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 11/09/2026
+**Ultimo aggiornamento:** 14/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.14 |
+| Versione | 0.15 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 11/09/2026 |
+| Ultimo aggiornamento | 14/09/2026 |
 
 ---
 
@@ -53,6 +53,7 @@
 | 0.12 | 03/09/2026 | Manutenzione straordinaria del Quaderno di Sviluppo: ricostruzione e consolidamento dei tempi complessivi delle Sessioni S001–S024, riallineamento dei progressivi con il DOC-012, classificazione della S007 come attività documentale e formalizzazione della futura verifica controllata degli aggiornamenti ISO 3166-1 alpha-2 |
 | 0.13 | 06/09/2026 | Aggiornamento del Quaderno con la Sessione S025: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, gestione italiana delle date, nuove pagine operative, verifiche automatiche e collaudo locale end-to-end |
 | 0.14 | 11/09/2026 | Aggiornamento del Quaderno con la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, Profile Write Authority, RLS, concorrenza ottimistica, validazioni agronomiche e definizione della S027 come integrazione Flutter del Catalogo V1 |
+| 0.15 | 14/09/2026 | Aggiornamento del Quaderno con la Sessione S027: integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy controllata, 914/914 test superati e riallineamento della versione Flutter a `0.1.18-alpha+3`; fase Manuali ancora in corso |
 
 ---
 
@@ -70,7 +71,7 @@ Per una sessione ancora in corso viene riportato soltanto il tempo già consolid
 | S004 | Luglio 2026 | 5 h 00 min | 26 h 00 min | Introduzione del Companion Engine e consolidamento dell'architettura agronomica | ✅ |
 | S005 | Luglio 2026 | 4 h 00 min | 30 h 00 min | BedAnalysisService e Bed Companion Analyzer | ✅ |
 | S006 | Luglio 2026 | 4 h 00 min | 34 h 00 min | Decision Engine e consolidamento del Motore Agronomico | ✅ |
-| S007 | Agosto 2026 | 11 h 00 min\* | 45 h 00 min | Revisione e consolidamento della documentazione tecnica | ✅ |
+| S007 | Agosto 2026 | 11 h 00 min* | 45 h 00 min | Revisione e consolidamento della documentazione tecnica | ✅ |
 | S008 | Agosto 2026 | 4 h 16 min | 49 h 16 min | Censimento e consolidamento della documentazione residua | ✅ |
 | S009 | Agosto 2026 | 5 h 22 min | 54 h 38 min | Evoluzione dell'architettura del Motore Agronomico e introduzione della RecommendationPipeline | ✅ |
 | S010 | Agosto 2026 | 4 h 54 min | 59 h 32 min | Configurazione dei pesi del DecisionEngine mediante DecisionWeights | ✅ |
@@ -90,8 +91,9 @@ Per una sessione ancora in corso viene riportato soltanto il tempo già consolid
 | S024 | 30/08–01/09/2026 | 18 h 03 min | 167 h 51 min | Implementazione del Write Path autoritativo di `beds` e della geometria storicizzata delle aiuole | ✅ |
 | S025 | 02–06/09/2026 | 6 h 56 min | 174 h 47 min | Completamento dell'integrazione UI dei Write Path autoritativi di `beds` | ✅ |
 | S026 | 10–12/09/2026 | 8 h 55 min | 183 h 42 min | Implementazione del Catalogo DB V1 e dei relativi Write Path autoritativi | ✅ |
+| S027 | 13–14/09/2026 | 2 h 33 min | 186 h 15 min | Integrazione Flutter del Catalogo V1 | ✅ |
 
-\* La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
+* La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
 Per le Sessioni S004, S005 e S006 è disponibile il tempo complessivo storico della sessione, ma non la ripartizione attendibile tra sviluppo e documentazione.
 
@@ -110,14 +112,30 @@ Il totale progressivo del progetto alla chiusura della S026 è:
 183 h 42 min
 ```
 
+Per la Sessione S027 il tempo complessivo è composto da:
+
+```text
+Sviluppo        1 h 18 min
+Documentazione  1 h 15 min
+-------------------------
+Totale          2 h 33 min
+```
+
+La fase Manuali S027 è conclusa.
+
+Il totale progressivo del progetto alla chiusura della S027 è:
+
+```text
+186 h 15 min
+```
 ---
 
 # Indice
 
 ## 1. Introduzione
-1.1 Scopo del documento  
-1.2 Ruolo del Quaderno di Sviluppo  
-1.3 Relazione con gli altri documenti  
+1.1 Scopo del documento
+1.2 Ruolo del Quaderno di Sviluppo
+1.3 Relazione con gli altri documenti
 1.4 Organizzazione del documento
 
 ## 2. Regole di aggiornamento
@@ -149,6 +167,7 @@ Il totale progressivo del progetto alla chiusura della S026 è:
 3.24 S024
 3.25 S025
 3.26 S026
+3.27 S027
 
 ## 4. Considerazioni finali
 
@@ -2125,7 +2144,7 @@ Il validatore impedisce in particolare la definizione di fabbisogni caratterizza
 - quantità minore o uguale a zero;
 - intervallo minore o uguale a zero.
 
-### Separazione delle responsabilità
+### Separazione delle responsabilit�
 
 La Sessione S013 ha ulteriormente precisato la separazione delle responsabilità relative alle esigenze familiari e alla futura pianificazione temporale.
 
@@ -2180,7 +2199,7 @@ Il flusso concettuale previsto è:
 
     fabbisogno familiare quantitativo
             +
-    caratteristiche produttive della coltura o varietà
+    caratteristiche produttive della coltura o variet�
             +
     periodo di consumo desiderato
             ↓
@@ -2319,7 +2338,7 @@ Il flusso iniziale previsto è:
 
     fabbisogno familiare
             +
-    caratteristiche produttive della coltura/varietà
+    caratteristiche produttive della coltura/variet�
             +
     periodo di consumo desiderato
             ↓
@@ -2937,7 +2956,7 @@ L'evoluzione futura dovrà poter considerare progressivamente:
 ```text
 finestra agronomica di base
         +
-caratteristiche della coltura o varietà
+caratteristiche della coltura o variet�
         +
 localizzazione reale dell'orto
         +
@@ -3106,7 +3125,7 @@ S015
 finestre agronomiche
         ↓
 S016
-stagionalità di colture e varietà
+stagionalità di colture e variet�
         ↓
 evoluzioni future
 clima, localizzazione, gelo e meteo reale
@@ -3119,7 +3138,7 @@ L'obiettivo sarà iniziare a trasformare le finestre astratte introdotte nella S
 Dovrà essere mantenuta la separazione tra:
 
 ```text
-stagionalità di base della coltura o varietà
+stagionalità di base della coltura o variet�
         ↓
 compatibilità temporale del lotto
         ↓
@@ -3137,7 +3156,7 @@ Il checkpoint tecnico di partenza della S016 è:
 
 ---
 
-# Sessione S016 – Associazione delle finestre agronomiche a colture e varietà
+# Sessione S016 – Associazione delle finestre agronomiche a colture e variet�
 
 **Data:** 11/08/2026
 
@@ -3211,7 +3230,7 @@ regola generale della coltura
 
 varietyId != null
         ↓
-regola specifica della varietà
+regola specifica della variet�
 ```
 
 Questo permette di mantenere una regola generale e introdurre eccezioni varietali soltanto quando necessarie, evitando duplicazioni inutili dei dati.
@@ -3235,7 +3254,7 @@ Il resolver seleziona la finestra agronomica applicabile in base a:
 È stata definita la seguente gerarchia:
 
 ```text
-regola specifica della varietà
+regola specifica della variet�
         ↓
 regola generale della coltura
         ↓
@@ -3378,7 +3397,7 @@ Sono stati creati i relativi test:
 
 Test dedicati: **4**.
 
-## Separazione delle responsabilità
+## Separazione delle responsabilit�
 
 La Sessione S016 ha consolidato la seguente architettura:
 
@@ -3675,7 +3694,7 @@ Durante la prima fase della S017 è emerso che una coltura o varietà può posse
 Il modello introdotto nella S016 restava valido nei suoi principi fondamentali:
 
 ```text
-regola specifica della varietà
+regola specifica della variet�
         ↓
 fallback
         ↓
@@ -3710,7 +3729,7 @@ List<AgronomicWindow>
 preservando il principio:
 
 ```text
-finestre specifiche della varietà
+finestre specifiche della variet�
         ↓
 se presenti, vengono utilizzate
 
@@ -3825,7 +3844,7 @@ interpretazione e logica agronomica
 
 Non devono essere create tabelle soltanto per materializzare risultati che possono essere correttamente calcolati.
 
-#### Pianificazione e realtà
+#### Pianificazione e realt�
 
 La pianificazione non deve essere confusa con ciò che avviene realmente.
 
@@ -3867,7 +3886,7 @@ WorkLog
 
 Il futuro comando applicativo **Inizia lavoro** dovrà operare rispettando questa separazione.
 
-#### Temporalità
+#### Temporalit�
 
 Le configurazioni che possono cambiare nel tempo non devono sovrascrivere retroattivamente la storia.
 
@@ -3960,9 +3979,9 @@ Rimangono distinti:
 
 ```text
 account autenticato
-        ≠
+        �
 persona che utilizza materialmente l'app
-        ≠
+        �
 worker al quale viene attribuito il lavoro
 ```
 
@@ -4343,7 +4362,7 @@ La nuova gestione supporta più finestre agronomiche applicabili alla stessa col
 Il comportamento consolidato è:
 
 ```text
-finestre specifiche della varietà
+finestre specifiche della variet�
         ↓
 se presenti, vengono utilizzate
 
@@ -4657,7 +4676,7 @@ richiesta
         ↓
 database / server
         ↓
-verifica identità
+verifica identit�
         ↓
 verifica appartenenza e ruolo
         ↓
@@ -7650,3 +7669,612 @@ Alla chiusura della Sessione S026 i progressivi complessivi del progetto risulta
 | Sviluppo complessivo | 135 h 52 min |
 | Documentazione complessiva | 47 h 50 min |
 | **Totale progetto** | **183 h 42 min** |
+
+# Sessione S027 — Integrazione Flutter del Catalogo V1
+
+**Data sviluppo:** 13/09/2026
+**Stato sviluppo:** completato
+**Stato documentazione:** in corso
+**Versione pubblica:** `0.1.18-alpha`
+**Versione Flutter:** `0.1.18-alpha+3`
+
+## Obiettivo della sessione
+
+La Sessione S027 è stata dedicata all'integrazione nel client Flutter del Catalogo DB V1 implementato e verificato lato PostgreSQL/Supabase nella Sessione S026.
+
+Il perimetro tecnico comprendeva:
+
+- modelli Dart coerenti con `botanical_families`, `crops` e `crop_varieties`;
+- identificativi UUID rappresentati mediante `String`;
+- result type tipizzati;
+- Repository;
+- letture dirette protette da RLS;
+- scritture esclusivamente tramite RPC autoritative;
+- integrazione della Profile Write Authority;
+- gestione di `row_version`;
+- mapping completo degli status RPC;
+- test di Repository e mapping;
+- mantenimento controllato della compatibilità con i consumer legacy.
+
+La Sessione S027 non comprendeva:
+
+- UI amministrativa completa del Catalogo V1;
+- Write Path completo di `plantings`;
+- nuove migration Supabase.
+
+## Timing dello sviluppo
+
+La fase sviluppo della Sessione S027 è iniziata il:
+
+> **13/09/2026 alle 16:46**
+
+Gli intervalli registrati sono:
+
+```text
+13/09/2026  16:46 → 17:56 = 1 h 10 min
+13/09/2026  18:08 → 18:16 = 0 h 08 min
+```
+
+La sospensione:
+
+```text
+17:56 → 18:08 = 12 min
+```
+
+è esclusa dal conteggio.
+
+Il tempo netto complessivo di sviluppo della Sessione S027 è:
+
+> **1 h 18 min**
+
+La fase sviluppo è stata dichiarata conclusa il:
+
+> **13/09/2026 alle 18:16**
+
+## Baseline iniziale
+
+La sessione è partita dal Catalogo DB V1 introdotto nella S026:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+Lato PostgreSQL/Supabase erano già disponibili:
+
+- tre tabelle Profile-owned;
+- UUID;
+- RLS;
+- nove RPC autoritative;
+- Profile Write Authority;
+- `row_version`;
+- concorrenza ottimistica;
+- validazioni agronomiche e gerarchiche;
+- revoca delle scritture dirette.
+
+Il client Flutter utilizzava invece ancora componenti non completamente allineati al nuovo contratto.
+
+## Modello `BotanicalFamily`
+
+È stato introdotto:
+
+```text
+lib/data/models/botanical_family.dart
+```
+
+Il modello comprende:
+
+- `id`;
+- `profileId`;
+- `name`;
+- `scientificName`;
+- `description`;
+- `isActive`;
+- `rowVersion`;
+- `createdAt`;
+- `updatedAt`.
+
+Il mapping dal database viene eseguito mediante `fromMap`.
+
+## Riallineamento di `Crop`
+
+Il modello:
+
+```text
+lib/data/models/crop.dart
+```
+
+è stato riallineato al Catalogo DB V1.
+
+Comprende ora:
+
+- UUID;
+- `profileId`;
+- `botanicalFamilyId`;
+- nome;
+- nome scientifico;
+- descrizione;
+- `defaultStartMethod`;
+- sesti e profondità;
+- giorni di germinazione e raccolta;
+- temperature;
+- rotazione;
+- fabbisogno idrico qualitativo e quantitativo;
+- produttività;
+- resa prevista minima, media e massima;
+- unità della resa;
+- fonte;
+- stato attivo;
+- `rowVersion`;
+- timestamp.
+
+## Riallineamento di `CropVariety`
+
+Il modello:
+
+```text
+lib/data/models/crop_variety.dart
+```
+
+è stato riallineato al contratto V1.
+
+Gli identificativi:
+
+```text
+id
+profileId
+cropId
+```
+
+sono ora rappresentati come UUID `String`.
+
+Il modello comprende inoltre:
+
+- `defaultStartMethod`;
+- override agronomici V1;
+- fabbisogno idrico quantitativo;
+- resa;
+- `rowVersion`;
+- timestamp.
+
+È stato rimosso:
+
+```text
+CropVariety.toMap()
+```
+
+per evitare di mantenere un percorso generico di scrittura diretta non coerente con il modello RPC-only.
+
+## Repository Layer
+
+È stato introdotto:
+
+```text
+lib/data/repositories/botanical_family_repository.dart
+```
+
+Sono stati riallineati:
+
+```text
+lib/data/repositories/crop_repository.dart
+lib/data/repositories/crop_variety_repository.dart
+```
+
+Il Repository Layer del Catalogo V1 è quindi costituito da:
+
+```text
+BotanicalFamilyRepository
+CropRepository
+CropVarietyRepository
+```
+
+## Letture
+
+Le letture del catalogo vengono eseguite direttamente sotto protezione RLS.
+
+Il modello è:
+
+```text
+Supabase
+        ↓
+RLS
+        ↓
+Repository
+        ↓
+dominio Dart
+```
+
+`CropRepository` gestisce anche il collegamento con la famiglia botanica.
+
+`CropVarietyRepository` supporta il filtro per:
+
+```text
+cropId
+```
+
+e il filtro opzionale sui record attivi.
+
+## Scritture
+
+Le scritture utilizzano esclusivamente le nove RPC autoritative già introdotte nella S026:
+
+```text
+create_botanical_family
+update_botanical_family
+set_botanical_family_active
+
+create_crop
+update_crop
+set_crop_active
+
+create_crop_variety
+update_crop_variety
+set_crop_variety_active
+```
+
+Il percorso applicativo è:
+
+```text
+UI / dominio
+        ↓
+Repository
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+PostgreSQL
+```
+
+Nei tre Repository è stata verificata l'assenza di utilizzi diretti di:
+
+```text
+.insert()
+.update()
+.delete()
+.upsert()
+```
+
+L'autorità sulle invarianti rimane server-side.
+
+## Result type
+
+Sono stati introdotti:
+
+```text
+lib/core/write_authority/botanical_family_write_result.dart
+lib/core/write_authority/crop_write_result.dart
+lib/core/write_authority/crop_variety_write_result.dart
+```
+
+Gli esiti gestiti comprendono:
+
+```text
+created
+updated
+unchanged
+version_conflict
+forbidden
+write_forbidden
+not_found
+invalid_input
+```
+
+oltre agli status specifici relativi a:
+
+- duplicati;
+- gerarchie;
+- parent inattivi;
+- figli attivi che impediscono la disattivazione.
+
+Il mapping opera in modalità fail-closed.
+
+## Profile Write Authority
+
+La Profile Write Authority rimane il prerequisito applicativo delle scritture protette.
+
+Il controllo Flutter rappresenta un preflight preventivo.
+
+L'autorità definitiva rimane nelle RPC server-side.
+
+In assenza di un contesto di scrittura valido, l'operazione non viene eseguita.
+
+## Concorrenza
+
+La concorrenza ottimistica utilizza:
+
+```text
+row_version
+```
+
+e il relativo valore atteso previsto dal contratto delle RPC.
+
+Gli esiti di conflitto vengono convertiti nel risultato tipizzato:
+
+```text
+version_conflict
+```
+
+senza tentativi automatici di sovrascrittura.
+
+## Compatibilità legacy temporanea
+
+L'analisi delle dipendenze applicative ha evidenziato alcuni consumer ancora legati al modello precedente.
+
+Sono stati pertanto mantenuti temporaneamente:
+
+```text
+Crop.sowingMethod
+Crop.botanicalFamily
+heavyFeeder
+CropVariety.defaultPlantingMethod
+```
+
+In particolare:
+
+- `Crop.sowingMethod` è ancora utilizzato da `AddPlantingPage`;
+- `Crop.botanicalFamily` è ancora utilizzato dal motore di rotazione e dai relativi widget/test;
+- `heavyFeeder` è ancora richiesto da test e componenti legacy;
+- `CropVariety.defaultPlantingMethod` rimane un alias temporaneo.
+
+Questi alias:
+
+- non rappresentano il nuovo contratto persistente;
+- non devono essere utilizzati per introdurre nuove dipendenze;
+- dovranno essere rimossi dopo la migrazione esplicita dei rispettivi consumer.
+
+## Test introdotti
+
+Sono stati aggiunti:
+
+```text
+test/data/models/botanical_family_test.dart
+test/data/repositories/botanical_family_repository_test.dart
+test/data/repositories/crop_repository_test.dart
+test/data/repositories/crop_repository_write_test.dart
+test/data/repositories/crop_variety_repository_test.dart
+test/data/repositories/crop_variety_repository_write_test.dart
+```
+
+È stato inoltre adeguato:
+
+```text
+test/pages/bed_page_test.dart
+```
+
+per la nuova firma:
+
+```text
+getCrops({bool activeOnly = true})
+```
+
+## Verifiche automatiche
+
+La suite mirata ha prodotto:
+
+```text
++124: All tests passed!
+```
+
+La suite completa ha prodotto:
+
+```text
++914: All tests passed!
+```
+
+`flutter analyze` ha restituito:
+
+```text
+No issues found!
+```
+
+Sono stati inoltre verificati:
+
+```text
+git diff --check
+git diff --cached --check
+```
+
+senza errori.
+
+## Database
+
+La Sessione S027 non ha introdotto nuove migration.
+
+Il Database V1 rimane allineato alle migration della S026:
+
+```text
+20260911084752_add_crop_catalog.sql
+20260911091047_add_crop_catalog_write_rpcs.sql
+```
+
+`public.plantings` rimane non implementata.
+
+## Versionamento
+
+La S026 aveva introdotto la versione pubblica:
+
+```text
+0.1.17-alpha
+```
+
+senza modificare il client Flutter.
+
+Per questo `pubspec.yaml` era rimasto temporaneamente a:
+
+```text
+0.1.16-alpha+2
+```
+
+La S027 modifica invece il codice Dart/Flutter.
+
+È stata quindi definita la nuova versione pubblica:
+
+```text
+0.1.18-alpha
+```
+
+e `pubspec.yaml` è stato riallineato a:
+
+```text
+0.1.18-alpha+3
+```
+
+## APPROVATO / CONGELATO
+
+Con la conclusione dello sviluppo S027 vengono considerati consolidati:
+
+- modello `BotanicalFamily`;
+- `Crop` allineato al Catalogo DB V1;
+- `CropVariety` allineato al Catalogo DB V1;
+- UUID distinti dai nomi descrittivi;
+- `BotanicalFamilyRepository`;
+- `CropRepository` allineato al V1;
+- `CropVarietyRepository` allineato al V1;
+- letture RLS;
+- scritture RPC-only;
+- Profile Write Authority fail-closed;
+- gestione `row_version`;
+- mapping esplicito degli status RPC;
+- rimozione di `CropVariety.toMap()`;
+- compatibilità legacy temporanea;
+- mantenimento di `rotationSeasons` come campo V1;
+- separazione tra integrazione infrastrutturale Flutter e futura UI amministrativa del catalogo.
+
+La Sessione S027 non ha introdotto una UI amministrativa dedicata al Catalogo V1.
+
+## Commit tecnico S027
+
+Il commit tecnico conclusivo della Sessione S027 è:
+
+```text
+58ce69b — Integra Catalogo V1 nel client Flutter
+```
+
+SHA completo:
+
+```text
+58ce69ba4a429aa3dbffc62250756d86e81aa0f6
+```
+
+Il confine Git tecnico della Sessione S027 è:
+
+```text
+cfba1bc..58ce69b
+```
+
+Il diff tecnico comprende:
+
+```text
+16 file modificati
+3830 inserimenti
+81 eliminazioni
+```
+
+Il commit è stato pubblicato sul repository remoto.
+
+## Stato Git al termine dello sviluppo
+
+Al termine della fase sviluppo:
+
+```text
+branch: main
+
+HEAD:
+58ce69ba4a429aa3dbffc62250756d86e81aa0f6
+
+origin/main:
+58ce69ba4a429aa3dbffc62250756d86e81aa0f6
+
+working tree:
+clean
+```
+
+Il repository locale e quello remoto risultavano sincronizzati.
+
+## APERTO / FUTURE
+
+Restano fuori dal perimetro tecnico completato della S027:
+
+1. UI minima di gestione del Catalogo V1;
+
+2. Write Path autoritativo completo di `plantings`;
+
+3. adattatore esplicito tra `defaultStartMethod` e i planting method legacy;
+
+4. migrazione dei consumer che utilizzano ancora gli alias legacy;
+
+5. rimozione progressiva di:
+   - `Crop.sowingMethod`;
+   - `Crop.botanicalFamily`;
+   - `heavyFeeder`;
+   - `CropVariety.defaultPlantingMethod`;
+
+6. operazioni amministrative protette su `profile_memberships`;
+
+7. futura persistenza di `agronomic_window_rules`.
+
+Il prossimo incremento tecnico non viene fissato automaticamente dalla S027.
+
+La scelta dovrà essere esplicitamente approvata tra i blocchi ancora aperti.
+
+# Timing della documentazione
+
+La fase Manuali S027 è iniziata il:
+
+> **13/09/2026 alle 18:20**
+
+Primo intervallo:
+
+```text
+13/09/2026  18:20 → 18:54 = 0 h 34 min
+```
+
+La fase è stata sospesa il:
+
+> **13/09/2026 alle 18:54**
+
+ed è ripresa il:
+
+> **14/09/2026 alle 22:13**
+
+Secondo intervallo:
+
+```text
+14/09/2026  22:13 → 22:54 = 0 h 41 min
+```
+
+La fase Manuali S027 è stata chiusa il:
+
+> **14/09/2026 alle 22:54**
+
+Il tempo documentale complessivo della Sessione S027 è:
+
+```text
+0 h 34 min
++
+0 h 41 min
+=
+1 h 15 min
+```
+
+## Progressivi definitivi S027
+
+| Attività | Durata |
+|----------|-------:|
+| Sviluppo S027 | 1 h 18 min |
+| Documentazione S027 | 1 h 15 min |
+| **Totale S027** | **2 h 33 min** |
+
+I progressivi definitivi del progetto alla chiusura della S027 sono:
+
+| Indicatore | Totale |
+|------------|-------:|
+| Sviluppo complessivo | 137 h 10 min |
+| Documentazione complessiva | 49 h 05 min |
+| **Totale progetto** | **186 h 15 min** |
+
+La Sessione S027 è conclusa sia nella fase di sviluppo sia nella fase documentale.
