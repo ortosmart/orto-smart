@@ -57,15 +57,32 @@ void main() {
     int month = 4,
     int day = 1,
   }) {
+    final startDate = DateTime(year, month, day);
+
     return Planting(
       id: id,
+      profileId: 'profile-1',
+      gardenId: 'garden-1',
       seasonId: 'season-$year',
       bedId: bedId,
       cropId: crop.id,
+      varietyId: null,
+      startMethod: 'purchased_seedlings',
+      startDate: startDate,
+      endDate: DateTime(year, 12, 31),
       startPositionCm: 0,
       lengthCm: 100,
-      sowingDate: DateTime(year, month, day),
-      status: 'completed',
+      plantSpacingCm: 40,
+      rowSpacingCm: null,
+      rowsCount: null,
+      occupiedWidthCm: 90,
+      plantsCount: 2,
+      seedQuantityG: null,
+      status: 'finished',
+      notes: null,
+      createdAt: startDate,
+      updatedAt: DateTime(year, 12, 31),
+      rowVersion: 1,
     );
   }
 

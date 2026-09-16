@@ -35,6 +35,7 @@ class GardenMap extends StatefulWidget {
 
 class _GardenMapState extends State<GardenMap> {
   late BedRepository _repository;
+  late PlantingRepository _plantingRepository;
   late Future<List<Bed>> _bedsFuture;
 
   ProfileWriteAuthorityController? _writeAuthority;
@@ -51,10 +52,17 @@ class _GardenMapState extends State<GardenMap> {
     _writeAuthority = authority;
 
     if (!_repositoryInitialized ||
-        (authorityChanged && widget.repository == null)) {
+        (authorityChanged &&
+            (widget.repository == null || widget.plantingRepository == null))) {
       _repository =
           widget.repository ??
           BedRepository(requireLeaseForWrite: authority?.requireLeaseForWrite);
+
+      _plantingRepository =
+          widget.plantingRepository ??
+          PlantingRepository(
+            requireLeaseForWrite: authority?.requireLeaseForWrite,
+          );
 
       _repositoryInitialized = true;
       _bedsFuture = _repository.getBeds(gardenId: widget.gardenId);
@@ -69,6 +77,10 @@ class _GardenMapState extends State<GardenMap> {
       oldWidget.repository,
       widget.repository,
     );
+    final plantingRepositoryChanged = !identical(
+      oldWidget.plantingRepository,
+      widget.plantingRepository,
+    );
 
     if (repositoryChanged) {
       _repository =
@@ -77,7 +89,13 @@ class _GardenMapState extends State<GardenMap> {
             requireLeaseForWrite: _writeAuthority?.requireLeaseForWrite,
           );
     }
-
+    if (plantingRepositoryChanged) {
+      _plantingRepository =
+          widget.plantingRepository ??
+          PlantingRepository(
+            requireLeaseForWrite: _writeAuthority?.requireLeaseForWrite,
+          );
+    }
     if (oldWidget.profileId != widget.profileId ||
         oldWidget.gardenId != widget.gardenId ||
         repositoryChanged) {
@@ -239,7 +257,7 @@ class _GardenMapState extends State<GardenMap> {
                             bed: bed,
                             authority: _writeAuthority,
                             repository: _repository,
-                            plantingRepository: widget.plantingRepository,
+                            plantingRepository: _plantingRepository,
                             cropRepository: widget.cropRepository,
                             cropAssociationRepository:
                                 widget.cropAssociationRepository,

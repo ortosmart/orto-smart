@@ -23,23 +23,29 @@ void main() {
 
   Planting buildPlanting({required String cropId}) {
     return Planting(
-      id: null,
+      id: 'planting-$cropId',
+      profileId: 'profile-1',
+      gardenId: 'garden-1',
       seasonId: 'season-2026',
       bedId: 'bed-1',
       cropId: cropId,
       varietyId: null,
+      startMethod: 'purchased_seedlings',
+      startDate: DateTime(2026, 4, 1),
+      endDate: null,
       startPositionCm: 0,
       lengthCm: 100,
-      plantingMethod: 'transplant',
       plantSpacingCm: 40,
       rowSpacingCm: 60,
       rowsCount: 1,
       occupiedWidthCm: 60,
-      seedQuantityGrams: null,
-      sowingDate: DateTime(2026, 4, 1),
       plantsCount: 2,
+      seedQuantityG: null,
       status: 'growing',
       notes: null,
+      createdAt: DateTime(2026, 4, 1),
+      updatedAt: DateTime(2026, 4, 1),
+      rowVersion: 1,
     );
   }
 

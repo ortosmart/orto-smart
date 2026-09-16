@@ -64,8 +64,8 @@ class RotationEngine {
       }
 
       return historicalFamily == candidateFamily &&
-          !planting.sowingDate.isAfter(evaluationDate);
-    }).toList()..sort((a, b) => b.sowingDate.compareTo(a.sowingDate));
+          !planting.startDate.isAfter(evaluationDate);
+    }).toList()..sort((a, b) => b.startDate.compareTo(a.startDate));
 
     if (sameFamilyPlantings.isEmpty) {
       return RotationResult.fromScore(
@@ -83,14 +83,14 @@ class RotationEngine {
     final latestCrop = cropsById[latestPlanting.cropId];
 
     final seasonsSinceSameFamily = _completedSeasonsBetween(
-      latestPlanting.sowingDate,
+      latestPlanting.startDate,
       evaluationDate,
     );
 
     final reasons = <String>[
       'L’ultima coltura della famiglia ${candidateCrop.botanicalFamily} '
           'registrata in questa aiuola è ${latestCrop?.name ?? 'una coltura non identificata'}, '
-          'seminata nel ${latestPlanting.sowingDate.year}.',
+          'avviata nel ${latestPlanting.startDate.year}.',
     ];
 
     int score;
@@ -131,7 +131,7 @@ class RotationEngine {
 
     final recentRepeats = sameFamilyPlantings.where((planting) {
       final elapsed = _completedSeasonsBetween(
-        planting.sowingDate,
+        planting.startDate,
         evaluationDate,
       );
 

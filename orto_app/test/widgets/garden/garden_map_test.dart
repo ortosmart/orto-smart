@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orto_app/data/repositories/bed_repository.dart';
+import 'package:orto_app/data/repositories/planting_repository.dart';
 import 'package:orto_app/widgets/garden/bed_card.dart';
 import 'package:orto_app/widgets/garden/garden_map.dart';
 
@@ -42,10 +43,18 @@ Widget _testApp({
   required BedRepository repository,
   String gardenId = _gardenId,
 }) {
+  final plantingRepository = PlantingRepository.withLoader(
+    (_) async => <Map<String, dynamic>>[],
+  );
+
   return MaterialApp(
     home: Scaffold(
       body: SingleChildScrollView(
-        child: GardenMap(gardenId: gardenId, repository: repository),
+        child: GardenMap(
+          gardenId: gardenId,
+          repository: repository,
+          plantingRepository: plantingRepository,
+        ),
       ),
     ),
   );

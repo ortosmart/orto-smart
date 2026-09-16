@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../core/write_authority/profile_write_authority_controller.dart';
+import '../core/write_authority/planting_write_result.dart';
 
 import '../data/models/bed.dart';
 import '../data/models/bed_analysis_result.dart';
@@ -31,12 +33,22 @@ class AddPlantingPage extends StatefulWidget {
   final Bed bed;
   final Planting? planting;
   final CropSuggestion? suggestion;
+  final PlantingRepository repository;
+  final ProfileWriteAuthorityController authority;
+  final CropRepository? cropRepository;
+  final CropAssociationRepository? associationRepository;
+  final SeasonRepository? seasonRepository;
 
   const AddPlantingPage({
     super.key,
     required this.bed,
+    required this.repository,
+    required this.authority,
     this.planting,
     this.suggestion,
+    this.cropRepository,
+    this.associationRepository,
+    this.seasonRepository,
   });
 
   bool get isEditing => planting != null;
@@ -48,25 +60,23 @@ class AddPlantingPage extends StatefulWidget {
 }
 
 class _AddPlantingPageState extends State<AddPlantingPage> {
-  static const int _bedLengthCm = 700;
-  static const int _bedWidthCm = 90;
-
+  int get _bedLengthCm => widget.bed.lengthCm;
+  int get _bedWidthCm => widget.bed.widthCm;
   final _formKey = GlobalKey<FormState>();
 
   final _plantsCountController = TextEditingController();
   final _plantSpacingController = TextEditingController();
   final _rowSpacingController = TextEditingController();
+  final _rowsCountController = TextEditingController();
   final _startPositionController = TextEditingController();
   final _manualLengthController = TextEditingController();
   final _occupiedWidthController = TextEditingController();
   final _seedQuantityController = TextEditingController();
   final _notesController = TextEditingController();
 
-  final CropRepository _cropRepository = CropRepository();
-  final CropAssociationRepository _associationRepository =
-      CropAssociationRepository();
-  final SeasonRepository _seasonRepository = SeasonRepository();
-  final PlantingRepository _plantingRepository = PlantingRepository();
+  late final CropRepository _cropRepository;
+  late final CropAssociationRepository _associationRepository;
+  late final SeasonRepository _seasonRepository;
 
   late Future<List<Crop>> _cropsFuture;
 
@@ -78,11 +88,11 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
   RotationResult? _rotationResult;
   AssociationResult? _associationResult;
   List<CropAssociation> _associations = const [];
-  String _plantingMethod = 'transplant';
+  String _startMethod = 'purchased_seedlings';
   String? _saveError;
   String? _existingPlantingsError;
 
-  DateTime _sowingDate = DateTime.now();
+  DateTime _startDate = DateTime.now();
 
   bool _isSaving = false;
   bool _loadingCropDefaults = false;
@@ -96,10 +106,15 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
 
   Planting? get _editingPlanting => widget.planting;
   CropSuggestion? get _suggestion => widget.suggestion;
+  PlantingRepository get _plantingRepository => widget.repository;
 
   @override
   void initState() {
     super.initState();
+    _cropRepository = widget.cropRepository ?? CropRepository();
+    _associationRepository =
+        widget.associationRepository ?? CropAssociationRepository();
+    _seasonRepository = widget.seasonRepository ?? SeasonRepository();
 
     _initializeEditingValues();
     _cropsFuture = _loadCrops();
@@ -109,6 +124,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     _plantsCountController.addListener(_refreshCalculations);
     _plantSpacingController.addListener(_refreshCalculations);
     _rowSpacingController.addListener(_refreshCalculations);
+    _rowsCountController.addListener(_refreshCalculations);
     _startPositionController.addListener(_refreshPositionCalculations);
     _manualLengthController.addListener(_refreshCalculations);
     _occupiedWidthController.addListener(_refreshCalculations);
@@ -119,8 +135,8 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     final planting = _editingPlanting;
 
     if (planting != null) {
-      _plantingMethod = planting.plantingMethod;
-      _sowingDate = planting.sowingDate;
+      _startMethod = planting.startMethod;
+      _startDate = planting.startDate;
       _positionMode = _PositionMode.manual;
 
       _startPositionController.text = planting.startPositionCm.toString();
@@ -133,11 +149,11 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
 
       _rowSpacingController.text = planting.rowSpacingCm?.toString() ?? '';
 
-      _occupiedWidthController.text =
-          planting.occupiedWidthCm?.toString() ?? '';
+      _rowsCountController.text = planting.rowsCount?.toString() ?? '';
 
-      _seedQuantityController.text =
-          planting.seedQuantityGrams?.toString() ?? '';
+      _occupiedWidthController.text = planting.occupiedWidthCm.toString();
+
+      _seedQuantityController.text = planting.seedQuantityG?.toString() ?? '';
 
       _notesController.text = planting.notes ?? '';
 
@@ -164,6 +180,8 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     _plantsCountController.removeListener(_refreshCalculations);
     _plantSpacingController.removeListener(_refreshCalculations);
     _rowSpacingController.removeListener(_refreshCalculations);
+    _rowsCountController.removeListener(_refreshCalculations);
+    _rowsCountController.dispose();
     _startPositionController.removeListener(_refreshPositionCalculations);
     _manualLengthController.removeListener(_refreshCalculations);
     _occupiedWidthController.removeListener(_refreshCalculations);
@@ -206,7 +224,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
         _selectedCrop = initialCrop;
 
         if (widget.isUsingSuggestion && initialCrop != null) {
-          _plantingMethod = _normalizePlantingMethod(initialCrop.sowingMethod);
+          _startMethod = _defaultStartMethodForCrop(initialCrop);
 
           if (_plantSpacingController.text.isEmpty) {
             _plantSpacingController.text =
@@ -342,7 +360,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
       candidateCrop: selectedCrop,
       history: _existingPlantings,
       cropsById: _cropsById,
-      referenceDate: _sowingDate,
+      referenceDate: _startDate,
     );
 
     setState(() {
@@ -485,28 +503,14 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     return parsedValue;
   }
 
-  String _normalizePlantingMethod(String? sowingMethod) {
-    final value = sowingMethod?.trim().toLowerCase() ?? '';
+  String _defaultStartMethodForCrop(Crop crop) {
+    final method = crop.defaultStartMethod;
 
-    if (value.contains('trapiant') ||
-        value.contains('piantin') ||
-        value == 'transplant') {
-      return 'transplant';
+    if (method != null && Planting.allowedStartMethods.contains(method)) {
+      return method;
     }
 
-    if (value.contains('spaglio') ||
-        value.contains('broadcast') ||
-        value.contains('sparsa')) {
-      return 'broadcast';
-    }
-
-    if (value.contains('fila') ||
-        value.contains('row') ||
-        value.contains('semin')) {
-      return 'rows';
-    }
-
-    return 'transplant';
+    return 'purchased_seedlings';
   }
 
   void _selectCrop(Crop? crop) {
@@ -517,9 +521,9 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     if (crop == null) {
       _plantSpacingController.clear();
       _rowSpacingController.clear();
-      _plantingMethod = 'transplant';
+      _startMethod = 'purchased_seedlings';
     } else {
-      _plantingMethod = _normalizePlantingMethod(crop.sowingMethod);
+      _startMethod = _defaultStartMethodForCrop(crop);
 
       _plantSpacingController.text = crop.plantSpacingCm?.toString() ?? '';
 
@@ -540,12 +544,37 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     _evaluateAssociation();
   }
 
-  bool get _usesPlantCount {
-    return _plantingMethod == 'transplant' || _plantingMethod == 'rows';
+  bool get _requiresPlantCount {
+    return _startMethod == 'purchased_seedlings' ||
+        _startMethod == 'nursery_then_transplant';
+  }
+
+  bool get _supportsPlantCount {
+    return _requiresPlantCount || _startMethod == 'direct_rows';
+  }
+
+  bool get _requiresPlantSpacing {
+    return _requiresPlantCount;
+  }
+
+  bool get _supportsPlantSpacing {
+    return _requiresPlantCount || _startMethod == 'direct_rows';
+  }
+
+  bool get _requiresRows {
+    return _startMethod == 'direct_rows';
+  }
+
+  bool get _supportsRows {
+    return _requiresPlantCount || _startMethod == 'direct_rows';
+  }
+
+  bool get _isDirectRows {
+    return _startMethod == 'direct_rows';
   }
 
   bool get _isBroadcast {
-    return _plantingMethod == 'broadcast';
+    return _startMethod == 'direct_broadcast';
   }
 
   int get _startPositionCm {
@@ -565,17 +594,13 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
   }
 
   int get _calculatedRowsCount {
-    if (!_usesPlantCount) {
-      return 1;
+    final rowsCount = _parsePositiveInt(_rowsCountController.text);
+
+    if (rowsCount != null) {
+      return rowsCount;
     }
 
-    final rowSpacing = _rowSpacingCm;
-
-    if (rowSpacing == null || rowSpacing <= 0) {
-      return 1;
-    }
-
-    return math.max(1, ((_bedWidthCm - 1) ~/ rowSpacing) + 1);
+    return 1;
   }
 
   int get _plantsPerRow {
@@ -589,23 +614,25 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
   }
 
   int get _calculatedLengthCm {
-    if (_isBroadcast || _plantingMethod == 'manual') {
+    if (_isBroadcast ||
+        _isDirectRows ||
+        _positionMode == _PositionMode.manual) {
       return _parsePositiveInt(_manualLengthController.text) ?? 0;
     }
 
-    final plantsPerRow = _plantsPerRow;
+    final plantsCount = _plantsCount;
     final plantSpacing = _plantSpacingCm;
 
-    if (plantsPerRow <= 0 || plantSpacing == null) {
+    if (plantsCount == null || plantSpacing == null) {
       return 0;
     }
 
-    if (plantsPerRow == 1) {
+    if (plantsCount == 1) {
       return plantSpacing;
     }
 
     return AgronomicEngine.calculateOccupiedLength(
-      plants: plantsPerRow,
+      plants: plantsCount,
       spacingCm: plantSpacing.toDouble(),
     ).round();
   }
@@ -615,18 +642,24 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
       _occupiedWidthController.text,
     );
 
-    if (_isBroadcast || _plantingMethod == 'manual') {
+    if (_isBroadcast) {
       return manuallyEnteredWidth ?? _bedWidthCm;
     }
 
-    if (_calculatedRowsCount <= 1) {
-      return math.min(_rowSpacingCm ?? _bedWidthCm, _bedWidthCm);
+    final rowsCount = _parsePositiveInt(_rowsCountController.text);
+    final rowSpacing = _rowSpacingCm;
+
+    if (rowsCount != null && rowSpacing != null) {
+      final calculatedWidth = (rowsCount - 1) * rowSpacing;
+
+      return math.max(calculatedWidth, 1);
     }
 
-    final rowSpacing = _rowSpacingCm ?? 0;
-    final calculatedWidth = ((_calculatedRowsCount - 1) * rowSpacing) + 1;
+    if (_positionMode == _PositionMode.manual) {
+      return manuallyEnteredWidth ?? _bedWidthCm;
+    }
 
-    return math.min(calculatedWidth, _bedWidthCm);
+    return _bedWidthCm;
   }
 
   int get _endPositionCm {
@@ -637,12 +670,31 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     return _bedLengthCm - _endPositionCm;
   }
 
+  List<Planting> get _temporallyRelevantPlantings {
+    final candidateStart = _startDate;
+    final candidateEnd = _editingPlanting?.endDate;
+
+    return _existingPlantings.where((planting) {
+      final existingStart = planting.startDate;
+      final existingEnd = planting.endDate;
+
+      final candidateStartsBeforeExistingEnds =
+          existingEnd == null || candidateStart.isBefore(existingEnd);
+
+      final existingStartsBeforeCandidateEnds =
+          candidateEnd == null || existingStart.isBefore(candidateEnd);
+
+      return candidateStartsBeforeExistingEnds &&
+          existingStartsBeforeCandidateEnds;
+    }).toList();
+  }
+
   List<Planting> get _overlappingPlantings {
     if (_calculatedLengthCm <= 0) {
       return const [];
     }
 
-    return _existingPlantings.where((planting) {
+    return _temporallyRelevantPlantings.where((planting) {
       final existingStartCm = planting.startPositionCm;
       final existingEndCm = planting.startPositionCm + planting.lengthCm;
 
@@ -676,7 +728,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     return BedAnalyzer.analyze(
       bedLengthCm: _bedLengthCm.toDouble(),
       requiredLengthCm: _calculatedLengthCm.toDouble(),
-      plantings: _existingPlantings,
+      plantings: _temporallyRelevantPlantings,
     );
   }
 
@@ -710,17 +762,17 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
   }
 
   String get _methodLabel {
-    switch (_plantingMethod) {
-      case 'transplant':
-        return 'Trapianto';
-      case 'rows':
-        return 'Semina a file';
-      case 'broadcast':
-        return 'Semina a spaglio';
-      case 'manual':
-        return 'Inserimento manuale';
+    switch (_startMethod) {
+      case 'purchased_seedlings':
+        return 'Piantine acquistate';
+      case 'nursery_then_transplant':
+        return 'Semina in semenzaio e trapianto';
+      case 'direct_rows':
+        return 'Semina diretta a file';
+      case 'direct_broadcast':
+        return 'Semina diretta a spaglio';
       default:
-        return _plantingMethod;
+        return _startMethod;
     }
   }
 
@@ -732,12 +784,15 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     return value.toStringAsFixed(1);
   }
 
-  Future<void> _selectSowingDate() async {
+  Future<void> _selectStartDate() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     final selectedDate = await showDatePicker(
       context: context,
-      initialDate: _sowingDate,
+      initialDate: _startDate.isAfter(today) ? today : _startDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime(2035),
+      lastDate: today,
     );
 
     if (selectedDate == null) {
@@ -745,10 +800,13 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     }
 
     setState(() {
-      _sowingDate = selectedDate;
+      _startDate = selectedDate;
+      _saveError = null;
     });
 
+    _applyAutomaticPositionIfPossible();
     _evaluateRotation();
+    _evaluateAssociation();
   }
 
   Future<void> _save() async {
@@ -756,7 +814,9 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
       return;
     }
 
-    if (_selectedCrop == null) {
+    final selectedCrop = _selectedCrop;
+
+    if (selectedCrop == null) {
       setState(() {
         _saveError = 'Seleziona una coltura.';
       });
@@ -801,6 +861,8 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
     });
 
     try {
+      widget.authority.requireLeaseForWrite();
+
       final editingPlanting = _editingPlanting;
       final seasonId =
           editingPlanting?.seasonId ??
@@ -808,40 +870,236 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
 
       final notesText = _notesController.text.trim();
 
-      final planting = Planting(
-        id: editingPlanting?.id,
-        seasonId: seasonId,
-        bedId: widget.bed.id,
-        cropId: _selectedCrop!.id,
-        varietyId: editingPlanting?.varietyId,
-        startPositionCm: _startPositionCm,
-        lengthCm: _calculatedLengthCm,
-        plantingMethod: _plantingMethod,
-        plantSpacingCm: _usesPlantCount ? _plantSpacingCm : null,
-        rowSpacingCm: _usesPlantCount ? _rowSpacingCm : null,
-        rowsCount: _usesPlantCount ? _calculatedRowsCount : null,
-        occupiedWidthCm: _occupiedWidthCm,
-        seedQuantityGrams: _isBroadcast
-            ? _parsePositiveDouble(_seedQuantityController.text)
-            : null,
-        sowingDate: _sowingDate,
-        plantsCount: _usesPlantCount ? _plantsCount : null,
-        status: editingPlanting?.status ?? 'growing',
-        notes: notesText.isEmpty ? null : notesText,
-      );
+      final plantSpacingCm = _supportsPlantSpacing ? _plantSpacingCm : null;
+
+      final rowSpacingCm = _supportsRows ? _rowSpacingCm : null;
+
+      final rowsCount = _supportsRows && rowSpacingCm != null
+          ? _calculatedRowsCount
+          : null;
+
+      final plantsCount = _supportsPlantCount ? _plantsCount : null;
+
+      final seedQuantityG = _isBroadcast
+          ? _parsePositiveDouble(_seedQuantityController.text)
+          : null;
 
       if (_isEditing) {
-        await _plantingRepository.updatePlanting(planting);
-      } else {
-        await _plantingRepository.addPlanting(planting);
+        final planting = editingPlanting!;
+
+        final result = await _plantingRepository.updatePlanting(
+          plantingId: planting.id,
+          expectedRowVersion: planting.rowVersion,
+          seasonId: seasonId,
+          cropId: selectedCrop.id,
+          varietyId: planting.varietyId,
+          startMethod: _startMethod,
+          startDate: _startDate,
+          startPositionCm: _startPositionCm,
+          lengthCm: _calculatedLengthCm,
+          plantSpacingCm: plantSpacingCm,
+          rowSpacingCm: rowSpacingCm,
+          rowsCount: rowsCount,
+          occupiedWidthCm: _occupiedWidthCm,
+          plantsCount: plantsCount,
+          seedQuantityG: seedQuantityG,
+          notes: notesText.isEmpty ? null : notesText,
+        );
+
+        if (!mounted) {
+          return;
+        }
+
+        switch (result) {
+          case PlantingUpdated():
+          case UpdatePlantingUnchanged():
+            Navigator.of(context).pop(true);
+            return;
+
+          case UpdatePlantingVersionConflict():
+            setState(() {
+              _saveError =
+                  'La coltura è stata modificata da un’altra sessione. '
+                  'Aggiorna i dati prima di riprovare.';
+            });
+            return;
+
+          case UpdatePlantingForbidden():
+            setState(() {
+              _saveError = 'Non sei autorizzato a modificare questa coltura.';
+            });
+            return;
+
+          case UpdatePlantingWriteForbidden():
+            setState(() {
+              _saveError = 'Il server non ha autorizzato la scrittura.';
+            });
+            return;
+
+          case UpdatePlantingNotFound():
+            setState(() {
+              _saveError = 'La coltura non è più disponibile.';
+            });
+            return;
+
+          case UpdatePlantingInvalidInput():
+            setState(() {
+              _saveError =
+                  'I dati inseriti non sono validi per il metodo selezionato.';
+            });
+            return;
+
+          case UpdatePlantingBlockedByInactiveCrop():
+            setState(() {
+              _saveError = 'La coltura selezionata non è più attiva.';
+            });
+            return;
+
+          case UpdatePlantingBlockedByInactiveVariety():
+            setState(() {
+              _saveError = 'La varietà selezionata non è più attiva.';
+            });
+            return;
+
+          case UpdatePlantingStartMethodLocked():
+            setState(() {
+              _saveError =
+                  'Lo stato attuale non consente di modificare '
+                  'il metodo di avvio.';
+            });
+            return;
+
+          case UpdatePlantingStartDateLocked():
+            setState(() {
+              _saveError =
+                  'Lo stato attuale non consente di modificare '
+                  'la data di inizio.';
+            });
+            return;
+
+          case UpdatePlantingOutsideBedGeometry():
+            setState(() {
+              _saveError =
+                  'La coltura non rientra nella geometria '
+                  'dell’aiuola valida nel periodo indicato.';
+            });
+            return;
+
+          case UpdatePlantingOverlap():
+            setState(() {
+              _saveError =
+                  'La coltura si sovrappone a un’altra occupazione '
+                  'registrata nell’aiuola.';
+            });
+            return;
+        }
       }
+
+      final result = await _plantingRepository.createPlanting(
+        gardenId: widget.bed.gardenId,
+        seasonId: seasonId,
+        bedId: widget.bed.id,
+        cropId: selectedCrop.id,
+        varietyId: null,
+        startMethod: _startMethod,
+        startDate: _startDate,
+        startPositionCm: _startPositionCm,
+        lengthCm: _calculatedLengthCm,
+        plantSpacingCm: plantSpacingCm,
+        rowSpacingCm: rowSpacingCm,
+        rowsCount: rowsCount,
+        occupiedWidthCm: _occupiedWidthCm,
+        plantsCount: plantsCount,
+        seedQuantityG: seedQuantityG,
+        notes: notesText.isEmpty ? null : notesText,
+      );
 
       if (!mounted) {
         return;
       }
 
-      Navigator.of(context).pop(true);
-    } catch (error, stackTrace) {
+      switch (result) {
+        case PlantingCreated():
+          Navigator.of(context).pop(true);
+          return;
+
+        case CreatePlantingForbidden():
+          setState(() {
+            _saveError =
+                'Non sei autorizzato a inserire una coltura '
+                'in questa aiuola.';
+          });
+          return;
+
+        case CreatePlantingWriteForbidden():
+          setState(() {
+            _saveError = 'Il server non ha autorizzato la scrittura.';
+          });
+          return;
+
+        case CreatePlantingNotFound():
+          setState(() {
+            _saveError =
+                'Uno dei dati collegati alla coltura non è più disponibile.';
+          });
+          return;
+
+        case CreatePlantingInvalidInput():
+          setState(() {
+            _saveError =
+                'I dati inseriti non sono validi per il metodo selezionato.';
+          });
+          return;
+
+        case CreatePlantingBlockedByInactiveGarden():
+          setState(() {
+            _saveError = 'L’orto non è attivo.';
+          });
+          return;
+
+        case CreatePlantingBlockedByInactiveBed():
+          setState(() {
+            _saveError = 'L’aiuola non è attiva.';
+          });
+          return;
+
+        case CreatePlantingBlockedByInactiveCrop():
+          setState(() {
+            _saveError = 'La coltura selezionata non è più attiva.';
+          });
+          return;
+
+        case CreatePlantingBlockedByInactiveVariety():
+          setState(() {
+            _saveError = 'La varietà selezionata non è più attiva.';
+          });
+          return;
+
+        case CreatePlantingOutsideBedGeometry():
+          setState(() {
+            _saveError =
+                'La coltura non rientra nella geometria '
+                'dell’aiuola valida nel periodo indicato.';
+          });
+          return;
+
+        case CreatePlantingOverlap():
+          setState(() {
+            _saveError =
+                'La coltura si sovrappone a un’altra occupazione '
+                'registrata nell’aiuola.';
+          });
+          return;
+      }
+    } on ProfileWriteAuthorityUnavailableException {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _saveError = 'Autorità di scrittura non disponibile.';
+      });
+    } on Object catch (error, stackTrace) {
       debugPrint('Errore durante il salvataggio: $error');
       debugPrintStack(stackTrace: stackTrace);
 
@@ -850,7 +1108,8 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
       }
 
       setState(() {
-        _saveError = error.toString();
+        _saveError =
+            'Non è stato possibile confermare l’esito del salvataggio.';
       });
     } finally {
       if (mounted) {
@@ -900,7 +1159,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                 child: ListTile(
                   leading: const Icon(Icons.grid_view_outlined),
                   title: Text(widget.bed.code),
-                  subtitle: const Text('Dimensioni: 90 × 700 cm'),
+                  subtitle: Text('Dimensioni: $_bedWidthCm × $_bedLengthCm cm'),
                 ),
               ),
 
@@ -1020,24 +1279,27 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                initialValue: _plantingMethod,
+                initialValue: _startMethod,
                 decoration: const InputDecoration(
                   labelText: 'Metodo di coltivazione',
                   border: OutlineInputBorder(),
                 ),
                 items: const [
                   DropdownMenuItem(
-                    value: 'transplant',
-                    child: Text('Trapianto'),
-                  ),
-                  DropdownMenuItem(value: 'rows', child: Text('Semina a file')),
-                  DropdownMenuItem(
-                    value: 'broadcast',
-                    child: Text('Semina a spaglio'),
+                    value: 'purchased_seedlings',
+                    child: Text('Piantine acquistate'),
                   ),
                   DropdownMenuItem(
-                    value: 'manual',
-                    child: Text('Inserimento manuale'),
+                    value: 'nursery_then_transplant',
+                    child: Text('Semina in semenzaio e trapianto'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'direct_rows',
+                    child: Text('Semina diretta a file'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'direct_broadcast',
+                    child: Text('Semina diretta a spaglio'),
                   ),
                 ],
                 onChanged: _isSaving
@@ -1048,7 +1310,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                         }
 
                         setState(() {
-                          _plantingMethod = value;
+                          _startMethod = value;
                           _saveError = null;
                           _positionMode = _isEditing
                               ? _PositionMode.manual
@@ -1065,14 +1327,14 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
               ),
               const SizedBox(height: 16),
               InkWell(
-                onTap: _isSaving ? null : _selectSowingDate,
+                onTap: _isSaving ? null : _selectStartDate,
                 child: InputDecorator(
                   decoration: const InputDecoration(
                     labelText: 'Data',
                     border: OutlineInputBorder(),
                     suffixIcon: Icon(Icons.calendar_today),
                   ),
-                  child: Text(_formatDate(_sowingDate)),
+                  child: Text(_formatDate(_startDate)),
                 ),
               ),
               const SizedBox(height: 24),
@@ -1109,14 +1371,14 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                   }
 
                   if (parsedValue >= _bedLengthCm) {
-                    return 'La posizione deve essere inferiore a 700 cm';
+                    return 'La posizione deve essere inferiore a $_bedLengthCm cm';
                   }
 
                   return null;
                 },
               ),
               const SizedBox(height: 24),
-              if (_usesPlantCount) ...[
+              if (!_isBroadcast) ...[
                 _buildSectionTitle(
                   context,
                   'Sesto di impianto',
@@ -1127,15 +1389,57 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                   controller: _plantsCountController,
                   enabled: !_isSaving,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Numero di piante',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: _requiresPlantCount
+                        ? 'Numero di piante'
+                        : 'Numero di piante (facoltativo)',
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (value) {
-                    final plantsCount = int.tryParse(value?.trim() ?? '');
+                    final text = value?.trim() ?? '';
+
+                    if (text.isEmpty) {
+                      if (_requiresPlantCount) {
+                        return 'Inserisci il numero di piante';
+                      }
+                      return null;
+                    }
+
+                    final plantsCount = int.tryParse(text);
 
                     if (plantsCount == null || plantsCount <= 0) {
-                      return 'Inserisci il numero di piante';
+                      return 'Inserisci un numero valido';
+                    }
+
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _plantSpacingController,
+                  enabled: !_isSaving,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: _requiresPlantSpacing
+                        ? 'Distanza tra le piante'
+                        : 'Distanza tra le piante (facoltativa)',
+                    suffixText: 'cm',
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    final text = value?.trim() ?? '';
+
+                    if (text.isEmpty) {
+                      if (_requiresPlantSpacing) {
+                        return 'Inserisci la distanza tra le piante';
+                      }
+                      return null;
+                    }
+
+                    final spacing = int.tryParse(text);
+
+                    if (spacing == null || spacing <= 0) {
+                      return 'Inserisci una distanza valida';
                     }
 
                     return null;
@@ -1147,18 +1451,30 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                   children: [
                     Expanded(
                       child: TextFormField(
-                        controller: _plantSpacingController,
+                        controller: _rowsCountController,
                         enabled: !_isSaving,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Tra le piante',
-                          suffixText: 'cm',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: _requiresRows
+                              ? 'Numero di file'
+                              : 'Numero di file (facoltativo)',
+                          border: const OutlineInputBorder(),
                         ),
                         validator: (value) {
-                          final spacing = int.tryParse(value?.trim() ?? '');
+                          final text = value?.trim() ?? '';
+                          final rowSpacingText = _rowSpacingController.text
+                              .trim();
 
-                          if (spacing == null || spacing <= 0) {
+                          if (text.isEmpty) {
+                            if (_requiresRows || rowSpacingText.isNotEmpty) {
+                              return 'Indica il numero di file';
+                            }
+                            return null;
+                          }
+
+                          final rowsCount = int.tryParse(text);
+
+                          if (rowsCount == null || rowsCount <= 0) {
                             return 'Dato non valido';
                           }
 
@@ -1172,16 +1488,46 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                         controller: _rowSpacingController,
                         enabled: !_isSaving,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Tra le file',
+                        decoration: InputDecoration(
+                          labelText: _requiresRows
+                              ? 'Tra le file'
+                              : 'Tra le file (facoltativo)',
                           suffixText: 'cm',
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                         ),
                         validator: (value) {
-                          final spacing = int.tryParse(value?.trim() ?? '');
+                          final text = value?.trim() ?? '';
+                          final rowsCountText = _rowsCountController.text
+                              .trim();
+
+                          if (text.isEmpty) {
+                            if (_requiresRows || rowsCountText.isNotEmpty) {
+                              return 'Indica la distanza tra le file';
+                            }
+                            return null;
+                          }
+
+                          final spacing = int.tryParse(text);
 
                           if (spacing == null || spacing <= 0) {
                             return 'Dato non valido';
+                          }
+
+                          if (rowsCountText.isEmpty) {
+                            return 'Indica anche il numero di file';
+                          }
+
+                          final rowsCount = int.tryParse(rowsCountText);
+
+                          if (rowsCount == null || rowsCount <= 0) {
+                            return 'Numero di file non valido';
+                          }
+
+                          final requiredWidth = (rowsCount - 1) * spacing;
+
+                          if (requiredWidth > _bedWidthCm) {
+                            return 'Le file richiedono $requiredWidth cm, '
+                                'ma l\'aiuola è larga $_bedWidthCm cm';
                           }
 
                           return null;
@@ -1190,10 +1536,40 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                     ),
                   ],
                 ),
+                if (_isDirectRows) ...[
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _manualLengthController,
+                    enabled: !_isSaving,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Lunghezza occupata',
+                      suffixText: 'cm',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      final length = int.tryParse(value?.trim() ?? '');
+
+                      if (length == null || length <= 0) {
+                        return 'Inserisci la lunghezza occupata';
+                      }
+                      final plantsCount = _plantsCount;
+                      final plantSpacing = _plantSpacingCm;
+
+                      if (plantsCount != null && plantSpacing != null) {
+                        final requiredLength = (plantsCount - 1) * plantSpacing;
+
+                        if (requiredLength > length) {
+                          return 'Le piante richiedono almeno $requiredLength cm';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                ],
                 const SizedBox(height: 8),
                 const Text(
-                  'Le distanze vengono proposte dalla coltura, '
-                  'ma puoi modificarle liberamente.',
+                  'Le distanze proposte dalla coltura possono essere modificate.',
                 ),
               ] else ...[
                 _buildSectionTitle(context, 'Area occupata', Icons.crop_square),
@@ -1231,13 +1607,13 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return null;
+                      return 'Inserisci la quantità di seme';
                     }
 
                     final width = int.tryParse(value.trim());
 
                     if (width == null || width <= 0 || width > _bedWidthCm) {
-                      return 'Inserisci un valore tra 1 e 90 cm';
+                      return 'Inserisci un valore tra 1 e $_bedWidthCm cm';
                     }
 
                     return null;
@@ -1272,7 +1648,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
               ],
               const SizedBox(height: 24),
               CalculationCard(
-                usesPlantCount: _usesPlantCount,
+                usesPlantCount: _supportsPlantCount,
                 calculatedRowsCount: _calculatedRowsCount,
                 plantsPerRow: _plantsPerRow,
                 calculatedLengthCm: _calculatedLengthCm,
@@ -1287,7 +1663,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                 isLoading: _isLoadingExistingPlantings,
                 loadingError: _existingPlantingsError,
                 calculatedLengthCm: _calculatedLengthCm,
-                existingPlantingsCount: _existingPlantings.length,
+                existingPlantingsCount: _temporallyRelevantPlantings.length,
                 analysis: _bedAnalysis,
                 bestSpace: _bedAnalysis == null
                     ? null
@@ -1307,7 +1683,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
               const SizedBox(height: 12),
               BedPreviewWidget(
                 bedLengthCm: _bedLengthCm,
-                existingPlantings: _existingPlantings,
+                existingPlantings: _temporallyRelevantPlantings,
                 cropNamesById: _cropNamesById,
                 newCropName: _selectedCrop?.name,
                 newStartCm: _startPositionCm,

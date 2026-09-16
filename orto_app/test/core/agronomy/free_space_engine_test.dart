@@ -3,6 +3,39 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:orto_app/core/agronomy/free_space_engine.dart';
 import 'package:orto_app/data/models/planting.dart';
 
+Planting _buildPlanting({
+  required String cropId,
+  required int startPositionCm,
+  required int lengthCm,
+  required DateTime startDate,
+}) {
+  return Planting(
+    id: 'planting-$cropId-$startPositionCm',
+    profileId: 'profile-1',
+    gardenId: 'garden-1',
+    seasonId: 'season-1',
+    bedId: 'bed-1',
+    cropId: cropId,
+    varietyId: null,
+    startMethod: 'purchased_seedlings',
+    startDate: startDate,
+    endDate: null,
+    startPositionCm: startPositionCm,
+    lengthCm: lengthCm,
+    plantSpacingCm: 1,
+    rowSpacingCm: null,
+    rowsCount: null,
+    occupiedWidthCm: 90,
+    plantsCount: 1,
+    seedQuantityG: null,
+    status: 'growing',
+    notes: null,
+    createdAt: DateTime(2026, 7, 26),
+    updatedAt: DateTime(2026, 7, 26),
+    rowVersion: 1,
+  );
+}
+
 void main() {
   group('FreeSpaceEngine', () {
     test(
@@ -20,14 +53,11 @@ void main() {
     );
 
     test('calcola gli spazi liberi prima e dopo una coltura', () {
-      final planting = Planting(
-        seasonId: 'season-1',
-        bedId: 'bed-1',
+      final planting = _buildPlanting(
         cropId: 'crop-1',
         startPositionCm: 100,
         lengthCm: 200,
-        sowingDate: DateTime(2026, 7, 26),
-        status: 'growing',
+        startDate: DateTime(2026, 7, 26),
       );
 
       final spaces = FreeSpaceEngine.calculateFreeSpaces(
@@ -46,23 +76,17 @@ void main() {
 
     test('calcola gli spazi liberi con due colture', () {
       final plantings = [
-        Planting(
-          seasonId: 'season-1',
-          bedId: 'bed-1',
+        _buildPlanting(
           cropId: 'crop-1',
           startPositionCm: 100,
           lengthCm: 100,
-          sowingDate: DateTime(2026, 7, 26),
-          status: 'growing',
+          startDate: DateTime(2026, 7, 26),
         ),
-        Planting(
-          seasonId: 'season-1',
-          bedId: 'bed-1',
+        _buildPlanting(
           cropId: 'crop-2',
           startPositionCm: 350,
           lengthCm: 150,
-          sowingDate: DateTime(2026, 7, 26),
-          status: 'growing',
+          startDate: DateTime(2026, 7, 26),
         ),
       ];
 
@@ -85,23 +109,17 @@ void main() {
   });
   test('non crea spazi liberi tra colture adiacenti', () {
     final plantings = [
-      Planting(
-        seasonId: 'season-1',
-        bedId: 'bed-1',
+      _buildPlanting(
         cropId: 'crop-1',
         startPositionCm: 100,
         lengthCm: 100,
-        sowingDate: DateTime(2026, 7, 26),
-        status: 'growing',
+        startDate: DateTime(2026, 7, 26),
       ),
-      Planting(
-        seasonId: 'season-1',
-        bedId: 'bed-1',
+      _buildPlanting(
         cropId: 'crop-2',
         startPositionCm: 200,
         lengthCm: 100,
-        sowingDate: DateTime(2026, 7, 26),
-        status: 'growing',
+        startDate: DateTime(2026, 7, 26),
       ),
     ];
 
@@ -119,14 +137,11 @@ void main() {
     expect(spaces[1].lengthCm, 400);
   });
   test('non restituisce spazi se la coltura occupa tutta l\'aiuola', () {
-    final planting = Planting(
-      seasonId: 'season-1',
-      bedId: 'bed-1',
+    final planting = _buildPlanting(
       cropId: 'crop-1',
       startPositionCm: 0,
       lengthCm: 700,
-      sowingDate: DateTime(2026, 7, 26),
-      status: 'growing',
+      startDate: DateTime(2026, 7, 26),
     );
 
     final spaces = FreeSpaceEngine.calculateFreeSpaces(
@@ -138,23 +153,17 @@ void main() {
   });
   test('ordina automaticamente le colture prima del calcolo', () {
     final plantings = [
-      Planting(
-        seasonId: 'season-1',
-        bedId: 'bed-1',
+      _buildPlanting(
         cropId: 'crop-2',
         startPositionCm: 350,
         lengthCm: 150,
-        sowingDate: DateTime(2026, 7, 26),
-        status: 'growing',
+        startDate: DateTime(2026, 7, 26),
       ),
-      Planting(
-        seasonId: 'season-1',
-        bedId: 'bed-1',
+      _buildPlanting(
         cropId: 'crop-1',
         startPositionCm: 100,
         lengthCm: 100,
-        sowingDate: DateTime(2026, 7, 26),
-        status: 'growing',
+        startDate: DateTime(2026, 7, 26),
       ),
     ];
 

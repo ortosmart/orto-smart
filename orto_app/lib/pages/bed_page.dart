@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/write_authority/bed_write_result.dart';
+import '../core/write_authority/planting_write_result.dart';
 import '../core/write_authority/profile_write_authority_controller.dart';
 import '../data/models/bed.dart';
 import '../data/models/crop.dart';
@@ -211,8 +212,20 @@ class _BedPageState extends State<BedPage> {
   }
 
   Future<void> _openAddPlantingPage() async {
+    final authority = widget.authority;
+
+    if (authority == null) {
+      return;
+    }
+
     final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (context) => AddPlantingPage(bed: bed)),
+      MaterialPageRoute(
+        builder: (context) => AddPlantingPage(
+          bed: bed,
+          repository: _plantingRepository,
+          authority: authority,
+        ),
+      ),
     );
 
     if (result == true && mounted) {
@@ -221,9 +234,20 @@ class _BedPageState extends State<BedPage> {
   }
 
   Future<void> _editPlanting(Planting planting) async {
+    final authority = widget.authority;
+
+    if (authority == null) {
+      return;
+    }
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (context) => AddPlantingPage(bed: bed, planting: planting),
+        builder: (context) => AddPlantingPage(
+          bed: bed,
+          planting: planting,
+          repository: _plantingRepository,
+          authority: authority,
+        ),
       ),
     );
 
@@ -241,20 +265,9 @@ class _BedPageState extends State<BedPage> {
   }
 
   Future<void> _deletePlanting(Planting planting, Crop? crop) async {
-    final plantingId = planting.id;
+    final authority = widget.authority;
 
-    if (plantingId == null) {
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Impossibile eliminare la coltura: id non disponibile.',
-          ),
-        ),
-      );
+    if (authority == null) {
       return;
     }
 
@@ -266,7 +279,7 @@ class _BedPageState extends State<BedPage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Eliminare la coltura?'),
+          title: const Text('Rimuovere la coltura?'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,8 +299,8 @@ class _BedPageState extends State<BedPage> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Questa operazione eliminerà definitivamente '
-                'la coltura dall’aiuola.',
+                'La coltura verrà rimossa dall’aiuola ma resterà '
+                'conservata nello storico.',
               ),
             ],
           ),
@@ -298,8 +311,8 @@ class _BedPageState extends State<BedPage> {
             ),
             FilledButton.icon(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              icon: const Icon(Icons.delete_outline),
-              label: const Text('Elimina'),
+              icon: const Icon(Icons.remove_circle_outline),
+              label: const Text('Rimuovi'),
             ),
           ],
         );
@@ -311,23 +324,96 @@ class _BedPageState extends State<BedPage> {
     }
 
     try {
-      await _plantingRepository.deletePlanting(plantingId);
+      authority.requireLeaseForWrite();
+
+      final result = await _plantingRepository.setPlantingStatus(
+        plantingId: planting.id,
+        expectedRowVersion: planting.rowVersion,
+        status: 'removed',
+        endDate: DateTime.now(),
+      );
 
       if (!mounted) {
         return;
       }
 
-      await _refreshPlantings();
+      switch (result) {
+        case PlantingStatusUpdated():
+        case SetPlantingStatusUnchanged():
+          await _refreshPlantings();
 
+          if (!mounted) {
+            return;
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$cropName rimossa correttamente.')),
+          );
+          break;
+
+        case SetPlantingStatusVersionConflict():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'La coltura è stata modificata da un’altra sessione. '
+                'Aggiorna i dati prima di riprovare.',
+              ),
+            ),
+          );
+          break;
+
+        case SetPlantingStatusForbidden():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Non sei autorizzato a modificare questa coltura.'),
+            ),
+          );
+          break;
+
+        case SetPlantingStatusWriteForbidden():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Il server non ha autorizzato la scrittura.'),
+            ),
+          );
+          break;
+
+        case SetPlantingStatusNotFound():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('La coltura non è più disponibile.')),
+          );
+          break;
+
+        case SetPlantingStatusInvalidInput():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Il server ha rifiutato la data o lo stato della rimozione.',
+              ),
+            ),
+          );
+          break;
+
+        case SetPlantingStatusInvalidTransition():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Lo stato attuale della coltura non consente la rimozione.',
+              ),
+            ),
+          );
+          break;
+      }
+    } on ProfileWriteAuthorityUnavailableException {
       if (!mounted) {
         return;
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$cropName eliminata correttamente.')),
+        const SnackBar(content: Text('Autorità di scrittura non disponibile.')),
       );
-    } catch (error, stackTrace) {
-      debugPrint('Errore durante l’eliminazione della coltura: $error');
+    } on Object catch (error, stackTrace) {
+      debugPrint('Errore durante la rimozione della coltura: $error');
       debugPrintStack(stackTrace: stackTrace);
 
       if (!mounted) {
@@ -335,7 +421,11 @@ class _BedPageState extends State<BedPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errore durante l’eliminazione: $error')),
+        const SnackBar(
+          content: Text(
+            'Non è stato possibile confermare l’esito della rimozione.',
+          ),
+        ),
       );
     }
   }
@@ -401,6 +491,12 @@ class _BedPageState extends State<BedPage> {
                                 position: index + 1,
                                 suggestion: suggestions[index],
                                 onUseSuggestion: () async {
+                                  final authority = widget.authority;
+
+                                  if (authority == null) {
+                                    return;
+                                  }
+
                                   Navigator.of(sheetContext).pop();
 
                                   final result = await Navigator.of(context)
@@ -409,6 +505,8 @@ class _BedPageState extends State<BedPage> {
                                           builder: (_) => AddPlantingPage(
                                             bed: bed,
                                             suggestion: suggestions[index],
+                                            repository: _plantingRepository,
+                                            authority: authority,
                                           ),
                                         ),
                                       );
@@ -806,7 +904,9 @@ class _BedPageState extends State<BedPage> {
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: _openAddPlantingPage,
+                onPressed: widget.authority == null
+                    ? null
+                    : _openAddPlantingPage,
                 icon: const Icon(Icons.add),
                 label: const Text('Aggiungi coltura'),
               ),

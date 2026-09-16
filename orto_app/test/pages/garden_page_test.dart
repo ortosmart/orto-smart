@@ -6,6 +6,7 @@ import 'package:orto_app/core/profile/profile_context.dart';
 import 'package:orto_app/core/profile/profile_context_scope.dart';
 import 'package:orto_app/data/repositories/bed_repository.dart';
 import 'package:orto_app/data/repositories/garden_repository.dart';
+import 'package:orto_app/data/repositories/planting_repository.dart';
 import 'package:orto_app/pages/garden_page.dart';
 import 'package:orto_app/widgets/garden/garden_map.dart';
 
@@ -28,6 +29,10 @@ Widget _testApp({
   required BedRepository bedRepository,
   String profileId = _profileId,
 }) {
+  final plantingRepository = PlantingRepository.withLoader(
+    (_) async => <Map<String, dynamic>>[],
+  );
+
   return MaterialApp(
     home: ProfileContextScope(
       profileContext: ProfileContext(
@@ -38,6 +43,7 @@ Widget _testApp({
         body: GardenPage(
           repository: gardenRepository,
           bedRepository: bedRepository,
+          plantingRepository: plantingRepository,
         ),
       ),
     ),

@@ -5,12 +5,19 @@ import '../data/models/garden.dart';
 import '../data/repositories/bed_repository.dart';
 import '../data/repositories/garden_repository.dart';
 import '../widgets/garden/garden_map.dart';
+import 'package:orto_app/data/repositories/planting_repository.dart';
 
 class GardenPage extends StatefulWidget {
   final GardenRepository? repository;
   final BedRepository? bedRepository;
+  final PlantingRepository? plantingRepository;
 
-  const GardenPage({super.key, this.repository, this.bedRepository});
+  const GardenPage({
+    super.key,
+    this.repository,
+    this.bedRepository,
+    this.plantingRepository,
+  });
 
   @override
   State<GardenPage> createState() => _GardenPageState();
@@ -214,6 +221,7 @@ class _GardenPageState extends State<GardenPage> {
                           gardenId: garden.id,
                           profileId: _profileId,
                           repository: widget.bedRepository,
+                          plantingRepository: widget.plantingRepository,
                         ),
                       ],
                     ),

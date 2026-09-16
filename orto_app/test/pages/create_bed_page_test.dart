@@ -9,6 +9,7 @@ import 'package:orto_app/core/write_authority/profile_write_authority_controller
 import 'package:orto_app/core/write_authority/write_authority_scheduler.dart';
 import 'package:orto_app/data/repositories/bed_repository.dart';
 import 'package:orto_app/data/repositories/profile_edit_lock_repository.dart';
+import 'package:orto_app/data/repositories/planting_repository.dart';
 import 'package:orto_app/pages/create_bed_page.dart';
 import 'package:orto_app/core/write_authority/profile_write_authority_scope.dart';
 import 'package:orto_app/data/models/bed.dart';
@@ -142,6 +143,7 @@ Future<void> _submit(WidgetTester tester) async {
 void main() {
   late ProfileWriteAuthorityController authority;
   late _BedRepositoryFake repository;
+  late PlantingRepository plantingRepository;
   late DateTime now;
   bool? returnedResult;
 
@@ -149,6 +151,10 @@ void main() {
     now = DateTime.utc(2026, 8, 31, 12);
     returnedResult = null;
     repository = _BedRepositoryFake();
+
+    plantingRepository = PlantingRepository.withLoader(
+      (_) async => <Map<String, dynamic>>[],
+    );
 
     authority = ProfileWriteAuthorityController(
       ProfileEditLockRepository.withRpcInvoker((
@@ -413,6 +419,7 @@ void main() {
                 profileId: _profileId,
                 gardenId: _gardenId,
                 repository: repository,
+                plantingRepository: plantingRepository,
               ),
             ),
           ),
@@ -478,6 +485,7 @@ void main() {
                     profileId: _profileId,
                     gardenId: _gardenId,
                     repository: repository,
+                    plantingRepository: plantingRepository,
                   ),
                 ),
               ),
@@ -542,6 +550,7 @@ void main() {
               profileId: _profileId,
               gardenId: _gardenId,
               repository: repository,
+              plantingRepository: plantingRepository,
             ),
           ),
         ),

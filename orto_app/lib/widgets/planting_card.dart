@@ -104,7 +104,7 @@ class PlantingCard extends StatelessWidget {
               _cropName,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: Text('Semina: ${_formatDate(planting.sowingDate)}'),
+            subtitle: Text('Inizio: ${_formatDate(planting.startDate)}'),
             trailing: PopupMenuButton<PlantingCardAction>(
               tooltip: 'Azioni coltura',
               onSelected: _handleAction,
