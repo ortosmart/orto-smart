@@ -4,7 +4,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 2.5
+**Versione:** 2.6
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 13/09/2026
+**Ultimo aggiornamento:** 17/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |-------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 2.5 |
+| Versione | 2.6 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 13/09/2026 |
+| Ultimo aggiornamento | 17/09/2026 |
 
 ---
 
@@ -57,6 +57,7 @@
 | 2.3 | 06/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.16-alpha: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, gestione italiana delle date e verifica completa con 841/841 test superati |
 | 2.4 | 11/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.17-alpha: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, sicurezza RLS, Profile Write Authority, concorrenza ottimistica e allineamento delle migration locali e remote |
 | 2.5 | 13/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.18-alpha: integrazione Flutter del Catalogo V1, nuovi modelli e Repository, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy temporanea e verifica completa con 914/914 test superati |
+| 2.6 | 17/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.19-alpha: implementazione del modello e Write Path autoritativo di `plantings`, lifecycle server-side, validazioni geometriche e temporali, protezione della geometria delle aiuole, integrazione Flutter di creazione e modifica delle coltivazioni e verifica completa con 997/997 test superati |
 
 ---
 
@@ -105,6 +106,8 @@
 3.18 Versione 0.1.17-alpha
 
 3.19 Versione 0.1.18-alpha
+
+3.20 Versione 0.1.19-alpha
 
 ## 4. Cronologia versioni
 
@@ -1416,6 +1419,527 @@ e i planting method legacy ancora utilizzati da alcuni componenti.
 
 ---
 
+## 3.20 Versione 0.1.19-alpha
+
+**Data:** 17/09/2026
+
+### Aggiunto
+
+- Introdotto il modello persistente autoritativo di:
+
+```text
+public.plantings
+```
+
+mediante la migration:
+
+```text
+20260915080700_add_plantings_authoritative_model.sql
+```
+
+- Introdotto il Write Path autoritativo di `plantings` mediante:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+attraverso la migration:
+
+```text
+20260915081444_add_plantings_write_rpcs.sql
+```
+
+- Introdotto il result type Flutter dedicato:
+
+```text
+lib/core/write_authority/planting_write_result.dart
+```
+
+per il mapping tipizzato degli esiti delle operazioni autoritative.
+
+- Introdotto il lifecycle server-side delle coltivazioni con gli stati:
+
+```text
+sown
+growing
+harvest_ready
+harvested
+finished
+removed
+```
+
+- Introdotto il risultato:
+
+```text
+blocked_by_plantings
+```
+
+per impedire variazioni o correzioni della geometria delle aiuole incompatibili con coltivazioni esistenti.
+
+- Introdotti test dedicati a:
+  - modello `Planting`;
+  - Write Path di `PlantingRepository`;
+  - `AddPlantingPage`;
+  - geometria e spazio libero;
+  - analisi agronomiche;
+  - integrazione dei componenti interessati.
+
+### Modificato
+
+- Riallineato il modello Dart `Planting` al contratto Database V1.
+
+- Il modello persistente comprende ora:
+
+```text
+id
+profile_id
+garden_id
+season_id
+bed_id
+crop_id
+variety_id
+start_method
+start_date
+end_date
+start_position_cm
+length_cm
+plant_spacing_cm
+row_spacing_cm
+rows_count
+occupied_width_cm
+plants_count
+seed_quantity_g
+status
+notes
+created_at
+updated_at
+row_version
+```
+
+- Aggiornato `PlantingRepository` per utilizzare:
+
+```text
+getPlantingsByBed
+createPlanting
+updatePlanting
+setPlantingStatus
+```
+
+- Le scritture ordinarie di `plantings` utilizzano ora esclusivamente le RPC autoritative.
+
+- Riallineata `AddPlantingPage` al contratto persistente S028.
+
+- Introdotti come valori persistenti ammessi per `start_method`:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
+
+- Il precedente valore:
+
+```text
+manual
+```
+
+rimane esclusivamente un concetto UI relativo al posizionamento/geometria e non costituisce un metodo agronomico persistito.
+
+- Aggiornati i componenti applicativi interessati:
+
+```text
+BedPage
+GardenPage
+GardenMap
+PlantingCard
+RotationEngine
+```
+
+- Riallineati i calcoli geometrici alla regola server-side che utilizza il numero totale di piante.
+
+- La lunghezza minima richiesta per le piante utilizza:
+
+```text
+(plants_count - 1) * plant_spacing_cm <= length_cm
+```
+
+e non un valore derivato di piante per fila.
+
+- Rimossa una limitazione UI che poteva mascherare una larghezza eccessiva delle file.
+
+- Introdotta Dependency Injection per Repository utilizzati da `AddPlantingPage`, mantenendo fallback reali nel comportamento di produzione.
+
+### Architettura
+
+- Consolidata `plantings` come rappresentazione persistente delle coltivazioni realmente effettuate, distinta da:
+
+```text
+planned_plantings
+```
+
+- Consolidata la relazione tra:
+
+```text
+Planting
+        ↓
+Profile
+Garden
+Season
+Bed
+Crop
+CropVariety opzionale
+```
+
+- Consolidata la semantica longitudinale half-open:
+
+```text
+[start_position_cm, start_position_cm + length_cm)
+```
+
+che permette a due coltivazioni di toccarsi sul confine senza essere considerate sovrapposte.
+
+- Consolidata una semantica temporale compatibile con intervalli half-open.
+
+- Una sovrapposizione viene rifiutata quando coincidono contemporaneamente:
+  - sovrapposizione temporale;
+  - sovrapposizione longitudinale.
+
+- La geometria di una coltivazione deve essere compatibile con tutte le geometrie dell'aiuola temporalmente interessate dalla sua occupazione.
+
+- Rafforzate:
+
+```text
+change_bed_geometry
+correct_bed_geometry
+```
+
+per evitare che una nuova geometria renda incompatibili coltivazioni già persistite.
+
+- Consolidato che:
+
+```text
+harvested
+```
+
+non libera l'aiuola.
+
+- Soltanto:
+
+```text
+finished
+removed
+```
+
+terminano l'occupazione fisica della coltivazione.
+
+- Separato il lifecycle dalla normale modifica dei dati della coltivazione.
+
+- `set_planting_status` costituisce il Write Path dedicato alle transizioni lifecycle.
+
+- Non è stato introdotto un normale hard delete applicativo di `plantings`.
+
+- La chiusura ordinaria utilizza:
+
+```text
+finished
+removed
+```
+
+mentre un eventuale hard delete rimane riservato a futuri strumenti amministrativi o correzioni eccezionali.
+
+### Validazioni
+
+- Per:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+```
+
+sono richiesti:
+
+```text
+plants_count
+plant_spacing_cm
+```
+
+mentre:
+
+```text
+seed_quantity_g
+```
+
+deve essere `NULL`.
+
+- `rows_count` e `row_spacing_cm` devono essere entrambi `NULL` oppure entrambi valorizzati.
+
+- Per:
+
+```text
+direct_rows
+```
+
+sono richiesti:
+
+```text
+rows_count
+row_spacing_cm
+```
+
+e possono essere valorizzati, quando coerenti:
+
+```text
+plants_count
+plant_spacing_cm
+seed_quantity_g
+```
+
+- Per:
+
+```text
+direct_broadcast
+```
+
+è richiesto:
+
+```text
+seed_quantity_g
+```
+
+mentre devono essere `NULL`:
+
+```text
+rows_count
+row_spacing_cm
+plant_spacing_cm
+plants_count
+```
+
+- La larghezza delle file deve rispettare:
+
+```text
+(rows_count - 1) * row_spacing_cm <= occupied_width_cm
+```
+
+- La disposizione delle piante deve rispettare:
+
+```text
+(plants_count - 1) * plant_spacing_cm <= length_cm
+```
+
+- `start_date` rappresenta il giorno di inizio della reale occupazione dell'aiuola e non può essere futuro.
+
+- `end_date`:
+  - deve essere `NULL` negli stati intermedi;
+  - è obbligatorio per `finished`;
+  - è obbligatorio per `removed`;
+  - deve essere maggiore o uguale a `start_date`;
+  - non può essere futuro.
+
+### Lifecycle
+
+Le transizioni ammesse sono:
+
+```text
+sown
+  → growing
+  → removed
+
+growing
+  → harvest_ready
+  → removed
+
+harvest_ready
+  → harvested
+  → removed
+
+harvested
+  → finished
+  → removed
+
+finished
+  → nessuna transizione
+
+removed
+  → nessuna transizione
+```
+
+Lo stato iniziale dipende dal metodo di avvio.
+
+Per:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+```
+
+lo stato iniziale è:
+
+```text
+growing
+```
+
+Per:
+
+```text
+direct_rows
+direct_broadcast
+```
+
+lo stato iniziale è:
+
+```text
+sown
+```
+
+### Sicurezza
+
+- Mantenuta la Profile Write Authority come prerequisito delle scritture protette.
+
+- Mantenuto il comportamento fail-closed in assenza di una Write Authority valida.
+
+- Le scritture applicative ordinarie di `plantings` non utilizzano percorsi diretti:
+
+```text
+.insert()
+.update()
+.delete()
+.upsert()
+```
+
+- Mantenuto PostgreSQL come autorità definitiva per:
+  - ownership;
+  - autorizzazioni;
+  - validazioni;
+  - lifecycle;
+  - geometria;
+  - temporalità;
+  - overlap;
+  - concorrenza.
+
+- La concorrenza ottimistica utilizza:
+
+```text
+row_version
+expected_row_version
+```
+
+quando prevista dal contratto della RPC.
+
+- `update_planting` può restituire:
+
+```text
+version_conflict
+```
+
+quando il client modifica una versione ormai obsoleta.
+
+- `start_method` e `start_date` possono essere modificati soltanto mentre la coltivazione si trova negli stati iniziali ammessi dal contratto.
+
+- Rimangono immutabili tramite `update_planting`:
+
+```text
+id
+profile_id
+garden_id
+bed_id
+```
+
+### Database
+
+Sono state introdotte le migration:
+
+```text
+20260915080700_add_plantings_authoritative_model.sql
+20260915081444_add_plantings_write_rpcs.sql
+```
+
+La ricostruzione locale completa è stata verificata mediante:
+
+```text
+supabase db reset
+```
+
+con esito positivo.
+
+È stato inoltre eseguito:
+
+```text
+supabase db lint --local
+```
+
+senza errori di schema.
+
+### Test
+
+- Eseguito:
+
+```text
+flutter analyze
+```
+
+con risultato:
+
+```text
+No issues found!
+```
+
+- Eseguita la suite completa Flutter:
+
+```text
+997/997 test superati
+```
+
+- Verificati in particolare:
+  - parsing e contratto di `Planting`;
+  - chiamate RPC di `PlantingRepository`;
+  - mapping degli esiti;
+  - Profile Write Authority;
+  - concorrenza;
+  - `AddPlantingPage`;
+  - metodi di avvio;
+  - date;
+  - geometria;
+  - calcolo degli spazi liberi;
+  - componenti agronomici dipendenti dalle coltivazioni;
+  - compatibilità con la geometria storicizzata.
+
+### Versionamento Flutter
+
+- La versione pubblica del progetto passa a:
+
+```text
+0.1.19-alpha
+```
+
+- La versione Flutter in `pubspec.yaml` passa a:
+
+```text
+0.1.19-alpha+4
+```
+
+### Aperto / Future
+
+- La UI amministrativa dedicata al Catalogo V1 rimane da implementare.
+
+- Il lifecycle autoritativo di `plantings` è implementato lato server, ma rimane da completare la relativa esperienza UI.
+
+- Rimangono da introdurre nella UI:
+  - selezione facoltativa della varietà;
+  - transizioni lifecycle consentite;
+  - inserimento esplicito di `end_date` per `finished` e `removed`;
+  - gestione degli esiti concorrenti e delle transizioni non valide;
+  - refresh completo dello stato dell'aiuola dopo una transizione.
+
+- Rimane da completare la progressiva rimozione delle dipendenze legacy ancora presenti nei consumer applicativi.
+
+- L'eventuale hard delete di `plantings` rimane escluso dal normale workflow e riservato a una futura gestione amministrativa o di correzione eccezionale.
+
+---
+
 # 4. Cronologia versioni
 
 | Versione | Data | Stato | Note |
@@ -1435,10 +1959,11 @@ e i planting method legacy ancora utilizzati da alcuni componenti.
 | 0.1.12-alpha | 16/08/2026 | Archiviata | Introdotto il supporto alle finestre agronomiche multiple e predisposto l'ambiente Supabase locale versionato per la futura implementazione incrementale della baseline Database V1; verificati 151/151 test e mantenuto invariato il database remoto. |
 | 0.1.13-alpha | 18/08/2026 | Archiviata | Creata la prima migration Database V1 e implementato e verificato localmente il blocco Fondazioni con schema `private`, helper autorizzativi, trigger metadata e 13 policy RLS; consolidato il primo incremento fisico della baseline Database V1. |
 | 0.1.14-alpha | 28/08/2026 | Archiviata | Completato il protocollo `profile_edit_locks`, introdotta la Profile Write Authority, implementati i Write Path autoritativi di `gardens` e `seasons`, integrata la sessione Profile nel client Flutter e verificati 237/237 test. |
-| 0.1.15-alpha | 01/09/2026 | Archiviata | Implementati `beds`, geometria storicizzata e relativo Write Path autoritativo, integrata la creazione dell’aiuola nel client Flutter, parametrizzata la configurazione Supabase e verificati 781/781 test. |
-| 0.1.16-alpha | 03/09/2026 | Archiviata | Completata l’integrazione UI dei Write Path autoritativi di `beds`, introdotte modifica dati, attivazione e disattivazione, variazione geometrica, correzione storica e gestione italiana delle date; verificati 841/841 test. |
+| 0.1.15-alpha | 01/09/2026 | Archiviata | Implementati `beds`, geometria storicizzata e relativo Write Path autoritativo, integrata la creazione dell'aiuola nel client Flutter, parametrizzata la configurazione Supabase e verificati 781/781 test. |
+| 0.1.16-alpha | 03/09/2026 | Archiviata | Completata l'integrazione UI dei Write Path autoritativi di `beds`, introdotte modifica dati, attivazione e disattivazione, variazione geometrica, correzione storica e gestione italiana delle date; verificati 841/841 test. |
 | 0.1.17-alpha | 11/09/2026 | Archiviata | Implementato e verificato il Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, introdotte nove RPC autoritative, RLS, Profile Write Authority, concorrenza ottimistica e migration locali/remoto allineate; integrazione Flutter rinviata alla S027. |
-| 0.1.18-alpha | 13/09/2026 | Corrente | Completata l'integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, `Crop` e `CropVariety`, introdotti e riallineati i Repository dedicati, consolidate letture RLS e scritture RPC-only, mantenuta la Profile Write Authority fail-closed e verificati 914/914 test. |
+| 0.1.18-alpha | 13/09/2026 | Archiviata | Completata l'integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, `Crop` e `CropVariety`, introdotti e riallineati i Repository dedicati, consolidate letture RLS e scritture RPC-only, mantenuta la Profile Write Authority fail-closed e verificati 914/914 test. |
+| 0.1.19-alpha | 17/09/2026 | Corrente | Implementato il modello e Write Path autoritativo di `plantings`, introdotto il lifecycle server-side, consolidate geometria, temporalità e overlap, protette le variazioni della geometria delle aiuole, riallineati modello, Repository e UI Flutter e verificati 997/997 test. |
 
 ---
 
@@ -1446,6 +1971,34 @@ e i planting method legacy ancora utilizzati da alcuni componenti.
 
 Il presente CHANGELOG documenta in modo sintetico l'evoluzione di Orto Smart, registrando le modifiche più significative introdotte nelle diverse versioni del software.
 
-La separazione tra CHANGELOG, Quaderno di Sviluppo (DOC-005) e Manuale Tecnico (DOC-001) consente di distinguere chiaramente la cronologia delle versioni, il dettaglio delle attività di sviluppo e l'architettura del progetto, mantenendo la documentazione ordinata e facilmente consultabile.
+Con la versione `0.1.19-alpha`, corrispondente alla Sessione S028, il Database V1 compie un ulteriore incremento sostanziale mediante l'implementazione del modello autoritativo di `plantings`.
+
+Il dominio delle coltivazioni reali dispone ora di:
+
+- struttura persistente dedicata;
+- relazioni coerenti con Profile, Garden, Season, Bed, Crop e Variety;
+- Write Path autoritativo;
+- Profile Write Authority;
+- concorrenza ottimistica;
+- lifecycle server-side;
+- validazioni metodo-dipendenti;
+- controllo della geometria;
+- controllo delle sovrapposizioni spaziali e temporali;
+- integrazione con la geometria storicizzata delle aiuole;
+- Repository Layer Flutter;
+- UI di creazione e modifica riallineata al contratto persistente.
+
+Il completamento del Write Path di `plantings` non equivale ancora al completamento dell'intero Database V1.
+
+Rimangono infatti ulteriori entità della baseline da implementare e ulteriori incrementi applicativi da completare.
+
+In particolare, per `plantings` rimane da completare la UI dedicata al lifecycle e alla gestione della varietà e di `end_date`.
+
+La separazione tra CHANGELOG, Quaderno di Sviluppo (DOC-005), Manuale Tecnico (DOC-001) e Manuale Database (DOC-004) consente di distinguere:
+
+- cronologia delle versioni;
+- dettaglio delle attività svolte;
+- architettura dell'applicazione;
+- contratto persistente del Database V1.
 
 Il CHANGELOG deve essere aggiornato ad ogni rilascio di una nuova versione significativa dell'applicazione, garantendo la tracciabilità delle principali evoluzioni del software e mantenendo la coerenza con gli altri documenti ufficiali del progetto.

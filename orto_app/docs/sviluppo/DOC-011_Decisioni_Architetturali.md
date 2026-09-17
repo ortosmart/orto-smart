@@ -4,7 +4,7 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 2.1
+**Versione:** 2.2
 
 **Stato:** In sviluppo
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 28/07/2026
 
-**Ultimo aggiornamento:** 14/09/2026
+**Ultimo aggiornamento:** 17/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |-------|--------|
 | Documento | DOC-011 |
 | Titolo | Decisioni Architetturali (ADR) |
-| Versione | 2.1 |
+| Versione | 2.2 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 14/09/2026 |
+| Ultimo aggiornamento | 17/09/2026 |
 
 ---
 
@@ -60,6 +60,7 @@
 | 1.9 | 06/09/2026 | Aggiornamento della DEC-012 con la Sessione S025: completamento dell’integrazione UI dei Write Path di `beds`, separazione delle operazioni geometriche, gestione italiana delle date, rilettura autoritativa e trattamento fail-closed degli esiti incerti |
 | 2.0 | 11/09/2026 | Introduzione della DEC-013: architettura del Catalogo DB V1, gerarchia `botanical_families` → `crops` → `crop_varieties`, ownership a livello Profile, UUID, fallback Crop → Crop Variety, Write Path autoritativi e principio catalogo corrente + snapshot storico |
 | 2.1 | 14/09/2026 | Aggiornamento della DEC-013 dopo la Sessione S027: completamento dell'integrazione Flutter del Catalogo V1, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy temporanea e conferma di `plantings` come incremento successivo distinto |
+| 2.2 | 17/09/2026 | Introduzione della DEC-014 dopo la Sessione S028: modello autoritativo di `plantings`, metodi di avvio canonici, occupazione longitudinale half-open, controllo congiunto degli overlap temporali e longitudinali, compatibilità con la geometria storicizzata delle aiuole, lifecycle autoritativo, separazione tra aggiornamento ordinario e transizione di stato, Write Path RPC-only, concorrenza ottimistica e assenza di hard delete nel normale flusso operativo |
 
 ---
 
@@ -96,6 +97,8 @@
 3.12 DEC-012 – Sicurezza e gestione concorrente del `profile_edit_lock`
 
 3.13 DEC-013 – Architettura del Catalogo DB V1 e specializzazione Crop → Crop Variety
+
+3.14 DEC-014 – Modello autoritativo, occupazione e lifecycle di `plantings`
 
 ## 4. Registro delle decisioni
 
@@ -2457,6 +2460,667 @@ Le alternative sono state escluse perché avrebbero aumentato l'ambiguità del m
 
 ---
 
+## 3.14 DEC-014 – Modello autoritativo, occupazione e lifecycle di `plantings`
+
+**Stato:** Approvata
+
+**Data:** 16/09/2026
+
+**Sessione:** S028
+
+### Contesto
+
+La baseline architetturale del Database V1 aveva già distinto:
+
+```text
+planned_plantings
+```
+
+da:
+
+```text
+plantings
+```
+
+attribuendo al primo concetto la pianificazione e al secondo la coltivazione realmente presente nell'orto.
+
+La Sessione S026 aveva inoltre stabilito che il Write Path autoritativo di `plantings` non dovesse essere implementato prima del Catalogo DB V1.
+
+La Sessione S027 ha completato l'integrazione Flutter del Catalogo DB V1, rendendo disponibile il prerequisito necessario alla realizzazione del modello persistente delle coltivazioni reali.
+
+La Sessione S028 ha quindi affrontato il problema di definire in modo univoco:
+
+- identità della coltivazione;
+- relazioni con Garden, Season, Bed, Crop e Crop Variety;
+- metodo reale di avvio;
+- geometria occupata nell'aiuola;
+- periodo temporale di occupazione;
+- sovrapposizioni;
+- lifecycle;
+- concorrenza;
+- sicurezza del Write Path;
+- rapporto tra coltivazioni persistite e geometria storicizzata delle aiuole;
+- modalità di chiusura di una coltivazione;
+- trattamento dell'eventuale eliminazione definitiva.
+
+### Decisione
+
+`public.plantings` costituisce il modello persistente autoritativo delle coltivazioni realmente presenti nell'orto.
+
+Una `planting` rappresenta:
+
+> una coltivazione reale, collocata in una specifica aiuola, riferita a una specifica coltura e, opzionalmente, varietà, con un periodo temporale e una geometria di occupazione definiti.
+
+`plantings` rimane distinta da:
+
+```text
+planned_plantings
+```
+
+che rappresenta invece ciò che si prevede di coltivare.
+
+Il modello autoritativo comprende:
+
+```text
+id
+profile_id
+garden_id
+season_id
+bed_id
+crop_id
+variety_id
+start_method
+start_date
+end_date
+start_position_cm
+length_cm
+plant_spacing_cm
+row_spacing_cm
+rows_count
+occupied_width_cm
+plants_count
+seed_quantity_g
+status
+notes
+created_at
+updated_at
+row_version
+```
+
+### Ownership e relazioni
+
+Ogni `planting` appartiene a un Profile e deve essere coerente con:
+
+```text
+Garden
+Season
+Bed
+Crop
+Crop Variety opzionale
+```
+
+Le relazioni non vengono considerate semplici riferimenti indipendenti.
+
+Il database deve impedire combinazioni incoerenti tra gli identificativi associati alla coltivazione.
+
+Le invarianti relazionali rimangono server-side.
+
+### Metodi di avvio
+
+I metodi agronomici persistenti approvati sono:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
+
+Il valore:
+
+```text
+manual
+```
+
+non costituisce un metodo agronomico persistente.
+
+Può essere utilizzato esclusivamente come concetto applicativo relativo alla modalità di posizionamento o inserimento della geometria.
+
+La distinzione evita di mescolare:
+
+```text
+come è iniziata realmente la coltivazione
+```
+
+con:
+
+```text
+come l'utente ha inserito la geometria nell'interfaccia
+```
+
+### Regole metodo-dipendenti
+
+Per:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+```
+
+sono richiesti:
+
+```text
+plants_count
+plant_spacing_cm
+```
+
+mentre:
+
+```text
+seed_quantity_g
+```
+
+deve essere assente.
+
+`rows_count` e `row_spacing_cm` devono essere entrambi assenti oppure entrambi presenti.
+
+Per:
+
+```text
+direct_rows
+```
+
+sono richiesti:
+
+```text
+rows_count
+row_spacing_cm
+```
+
+e possono essere presenti, quando coerenti:
+
+```text
+plants_count
+plant_spacing_cm
+seed_quantity_g
+```
+
+Per:
+
+```text
+direct_broadcast
+```
+
+è richiesta:
+
+```text
+seed_quantity_g
+```
+
+mentre devono essere assenti:
+
+```text
+rows_count
+row_spacing_cm
+plant_spacing_cm
+plants_count
+```
+
+Le validazioni metodo-dipendenti costituiscono parte del contratto server-side.
+
+### Geometria dell'occupazione
+
+L'occupazione longitudinale della coltivazione viene rappresentata mediante:
+
+```text
+start_position_cm
+length_cm
+```
+
+e utilizza la semantica half-open:
+
+```text
+[start_position_cm, start_position_cm + length_cm)
+```
+
+La scelta consente a due coltivazioni adiacenti di condividere esattamente il confine senza essere considerate sovrapposte.
+
+La larghezza pratica assegnata alla coltivazione viene rappresentata mediante:
+
+```text
+occupied_width_cm
+```
+
+Non viene introdotta una coordinata trasversale iniziale separata.
+
+La geometria deve rispettare:
+
+```text
+(rows_count - 1) * row_spacing_cm <= occupied_width_cm
+```
+
+e, quando applicabile:
+
+```text
+(plants_count - 1) * plant_spacing_cm <= length_cm
+```
+
+Il secondo controllo utilizza il numero totale di piante e non un valore derivato di piante per fila.
+
+### Occupazione temporale
+
+`start_date` rappresenta l'inizio reale dell'occupazione fisica dell'aiuola.
+
+Non può essere futuro.
+
+`end_date` rimane assente durante gli stati non terminali.
+
+Negli stati terminali:
+
+```text
+finished
+removed
+```
+
+`end_date` è obbligatorio.
+
+Deve inoltre rispettare:
+
+```text
+end_date >= start_date
+```
+
+e non può essere futuro.
+
+Anche la dimensione temporale viene interpretata con una semantica coerente con intervalli che consentono il contatto ai confini senza generare sovrapposizioni artificiali.
+
+### Sovrapposizioni
+
+Una coltivazione entra in conflitto con un'altra soltanto quando si verificano contemporaneamente:
+
+```text
+sovrapposizione temporale
++
+sovrapposizione longitudinale
+```
+
+La sola sovrapposizione temporale non è sufficiente.
+
+La sola sovrapposizione longitudinale non è sufficiente.
+
+Questa scelta evita di bloccare:
+
+- coltivazioni successive nello stesso tratto;
+- coltivazioni contemporanee in tratti distinti della stessa aiuola.
+
+### Geometria storicizzata delle aiuole
+
+La validità di una `planting` non dipende soltanto dalla geometria corrente dell'aiuola.
+
+La coltivazione deve risultare compatibile con tutte le geometrie della stessa aiuola temporalmente sovrapposte al suo periodo di occupazione.
+
+Le operazioni:
+
+```text
+change_bed_geometry
+correct_bed_geometry
+```
+
+devono pertanto verificare anche la presenza di coltivazioni già persistite.
+
+Quando una modifica renderebbe una coltivazione incompatibile, l'operazione deve essere bloccata mediante:
+
+```text
+blocked_by_plantings
+```
+
+La geometria storica dell'aiuola non può quindi essere modificata ignorando l'occupazione reale già registrata.
+
+### Lifecycle autoritativo
+
+Gli stati approvati sono:
+
+```text
+sown
+growing
+harvest_ready
+harvested
+finished
+removed
+```
+
+Le transizioni consentite sono:
+
+```text
+sown
+  → growing
+  → removed
+
+growing
+  → harvest_ready
+  → removed
+
+harvest_ready
+  → harvested
+  → removed
+
+harvested
+  → finished
+  → removed
+
+finished
+  → nessuna transizione
+
+removed
+  → nessuna transizione
+```
+
+Lo stato iniziale dipende dal metodo di avvio.
+
+Per:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+```
+
+lo stato iniziale è:
+
+```text
+growing
+```
+
+Per:
+
+```text
+direct_rows
+direct_broadcast
+```
+
+lo stato iniziale è:
+
+```text
+sown
+```
+
+### `harvested` non libera l'aiuola
+
+Lo stato:
+
+```text
+harvested
+```
+
+indica che la raccolta è avvenuta, ma non implica automaticamente la conclusione fisica della coltivazione.
+
+Una coltivazione `harvested` continua quindi a occupare l'aiuola.
+
+Lo spazio viene liberato soltanto quando la coltivazione raggiunge:
+
+```text
+finished
+```
+
+oppure:
+
+```text
+removed
+```
+
+La decisione evita che la raccolta venga interpretata implicitamente come eliminazione della coltura dall'aiuola.
+
+### Separazione tra modifica ordinaria e lifecycle
+
+Le modifiche ordinarie della coltivazione e le transizioni del lifecycle costituiscono operazioni distinte.
+
+Le RPC autoritative sono:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+`update_planting` gestisce i dati modificabili della coltivazione.
+
+`set_planting_status` gestisce esclusivamente le transizioni lifecycle.
+
+La separazione impedisce che una normale modifica dei dati possa alterare implicitamente lo stato operativo della coltivazione.
+
+### Campi immutabili e campi protetti
+
+Durante l'aggiornamento ordinario rimangono immutabili:
+
+```text
+id
+profile_id
+garden_id
+bed_id
+```
+
+`start_method` e `start_date` possono essere modificati esclusivamente quando la coltivazione si trova negli stati iniziali previsti dal contratto.
+
+Il lifecycle e `end_date` non vengono gestiti tramite il normale percorso di aggiornamento.
+
+### Write Path autoritativo
+
+Le scritture di `plantings` utilizzano il modello:
+
+```text
+UI / dominio
+        ↓
+PlantingRepository
+        ↓
+Profile Write Authority
+        ↓
+RPC autoritativa
+        ↓
+PostgreSQL
+```
+
+Il client Flutter non costituisce autorità sulle invarianti.
+
+La Profile Write Authority applicativa rappresenta soltanto un controllo preventivo.
+
+La verifica definitiva rimane server-side.
+
+Le scritture ordinarie non devono utilizzare direttamente:
+
+```text
+.insert()
+.update()
+.delete()
+.upsert()
+```
+
+sulla tabella `plantings`.
+
+### Concorrenza
+
+La concorrenza ottimistica utilizza:
+
+```text
+row_version
+```
+
+e, quando previsto:
+
+```text
+expected_row_version
+```
+
+Gli aggiornamenti concorrenti incompatibili producono:
+
+```text
+version_conflict
+```
+
+Il client non deve sovrascrivere automaticamente dati aggiornati da un altro contesto.
+
+### Result type e fail-closed
+
+Gli esiti delle RPC vengono mappati mediante result type applicativi dedicati.
+
+Gli esiti non riconosciuti o non confermabili devono essere trattati in modalità:
+
+```text
+fail-closed
+```
+
+Il client non deve presumere il successo di una scrittura in assenza di una risposta autoritativa interpretabile.
+
+### Hard delete
+
+Il normale flusso operativo di `plantings` non prevede una RPC di hard delete.
+
+Le chiusure ordinarie del ciclo di vita sono:
+
+```text
+finished
+removed
+```
+
+La conservazione del record permette di mantenere:
+
+- storia della coltivazione;
+- cronologia dell'occupazione;
+- riferimenti agronomici;
+- coerenza con analisi e decisioni future;
+- possibilità di audit.
+
+Un eventuale hard delete rimane classificato:
+
+```text
+FUTURE
+```
+
+e potrà essere introdotto esclusivamente come operazione amministrativa o tecnica eccezionale per correggere record inseriti per errore.
+
+Non dovrà essere disponibile nel normale flusso operativo dell'orto.
+
+### Relazione con il Catalogo DB V1
+
+`plantings` utilizza le entità del Catalogo DB V1 come riferimenti agronomici persistenti.
+
+La sequenza architetturale è ora:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+        ↓
+plantings
+```
+
+Con la S028 tutti e quattro i livelli dispongono di una rappresentazione persistente lato PostgreSQL/Supabase.
+
+La UI amministrativa del Catalogo V1 rimane tuttavia un incremento distinto.
+
+### Relazione con Flutter
+
+La Sessione S028 ha riallineato il client Flutter mediante:
+
+```text
+Planting
+PlantingRepository
+PlantingWriteResult
+AddPlantingPage
+BedPage
+GardenPage
+GardenMap
+PlantingCard
+RotationEngine
+```
+
+`PlantingRepository` espone:
+
+```text
+getPlantingsByBed
+createPlanting
+updatePlanting
+setPlantingStatus
+```
+
+La UI non sostituisce le invarianti server-side.
+
+Le validazioni client servono principalmente a:
+
+- prevenire input chiaramente errati;
+- migliorare l'esperienza utente;
+- evitare richieste inutilmente invalide.
+
+L'autorità definitiva rimane il database.
+
+### Motivazione
+
+La decisione consente di rappresentare una coltivazione reale come entità persistente coerente nel tempo e nello spazio.
+
+La semantica half-open evita falsi conflitti sui confini.
+
+Il controllo congiunto tra overlap temporale e longitudinale permette di utilizzare correttamente la stessa aiuola sia in successione sia contemporaneamente in tratti distinti.
+
+La verifica rispetto alla geometria storicizzata impedisce che modifiche successive dell'aiuola rendano inconsistente la storia delle coltivazioni.
+
+Il lifecycle esplicito evita che eventi differenti, come raccolta, fine coltivazione e rimozione anticipata, vengano rappresentati mediante una singola operazione ambigua.
+
+La separazione tra aggiornamento ordinario e transizione di stato riduce il rischio di cambiamenti impliciti del ciclo di vita.
+
+L'assenza di hard delete nel flusso ordinario preserva lo storico operativo dell'orto.
+
+Il Write Path RPC-only mantiene il modello di sicurezza, autorizzazione e concorrenza già consolidato nel progetto.
+
+### Alternative valutate
+
+Sono state scartate o rinviate le seguenti alternative:
+
+- mantenere `plantings` soltanto come modello applicativo non persistente;
+- utilizzare il metodo legacy `manual` come metodo agronomico persistente;
+- rappresentare l'occupazione senza una semantica temporale esplicita;
+- considerare conflitto qualsiasi sovrapposizione temporale;
+- considerare conflitto qualsiasi sovrapposizione longitudinale;
+- utilizzare intervalli chiusi che rendano conflittuali due coltivazioni semplicemente adiacenti;
+- validare la coltivazione soltanto rispetto alla geometria corrente dell'aiuola;
+- consentire modifiche alla geometria storica senza considerare le coltivazioni già registrate;
+- considerare `harvested` equivalente alla fine dell'occupazione;
+- consentire transizioni lifecycle arbitrarie;
+- gestire lo stato mediante il normale `update_planting`;
+- affidare esclusivamente al client le invarianti di geometria, lifecycle e sovrapposizione;
+- consentire scritture dirette sulla tabella `plantings`;
+- sovrascrivere automaticamente un record in caso di conflitto di versione;
+- introdurre un normale hard delete applicativo.
+
+Le alternative sono state escluse perché avrebbero introdotto ambiguità semantiche, perdita dello storico, race condition, conflitti geometrici artificiali oppure indebolimento delle invarianti server-side.
+
+### Conseguenze
+
+- `plantings` costituisce il modello persistente delle coltivazioni reali.
+- `planned_plantings` rimane distinto e rappresenta la pianificazione.
+- I quattro metodi di avvio persistenti sono canonici.
+- `manual` non è un metodo agronomico persistente.
+- La geometria longitudinale utilizza intervalli half-open.
+- Due coltivazioni confinanti possono condividere il medesimo limite senza essere considerate sovrapposte.
+- Un overlap viene bloccato soltanto quando è contemporaneamente temporale e longitudinale.
+- La larghezza occupata viene gestita mediante `occupied_width_cm`.
+- La disposizione delle file e delle piante deve rispettare la geometria assegnata.
+- La coltivazione deve essere coerente con tutte le geometrie dell'aiuola temporalmente interessate.
+- `change_bed_geometry` e `correct_bed_geometry` possono essere bloccate da `blocked_by_plantings`.
+- Il lifecycle è autoritativo server-side.
+- `harvested` continua a occupare l'aiuola.
+- `finished` e `removed` terminano l'occupazione.
+- `end_date` è richiesto negli stati terminali.
+- Le transizioni lifecycle sono separate dagli aggiornamenti ordinari.
+- Le scritture avvengono mediante RPC autoritative.
+- La Profile Write Authority rimane prerequisito delle scritture protette.
+- La concorrenza utilizza `row_version`.
+- I conflitti non vengono risolti mediante sovrascrittura automatica.
+- Gli esiti applicativi sono gestiti in modalità fail-closed.
+- Non esiste un hard delete nel normale flusso operativo.
+- Un eventuale hard delete futuro dovrà essere amministrativo o tecnico e limitato a correzioni eccezionali.
+
+---
+
 # 4. Registro delle decisioni
 
 | ID | Data | Sessione | Titolo | Stato |
@@ -2474,6 +3138,7 @@ Le alternative sono state escluse perché avrebbero aumentato l'ambiguità del m
 | DEC-011 | 16/08/2026 | S017 | Baseline architetturale del Database V1 | Approvata |
 | DEC-012 | 06/09/2026 | S020–S025 | Sicurezza e gestione concorrente del `profile_edit_locks` e fondamento del Write Path autoritativo di Categoria A | Approvata |
 | DEC-013 | 11/09/2026 | S026 | Architettura del Catalogo DB V1 e specializzazione Crop → Crop Variety | Approvata |
+| DEC-014 | 16/09/2026 | S028 | Modello autoritativo, occupazione e lifecycle di `plantings` | Approvata |
 
 ---
 

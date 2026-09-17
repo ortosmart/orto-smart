@@ -4,7 +4,7 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.15
+**Versione:** 0.16
 
 **Stato:** In sviluppo
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 14/09/2026
+**Ultimo aggiornamento:** 17/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.15 |
+| Versione | 0.16 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 14/09/2026 |
+| Ultimo aggiornamento | 17/09/2026 |
 
 ---
 
@@ -51,9 +51,10 @@
 | 0.10 | 28/08/2026 | Aggiornamento del Quaderno con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, identità tecnica del client e della sessione, integrazione Flutter della Profile Write Authority e definizione del successivo blocco `beds` e `bed_geometries` |
 | 0.11 | 01/09/2026 | Aggiornamento del Quaderno con la Sessione S024: implementazione V1 di `beds` e `bed_geometries`, geometria storicizzata, Write Path autoritativo delle aiuole, integrazione Flutter, configurazione Supabase parametrizzabile e verifiche locali/end-to-end |
 | 0.12 | 03/09/2026 | Manutenzione straordinaria del Quaderno di Sviluppo: ricostruzione e consolidamento dei tempi complessivi delle Sessioni S001–S024, riallineamento dei progressivi con il DOC-012, classificazione della S007 come attività documentale e formalizzazione della futura verifica controllata degli aggiornamenti ISO 3166-1 alpha-2 |
-| 0.13 | 06/09/2026 | Aggiornamento del Quaderno con la Sessione S025: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, gestione italiana delle date, nuove pagine operative, verifiche automatiche e collaudo locale end-to-end |
+| 0.13 | 06/09/2026 | Aggiornamento del Quaderno con la Sessione S025: completamento dell'integrazione UI dei Write Path autoritativi di `beds`, gestione italiana delle date, nuove pagine operative, verifiche automatiche e collaudo locale end-to-end |
 | 0.14 | 11/09/2026 | Aggiornamento del Quaderno con la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, Profile Write Authority, RLS, concorrenza ottimistica, validazioni agronomiche e definizione della S027 come integrazione Flutter del Catalogo V1 |
-| 0.15 | 14/09/2026 | Aggiornamento del Quaderno con la Sessione S027: integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy controllata, 914/914 test superati e riallineamento della versione Flutter a `0.1.18-alpha+3`; fase Manuali ancora in corso |
+| 0.15 | 14/09/2026 | Aggiornamento e chiusura documentale della Sessione S027: integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy controllata, 914/914 test superati e riallineamento della versione Flutter a `0.1.18-alpha+3` |
+| 0.16 | 17/09/2026 | Aggiornamento del Quaderno con la Sessione S028: implementazione del modello e Write Path autoritativo di `plantings`, lifecycle server-side, validazioni metodo-dipendenti, geometria e overlap spaziale/temporale, protezione delle geometrie delle aiuole mediante `blocked_by_plantings`, integrazione Flutter, 997/997 test superati e aggiornamento della versione a `0.1.19-alpha` / `0.1.19-alpha+4`; Sessione S028 conclusa con 9 h 04 min di sviluppo, 2 h 16 min di documentazione e 11 h 20 min complessivi |
 
 ---
 
@@ -92,6 +93,7 @@ Per una sessione ancora in corso viene riportato soltanto il tempo già consolid
 | S025 | 02–06/09/2026 | 6 h 56 min | 174 h 47 min | Completamento dell'integrazione UI dei Write Path autoritativi di `beds` | ✅ |
 | S026 | 10–12/09/2026 | 8 h 55 min | 183 h 42 min | Implementazione del Catalogo DB V1 e dei relativi Write Path autoritativi | ✅ |
 | S027 | 13–14/09/2026 | 2 h 33 min | 186 h 15 min | Integrazione Flutter del Catalogo V1 | ✅ |
+| S028 | 15–17/09/2026 | 11 h 20 min | 197 h 35 min | Write Path autoritativo di `plantings` | ✅ |
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -128,11 +130,30 @@ Il totale progressivo del progetto alla chiusura della S027 è:
 ```text
 186 h 15 min
 ```
+
+Per la Sessione S028 il tempo complessivo è composto da:
+
+```text
+Sviluppo        9 h 04 min
+Documentazione  2 h 16 min
+-------------------------
+Totale         11 h 20 min
+```
+
+La fase Manuali S028 è conclusa.
+
+Il totale progressivo del progetto alla chiusura della S028 è:
+
+```text
+197 h 35 min
+```
+
 ---
 
 # Indice
 
 ## 1. Introduzione
+
 1.1 Scopo del documento
 1.2 Ruolo del Quaderno di Sviluppo
 1.3 Relazione con gli altri documenti
@@ -141,6 +162,7 @@ Il totale progressivo del progetto alla chiusura della S027 è:
 ## 2. Regole di aggiornamento
 
 ## 3. Sessioni di sviluppo
+
 3.1 S001
 3.2 S002
 3.3 S003
@@ -168,6 +190,7 @@ Il totale progressivo del progetto alla chiusura della S027 è:
 3.25 S025
 3.26 S026
 3.27 S027
+3.28 S028
 
 ## 4. Considerazioni finali
 
@@ -8278,3 +8301,958 @@ I progressivi definitivi del progetto alla chiusura della S027 sono:
 | **Totale progetto** | **186 h 15 min** |
 
 La Sessione S027 è conclusa sia nella fase di sviluppo sia nella fase documentale.
+
+---
+
+# Sessione S028 — Write Path autoritativo di `plantings`
+
+## Obiettivo della sessione
+
+La Sessione S028 è stata dedicata al completamento del modello persistente e del Write Path autoritativo di:
+
+```text
+plantings
+```
+
+L'obiettivo era portare il dominio delle coltivazioni reali dal precedente stato applicativo parzialmente legacy a un contratto coerente con il Database V1, comprendente:
+
+- modello persistente PostgreSQL/Supabase;
+- relazioni autoritative con il resto del dominio;
+- Profile Write Authority;
+- concorrenza ottimistica;
+- RPC dedicate;
+- lifecycle server-side;
+- geometria dell'occupazione;
+- controllo delle sovrapposizioni;
+- compatibilità con la geometria storicizzata delle aiuole;
+- modello Flutter;
+- Repository Layer;
+- UI di creazione e modifica;
+- test automatici.
+
+La sessione non comprendeva:
+
+- UI amministrativa completa del Catalogo V1;
+- hard delete ordinario delle coltivazioni;
+- gestione completa UI del lifecycle;
+- statistiche di raccolto;
+- rese effettive;
+- costi e ricavi;
+- irrigazione;
+- redesign generale dell'applicazione.
+
+## Timing dello sviluppo
+
+La fase sviluppo della Sessione S028 è iniziata il:
+
+> **15/09/2026 alle 09:03**
+
+Primo giorno di sviluppo:
+
+```text
+15/09/2026
+tempo netto: 5 h 54 min
+```
+
+Durante la giornata è stata esclusa dal conteggio la sospensione:
+
+```text
+13:27 → 15:15
+=
+1 h 48 min
+```
+
+La sessione è proseguita il:
+
+> **16/09/2026**
+
+Secondo giorno di sviluppo:
+
+```text
+16/09/2026
+tempo netto: 3 h 10 min
+```
+
+Durante la giornata è stata esclusa dal conteggio la sospensione:
+
+```text
+12:49 → 14:29
+=
+1 h 40 min
+```
+
+La fase sviluppo S028 è stata chiusa il:
+
+> **16/09/2026 alle 15:37**
+
+Il tempo netto complessivo di sviluppo della Sessione S028 è:
+
+```text
+5 h 54 min
++
+3 h 10 min
+=
+9 h 04 min
+```
+
+## Modello autoritativo di `plantings`
+
+La Sessione S028 introduce nello schema Database V1 il modello persistente autoritativo di:
+
+```text
+public.plantings
+```
+
+La struttura comprende:
+
+```text
+id
+profile_id
+garden_id
+season_id
+bed_id
+crop_id
+variety_id
+start_method
+start_date
+end_date
+start_position_cm
+length_cm
+plant_spacing_cm
+row_spacing_cm
+rows_count
+occupied_width_cm
+plants_count
+seed_quantity_g
+status
+notes
+created_at
+updated_at
+row_version
+```
+
+Il modello collega ogni coltivazione al relativo contesto:
+
+```text
+Profile
+Garden
+Season
+Bed
+Crop
+CropVariety opzionale
+```
+
+Le relazioni vengono verificate lato database mediante vincoli e controlli server-side.
+
+## Migration S028
+
+Sono state introdotte le migration:
+
+```text
+supabase/migrations/20260915080700_add_plantings_authoritative_model.sql
+supabase/migrations/20260915081444_add_plantings_write_rpcs.sql
+```
+
+La prima migration introduce il modello persistente autoritativo di `plantings`.
+
+La seconda introduce il relativo Write Path server-side e rafforza l'integrazione con la geometria delle aiuole.
+
+## Metodi di avvio
+
+I valori persistenti approvati per:
+
+```text
+start_method
+```
+
+sono:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
+
+Il precedente valore:
+
+```text
+manual
+```
+
+non costituisce un metodo agronomico persistente.
+
+Rimane esclusivamente un concetto applicativo relativo alla gestione manuale del posizionamento e della geometria.
+
+## Regole metodo-dipendenti
+
+Per:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+```
+
+sono obbligatori:
+
+```text
+plants_count
+plant_spacing_cm
+```
+
+mentre:
+
+```text
+seed_quantity_g
+```
+
+deve essere `NULL`.
+
+`rows_count` e `row_spacing_cm` devono essere:
+
+```text
+entrambi NULL
+```
+
+oppure:
+
+```text
+entrambi valorizzati
+```
+
+Per:
+
+```text
+direct_rows
+```
+
+sono obbligatori:
+
+```text
+rows_count
+row_spacing_cm
+```
+
+e possono essere valorizzati, quando coerenti:
+
+```text
+plants_count
+plant_spacing_cm
+seed_quantity_g
+```
+
+Per:
+
+```text
+direct_broadcast
+```
+
+è obbligatorio:
+
+```text
+seed_quantity_g
+```
+
+mentre devono essere `NULL`:
+
+```text
+rows_count
+row_spacing_cm
+plant_spacing_cm
+plants_count
+```
+
+## Geometria della coltivazione
+
+La posizione longitudinale della coltivazione è rappresentata mediante:
+
+```text
+start_position_cm
+```
+
+La lunghezza occupata è rappresentata mediante:
+
+```text
+length_cm
+```
+
+La larghezza pratica assegnata è rappresentata mediante:
+
+```text
+occupied_width_cm
+```
+
+Non viene introdotta una coordinata trasversale iniziale separata.
+
+L'intervallo longitudinale della coltivazione utilizza la semantica half-open:
+
+```text
+[start_position_cm, start_position_cm + length_cm)
+```
+
+Questa regola permette a due coltivazioni di toccarsi sul confine senza essere considerate sovrapposte.
+
+## Sesti e dimensionamento
+
+La larghezza richiesta dalle file deve rispettare:
+
+```text
+(rows_count - 1) * row_spacing_cm <= occupied_width_cm
+```
+
+La lunghezza richiesta dalle piante deve rispettare:
+
+```text
+(plants_count - 1) * plant_spacing_cm <= length_cm
+```
+
+Durante la Sessione S028 è stata corretta l'implementazione Flutter affinché questo secondo controllo utilizzi:
+
+```text
+plants_count
+```
+
+come numero totale di piante.
+
+Il valore UI:
+
+```text
+Piante per fila
+```
+
+rimane quindi esclusivamente informativo e non costituisce la base autoritativa del calcolo della lunghezza.
+
+È stata inoltre eliminata una precedente limitazione UI che poteva mascherare una larghezza delle file superiore allo spazio realmente disponibile.
+
+## Date
+
+`start_date` rappresenta:
+
+> il giorno in cui inizia realmente l'occupazione fisica dell'aiuola.
+
+`start_date` non può essere futuro.
+
+`end_date` deve essere:
+
+```text
+NULL
+```
+
+durante gli stati intermedi.
+
+Diventa obbligatorio negli stati terminali:
+
+```text
+finished
+removed
+```
+
+e deve rispettare:
+
+```text
+end_date >= start_date
+```
+
+oltre a non poter essere futuro.
+
+## Lifecycle autoritativo
+
+Gli stati previsti sono:
+
+```text
+sown
+growing
+harvest_ready
+harvested
+finished
+removed
+```
+
+Le transizioni ammesse sono:
+
+```text
+sown
+  → growing
+  → removed
+
+growing
+  → harvest_ready
+  → removed
+
+harvest_ready
+  → harvested
+  → removed
+
+harvested
+  → finished
+  → removed
+
+finished
+  → nessuna transizione
+
+removed
+  → nessuna transizione
+```
+
+Lo stato iniziale dipende dal metodo di avvio.
+
+Per:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+```
+
+lo stato iniziale è:
+
+```text
+growing
+```
+
+Per:
+
+```text
+direct_rows
+direct_broadcast
+```
+
+lo stato iniziale è:
+
+```text
+sown
+```
+
+Lo stato:
+
+```text
+harvested
+```
+
+non libera l'aiuola.
+
+La coltivazione continua quindi a occupare spazio fino alla transizione verso:
+
+```text
+finished
+```
+
+oppure:
+
+```text
+removed
+```
+
+## Sovrapposizioni
+
+Una nuova coltivazione o una modifica viene rifiutata quando esistono contemporaneamente:
+
+```text
+sovrapposizione temporale
++
+sovrapposizione longitudinale
+```
+
+La sola sovrapposizione temporale non è sufficiente.
+
+La sola sovrapposizione longitudinale non è sufficiente.
+
+Devono verificarsi entrambe.
+
+La semantica utilizzata è coerente con intervalli half-open.
+
+## Compatibilità con la geometria storicizzata
+
+Una coltivazione deve risultare compatibile con tutte le geometrie dell'aiuola temporalmente sovrapposte al periodo di occupazione della coltivazione.
+
+Sono state rafforzate le RPC:
+
+```text
+change_bed_geometry
+correct_bed_geometry
+```
+
+per impedire che una variazione della geometria renda incompatibili coltivazioni già persistite.
+
+È stato introdotto il nuovo risultato:
+
+```text
+blocked_by_plantings
+```
+
+## Write Path autoritativo
+
+Sono state introdotte le RPC:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+### `create_planting`
+
+Gli esiti previsti comprendono:
+
+```text
+created
+forbidden
+write_forbidden
+not_found
+invalid_input
+blocked_by_inactive_garden
+blocked_by_inactive_bed
+blocked_by_inactive_crop
+blocked_by_inactive_variety
+outside_bed_geometry
+overlap
+```
+
+### `update_planting`
+
+Gli esiti previsti comprendono:
+
+```text
+updated
+unchanged
+version_conflict
+forbidden
+write_forbidden
+not_found
+invalid_input
+blocked_by_inactive_crop
+blocked_by_inactive_variety
+start_method_locked
+start_date_locked
+outside_bed_geometry
+overlap
+```
+
+Rimangono immutabili tramite `update_planting`:
+
+```text
+id
+profile_id
+garden_id
+bed_id
+```
+
+`start_method` e `start_date` possono essere modificati soltanto quando la coltivazione si trova negli stati iniziali ammessi dal contratto.
+
+La gestione del lifecycle e di `end_date` rimane separata dall'aggiornamento ordinario.
+
+### `set_planting_status`
+
+Gli esiti previsti comprendono:
+
+```text
+updated
+unchanged
+version_conflict
+forbidden
+write_forbidden
+not_found
+invalid_input
+invalid_transition
+```
+
+La RPC costituisce il percorso autoritativo dedicato alle transizioni lifecycle.
+
+## Profile Write Authority
+
+La Profile Write Authority rimane il prerequisito delle scritture protette.
+
+Il controllo applicativo Flutter opera come preflight preventivo.
+
+L'autorità definitiva rimane server-side.
+
+Il comportamento rimane:
+
+```text
+fail-closed
+```
+
+in assenza di un contesto di scrittura valido.
+
+## Concorrenza
+
+La concorrenza ottimistica utilizza:
+
+```text
+row_version
+```
+
+e, quando previsto dal contratto della RPC:
+
+```text
+expected_row_version
+```
+
+Il client non esegue sovrascritture automatiche in presenza di:
+
+```text
+version_conflict
+```
+
+## Hard delete
+
+La Sessione S028 non introduce una normale RPC di eliminazione definitiva di `plantings`.
+
+Il normale ciclo operativo utilizza:
+
+```text
+finished
+removed
+```
+
+L'eventuale hard delete rimane classificato:
+
+```text
+FUTURE
+```
+
+e dovrà essere disponibile esclusivamente come operazione amministrativa o tecnica eccezionale per correggere record inseriti per errore.
+
+Non dovrà essere disponibile nel normale flusso operativo dell'orto.
+
+## Integrazione Flutter
+
+È stato introdotto:
+
+```text
+lib/core/write_authority/planting_write_result.dart
+```
+
+Sono stati aggiornati:
+
+```text
+lib/data/models/planting.dart
+lib/data/repositories/planting_repository.dart
+lib/pages/add_planting_page.dart
+lib/pages/bed_page.dart
+lib/pages/garden_page.dart
+lib/widgets/garden/garden_map.dart
+lib/widgets/planting_card.dart
+lib/services/rotation_engine.dart
+```
+
+## `PlantingRepository`
+
+`PlantingRepository` espone:
+
+```text
+getPlantingsByBed
+createPlanting
+updatePlanting
+setPlantingStatus
+```
+
+Le scritture utilizzano esclusivamente le RPC autoritative.
+
+Il Repository non introduce un normale percorso applicativo di hard delete.
+
+## `AddPlantingPage`
+
+`AddPlantingPage` è stata riallineata al contratto S028.
+
+La pagina gestisce:
+
+- i quattro metodi di avvio canonici;
+- `start_date`;
+- numero di piante;
+- distanza tra le piante;
+- numero di file;
+- distanza tra le file;
+- lunghezza occupata;
+- larghezza occupata;
+- quantità di seme;
+- validazioni metodo-dipendenti;
+- controllo delle date future;
+- geometria coerente con il database;
+- gestione tipizzata degli esiti RPC.
+
+Per:
+
+```text
+direct_rows
+```
+
+la lunghezza può essere specificata manualmente.
+
+Per:
+
+```text
+direct_broadcast
+```
+
+la gestione è basata sull'area occupata e sulla quantità di seme.
+
+La logica Flutter è stata corretta affinché il dimensionamento autoritativo utilizzi il numero totale di piante in coerenza con database e RPC.
+
+## Dependency Injection
+
+Per migliorare la testabilità di `AddPlantingPage` sono state predisposte dipendenze iniettabili per:
+
+```text
+CropRepository
+CropAssociationRepository
+SeasonRepository
+```
+
+mantenendo i Repository reali come fallback nel comportamento di produzione.
+
+## Test introdotti e aggiornati
+
+Sono stati introdotti:
+
+```text
+test/data/models/planting_test.dart
+test/data/repositories/planting_repository_write_test.dart
+test/pages/add_planting_page_test.dart
+```
+
+Sono stati inoltre aggiornati test relativi a:
+
+- spazio libero;
+- association engine;
+- bed analysis;
+- rotation engine;
+- `GardenMap`;
+- `GardenPage`;
+- `CreateBedPage`;
+- componenti che dipendono dal nuovo contratto `Planting`.
+
+I test dedicati ad `AddPlantingPage` hanno prodotto:
+
+```text
+4/4 test superati
+```
+
+## Verifiche database
+
+È stata eseguita la ricostruzione completa locale mediante:
+
+```text
+supabase db reset
+```
+
+con esito positivo.
+
+È stato inoltre eseguito:
+
+```text
+supabase db lint --local
+```
+
+con risultato:
+
+```text
+nessun errore di schema
+```
+
+## Verifiche Flutter
+
+`flutter analyze` ha restituito:
+
+```text
+No issues found!
+```
+
+La suite completa ha prodotto:
+
+```text
++997: All tests passed!
+```
+
+Il totale finale è quindi:
+
+```text
+997/997 test superati
+```
+
+## Versionamento
+
+La versione pubblica precedente era:
+
+```text
+0.1.18-alpha
+```
+
+La Sessione S028 modifica sia il Database V1 sia il client Flutter.
+
+La nuova versione pubblica è quindi:
+
+```text
+0.1.19-alpha
+```
+
+e la versione Flutter viene aggiornata a:
+
+```text
+0.1.19-alpha+4
+```
+
+## APPROVATO / CONGELATO
+
+Con la conclusione dello sviluppo S028 vengono considerati consolidati:
+
+- modello persistente autoritativo di `plantings`;
+- relazioni con Profile, Garden, Season, Bed, Crop e Variety;
+- quattro `start_method` persistenti canonici;
+- validazioni metodo-dipendenti;
+- semantica half-open dell'occupazione longitudinale;
+- controllo congiunto degli overlap temporali e longitudinali;
+- compatibilità con la geometria storicizzata dell'aiuola;
+- esito `blocked_by_plantings`;
+- lifecycle server-side;
+- significato di `harvested` come stato ancora occupante;
+- `finished` e `removed` come stati terminali che liberano l'aiuola;
+- Write Path RPC-only;
+- Profile Write Authority fail-closed;
+- concorrenza ottimistica mediante `row_version`;
+- `PlantingRepository`;
+- result type tipizzati;
+- riallineamento di `AddPlantingPage`;
+- riallineamento dei componenti Flutter dipendenti dal modello `Planting`;
+- assenza di un normale hard delete applicativo.
+
+## Commit tecnico S028
+
+Il commit tecnico conclusivo della Sessione S028 è:
+
+```text
+3f81241 — Implementa Write Path autoritativo plantings S028
+```
+
+SHA completo:
+
+```text
+3f81241d002891c79234d87778688b7000f5c401
+```
+
+Il commit è stato pubblicato sul repository remoto.
+
+## Stato Git al termine dello sviluppo
+
+Al termine della fase sviluppo:
+
+```text
+branch: main
+
+HEAD:
+3f81241d002891c79234d87778688b7000f5c401
+
+origin/main:
+3f81241d002891c79234d87778688b7000f5c401
+
+working tree:
+clean
+```
+
+Il repository locale e quello remoto risultavano sincronizzati.
+
+## APERTO / FUTURE
+
+Restano fuori dal perimetro tecnico completato della S028:
+
+1. UI completa del lifecycle di `plantings`;
+
+2. selezione facoltativa della varietà attiva associata alla coltura;
+
+3. gestione esplicita di `end_date` nella UI per:
+   - `finished`;
+   - `removed`;
+
+4. gestione UI delle sole transizioni lifecycle ammesse;
+
+5. gestione esplicita degli esiti di conflitto e delle transizioni non valide;
+
+6. refresh completo di aiuola, planting card e spazio libero dopo una transizione;
+
+7. progressiva rimozione delle dipendenze legacy residue;
+
+8. UI amministrativa completa del Catalogo V1;
+
+9. operazioni amministrative protette su `profile_memberships`;
+
+10. futura persistenza delle ulteriori entità del Database V1;
+
+11. hard delete amministrativo o tecnico eccezionale di `plantings`, escluso dal normale flusso operativo.
+
+## Pianificazione preliminare successiva
+
+È stata definita preliminarmente la seguente possibile sessione successiva:
+
+```text
+S029 — Lifecycle e varietà delle coltivazioni
+```
+
+Lo stato è:
+
+```text
+APPROVATO PRELIMINARMENTE
+NON INIZIATO
+```
+
+Il perimetro preliminare comprende:
+
+- selezione opzionale della varietà;
+- visualizzazione delle transizioni lifecycle consentite;
+- gestione degli stati terminali;
+- gestione esplicita di `end_date`;
+- proposta del giorno corrente come valore iniziale della data finale, mantenendola modificabile;
+- mantenimento dell'occupazione durante `harvested`;
+- rilascio dello spazio soltanto mediante `finished` o `removed`;
+- gestione degli esiti RPC;
+- refresh dopo le transizioni;
+- test dedicati.
+
+Restano esplicitamente fuori:
+
+- hard delete ordinario;
+- correzioni amministrative avanzate;
+- statistiche di raccolto;
+- rese effettive;
+- costi;
+- ricavi;
+- irrigazione;
+- modifiche architetturali estese;
+- redesign generale;
+- UI amministrativa completa del Catalogo V1.
+
+La Sessione S029 non è ancora iniziata.
+
+# Timing della documentazione
+
+La fase Manuali S028 è iniziata il:
+
+> **17/09/2026 alle 09:01**
+
+La fase Manuali S028 è stata chiusa il:
+
+> **17/09/2026 alle 11:17**
+
+Il tempo documentale complessivo della Sessione S028 è:
+
+```text
+09:01 → 11:17
+=
+2 h 16 min
+```
+
+## Progressivi definitivi S028
+
+| Attività | Durata |
+|----------|-------:|
+| Sviluppo S028 | 9 h 04 min |
+| Documentazione S028 | 2 h 16 min |
+| **Totale S028** | **11 h 20 min** |
+
+I progressivi definitivi del progetto alla chiusura della S028 sono:
+
+| Indicatore | Totale |
+|------------|-------:|
+| Sviluppo complessivo | 146 h 14 min |
+| Documentazione complessiva | 51 h 21 min |
+| **Totale progetto** | **197 h 35 min** |
+
+La Sessione S028 è conclusa sia nella fase di sviluppo sia nella fase documentale.

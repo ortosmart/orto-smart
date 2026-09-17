@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 2.0
+**Versione:** 2.1
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 13/09/2026
+**Ultimo aggiornamento:** 17/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 2.0 |
+| Versione | 2.1 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 13/09/2026 |
+| Ultimo aggiornamento | 17/09/2026 |
 
 ---
 
@@ -47,6 +47,7 @@
 | 1.8 | 03/09/2026 | Manutenzione straordinaria del Manuale Database: chiarimento della distinzione tra componenti legacy e schema Database V1 implementato, documentazione dell'assenza corrente di `public.plantings` e separazione delle otto tabelle di dominio dalla struttura tecnica `profile_edit_locks` |
 | 1.9 | 11/09/2026 | Aggiornamento con la Sessione S026: implementazione del Catalogo DB V1 costituito da `botanical_families`, `crops` e `crop_varieties`, introduzione dei relativi Write Path autoritativi, validazioni agronomiche e gerarchiche, concorrenza ottimistica, Profile Write Authority, RLS, revoca delle scritture dirette e allineamento delle migration locale/remoto |
 | 2.0 | 13/09/2026 | Aggiornamento con la Sessione S027: integrazione Flutter del Catalogo DB V1 mediante `BotanicalFamily`, `Crop` e `CropVariety`, introduzione e riallineamento dei Repository dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, result type tipizzati, compatibilità legacy temporanea e verifica applicativa con 914/914 test superati |
+| 2.1 | 17/09/2026 | Aggiornamento con la Sessione S028: implementazione del modello autoritativo di `plantings`, introduzione delle migration dedicate e delle RPC `create_planting`, `update_planting` e `set_planting_status`, lifecycle autoritativo, vincoli metodo-dipendenti, sovrapposizione spaziale e temporale half-open, integrazione con la geometria storicizzata delle aiuole, protezione delle variazioni geometriche mediante `blocked_by_plantings`, Profile Write Authority, concorrenza ottimistica e verifica finale del database e dell'applicazione |
 
 ---
 
@@ -101,7 +102,7 @@ supabase/migrations/20260817103916_database_v1_baseline.sql
 
 Da allora l'implementazione procede per incrementi verificabili.
 
-Alla conclusione della Sessione S027 risultano, tra gli altri, implementati:
+Alla conclusione della Sessione S028 risultano, tra gli altri, implementati:
 
 - Fondazioni Database V1;
 - protocollo `profile_edit_locks`;
@@ -114,27 +115,78 @@ Alla conclusione della Sessione S027 risultano, tra gli altri, implementati:
   - `crops`;
   - `crop_varieties`;
 - nove RPC autoritative del catalogo;
-- integrazione Flutter del Catalogo V1 tramite modelli, Repository, result type e mapping tipizzato.
+- integrazione Flutter del Catalogo V1 tramite modelli, Repository, result type e mapping tipizzato;
+- modello persistente autoritativo di `plantings`;
+- Write Path autoritativo di `plantings`;
+- lifecycle server-side delle coltivazioni;
+- integrazione Flutter necessaria alla creazione e modifica delle coltivazioni.
 
-La Sessione S027 non ha introdotto nuove migration.
-
-Le migration locali e remote rimangono allineate fino a:
+La Sessione S028 ha introdotto le migration:
 
 ```text
-20260911091047_add_crop_catalog_write_rpcs.sql
+20260915080700_add_plantings_authoritative_model.sql
+20260915081444_add_plantings_write_rpcs.sql
+```
+
+e le RPC:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+`public.plantings` è quindi presente nello schema Database V1 implementato.
+
+Il Write Path di `plantings` applica:
+
+- Profile Write Authority;
+- controllo server-side delle relazioni;
+- validazioni metodo-dipendenti;
+- controllo della geometria;
+- controllo delle sovrapposizioni spaziali e temporali;
+- lifecycle autoritativo;
+- concorrenza ottimistica mediante `row_version`;
+- comportamento fail-closed.
+
+Le variazioni della geometria delle aiuole sono inoltre protette rispetto alle coltivazioni esistenti mediante il possibile esito:
+
+```text
+blocked_by_plantings
+```
+
+La verifica finale S028 ha confermato:
+
+```text
+supabase db reset
+success
+```
+
+```text
+supabase db lint --local
+No schema errors found
+```
+
+```text
+flutter analyze
+No issues found!
+```
+
+```text
+flutter test
+997 tests passed
 ```
 
 Il Database V1 non è ancora completamente implementato.
 
-In particolare:
-
-```text
-public.plantings
-```
-
-non è ancora presente nello schema corrente.
-
 La UI amministrativa dedicata al Catalogo V1 non è ancora implementata.
+
+Per `plantings` rimangono inoltre da completare, lato applicativo:
+
+- UI completa del lifecycle;
+- selezione della varietà;
+- gestione esplicita di `end_date` nelle transizioni terminali;
+- progressiva eliminazione delle dipendenze legacy residue.
 
 Il presente manuale documenta quindi sia la **baseline congelata** sia lo **stato effettivamente raggiunto**, mantenendo distinta la progettazione completa dall'implementazione progressiva.
 
@@ -148,35 +200,26 @@ Il progetto Orto Smart si trova in una fase di transizione tra il database opera
 
 L'applicazione utilizza **Supabase**, basato su PostgreSQL, come backend persistente.
 
-Nel codice applicativo sono presenti componenti appartenenti a fasi evolutive differenti del progetto.
+Nel codice applicativo sono presenti componenti appartenenti a fasi evolutive differenti del progetto, ma dalla Sessione S028 anche il dominio delle coltivazioni reali dispone di un modello persistente e di un Write Path autoritativo coerente con il Database V1.
 
-Le strutture del Database V1 già implementate e utilizzabili comprendono:
+Le strutture del Database V1 già implementate e utilizzabili comprendono, tra le altre:
 
 - `gardens`;
 - `beds`;
+- `bed_geometries`;
 - `seasons`;
 - `botanical_families`;
 - `crops`;
-- `crop_varieties`.
+- `crop_varieties`;
+- `plantings`.
 
-Rimangono inoltre componenti applicativi legacy collegati a funzionalità non ancora completamente migrate, in particolare per:
+Rimangono componenti applicativi legacy ancora utilizzati in alcuni flussi, in particolare per:
 
-- gestione delle piantagioni;
 - alcuni utilizzi storici dei dati delle colture;
 - motore di rotazione;
-- `AddPlantingPage`.
+- alias temporanei del Catalogo V1.
 
-La presenza di riferimenti applicativi non implica che tutte le corrispondenti tabelle della baseline Database V1 siano già disponibili nello schema ricostruito mediante le migration correnti.
-
-Alla conclusione della Sessione S027:
-
-```text
-public.plantings
-```
-
-non è ancora implementata nello schema Database V1.
-
-I componenti applicativi che tentano di utilizzarla possono pertanto continuare a ricevere `PGRST205` fino alla relativa implementazione mediante una futura migration.
+La presenza di componenti legacy non modifica il contratto persistente autoritativo delle strutture già migrate.
 
 La Sessione S026 ha completato il blocco propedeutico del **Catalogo DB V1**, introducendo nello schema reale:
 
@@ -188,7 +231,7 @@ crops
 crop_varieties
 ```
 
-La Sessione S027 ha completato la relativa integrazione Flutter mediante:
+La Sessione S027 ne ha completato l'integrazione Flutter mediante:
 
 - modello dedicato `BotanicalFamily`;
 - riallineamento di `Crop`;
@@ -202,11 +245,64 @@ La Sessione S027 ha completato la relativa integrazione Flutter mediante:
 - gestione di `row_version`;
 - result type e mapping esplicito degli status RPC.
 
-La S027 non ha introdotto nuove migration Supabase.
+La Sessione S028 ha quindi introdotto nello schema reale:
+
+```text
+public.plantings
+```
+
+mediante le migration:
+
+```text
+20260915080700_add_plantings_authoritative_model.sql
+20260915081444_add_plantings_write_rpcs.sql
+```
+
+La prima migration introduce e consolida il modello persistente autoritativo delle coltivazioni reali.
+
+La seconda introduce il relativo Write Path mediante:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+`plantings` è collegata esplicitamente al proprio contesto mediante:
+
+```text
+profile_id
+garden_id
+season_id
+bed_id
+crop_id
+variety_id
+```
+
+e conserva le informazioni necessarie a rappresentare:
+
+- metodo di avvio;
+- data di inizio dell'occupazione;
+- eventuale data di fine;
+- geometria longitudinale;
+- larghezza pratica occupata;
+- sesti;
+- quantità;
+- stato lifecycle;
+- note;
+- concorrenza tramite `row_version`.
+
+Il Write Path applica Profile Write Authority, validazioni server-side, vincoli relazionali, controllo della geometria, controllo delle sovrapposizioni e concorrenza ottimistica.
+
+Le operazioni Flutter ordinarie su `plantings` utilizzano il Repository Layer e le RPC autoritative senza eseguire scritture dirette sulla tabella.
+
+La UI amministrativa dedicata al Catalogo V1 non è ancora implementata.
+
+Il Database V1 completo non coincide ancora con l'intera baseline delle 52 entità progettate nella S017: l'implementazione fisica continua incrementalmente.
 
 Lo stato fisicamente implementato del Database V1 è riportato nel paragrafo 2.3 e deve essere distinto sia dalla baseline completa progettata sia dagli eventuali componenti legacy ancora presenti nel codice Flutter.
 
-La presenza di una entità nella baseline Database V1 non implica che la relativa tabella, relazione, policy o migration sia già stata realizzata in Supabase.
+La presenza di una entità nella baseline Database V1 non implica automaticamente che tutte le altre strutture, relazioni, policy o funzionalità appartenenti alla baseline siano già state implementate.
 
 ## 2.2 Database V1 progettato
 
@@ -240,11 +336,11 @@ e sostituisce la precedente denominazione provvisoria `zone_target_assignments`.
 
 ## 2.3 Stato di implementazione
 
-Al termine della Sessione S027 la situazione del Database V1 è la seguente:
+Al termine della Sessione S028 la situazione del Database V1 è la seguente:
 
 - la progettazione logica e architetturale completata nella S017 rimane la baseline ufficiale congelata;
 - l'ambiente locale Supabase predisposto nella S018 è operativo per sviluppo, ricostruzione e collaudo;
-- le migration locali e remote risultano allineate fino a `20260911091047`;
+- sono implementate migration versionate fino alle due migration S028 dedicate a `plantings`;
 - è implementato il gruppo **Fondazioni**;
 - sono presenti lo schema `private`, gli helper autorizzativi, i trigger metadata e la matrice RLS;
 - è completato e verificato il protocollo server-side `profile_edit_locks`;
@@ -256,19 +352,28 @@ Al termine della Sessione S027 la situazione del Database V1 è la seguente:
 - il catalogo è Profile-owned e condiviso tra tutti i Gardens appartenenti allo stesso Profile;
 - il Write Path autoritativo del catalogo è implementato mediante nove RPC dedicate di creazione, aggiornamento e variazione dello stato attivo;
 - le scritture dirette `INSERT`, `UPDATE` e `DELETE` su `botanical_families`, `crops` e `crop_varieties` sono revocate ad `authenticated`;
-- la lettura del catalogo è protetta mediante RLS e `private.is_profile_member(profile_id)`;
+- la lettura del catalogo è protetta mediante RLS;
 - le operazioni di modifica richiedono una Profile Write Authority valida;
-- la concorrenza ottimistica utilizza `row_version` ed `expected_row_version`;
+- la concorrenza ottimistica utilizza `row_version` ed `expected_row_version` quando previsto dal contratto;
 - i parent vengono lockati quando necessario per serializzare correttamente operazioni concorrenti sulle gerarchie padre/figlio;
 - le validazioni agronomiche e gerarchiche del catalogo vengono eseguite server-side;
 - il Catalogo DB V1 è integrato nel client Flutter;
 - sono implementati `BotanicalFamilyRepository`, `CropRepository` e `CropVarietyRepository`;
 - le letture Flutter del catalogo utilizzano direttamente la RLS;
 - le scritture Flutter del catalogo utilizzano esclusivamente le nove RPC autoritative;
-- nei Repository del catalogo non vengono utilizzate scritture dirette `.insert()`, `.update()`, `.delete()` o `.upsert()`;
 - il mapping degli esiti RPC è tipizzato e fail-closed;
-- `public.plantings` non è ancora presente nell'attuale schema implementato;
+- `public.plantings` è implementata nello schema Database V1;
+- il Write Path autoritativo di `plantings` è disponibile mediante `create_planting`, `update_planting` e `set_planting_status`;
+- `PlantingRepository` utilizza le RPC autoritative per le scritture ordinarie;
+- le coltivazioni utilizzano Profile Write Authority in modalità fail-closed;
+- `plantings` utilizza `row_version` per la concorrenza ottimistica;
+- la geometria delle coltivazioni viene verificata rispetto alla geometria valida dell'aiuola;
+- le sovrapposizioni vengono controllate considerando congiuntamente occupazione spaziale e temporale;
+- le modifiche alla geometria delle aiuole sono protette rispetto alle coltivazioni esistenti;
+- `change_bed_geometry` e `correct_bed_geometry` possono restituire `blocked_by_plantings`;
+- il lifecycle autoritativo delle coltivazioni è implementato server-side;
 - la UI amministrativa dedicata al Catalogo V1 non è ancora implementata;
+- la gestione UI completa del lifecycle di `plantings` rimane un incremento successivo;
 - il Database V1 completo non è ancora implementato.
 
 Le strutture applicative e di dominio attualmente implementate comprendono:
@@ -285,6 +390,7 @@ bed_geometry_corrections
 botanical_families
 crops
 crop_varieties
+plantings
 ```
 
 A queste si aggiunge la struttura tecnica separata:
@@ -293,158 +399,57 @@ A queste si aggiunge la struttura tecnica separata:
 profile_edit_locks
 ```
 
-Le migration introdotte nella Sessione S024 sono:
+Le migration principali introdotte dalla Sessione S024 sono:
 
 ```text
 20260830091156_add_beds_and_geometry_history.sql
 20260830095426_add_beds_write_rpcs.sql
-20260830101354_add_update_bed_rpc.sql
-20260830103544_add_set_bed_active_rpc.sql
-20260830133429_add_change_bed_geometry_rpc.sql
-20260830140235_add_correct_bed_geometry_rpc.sql
+20260830101354_add_bed_geometry_write_rpcs.sql
+20260830103544_add_bed_geometry_corrections.sql
+20260830133429_harden_bed_geometry_write_rpcs.sql
 ```
 
-La prima migration della S024 introduce l'identità stabile delle aiuole, la geometria storicizzata e il registro delle correzioni.
-
-Le cinque migration successive implementano progressivamente le RPC autoritative di creazione, aggiornamento, variazione dello stato attivo, cambio ordinario della geometria e correzione geometrica.
-
-Le migration introdotte nella Sessione S026 sono:
+Le migration del Catalogo DB V1 introdotte nella Sessione S026 sono:
 
 ```text
 20260911084752_add_crop_catalog.sql
 20260911091047_add_crop_catalog_write_rpcs.sql
 ```
 
-La prima migration della S026 introduce:
-
-- `botanical_families`;
-- `crops`;
-- `crop_varieties`;
-- i relativi vincoli;
-- gli indici;
-- i trigger metadata;
-- la RLS;
-- i privilegi.
-
-La seconda migration introduce le nove RPC autoritative del Catalogo DB V1:
+Le migration di `plantings` introdotte nella Sessione S028 sono:
 
 ```text
-create_botanical_family
-update_botanical_family
-set_botanical_family_active
-
-create_crop
-update_crop
-set_crop_active
-
-create_crop_variety
-update_crop_variety
-set_crop_variety_active
+20260915080700_add_plantings_authoritative_model.sql
+20260915081444_add_plantings_write_rpcs.sql
 ```
 
-I test SQL della Sessione S026 hanno verificato, mediante dati fittizi e transazioni `BEGIN ... ROLLBACK`, il comportamento positivo e negativo delle operazioni principali, comprese:
-
-- normalizzazione degli input;
-- unicità case-insensitive;
-- validazioni agronomiche;
-- validazioni gerarchiche;
-- stato attivo e riattivazione;
-- concorrenza ottimistica;
-- `version_conflict`;
-- fallback Crop → Variety;
-- validazione del fabbisogno idrico quantitativo;
-- validazione della resa;
-- coerenza delle temperature effettive dopo fallback;
-- Profile Write Authority;
-- RLS;
-- privilegi di esecuzione delle RPC.
-
-Per `botanical_families`, `crops` e `crop_varieties`, il ruolo `authenticated` dispone della lettura regolata da RLS ma non dei privilegi diretti di `INSERT`, `UPDATE` o `DELETE`.
-
-Le nove RPC autoritative risultano eseguibili da `authenticated` e non da `anon` o `public`.
-
-La Sessione S026 ha inoltre verificato:
+La verifica S028 ha confermato la ricostruibilità e la coerenza dello schema mediante:
 
 ```text
-supabase db lint --local
-```
-
-senza introdurre nuovi problemi.
-
-Restano esclusivamente tre warning preesistenti nella funzione `public.request_profile_edit_takeover`.
-
-Il controllo:
-
-```text
-supabase db diff --local
-```
-
-ha restituito:
-
-```text
-No schema changes found
-```
-
-Le migration della S026 sono state applicate anche al database Supabase remoto e la successiva verifica mediante:
-
-```text
-supabase migration list
-```
-
-ha confermato l'allineamento locale/remoto fino a:
-
-```text
-20260911091047
-```
-
-La Sessione S027 non ha introdotto migration né modifiche allo schema PostgreSQL/Supabase.
-
-Ha invece completato l'integrazione Flutter del Catalogo V1 mediante:
-
-```text
-BotanicalFamily
-Crop
-CropVariety
+supabase db reset
+success
 ```
 
 e:
 
 ```text
-BotanicalFamilyRepository
-CropRepository
-CropVarietyRepository
+supabase db lint --local
+No schema errors found
 ```
 
-con:
-
-- UUID rappresentati come `String`;
-- Profile ownership;
-- letture protette da RLS;
-- scritture RPC-only;
-- Profile Write Authority fail-closed;
-- gestione di `row_version`;
-- mapping completo degli status RPC;
-- result type dedicati;
-- compatibilità legacy temporanea e non persistente.
-
-La verifica S027 ha prodotto:
+Sul lato Flutter la verifica completa ha inoltre prodotto:
 
 ```text
-124 test mirati superati
-914 test complessivi superati
-flutter analyze: No issues found
+flutter analyze
+No issues found!
 ```
 
-Le sessioni da S019 a S027 rappresentano quindi la progressiva traduzione della baseline congelata in strutture, sicurezza, operazioni server-side e integrazione applicativa verificata.
+e:
 
-Il Catalogo DB V1 costituisce il prerequisito strutturale per la futura implementazione di `plantings`.
-
-Alla conclusione della S027 restano distinti due incrementi tecnici aperti:
-
-1. UI minima di gestione del Catalogo V1;
-2. Write Path autoritativo di `plantings`.
-
-Le operazioni amministrative protette su `profile_memberships` e le ulteriori entità ancora mancanti della baseline restano incrementi successivi.
+```text
+flutter test
+997 tests passed
+```
 
 ---
 
@@ -452,7 +457,7 @@ Le operazioni amministrative protette su `profile_memberships` e le ulteriori en
 
 La progettazione del Database V1 è stata guidata da un insieme di principi architetturali destinati a preservare coerenza, tracciabilità, efficienza e possibilità di evoluzione.
 
-## 3.1 Separazione tra pianificazione e realt�
+## 3.1 Separazione tra pianificazione e realt�
 
 Orto Smart distingue formalmente ciò che viene pianificato da ciò che viene realmente eseguito.
 
@@ -769,8 +774,8 @@ Le due entità rappresentano concetti distinti.
 Questa distinzione preserva la separazione tra:
 
 ```text
-preferenza / priorit�
-        �
+preferenza / priorit�
+        �
 fabbisogno quantitativo nel tempo
 ```
 
@@ -839,7 +844,7 @@ La separazione fondamentale rimane:
 
 ```text
 Task
-        �
+        �
 WorkLog
 ```
 
@@ -851,9 +856,357 @@ Un task descrive ciò che deve essere fatto; un work log registra ciò che è st
 34. `work_logs`
 35. `work_log_targets`
 
-`plantings` rappresenta ciò che viene realmente coltivato e deve rimanere distinta dalla pianificazione contenuta in `planned_plantings`.
+`plantings` rappresenta ciò che viene realmente coltivato e rimane semanticamente distinta dalla pianificazione contenuta in `planned_plantings`.
 
-Una `PlannedPlanting` può originare **0..N Plantings**.
+Una `PlannedPlanting` può originare:
+
+```text
+0..N Plantings
+```
+
+Dalla Sessione S028 `public.plantings` è implementata fisicamente nel Database V1 e dispone di un proprio Write Path autoritativo.
+
+Il contesto di ogni coltivazione viene rappresentato mediante:
+
+```text
+id
+profile_id
+garden_id
+season_id
+bed_id
+crop_id
+variety_id
+```
+
+`variety_id` può essere assente quando la coltivazione viene registrata soltanto a livello di coltura.
+
+Il modello persistente comprende inoltre:
+
+```text
+start_method
+start_date
+end_date
+start_position_cm
+length_cm
+plant_spacing_cm
+row_spacing_cm
+rows_count
+occupied_width_cm
+plants_count
+seed_quantity_g
+status
+notes
+created_at
+updated_at
+row_version
+```
+
+## Metodi di avvio
+
+I valori persistiti ammessi per:
+
+```text
+start_method
+```
+
+sono:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
+
+Il precedente valore UI:
+
+```text
+manual
+```
+
+non costituisce un metodo agronomico persistito.
+
+Le validazioni dipendono dal metodo di avvio.
+
+Per:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+```
+
+sono richiesti:
+
+```text
+plants_count
+plant_spacing_cm
+```
+
+mentre:
+
+```text
+seed_quantity_g
+```
+
+deve essere nullo.
+
+`rows_count` e `row_spacing_cm` devono risultare entrambi null oppure entrambi valorizzati.
+
+Per:
+
+```text
+direct_rows
+```
+
+sono richiesti:
+
+```text
+rows_count
+row_spacing_cm
+```
+
+mentre possono essere presenti, quando coerenti:
+
+```text
+plants_count
+plant_spacing_cm
+seed_quantity_g
+```
+
+Per:
+
+```text
+direct_broadcast
+```
+
+devono essere null:
+
+```text
+rows_count
+row_spacing_cm
+plant_spacing_cm
+plants_count
+```
+
+ed è richiesto:
+
+```text
+seed_quantity_g
+```
+
+## Occupazione geometrica
+
+La geometria della coltivazione utilizza:
+
+```text
+start_position_cm
+length_cm
+occupied_width_cm
+```
+
+`start_position_cm` rappresenta la posizione longitudinale iniziale nell'aiuola.
+
+`length_cm` rappresenta la lunghezza longitudinale occupata.
+
+`occupied_width_cm` rappresenta la larghezza pratica assegnata alla coltivazione.
+
+Non viene persistita una coordinata trasversale di partenza.
+
+L'intervallo longitudinale utilizza semantica half-open:
+
+```text
+[start_position_cm, start_position_cm + length_cm)
+```
+
+Due coltivazioni possono quindi toccarsi esattamente sul confine senza essere considerate sovrapposte.
+
+Quando presenti, i sesti devono rispettare:
+
+```text
+(rows_count - 1) * row_spacing_cm <= occupied_width_cm
+```
+
+e:
+
+```text
+(plants_count - 1) * plant_spacing_cm <= length_cm
+```
+
+La seconda relazione utilizza il numero totale di piante, non un valore derivato di piante per fila.
+
+## Occupazione temporale
+
+`start_date` rappresenta l'inizio della reale occupazione fisica dell'aiuola.
+
+La data:
+
+- non può essere futura;
+- partecipa alla verifica della compatibilità con la geometria storicizzata dell'aiuola;
+- costituisce il limite iniziale dell'occupazione temporale.
+
+`end_date` rimane nullo mentre la coltivazione occupa ancora l'aiuola.
+
+È obbligatorio negli stati terminali:
+
+```text
+finished
+removed
+```
+
+e deve rispettare:
+
+```text
+end_date >= start_date
+```
+
+oltre a non poter essere futuro.
+
+La semantica temporale dell'occupazione è coerente con il modello half-open adottato per la geometria.
+
+## Lifecycle
+
+Gli stati persistiti sono:
+
+```text
+sown
+growing
+harvest_ready
+harvested
+finished
+removed
+```
+
+Le transizioni consentite sono:
+
+```text
+sown          -> growing | removed
+growing       -> harvest_ready | removed
+harvest_ready -> harvested | removed
+harvested     -> finished | removed
+finished      -> nessuna
+removed       -> nessuna
+```
+
+Lo stato iniziale dipende dal metodo.
+
+Per:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+```
+
+lo stato iniziale è:
+
+```text
+growing
+```
+
+Per:
+
+```text
+direct_rows
+direct_broadcast
+```
+
+lo stato iniziale è:
+
+```text
+sown
+```
+
+Lo stato:
+
+```text
+harvested
+```
+
+non chiude l'occupazione fisica dell'aiuola.
+
+La coltivazione continua quindi a partecipare ai controlli di occupazione fino al passaggio a:
+
+```text
+finished
+removed
+```
+
+## Sovrapposizioni
+
+Una sovrapposizione viene rifiutata quando coincidono contemporaneamente:
+
+1. occupazione temporale;
+2. occupazione longitudinale.
+
+La verifica tiene conto della geometria dell'aiuola valida durante l'intero periodo interessato dalla coltivazione.
+
+La protezione opera anche nel verso opposto: una variazione o correzione della geometria dell'aiuola non può rendere incompatibili coltivazioni già registrate.
+
+Le RPC:
+
+```text
+change_bed_geometry
+correct_bed_geometry
+```
+
+possono pertanto restituire:
+
+```text
+blocked_by_plantings
+```
+
+## Write Path
+
+Il Write Path autoritativo utilizza:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+`create_planting` concentra server-side:
+
+- autorizzazione;
+- Profile Write Authority;
+- controllo delle entità collegate;
+- stato attivo delle entità pertinenti;
+- validazione del metodo;
+- validazione delle quantità;
+- validazione geometrica;
+- validazione temporale;
+- controllo degli overlap.
+
+`update_planting` gestisce le modifiche ordinarie e utilizza la concorrenza ottimistica mediante `expected_row_version`.
+
+Rimangono immutabili:
+
+```text
+id
+profile_id
+garden_id
+bed_id
+```
+
+`start_method` e `start_date` possono essere modificati soltanto nelle fasi iniziali ammesse dal contratto.
+
+Il lifecycle e `end_date` sono separati dall'aggiornamento ordinario e vengono gestiti mediante:
+
+```text
+set_planting_status
+```
+
+La cancellazione fisica ordinaria non fa parte del normale lifecycle.
+
+La chiusura applicativa avviene mediante:
+
+```text
+finished
+removed
+```
+
+Un eventuale hard delete rimane riservato a futuri strumenti amministrativi o a correzioni eccezionali.
+
+---
 
 `work_logs` registra il lavoro realmente svolto.
 
@@ -1278,7 +1631,7 @@ La separazione permette di modificare dimensioni o configurazione fisica senza a
 
 Le ulteriori relazioni fisiche vengono rappresentate mediante entità dedicate quando possiedono una propria semantica o validità temporale.
 
-## 5.4 Pianificazione e realt�
+## 5.4 Pianificazione e realt�
 
 Uno dei principi centrali del Database V1 è la separazione tra ciò che viene pianificato e ciò che accade realmente.
 
@@ -1490,7 +1843,7 @@ Lo stesso principio guida le altre configurazioni temporali del Database V1.
 
 ## 6.3 Fatti realmente avvenuti
 
-Gli eventi reali rappresentano fatti storici.
+Gli eventi e le registrazioni reali rappresentano fatti storici.
 
 Rientrano in questa categoria, tra gli altri:
 
@@ -1505,7 +1858,53 @@ Rientrano in questa categoria, tra gli altri:
 
 Un fatto realmente avvenuto non deve essere trasformato retroattivamente in un fatto diverso soltanto perché una configurazione, una regola o una pianificazione è cambiata successivamente.
 
-Le eventuali correzioni devono rispettare la semantica UPDATE / VOID / DELETE definita per il Database V1 e le relative invarianti.
+Dalla Sessione S028 `plantings` costituisce anche un esempio concreto di questa regola.
+
+Una coltivazione conserva infatti:
+
+```text
+start_date
+```
+
+come data di inizio della reale occupazione fisica dell'aiuola e:
+
+```text
+end_date
+```
+
+come eventuale data di chiusura dell'occupazione negli stati terminali.
+
+Il lifecycle persistente utilizza:
+
+```text
+sown
+growing
+harvest_ready
+harvested
+finished
+removed
+```
+
+Lo stato:
+
+```text
+harvested
+```
+
+rappresenta un fatto reale già avvenuto ma non implica che la coltivazione abbia cessato di occupare fisicamente l'aiuola.
+
+Solo:
+
+```text
+finished
+removed
+```
+
+chiudono l'occupazione temporale e richiedono `end_date`.
+
+Le eventuali correzioni dei fatti storici devono rispettare la semantica UPDATE / VOID / DELETE definita per il Database V1 e le invarianti della specifica entità.
+
+Per `plantings` il normale lifecycle applicativo non utilizza hard delete: la chiusura ordinaria avviene mediante gli stati `finished` o `removed`.
 
 ## 6.4 Pianificazione e storia reale
 
@@ -1515,8 +1914,8 @@ Il principio fondamentale è:
 
 ```text
 pianificazione
-        �
-realt�
+        �
+realt�
 ```
 
 Per esempio:
@@ -1575,6 +1974,31 @@ Non deve essere aggiunto un orario artificiale a un'informazione che possiede so
 
 Allo stesso modo, un evento per il quale l'istante effettivo è significativo non deve essere ridotto a una semplice data.
 
+Il modello autoritativo di `plantings` introdotto nella Sessione S028 utilizza:
+
+```text
+start_date
+end_date
+```
+
+come date civili.
+
+`start_date` rappresenta il giorno nel quale inizia la reale occupazione fisica dell'aiuola e:
+
+- non può essere futuro;
+- partecipa al controllo della geometria valida nel tempo;
+- costituisce l'estremo iniziale dell'occupazione temporale.
+
+`end_date`:
+
+- rimane `NULL` negli stati che continuano a occupare l'aiuola;
+- è obbligatorio per `finished`;
+- è obbligatorio per `removed`;
+- deve rispettare `end_date >= start_date`;
+- non può essere futuro.
+
+La semantica temporale deve rimanere coerente con la natura civile delle due date e non deve introdurre timestamp artificiali quando il dominio richiede soltanto il giorno.
+
 ## 6.7 Timezone del Garden
 
 Ogni `Garden` deve disporre di una timezone espressa mediante identificatore **IANA**.
@@ -1601,11 +2025,11 @@ Il principio generale è:
 
 ```text
 dato sconosciuto
-        �
+        �
 zero
-        �
+        �
 false
-        �
+        �
 stringa vuota
 ```
 
@@ -1749,11 +2173,11 @@ Pertanto:
 
 ```text
 NULL
-        �
+        �
 0
-        �
+        �
 false
-        �
+        �
 ''
 ```
 
@@ -1896,7 +2320,7 @@ Il principio è:
 
 ```text
 Worker
-        �
+        �
 necessariamente account applicativo
 ```
 
@@ -1924,7 +2348,7 @@ Rimane pertanto valido che:
 
 ```text
 worker
-        �
+        �
 necessariamente utente autenticato
 ```
 
@@ -2822,7 +3246,7 @@ Il semplice possesso di identificativi formalmente validi non è sufficiente: de
 
 ## 10.3 Intervalli temporali
 
-Gli intervalli di validità che utilizzano:
+Gli intervalli di validità delle configurazioni che utilizzano:
 
 ```text
 [valid_from, valid_to)
@@ -2840,11 +3264,48 @@ quando `valid_to` è valorizzato.
 
 Non devono essere persistiti intervalli temporalmente impossibili.
 
+Dalla Sessione S028 il principio half-open viene applicato anche alla semantica di occupazione delle coltivazioni.
+
+Per la dimensione longitudinale:
+
+```text
+[start_position_cm, start_position_cm + length_cm)
+```
+
+rappresenta lo spazio occupato da una `planting`.
+
+Due intervalli possono quindi toccarsi esattamente sul confine senza sovrapporsi.
+
+Lo stesso principio viene applicato concettualmente all'occupazione temporale, così da distinguere in modo deterministico periodi contigui da periodi realmente sovrapposti.
+
+Per `plantings`:
+
+```text
+start_date
+```
+
+apre l'occupazione temporale.
+
+`end_date` la chiude soltanto negli stati terminali:
+
+```text
+finished
+removed
+```
+
+Una coltivazione con stato:
+
+```text
+harvested
+```
+
+continua quindi a occupare l'aiuola.
+
 ## 10.4 Sovrapposizioni temporali
 
 Quando il dominio stabilisce che per una determinata entità o relazione possa esistere una sola configurazione valida nello stesso momento, gli intervalli temporali incompatibili non devono sovrapporsi.
 
-Il principio è:
+Il principio generale è:
 
 ```text
 configurazione A
@@ -2868,6 +3329,44 @@ quando entrambe rappresentano configurazioni mutuamente esclusive dello stesso o
 
 Non tutte le relazioni temporali richiedono necessariamente unicità temporale: il vincolo deve essere applicato soltanto dove previsto dalla semantica del dominio.
 
+Per `plantings` la Sessione S028 ha introdotto una regola più specifica.
+
+Due coltivazioni risultano incompatibili soltanto quando coincidono entrambe:
+
+1. una sovrapposizione temporale;
+2. una sovrapposizione longitudinale nella stessa aiuola.
+
+La sola sovrapposizione temporale non è quindi sufficiente se le coltivazioni occupano porzioni longitudinali differenti dell'aiuola.
+
+Analogamente, la sola sovrapposizione spaziale non costituisce conflitto se i relativi periodi di occupazione non si sovrappongono.
+
+Il controllo deve inoltre considerare la geometria dell'aiuola valida durante l'intero intervallo temporale interessato dalla coltivazione.
+
+La protezione opera anche nel verso opposto:
+
+```text
+planting esistente
+        +
+nuova geometria bed
+        ↓
+verifica compatibilità
+```
+
+Una variazione o correzione geometrica che renderebbe incompatibile una coltivazione esistente deve essere rifiutata.
+
+Le RPC:
+
+```text
+change_bed_geometry
+correct_bed_geometry
+```
+
+possono in tale situazione restituire:
+
+```text
+blocked_by_plantings
+```
+
 ## 10.5 Identità stabile delle aiuole
 
 `beds` rappresenta l'identità stabile dell'aiuola.
@@ -2886,11 +3385,11 @@ In particolare:
 
 ```text
 planned_plantings
-        �
+        �
 plantings
 
 tasks
-        �
+        �
 work_logs
 ```
 
@@ -2916,7 +3415,7 @@ Il principio rimane:
 
 ```text
 NULL
-        �
+        �
 0
 ```
 
@@ -3130,9 +3629,9 @@ Il secondo rappresenta la baseline obiettivo approvata.
 
 La documentazione e le verifiche non devono dichiarare come implementata una struttura che esiste soltanto nella baseline progettuale.
 
-Alla conclusione della Sessione S026 il Database V1 rimane quindi parzialmente implementato.
+Alla conclusione della Sessione S028 il Database V1 rimane parzialmente implementato, ma comprende ormai anche il dominio autoritativo delle coltivazioni reali.
 
-Sono già disponibili, tra le altre strutture:
+Sono disponibili, tra le altre strutture:
 
 ```text
 Fondazioni
@@ -3144,9 +3643,14 @@ bed_geometry_corrections
 botanical_families
 crops
 crop_varieties
+plantings
 ```
 
-mentre ulteriori entità della baseline, tra cui `plantings`, devono ancora essere introdotte.
+`public.plantings` è quindi presente nello schema implementato e dispone del relativo Write Path autoritativo.
+
+Restano invece ancora da implementare ulteriori entità appartenenti alla baseline congelata delle 52 entità.
+
+La distinzione tra stato implementato e stato obiettivo deve continuare a essere mantenuta esplicita durante ogni incremento successivo.
 
 ## 11.3 Implementazione incrementale
 
@@ -3172,7 +3676,7 @@ Ogni incremento deve lasciare il repository e il database in uno stato comprensi
 
 Questo approccio riduce il rischio di introdurre contemporaneamente errori strutturali, problemi di sicurezza e regressioni applicative difficili da isolare.
 
-La Sessione S019 ha applicato per la prima volta concretamente questo metodo mediante la migration:
+La Sessione S019 ha applicato per la prima volta concretamente questo metodo mediante:
 
 ```text
 supabase/migrations/20260817103916_database_v1_baseline.sql
@@ -3189,26 +3693,18 @@ Il primo incremento implementato è costituito dal gruppo **Fondazioni**, compre
 
 L'incremento è stato accompagnato dalla creazione dello schema `private`, dagli helper autorizzativi necessari, dai trigger metadata e dalla prima matrice di **13 policy RLS**.
 
-La migration è stata verificata mediante ricostruzione completa del database locale con:
+Le sessioni successive hanno continuato secondo lo stesso criterio:
 
-```text
-supabase db reset
-```
-
-e mediante test manuali positivi e negativi delle policy RLS.
-
-La S019 costituisce il primo incremento fisicamente implementato e verificato della baseline Database V1.
-
-Le Sessioni successive hanno proseguito secondo lo stesso criterio:
-
-- S020 e S021 hanno progressivamente completato e rafforzato il protocollo server-side `profile_edit_locks`;
+- S020 e S021 hanno completato e rafforzato il protocollo server-side `profile_edit_locks`;
 - S022 ha introdotto la Profile Write Authority e il primo Write Path autoritativo per `gardens`;
-- S023 ha rafforzato il controllo concorrente di `update_garden` e ha introdotto il Write Path autoritativo di `seasons`;
-- S024 ha implementato `beds`, `bed_geometries`, `bed_geometry_corrections` e il relativo Write Path autoritativo;
-- S025 ha completato l'integrazione Flutter dei Write Path autoritativi di `beds`;
-- S026 ha implementato il Catalogo DB V1 costituito da `botanical_families`, `crops` e `crop_varieties` e i relativi nove Write Path autoritativi.
+- S023 ha rafforzato `update_garden` e introdotto il Write Path autoritativo di `seasons`;
+- S024 ha implementato `beds`, `bed_geometries`, `bed_geometry_corrections` e il relativo Write Path;
+- S025 ha completato l'integrazione Flutter dei Write Path di `beds`;
+- S026 ha implementato il Catalogo DB V1 e i relativi nove Write Path autoritativi;
+- S027 ha completato l'integrazione Flutter del Catalogo V1;
+- S028 ha implementato il modello autoritativo di `plantings`, il relativo Write Path, il lifecycle server-side e l'integrazione Flutter necessaria alla creazione e modifica delle coltivazioni.
 
-La sequenza delle migration implementate e allineate fino alla S026 è:
+La sequenza delle migration implementate comprende:
 
 ```text
 20260817103916_database_v1_baseline.sql
@@ -3228,31 +3724,11 @@ La sequenza delle migration implementate e allineate fino alla S026 è:
 20260830140235_add_correct_bed_geometry_rpc.sql
 20260911084752_add_crop_catalog.sql
 20260911091047_add_crop_catalog_write_rpcs.sql
+20260915080700_add_plantings_authoritative_model.sql
+20260915081444_add_plantings_write_rpcs.sql
 ```
 
-Le migration locali e remote risultano allineate fino a:
-
-```text
-20260911091047
-```
-
-La Sessione S026 ha verificato tale allineamento mediante:
-
-```text
-supabase migration list
-```
-
-Il Catalogo DB V1 introdotto nella S026 comprende:
-
-```text
-botanical_families
-        ↓
-crops
-        ↓
-crop_varieties
-```
-
-e dispone delle RPC autoritative:
+Il Catalogo DB V1 dispone delle RPC:
 
 ```text
 create_botanical_family
@@ -3266,9 +3742,28 @@ update_crop_variety
 set_crop_variety_active
 ```
 
-`crop_associations`, `agronomic_window_rules`, `plantings` e le ulteriori entità non ancora implementate rimangono incrementi successivi.
+Il dominio `plantings` dispone delle RPC:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+La Sessione S028 ha inoltre rafforzato:
+
+```text
+change_bed_geometry
+correct_bed_geometry
+```
+
+rispetto alla compatibilità con coltivazioni esistenti.
+
+`crop_associations`, `agronomic_window_rules` e le ulteriori entità non ancora implementate rimangono incrementi successivi.
 
 Anche le operazioni amministrative protette su `profile_memberships` costituiscono un blocco distinto ancora da completare.
+
+L'implementazione deve continuare a procedere per blocchi coerenti, senza trasformare la baseline completa in una migration monolitica.
 
 ## 11.4 Ordine delle dipendenze
 
@@ -3538,6 +4033,7 @@ mapping
 result type
 servizi
 motori che consumano i dati
+UI
 test
 ```
 
@@ -3547,7 +4043,7 @@ Allo stesso modo, l'esistenza di una nuova struttura nel database non implica au
 
 La sequenza S026–S027 costituisce un esempio concreto di questo principio.
 
-Dopo la Sessione S026:
+Dopo la S026:
 
 ```text
 Catalogo DB V1
@@ -3559,69 +4055,100 @@ Catalogo Flutter V1
 non ancora integrato
 ```
 
-La Sessione S027 ha completato il passaggio applicativo e lo stato corrente è:
+La S027 ha completato il relativo passaggio applicativo.
+
+La Sessione S028 ha applicato lo stesso principio al dominio delle coltivazioni.
+
+Alla conclusione della S028:
 
 ```text
-Catalogo DB V1
+public.plantings
+        =
+implementata
+
+Write Path plantings
         =
 implementato
 
-Write Path autoritativo
+PlantingRepository
         =
-implementato
+riallineato
 
-Catalogo Flutter V1
+AddPlantingPage
         =
-integrato
+riallineata al contratto S028
 ```
 
 L'integrazione comprende:
 
-- `BotanicalFamily`;
-- `Crop`;
-- `CropVariety`;
-- `BotanicalFamilyRepository`;
-- `CropRepository`;
-- `CropVarietyRepository`;
-- result type per le operazioni di scrittura;
-- letture dirette protette da RLS;
-- scritture esclusivamente tramite RPC autoritative;
-- integrazione della Profile Write Authority;
+- modello `Planting` riallineato al contratto Database V1;
+- `PlantingRepository`;
+- result type dedicati alle scritture;
+- Profile Write Authority fail-closed;
+- `create_planting`;
+- `update_planting`;
+- `set_planting_status`;
 - gestione di `row_version`;
-- mapping esplicito degli status RPC;
-- comportamento fail-closed;
-- test di Repository e result mapping.
+- validazioni metodo-dipendenti;
+- controlli geometrici;
+- controlli temporali;
+- gestione degli overlap;
+- adeguamento dei componenti che utilizzano lo spazio dell'aiuola;
+- test dedicati.
 
-La verifica finale della S027 ha confermato:
+La verifica finale della S028 ha confermato:
 
 ```text
-124 test mirati superati
-914 test complessivi superati
-flutter analyze: No issues found
+flutter analyze
+No issues found!
 ```
 
-La compatibilità con il codice applicativo precedente non è stata ottenuta mediante una conversione implicita del nuovo contratto.
+```text
+flutter test
+997 tests passed
+```
 
-Sono invece stati mantenuti temporaneamente alcuni alias legacy controllati.
+Sono inoltre risultati positivi:
 
-Questo permette di evitare regressioni immediate mantenendo esplicito il debito di migrazione residuo.
+```text
+supabase db reset
+success
+```
 
-Restano ancora distinti:
+e:
+
+```text
+supabase db lint --local
+No schema errors found
+```
+
+La compatibilità con il codice applicativo precedente continua a non essere ottenuta mediante conversioni implicite.
+
+Gli alias legacy ancora presenti devono rimanere esplicitamente temporanei e non devono essere utilizzati per introdurre nuove dipendenze.
+
+Alla conclusione della S028 rimangono distinti:
 
 ```text
 integrazione dati Catalogo V1
         ✓
 
+Write Path plantings
+        ✓
+
+creazione/modifica plantings lato UI
+        ✓
+
 UI amministrativa Catalogo V1
         ✗
 
-Write Path plantings
+UI completa lifecycle plantings
+        ✗
+
+selezione varietà nel flusso plantings
         ✗
 ```
 
-Il Write Path completo di `plantings` non è stato anticipato nella S027.
-
-La futura evoluzione deve evitare che gli alias legacy temporanei diventino nuovamente parte stabile del contratto applicativo.
+La futura evoluzione deve eliminare progressivamente le dipendenze legacy residue senza alterare retroattivamente il contratto persistente consolidato.
 
 ## 11.8 Repository come confine di persistenza
 
@@ -3643,7 +4170,7 @@ Il dominio non deve dipendere direttamente dai dettagli della rappresentazione S
 
 Il Repository deve inoltre costituire il confine applicativo verso le RPC autoritative quando una entità non consente scritture dirette.
 
-Per il Catalogo DB V1 il modello implementato dalla Sessione S027 è:
+Per il Catalogo DB V1 il modello consolidato è:
 
 ```text
 lettura
@@ -3677,7 +4204,25 @@ CropRepository
 CropVarietyRepository
 ```
 
-Nei tre Repository non devono essere introdotte scritture dirette mediante:
+Dalla Sessione S028 lo stesso modello viene applicato anche a:
+
+```text
+PlantingRepository
+```
+
+Le letture di `plantings` avvengono attraverso il Repository sotto protezione RLS.
+
+Le scritture ordinarie passano attraverso:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+e non devono introdurre percorsi diretti alternativi.
+
+Nei Repository RPC-only non devono essere introdotte scritture mediante:
 
 ```text
 .insert()
@@ -3685,6 +4230,8 @@ Nei tre Repository non devono essere introdotte scritture dirette mediante:
 .delete()
 .upsert()
 ```
+
+quando il contratto dell'entità prevede esclusivamente il Write Path autoritativo.
 
 Le invarianti autoritative rimangono responsabilità del database.
 
@@ -3730,7 +4277,7 @@ migration tracciata
 repository Git
 ```
 
-In questo modo lo stato del database può essere ricostruito e sottoposto a revisione.
+In questo modo lo stato del database può essere ricostruito, verificato e sottoposto a revisione.
 
 La Sessione S019 ha applicato concretamente questo principio mediante la prima migration della baseline Database V1:
 
@@ -3745,19 +4292,57 @@ supabase/migrations/20260911084752_add_crop_catalog.sql
 supabase/migrations/20260911091047_add_crop_catalog_write_rpcs.sql
 ```
 
-Le due migration sono state applicate anche al database Supabase remoto mediante:
+Le migration del Catalogo DB V1 sono state applicate anche al database Supabase remoto mediante:
 
 ```text
 supabase db push
 ```
 
-e la successiva verifica ha confermato:
+e la verifica eseguita nella S026 aveva confermato:
 
 ```text
 Local = Remote fino a 20260911091047
 ```
 
-L'evoluzione fisica del Database V1 deve quindi continuare attraverso migration versionate e riproducibili, evitando modifiche strutturali permanenti eseguite esclusivamente sulla Dashboard e non rappresentate nel repository.
+La Sessione S028 ha proseguito la stessa strategia introducendo le migration versionate:
+
+```text
+supabase/migrations/20260915080700_add_plantings_authoritative_model.sql
+supabase/migrations/20260915081444_add_plantings_write_rpcs.sql
+```
+
+La prima introduce il modello persistente autoritativo di `plantings`.
+
+La seconda introduce:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+e rafforza l'integrazione del dominio `plantings` con:
+
+- Profile Write Authority;
+- concorrenza ottimistica;
+- lifecycle;
+- invarianti metodo-dipendenti;
+- geometria dell'aiuola;
+- sovrapposizioni spaziali e temporali;
+- protezione delle variazioni geometriche rispetto alle coltivazioni esistenti.
+
+L'evoluzione fisica del Database V1 deve quindi continuare attraverso migration:
+
+- versionate;
+- riproducibili;
+- conservate nel repository;
+- verificabili mediante ricostruzione locale;
+- sottoposte a test;
+- coerenti con il contratto applicativo.
+
+Non devono essere introdotte modifiche strutturali permanenti esclusivamente dalla Dashboard Supabase senza una migration corrispondente nel repository.
+
+La cronologia delle migration deve permettere di ricostruire progressivamente l'evoluzione effettiva del Database V1 senza dipendere dallo stato manuale di un singolo ambiente.
 
 ## 11.10 Verifica delle migration
 
@@ -3784,7 +4369,7 @@ I test devono includere anche casi negativi, non soltanto operazioni autorizzate
 La Sessione S019 ha applicato concretamente questi criteri alla prima migration Database V1 mediante:
 
 - `supabase db reset`;
-- controllo delle sei tabelle Fondazioni;
+- controllo delle sei strutture Fondazioni;
 - verifica dello schema `private`;
 - verifica degli helper autorizzativi;
 - verifica dei trigger metadata;
@@ -3830,13 +4415,13 @@ Sono stati verificati, tra gli altri:
 - RLS;
 - privilegi delle RPC.
 
-Sono stati inoltre eseguiti:
+Nella S026 sono stati inoltre eseguiti:
 
 ```text
 supabase db lint --local
 ```
 
-senza nuovi problemi introdotti dalla S026, e:
+e:
 
 ```text
 supabase db diff --local
@@ -3848,11 +4433,69 @@ con risultato:
 No schema changes found
 ```
 
+La Sessione S028 ha applicato gli stessi principi alle migration di `plantings`.
+
+È stata verificata la ricostruzione completa dello schema mediante:
+
+```text
+supabase db reset
+```
+
+con esito positivo.
+
+È stato inoltre eseguito:
+
+```text
+supabase db lint --local
+```
+
+senza errori di schema.
+
+Le verifiche S028 hanno coperto il nuovo contratto di `plantings`, comprendendo:
+
+- struttura persistente;
+- relazioni tra Profile, Garden, Season, Bed, Crop e Variety;
+- metodi di avvio ammessi;
+- vincoli metodo-dipendenti;
+- geometria longitudinale;
+- larghezza occupata;
+- sesti;
+- date;
+- lifecycle;
+- `row_version`;
+- conflitti concorrenti;
+- overlap spaziali;
+- overlap temporali;
+- compatibilità con la geometria storicizzata dell'aiuola;
+- blocco delle variazioni geometriche incompatibili mediante `blocked_by_plantings`;
+- Write Path autoritativo RPC-only.
+
+La verifica applicativa collegata alle migration S028 ha inoltre confermato:
+
+```text
+flutter analyze
+No issues found!
+```
+
+e:
+
+```text
+flutter test
+997 tests passed
+```
+
 Una migration non deve essere considerata verificata soltanto perché viene applicata senza errori.
 
-Deve essere controllato anche il comportamento effettivo della struttura, delle autorizzazioni e delle invarianti introdotte.
+Deve essere controllato anche il comportamento effettivo:
 
-Il criterio consolidato è:
+- della struttura;
+- delle autorizzazioni;
+- delle invarianti;
+- della concorrenza;
+- del contratto RPC;
+- dell'integrazione applicativa.
+
+Il criterio consolidato rimane:
 
 ```text
 migration versionata
@@ -3867,7 +4510,7 @@ test positivi
         ↓
 test negativi
         ↓
-verifica allineamento locale/remoto
+verifica integrazione applicativa
         ↓
 commit e push
 ```
@@ -3899,7 +4542,7 @@ Il principio è:
 
 ```text
 baseline completa
-        �
+        �
 implementazione simultanea
 ```
 
@@ -3946,11 +4589,11 @@ Fino a quel momento deve essere mantenuta esplicita la distinzione:
 
 ```text
 Database V1 progettato
-        �
+        ≠
 Database V1 completamente implementato
 ```
 
-Alla conclusione della S027:
+Alla conclusione della S028:
 
 ```text
 Catalogo DB V1
@@ -3962,27 +4605,57 @@ Write Path Catalogo V1
 integrazione Flutter Catalogo V1
         ✓
 
+public.plantings
+        ✓
+
+Write Path plantings
+        ✓
+
+integrazione Flutter creazione/modifica plantings
+        ✓
+
+lifecycle server-side plantings
+        ✓
+
 UI amministrativa Catalogo V1
         ✗
 
-plantings
+UI completa lifecycle plantings
+        ✗
+
+Database V1 completo
         ✗
 ```
 
-Il Catalogo DB V1 è quindi implementato e verificato lato PostgreSQL/Supabase e il relativo Repository Layer Flutter è integrato e verificato.
+La Sessione S028 ha introdotto:
 
-La S027 non ha introdotto nuove migration.
+```text
+20260915080700_add_plantings_authoritative_model.sql
+20260915081444_add_plantings_write_rpcs.sql
+```
 
-`public.plantings` rimane non implementata.
+e ha completato il Write Path autoritativo mediante:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+Il Database V1 continua quindi a essere considerato **parzialmente implementato**, ma `plantings` non appartiene più all'elenco delle entità ancora mancanti.
+
+Restano incrementi successivi le ulteriori entità della baseline non ancora tradotte nello schema operativo e le funzionalità applicative non ancora integrate.
 
 La UI minima di gestione del Catalogo V1 rimane un incremento applicativo distinto.
 
-Il successivo blocco tecnico dovrà essere scelto esplicitamente tra:
+Per `plantings` rimangono invece aperti, lato applicativo:
 
-1. UI minima di gestione del Catalogo V1;
-2. Write Path autoritativo di `plantings`.
+- gestione UI completa del lifecycle;
+- selezione della varietà;
+- gestione esplicita di `end_date` nelle transizioni terminali;
+- eliminazione progressiva delle dipendenze legacy residue.
 
-Il Database V1 continuerà quindi a essere considerato **parzialmente implementato** fino al completamento progressivo delle ulteriori entità previste dalla baseline.
+Il completamento del Database V1 continuerà pertanto a essere valutato sulla base dello stato realmente implementato e verificato, non sulla sola presenza della progettazione nominale.
 
 ---
 
@@ -4238,7 +4911,20 @@ Il controllo nominale finale **52/52** ha inoltre consolidato due decisioni impo
 
 L'implementazione fisica del Database V1 è iniziata nella Sessione S019 e procede incrementalmente mediante migration versionate, controlli di sicurezza, test positivi e negativi e Write Path autoritativi.
 
-Alla conclusione della Sessione S027 il Database V1 rimane parzialmente implementato, ma il Catalogo DB V1 introdotto nella S026 risulta ora integrato anche nel client Flutter.
+Alla conclusione della Sessione S028 il Database V1 rimane parzialmente implementato, ma comprende ormai:
+
+- Fondazioni;
+- protocollo `profile_edit_locks`;
+- Profile Write Authority;
+- Write Path di `gardens`;
+- Write Path di `seasons`;
+- modello e Write Path autoritativo delle aiuole;
+- Catalogo DB V1;
+- integrazione Flutter del Catalogo V1;
+- modello persistente autoritativo di `plantings`;
+- Write Path autoritativo di `plantings`;
+- lifecycle server-side delle coltivazioni;
+- integrazione Flutter necessaria alla creazione e modifica delle coltivazioni.
 
 ## 13.1 Principi consolidati
 
@@ -4263,6 +4949,9 @@ La baseline Database V1 è fondata sui seguenti principi:
 - rilettura del dato autoritativo dopo una scrittura riuscita quando prevista dal flusso applicativo;
 - letture dirette consentite soltanto quando protette dalle policy RLS previste;
 - scritture del Catalogo V1 esclusivamente mediante RPC autoritative;
+- scritture ordinarie di `plantings` esclusivamente mediante RPC autoritative;
+- integrità della geometria storicizzata rispetto ai fatti reali registrati;
+- semantica half-open per gli intervalli nei domini che la richiedono;
 - estensioni future introdotte soltanto in presenza di requisiti concreti.
 
 Questi principi devono essere preservati durante la progressiva implementazione SQL/Supabase e durante l'integrazione Flutter.
@@ -4310,9 +4999,17 @@ Write Path Catalogo DB V1 verificato
         ✓
 integrazione Flutter Catalogo V1
         ✓
+modello autoritativo plantings
+        ✓
+Write Path plantings
+        ✓
+integrazione Flutter creazione/modifica plantings
+        ✓
+lifecycle server-side plantings
+        ✓
 UI gestione Catalogo V1
         ✗
-plantings
+UI completa lifecycle plantings
         ✗
 Database V1 completo
         ✗
@@ -4346,31 +5043,43 @@ bed_geometry_corrections
 botanical_families
 crops
 crop_varieties
+plantings
 ```
 
 `profile_edit_locks` rimane infrastruttura tecnica separata.
 
 `profile_memberships` costituisce una struttura di sicurezza e accesso introdotta nell'implementazione fisica e deve essere distinta dalle 52 entità di dominio congelate.
 
-La Sessione S027 non ha introdotto nuove migration.
-
-Le migration locali e remote rimangono quindi allineate fino a:
+La Sessione S028 ha introdotto le migration:
 
 ```text
-20260911091047
+20260915080700_add_plantings_authoritative_model.sql
+20260915081444_add_plantings_write_rpcs.sql
 ```
 
-Il Database V1 completo non è ancora implementato.
-
-In particolare:
+Il Database V1 completo non è ancora implementato, ma:
 
 ```text
 public.plantings
 ```
 
-non è ancora presente nello schema implementato.
+è ora presente nello schema implementato e dispone del relativo Write Path autoritativo.
 
-## 13.3 Evoluzione dell'implementazione dalla S019 alla S027
+La verifica locale S028 ha confermato:
+
+```text
+supabase db reset
+success
+```
+
+e:
+
+```text
+supabase db lint --local
+No schema errors found
+```
+
+## 13.3 Evoluzione dell'implementazione dalla S019 alla S028
 
 La Sessione S019 ha avviato concretamente la traduzione della baseline Database V1 congelata nella S017 in strutture PostgreSQL/Supabase versionate e verificabili.
 
@@ -4386,7 +5095,7 @@ Il primo incremento ha riguardato il blocco **Fondazioni** e ha introdotto:
 
 La Sessione S020 ha avviato l'implementazione delle RPC server-side del protocollo `profile_edit_locks`.
 
-La Sessione S021 ha completato e rafforzato il protocollo single-writer, verificando tra l'altro:
+La Sessione S021 ha completato e rafforzato il protocollo single-writer, verificando:
 
 - serializzazione mediante `FOR UPDATE`;
 - rivalidazione server-side dopo eventuali attese sui row lock;
@@ -4394,8 +5103,6 @@ La Sessione S021 ha completato e rafforzato il protocollo single-writer, verific
 - protezione del lease;
 - gestione sicura del takeover;
 - trasferimento atomico del lock.
-
-Il protocollo `profile_edit_locks` è considerato completato e coerente allo stato attuale.
 
 La Sessione S022 ha introdotto la Profile Write Authority e il primo Write Path autoritativo per:
 
@@ -4442,12 +5149,6 @@ change_bed_geometry
 correct_bed_geometry
 ```
 
-L'identità stabile dell'aiuola è mantenuta in `beds`.
-
-La geometria valida nel tempo è conservata in `bed_geometries`.
-
-Le variazioni geometriche ordinarie e le correzioni storiche rimangono operazioni semanticamente distinte.
-
 La Sessione S025 ha completato l'integrazione Flutter dei Write Path autoritativi di `beds`, mantenendo:
 
 - Profile Write Authority;
@@ -4455,7 +5156,7 @@ La Sessione S025 ha completato l'integrazione Flutter dei Write Path autoritativ
 - rilettura autoritativa;
 - comportamento fail-closed;
 - separazione tra variazione geometrica ordinaria e correzione storica;
-- gestione italiana delle date civili mediante `CivilDate`.
+- gestione delle date civili mediante `CivilDate`.
 
 La Sessione S026 ha introdotto il **Catalogo DB V1**:
 
@@ -4467,29 +5168,14 @@ crops
 crop_varieties
 ```
 
-Il catalogo è Profile-owned e condiviso tra tutti i Gardens appartenenti allo stesso Profile.
-
-Gli identificativi del nuovo catalogo sono UUID.
-
-Sono state introdotte le migration:
+mediante:
 
 ```text
 20260911084752_add_crop_catalog.sql
 20260911091047_add_crop_catalog_write_rpcs.sql
 ```
 
-La prima migration introduce:
-
-- `botanical_families`;
-- `crops`;
-- `crop_varieties`;
-- vincoli;
-- indici;
-- trigger metadata;
-- RLS;
-- privilegi.
-
-La seconda migration introduce le nove RPC autoritative:
+e le nove RPC autoritative:
 
 ```text
 create_botanical_family
@@ -4505,92 +5191,9 @@ update_crop_variety
 set_crop_variety_active
 ```
 
-Il Write Path del Catalogo DB V1 applica:
-
-```text
-Supabase Auth
-        ↓
-autorizzazione server-side
-        ↓
-Profile Write Authority
-        ↓
-RPC autoritativa
-        ↓
-FOR UPDATE / row_version
-        ↓
-scrittura
-```
-
-Le scritture dirette `INSERT`, `UPDATE` e `DELETE` sulle tre tabelle sono revocate ad `authenticated`.
-
-Le letture sono protette mediante RLS e:
-
-```text
-private.is_profile_member(profile_id)
-```
-
-La concorrenza ottimistica utilizza `row_version` ed `expected_row_version` quando previsto.
-
-I parent vengono lockati quando necessario per serializzare correttamente operazioni concorrenti sulle gerarchie padre/figlio.
-
-Sono state inoltre consolidate le regole relative a:
-
-- unicità case-insensitive;
-- stato attivo;
-- disattivazione e riattivazione;
-- gerarchie Botanical Family → Crop → Crop Variety;
-- fallback Crop → Variety;
-- fabbisogno idrico qualitativo e quantitativo;
-- resa prevista;
-- temperature;
-- fonti;
-- immutabilità di `crop_varieties.crop_id`.
-
-I test SQL della S026 sono stati eseguiti mediante dati fittizi e transazioni:
-
-```text
-BEGIN
-...
-ROLLBACK
-```
-
-senza lasciare dati persistenti.
-
-Sono stati inoltre verificati:
-
-```text
-supabase db lint --local
-```
-
-senza nuovi problemi introdotti dalla S026, e:
-
-```text
-supabase db diff --local
-```
-
-con risultato:
-
-```text
-No schema changes found
-```
-
-Le migration sono state applicate anche al database remoto e:
-
-```text
-supabase migration list
-```
-
-ha confermato l'allineamento locale/remoto fino a:
-
-```text
-20260911091047
-```
-
 La Sessione S027 non ha modificato lo schema PostgreSQL/Supabase.
 
-Ha invece completato l'integrazione applicativa Flutter del Catalogo V1.
-
-Sono stati introdotti o riallineati i modelli:
+Ha invece completato l'integrazione Flutter del Catalogo V1 mediante:
 
 ```text
 BotanicalFamily
@@ -4598,7 +5201,7 @@ Crop
 CropVariety
 ```
 
-Sono ora disponibili i Repository:
+e:
 
 ```text
 BotanicalFamilyRepository
@@ -4606,64 +5209,129 @@ CropRepository
 CropVarietyRepository
 ```
 
-Le letture vengono effettuate direttamente sotto protezione RLS.
+con letture RLS, scritture RPC-only, Profile Write Authority fail-closed, result type tipizzati e gestione della concorrenza mediante `row_version`.
 
-Le scritture utilizzano esclusivamente le nove RPC autoritative introdotte nella S026.
-
-Nei Repository del catalogo è stata verificata l'assenza di:
-
-```text
-.insert()
-.update()
-.delete()
-.upsert()
-```
-
-Sono stati inoltre introdotti result type dedicati per le operazioni sulle tre entità del catalogo.
-
-Il mapping applicativo gestisce gli status reali restituiti dalle RPC, compresi:
-
-```text
-created
-updated
-unchanged
-version_conflict
-forbidden
-write_forbidden
-not_found
-invalid_input
-```
-
-oltre agli esiti specifici relativi a duplicati e vincoli gerarchici.
-
-La Profile Write Authority rimane fail-closed.
-
-La concorrenza ottimistica applicativa utilizza `row_version` secondo il contratto delle RPC.
-
-La Sessione S027 ha mantenuto temporaneamente alcuni alias legacy per garantire compatibilità con flussi applicativi non ancora migrati.
-
-Tra questi:
-
-- `Crop.sowingMethod`;
-- `Crop.botanicalFamily`;
-- `heavyFeeder`;
-- `CropVariety.defaultPlantingMethod`.
-
-Tali alias non costituiscono il nuovo contratto persistente del Database V1 e dovranno essere eliminati soltanto quando i relativi flussi saranno migrati esplicitamente.
-
-La verifica S027 ha confermato:
+La verifica applicativa S027 ha confermato:
 
 ```text
 124 test mirati superati
 914 test complessivi superati
 flutter analyze: No issues found
-git diff --check: pulito
-git diff --cached --check: pulito
+```
+
+La Sessione S028 ha quindi implementato il modello autoritativo di:
+
+```text
+public.plantings
+```
+
+mediante:
+
+```text
+20260915080700_add_plantings_authoritative_model.sql
+20260915081444_add_plantings_write_rpcs.sql
+```
+
+Il modello persistente comprende il contesto:
+
+```text
+profile_id
+garden_id
+season_id
+bed_id
+crop_id
+variety_id
+```
+
+e le informazioni operative:
+
+```text
+start_method
+start_date
+end_date
+start_position_cm
+length_cm
+plant_spacing_cm
+row_spacing_cm
+rows_count
+occupied_width_cm
+plants_count
+seed_quantity_g
+status
+notes
+row_version
+```
+
+Il Write Path autoritativo utilizza:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+e applica:
+
+- Profile Write Authority;
+- concorrenza ottimistica;
+- validazione delle relazioni;
+- controllo degli stati attivi delle entità collegate;
+- validazioni metodo-dipendenti;
+- validazioni geometriche;
+- validazioni temporali;
+- controllo delle sovrapposizioni;
+- lifecycle autoritativo;
+- comportamento fail-closed.
+
+La S028 ha inoltre rafforzato:
+
+```text
+change_bed_geometry
+correct_bed_geometry
+```
+
+per impedire che variazioni della geometria rendano incompatibili coltivazioni esistenti.
+
+Il nuovo esito specifico è:
+
+```text
+blocked_by_plantings
+```
+
+Sul lato Flutter sono stati riallineati:
+
+```text
+Planting
+PlantingRepository
+AddPlantingPage
+BedPage
+GardenPage
+GardenMap
+PlantingCard
+RotationEngine
+```
+
+ed è stato introdotto:
+
+```text
+lib/core/write_authority/planting_write_result.dart
+```
+
+La verifica finale S028 ha confermato:
+
+```text
+flutter analyze
+No issues found!
+```
+
+```text
+flutter test
+997 tests passed
 ```
 
 ## 13.4 Stato dei Write Path autoritativi
 
-Alla conclusione della Sessione S027 risultano completati e coerenti allo stato attuale i Write Path autoritativi di:
+Alla conclusione della Sessione S028 risultano completati e coerenti allo stato attuale i Write Path autoritativi di:
 
 ```text
 gardens
@@ -4672,9 +5340,10 @@ beds
 botanical_families
 crops
 crop_varieties
+plantings
 ```
 
-Per il Catalogo DB V1 risulta inoltre completata l'integrazione del relativo Repository Layer Flutter.
+Per il Catalogo DB V1 e per `plantings` è inoltre disponibile il relativo Repository Layer Flutter.
 
 Le scritture protette seguono il principio:
 
@@ -4726,9 +5395,13 @@ Write Path Catalogo DB V1 verificato
         ↓
 integrazione Flutter Catalogo V1 completata
         ↓
-UI minima Catalogo / plantings
+plantings implementata
         ↓
-ulteriori entità della baseline
+Write Path plantings verificato
+        ↓
+integrazione Flutter creazione/modifica plantings
+        ↓
+ulteriori incrementi applicativi e Database V1
 ```
 
 Le operazioni amministrative protette su `profile_memberships` rimangono un blocco separato ancora da implementare.
@@ -4785,19 +5458,41 @@ La determinazione della `AgronomicWindow` applicabile rimane responsabilità del
 
 Lo stesso principio vale per il Catalogo DB V1.
 
-Il database conserva i valori di riferimento, le relazioni e le invarianti, mentre il dominio applicativo utilizza tali dati nei calcoli e nelle decisioni agronomiche.
+Il database conserva valori di riferimento, relazioni e invarianti, mentre il dominio applicativo utilizza tali dati nei calcoli e nelle decisioni agronomiche.
 
-La S027 ha completato il collegamento tra la persistenza del Catalogo V1 e il Repository Layer Flutter senza trasferire al client l'autorità sulle invarianti server-side.
+La S028 conferma ulteriormente questa separazione.
 
-Il catalogo segue inoltre il principio:
+Per `plantings`, il database è autoritativo per:
+
+- ownership;
+- relazioni;
+- lifecycle;
+- geometria persistita;
+- date;
+- overlap;
+- concorrenza;
+- invarianti strutturali.
+
+Il client Flutter gestisce invece:
+
+- presentazione;
+- raccolta degli input;
+- feedback;
+- pre-validazioni UX;
+- coordinamento con i Repository;
+- utilizzo agronomico dei dati.
+
+Le pre-validazioni Flutter non sostituiscono mai il controllo server-side.
+
+Il catalogo continua inoltre a seguire il principio:
 
 > **catalogo corrente + snapshot storico**
 
 Le future modifiche ai valori correnti del catalogo non devono riscrivere retroattivamente calcoli, decisioni o risultati storici già consolidati.
 
-## 13.6 Prossimo incremento tecnico
+## 13.6 Incrementi successivi
 
-La sequenza tecnica consolidata fino alla S027 è:
+La sequenza tecnica consolidata fino alla S028 è:
 
 ```text
 Catalogo DB V1
@@ -4806,41 +5501,32 @@ Write Path Catalogo V1
         ↓
 integrazione Flutter Catalogo V1
         ↓
-prossimo incremento applicativo
+modello autoritativo plantings
+        ↓
+Write Path plantings
+        ↓
+integrazione Flutter creazione/modifica plantings
+        ↓
+incrementi successivi
 ```
 
-La Sessione S027 ha completato l'integrazione Flutter mediante:
+La Sessione S028 ha completato il Write Path autoritativo di `plantings`.
 
-- modelli Dart;
-- result type per create/update/set active;
-- Repository;
-- letture dirette protette da RLS;
-- scritture esclusivamente tramite RPC autoritative;
-- Profile Write Authority;
-- gestione di `row_version`;
-- mapping degli status RPC;
-- test di Repository e result mapping.
+Non è stata invece completata l'intera esperienza utente relativa al lifecycle.
 
-Non è stata introdotta una UI dedicata alla gestione amministrativa del Catalogo V1.
+Restano aperti, tra gli incrementi applicativi:
 
-Non è stato implementato il Write Path completo di `plantings`.
+- UI completa delle transizioni lifecycle;
+- scelta facoltativa della varietà durante la gestione della coltivazione;
+- gestione esplicita di `end_date` nelle transizioni terminali;
+- gestione degli esiti concorrenti nella UI lifecycle;
+- refresh completo dei componenti interessati dopo il cambio di stato;
+- progressiva rimozione delle dipendenze legacy residue;
+- UI amministrativa del Catalogo V1.
 
-Alla conclusione della S027 restano quindi aperti due blocchi tecnici distinti:
+Il lifecycle server-side è già implementato e costituisce il contratto autoritativo che la futura UI dovrà utilizzare.
 
-1. **UI minima di gestione del Catalogo V1**;
-2. **Write Path autoritativo di `plantings`**.
-
-La scelta del successivo blocco dovrà essere approvata esplicitamente prima dell'avvio della nuova sessione di sviluppo.
-
-Rimane inoltre aperta la necessità di introdurre un adattatore esplicito tra:
-
-```text
-defaultStartMethod V1
-```
-
-e i planting method legacy ancora utilizzati da alcuni componenti applicativi.
-
-Gli alias legacy dovranno essere rimossi progressivamente soltanto dopo la migrazione dei relativi flussi.
+La pianificazione preliminare successiva prevede di portare queste funzionalità nella UI senza riaprire il contratto persistente definito nella S028.
 
 ## 13.7 Evoluzione del documento
 
@@ -4900,14 +5586,17 @@ sempre verificare
 
 La progettazione S017 non deve essere riaperta durante l'implementazione salvo l'emersione di un errore concreto o di una necessità architetturale dimostrata.
 
-Alla conclusione della Sessione S027:
+Alla conclusione della Sessione S028:
 
 - il Catalogo DB V1 è implementato e verificato lato PostgreSQL/Supabase;
-- il Repository Layer Flutter del catalogo è integrato e verificato;
-- le scritture del catalogo rimangono esclusivamente RPC-only;
-- le letture rimangono protette mediante RLS;
-- non sono state introdotte nuove migration;
-- la UI dedicata al Catalogo V1 non è ancora implementata;
-- `public.plantings` non è ancora implementata.
-
-Il successivo incremento tecnico dovrà essere scelto esplicitamente tra la UI minima del Catalogo V1 e il Write Path autoritativo di `plantings`.
+- il Repository Layer Flutter del catalogo è integrato;
+- `public.plantings` è implementata;
+- il Write Path autoritativo di `plantings` è implementato;
+- il lifecycle autoritativo è implementato server-side;
+- la geometria delle aiuole è protetta rispetto alle coltivazioni esistenti;
+- `PlantingRepository` e la UI di creazione/modifica sono riallineati al contratto S028;
+- `flutter analyze` non segnala problemi;
+- la suite completa raggiunge **997 test superati**;
+- la UI amministrativa del Catalogo V1 non è ancora implementata;
+- la UI completa del lifecycle di `plantings` rimane un incremento successivo;
+- il Database V1 complessivo rimane parzialmente implementato.
