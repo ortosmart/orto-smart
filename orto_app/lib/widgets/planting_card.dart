@@ -3,20 +3,27 @@ import 'package:flutter/material.dart';
 import '../data/models/crop.dart';
 import '../data/models/planting.dart';
 
-enum PlantingCardAction { edit, delete }
+enum PlantingCardAction {
+  edit,
+  growing,
+  harvestReady,
+  harvested,
+  finished,
+  removed,
+}
 
 class PlantingCard extends StatelessWidget {
   final Planting planting;
   final Crop? crop;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final ValueChanged<String>? onStatusChange;
 
   const PlantingCard({
     super.key,
     required this.planting,
     required this.crop,
     required this.onEdit,
-    required this.onDelete,
+    this.onStatusChange,
   });
 
   String get _cropName {
@@ -41,8 +48,6 @@ class PlantingCard extends StatelessWidget {
     switch (status) {
       case 'growing':
         return 'In crescita';
-      case 'planned':
-        return 'Pianificata';
       case 'sown':
         return 'Seminata';
       case 'harvest_ready':
@@ -62,8 +67,6 @@ class PlantingCard extends StatelessWidget {
     switch (status) {
       case 'growing':
         return Icons.eco;
-      case 'planned':
-        return Icons.event_note;
       case 'sown':
         return Icons.grass;
       case 'harvest_ready':
@@ -83,9 +86,127 @@ class PlantingCard extends StatelessWidget {
     switch (action) {
       case PlantingCardAction.edit:
         onEdit();
-      case PlantingCardAction.delete:
-        onDelete();
+
+      case PlantingCardAction.growing:
+        onStatusChange?.call('growing');
+
+      case PlantingCardAction.harvestReady:
+        onStatusChange?.call('harvest_ready');
+
+      case PlantingCardAction.harvested:
+        onStatusChange?.call('harvested');
+
+      case PlantingCardAction.finished:
+        onStatusChange?.call('finished');
+
+      case PlantingCardAction.removed:
+        onStatusChange?.call('removed');
     }
+  }
+
+  List<PopupMenuEntry<PlantingCardAction>> _menuItems() {
+    final items = <PopupMenuEntry<PlantingCardAction>>[
+      const PopupMenuItem<PlantingCardAction>(
+        value: PlantingCardAction.edit,
+        child: ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(Icons.edit_outlined),
+          title: Text('Modifica'),
+        ),
+      ),
+    ];
+
+    switch (planting.status) {
+      case 'sown':
+        items.addAll(const [
+          PopupMenuDivider(),
+          PopupMenuItem<PlantingCardAction>(
+            value: PlantingCardAction.growing,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.eco_outlined),
+              title: Text('Segna in crescita'),
+            ),
+          ),
+          PopupMenuItem<PlantingCardAction>(
+            value: PlantingCardAction.removed,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.remove_circle_outline),
+              title: Text('Rimuovi'),
+            ),
+          ),
+        ]);
+
+      case 'growing':
+        items.addAll(const [
+          PopupMenuDivider(),
+          PopupMenuItem<PlantingCardAction>(
+            value: PlantingCardAction.harvestReady,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.agriculture_outlined),
+              title: Text('Segna pronta alla raccolta'),
+            ),
+          ),
+          PopupMenuItem<PlantingCardAction>(
+            value: PlantingCardAction.removed,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.remove_circle_outline),
+              title: Text('Rimuovi'),
+            ),
+          ),
+        ]);
+
+      case 'harvest_ready':
+        items.addAll(const [
+          PopupMenuDivider(),
+          PopupMenuItem<PlantingCardAction>(
+            value: PlantingCardAction.harvested,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.shopping_basket_outlined),
+              title: Text('Segna raccolta'),
+            ),
+          ),
+          PopupMenuItem<PlantingCardAction>(
+            value: PlantingCardAction.removed,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.remove_circle_outline),
+              title: Text('Rimuovi'),
+            ),
+          ),
+        ]);
+
+      case 'harvested':
+        items.addAll(const [
+          PopupMenuDivider(),
+          PopupMenuItem<PlantingCardAction>(
+            value: PlantingCardAction.finished,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.check_circle_outline),
+              title: Text('Termina coltivazione'),
+            ),
+          ),
+          PopupMenuItem<PlantingCardAction>(
+            value: PlantingCardAction.removed,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.remove_circle_outline),
+              title: Text('Rimuovi'),
+            ),
+          ),
+        ]);
+
+      case 'finished':
+      case 'removed':
+        break;
+    }
+
+    return items;
   }
 
   @override
@@ -108,27 +229,7 @@ class PlantingCard extends StatelessWidget {
             trailing: PopupMenuButton<PlantingCardAction>(
               tooltip: 'Azioni coltura',
               onSelected: _handleAction,
-              itemBuilder: (context) {
-                return const [
-                  PopupMenuItem<PlantingCardAction>(
-                    value: PlantingCardAction.edit,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.edit_outlined),
-                      title: Text('Modifica'),
-                    ),
-                  ),
-                  PopupMenuDivider(),
-                  PopupMenuItem<PlantingCardAction>(
-                    value: PlantingCardAction.delete,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.delete_outline),
-                      title: Text('Elimina'),
-                    ),
-                  ),
-                ];
-              },
+              itemBuilder: (context) => _menuItems(),
             ),
           ),
           const Divider(height: 1),
@@ -153,6 +254,12 @@ class PlantingCard extends StatelessWidget {
             dense: true,
             leading: Icon(_statusIcon(planting.status)),
             title: Text(_statusText(planting.status)),
+            subtitle: planting.status == 'harvested'
+                ? const Text(
+                    'L’aiuola resta occupata finché la coltivazione '
+                    'non viene terminata o rimossa.',
+                  )
+                : null,
           ),
           if (planting.notes != null && planting.notes!.trim().isNotEmpty)
             ListTile(

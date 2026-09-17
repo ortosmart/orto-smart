@@ -8,6 +8,7 @@ import 'package:orto_app/core/profile/profile_context.dart';
 import 'package:orto_app/core/write_authority/profile_write_authority_controller.dart';
 import 'package:orto_app/core/write_authority/write_authority_scheduler.dart';
 import 'package:orto_app/core/write_authority/profile_edit_lock.dart';
+import 'package:orto_app/core/write_authority/planting_write_result.dart';
 import 'package:orto_app/data/models/bed.dart';
 import 'package:orto_app/data/models/crop.dart';
 import 'package:orto_app/data/models/crop_association.dart';
@@ -82,9 +83,52 @@ Map<String, dynamic> _bedMap({
   };
 }
 
+Planting _planting({
+  String status = 'sown',
+  int rowVersion = 7,
+  DateTime? endDate,
+}) {
+  return Planting(
+    id: '77777777-7777-4777-8777-777777777777',
+    profileId: '44444444-4444-4444-8444-444444444444',
+    gardenId: _gardenId,
+    seasonId: '88888888-8888-4888-8888-888888888888',
+    bedId: _bedId,
+    cropId: '99999999-9999-4999-8999-999999999999',
+    varietyId: null,
+    startMethod: 'direct_rows',
+    startDate: DateTime(2026, 9, 1),
+    endDate: endDate,
+    startPositionCm: 0,
+    lengthCm: 100,
+    plantSpacingCm: null,
+    rowSpacingCm: 30,
+    rowsCount: 2,
+    occupiedWidthCm: 30,
+    plantsCount: null,
+    seedQuantityG: null,
+    status: status,
+    notes: null,
+    createdAt: DateTime.utc(2026, 9, 1, 8),
+    updatedAt: DateTime.utc(2026, 9, 1, 8),
+    rowVersion: rowVersion,
+  );
+}
+
 class _PlantingRepositoryFake extends Fake implements PlantingRepository {
   final requestedBeds = <String>[];
+  final statusCalls = <Map<String, dynamic>>[];
+
+  List<Planting> plantings = [];
   bool failNextLoad = false;
+
+  Future<SetPlantingStatusResult> Function({
+    required String plantingId,
+    required int expectedRowVersion,
+    required String status,
+    DateTime? endDate,
+  })?
+  statusHandler;
 
   @override
   Future<List<Planting>> getPlantingsByBed(String bedId) async {
@@ -95,7 +139,35 @@ class _PlantingRepositoryFake extends Fake implements PlantingRepository {
       throw StateError('Synthetic planting load failure');
     }
 
-    return [];
+    return plantings;
+  }
+
+  @override
+  Future<SetPlantingStatusResult> setPlantingStatus({
+    required String plantingId,
+    required int expectedRowVersion,
+    required String status,
+    DateTime? endDate,
+  }) async {
+    statusCalls.add({
+      'plantingId': plantingId,
+      'expectedRowVersion': expectedRowVersion,
+      'status': status,
+      'endDate': endDate,
+    });
+
+    final handler = statusHandler;
+
+    if (handler == null) {
+      throw StateError('Unexpected setPlantingStatus call');
+    }
+
+    return handler(
+      plantingId: plantingId,
+      expectedRowVersion: expectedRowVersion,
+      status: status,
+      endDate: endDate,
+    );
   }
 }
 
@@ -1823,5 +1895,587 @@ void main() {
       expect(switchTile.value, isTrue);
       expect(tester.takeException(), isNull);
     });
+  });
+
+  testWidgets('sown passa a growing senza end date', (tester) async {
+    final now = DateTime.utc(2026, 9, 17, 12, 30);
+
+    final authority = ProfileWriteAuthorityController(
+      ProfileEditLockRepository.withRpcInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'acquire_profile_edit_lock');
+
+        return {
+          'status': 'acquired',
+          'lock_token': 'token-lifecycle-s029',
+          'expires_at': '2026-09-17T12:40:00+00:00',
+          'row_version': 1,
+        };
+      }),
+      _Scheduler(),
+      utcNow: () => now,
+    );
+
+    addTearDown(authority.dispose);
+
+    await authority.initialize(
+      profileContext: const ProfileContext(
+        profileId: '44444444-4444-4444-8444-444444444444',
+        role: ProfileMemberRole.owner,
+      ),
+      identity: const AppSessionIdentity(
+        clientInstanceId: '55555555-5555-4555-8555-555555555555',
+        sessionId: '66666666-6666-4666-8666-666666666666',
+      ),
+    );
+
+    final planting = _planting(status: 'sown', rowVersion: 7);
+    final plantings = _PlantingRepositoryFake()..plantings = [planting];
+
+    plantings.statusHandler =
+        ({
+          required plantingId,
+          required expectedRowVersion,
+          required status,
+          endDate,
+        }) async {
+          return PlantingStatusUpdated(
+            plantingId: plantingId,
+            gardenId: _gardenId,
+            previousStatus: 'sown',
+            status: status,
+            startDate: planting.startDate,
+            endDate: endDate,
+            rowVersion: 8,
+            updatedAt: DateTime.utc(2026, 9, 17, 10, 30),
+          );
+        };
+
+    final repository = BedRepository.withLoader(
+      (_) async => throw StateError('Unexpected list request'),
+      (_, _) async => _bedMap(),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BedPage(
+          bed: Bed.fromMap(_bedMap()),
+          authority: authority,
+          repository: repository,
+          plantingRepository: plantings,
+          cropRepository: _CropRepositoryFake(),
+          cropAssociationRepository: _CropAssociationRepositoryFake(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final menuFinder = find.byTooltip('Azioni coltura');
+
+    await tester.ensureVisible(menuFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(menuFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Segna in crescita'));
+    await tester.pumpAndSettle();
+
+    expect(plantings.statusCalls, hasLength(1));
+    expect(plantings.statusCalls.single, {
+      'plantingId': planting.id,
+      'expectedRowVersion': 7,
+      'status': 'growing',
+      'endDate': null,
+    });
+
+    expect(find.text('Coltura segnata in crescita.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('harvested passa a finished con data di fine esplicita', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 9, 17, 12, 30);
+
+    final authority = ProfileWriteAuthorityController(
+      ProfileEditLockRepository.withRpcInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'acquire_profile_edit_lock');
+
+        return {
+          'status': 'acquired',
+          'lock_token': 'token-lifecycle-finished-s029',
+          'expires_at': '2026-09-17T12:40:00+00:00',
+          'row_version': 1,
+        };
+      }),
+      _Scheduler(),
+      utcNow: () => now,
+    );
+
+    addTearDown(authority.dispose);
+
+    await authority.initialize(
+      profileContext: const ProfileContext(
+        profileId: '44444444-4444-4444-8444-444444444444',
+        role: ProfileMemberRole.owner,
+      ),
+      identity: const AppSessionIdentity(
+        clientInstanceId: '55555555-5555-4555-8555-555555555555',
+        sessionId: '66666666-6666-4666-8666-666666666666',
+      ),
+    );
+
+    final planting = _planting(status: 'harvested', rowVersion: 11);
+    final plantings = _PlantingRepositoryFake()..plantings = [planting];
+
+    plantings.statusHandler =
+        ({
+          required plantingId,
+          required expectedRowVersion,
+          required status,
+          endDate,
+        }) async {
+          return PlantingStatusUpdated(
+            plantingId: plantingId,
+            gardenId: _gardenId,
+            previousStatus: 'harvested',
+            status: status,
+            startDate: planting.startDate,
+            endDate: endDate,
+            rowVersion: 12,
+            updatedAt: DateTime.utc(2026, 9, 17, 10, 30),
+          );
+        };
+
+    final repository = BedRepository.withLoader(
+      (_) async => throw StateError('Unexpected list request'),
+      (_, _) async => _bedMap(),
+    );
+
+    final beforeTap = DateTime.now();
+    final expectedToday = DateTime(
+      beforeTap.year,
+      beforeTap.month,
+      beforeTap.day,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BedPage(
+          bed: Bed.fromMap(_bedMap()),
+          authority: authority,
+          repository: repository,
+          plantingRepository: plantings,
+          cropRepository: _CropRepositoryFake(),
+          cropAssociationRepository: _CropAssociationRepositoryFake(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final menuFinder = find.byTooltip('Azioni coltura');
+
+    await tester.ensureVisible(menuFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(menuFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Termina coltivazione'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Terminare la coltivazione?'), findsOneWidget);
+    expect(find.text('Data di fine'), findsOneWidget);
+
+    // Conferma la data proposta di default: oggi.
+    await tester.tap(find.text('Termina'));
+    await tester.pumpAndSettle();
+
+    expect(plantings.statusCalls, hasLength(1));
+
+    final call = plantings.statusCalls.single;
+
+    expect(call['plantingId'], planting.id);
+    expect(call['expectedRowVersion'], 11);
+    expect(call['status'], 'finished');
+    expect(call['endDate'], expectedToday);
+
+    expect(find.text('Coltura terminata correttamente.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('sown passa a removed con data di fine esplicita', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 9, 17, 12, 30);
+
+    final authority = ProfileWriteAuthorityController(
+      ProfileEditLockRepository.withRpcInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'acquire_profile_edit_lock');
+
+        return {
+          'status': 'acquired',
+          'lock_token': 'token-lifecycle-removed-s029',
+          'expires_at': '2026-09-17T12:40:00+00:00',
+          'row_version': 1,
+        };
+      }),
+      _Scheduler(),
+      utcNow: () => now,
+    );
+
+    addTearDown(authority.dispose);
+
+    await authority.initialize(
+      profileContext: const ProfileContext(
+        profileId: '44444444-4444-4444-8444-444444444444',
+        role: ProfileMemberRole.owner,
+      ),
+      identity: const AppSessionIdentity(
+        clientInstanceId: '55555555-5555-4555-8555-555555555555',
+        sessionId: '66666666-6666-4666-8666-666666666666',
+      ),
+    );
+
+    final planting = _planting(status: 'sown', rowVersion: 9);
+    final plantings = _PlantingRepositoryFake()..plantings = [planting];
+
+    plantings.statusHandler =
+        ({
+          required plantingId,
+          required expectedRowVersion,
+          required status,
+          endDate,
+        }) async {
+          return PlantingStatusUpdated(
+            plantingId: plantingId,
+            gardenId: _gardenId,
+            previousStatus: 'sown',
+            status: status,
+            startDate: planting.startDate,
+            endDate: endDate,
+            rowVersion: 10,
+            updatedAt: DateTime.utc(2026, 9, 17, 10, 30),
+          );
+        };
+
+    final repository = BedRepository.withLoader(
+      (_) async => throw StateError('Unexpected list request'),
+      (_, _) async => _bedMap(),
+    );
+
+    final beforeTap = DateTime.now();
+    final expectedToday = DateTime(
+      beforeTap.year,
+      beforeTap.month,
+      beforeTap.day,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BedPage(
+          bed: Bed.fromMap(_bedMap()),
+          authority: authority,
+          repository: repository,
+          plantingRepository: plantings,
+          cropRepository: _CropRepositoryFake(),
+          cropAssociationRepository: _CropAssociationRepositoryFake(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final menuFinder = find.byTooltip('Azioni coltura');
+
+    await tester.ensureVisible(menuFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(menuFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Rimuovi'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rimuovere la coltura?'), findsOneWidget);
+    expect(find.text('Data di fine'), findsOneWidget);
+
+    await tester.tap(find.text('Rimuovi'));
+    await tester.pumpAndSettle();
+
+    expect(plantings.statusCalls, hasLength(1));
+
+    final call = plantings.statusCalls.single;
+
+    expect(call['plantingId'], planting.id);
+    expect(call['expectedRowVersion'], 9);
+    expect(call['status'], 'removed');
+    expect(call['endDate'], expectedToday);
+
+    expect(find.text('Coltura rimossa correttamente.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('version conflict aggiorna i dati della coltura', (tester) async {
+    final now = DateTime.utc(2026, 9, 17, 12, 30);
+
+    final authority = ProfileWriteAuthorityController(
+      ProfileEditLockRepository.withRpcInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'acquire_profile_edit_lock');
+
+        return {
+          'status': 'acquired',
+          'lock_token': 'token-lifecycle-conflict-s029',
+          'expires_at': '2026-09-17T12:40:00+00:00',
+          'row_version': 1,
+        };
+      }),
+      _Scheduler(),
+      utcNow: () => now,
+    );
+
+    addTearDown(authority.dispose);
+
+    await authority.initialize(
+      profileContext: const ProfileContext(
+        profileId: '44444444-4444-4444-8444-444444444444',
+        role: ProfileMemberRole.owner,
+      ),
+      identity: const AppSessionIdentity(
+        clientInstanceId: '55555555-5555-4555-8555-555555555555',
+        sessionId: '66666666-6666-4666-8666-666666666666',
+      ),
+    );
+
+    final original = _planting(status: 'sown', rowVersion: 7);
+
+    final refreshed = Planting(
+      id: original.id,
+      profileId: original.profileId,
+      gardenId: original.gardenId,
+      seasonId: original.seasonId,
+      bedId: original.bedId,
+      cropId: original.cropId,
+      varietyId: original.varietyId,
+      startMethod: original.startMethod,
+      startDate: original.startDate,
+      endDate: null,
+      startPositionCm: original.startPositionCm,
+      lengthCm: original.lengthCm,
+      plantSpacingCm: original.plantSpacingCm,
+      rowSpacingCm: original.rowSpacingCm,
+      rowsCount: original.rowsCount,
+      occupiedWidthCm: original.occupiedWidthCm,
+      plantsCount: original.plantsCount,
+      seedQuantityG: original.seedQuantityG,
+      status: 'growing',
+      notes: original.notes,
+      createdAt: original.createdAt,
+      updatedAt: DateTime.utc(2026, 9, 17, 10, 31),
+      rowVersion: 8,
+    );
+
+    final plantings = _PlantingRepositoryFake()..plantings = [original];
+
+    plantings.statusHandler =
+        ({
+          required plantingId,
+          required expectedRowVersion,
+          required status,
+          endDate,
+        }) async {
+          plantings.plantings = [refreshed];
+
+          return SetPlantingStatusVersionConflict(
+            plantingId: plantingId,
+            expectedRowVersion: expectedRowVersion,
+            currentRowVersion: 8,
+            updatedAt: DateTime.utc(2026, 9, 17, 10, 31),
+          );
+        };
+
+    final repository = BedRepository.withLoader(
+      (_) async => throw StateError('Unexpected list request'),
+      (_, _) async => _bedMap(),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BedPage(
+          bed: Bed.fromMap(_bedMap()),
+          authority: authority,
+          repository: repository,
+          plantingRepository: plantings,
+          cropRepository: _CropRepositoryFake(),
+          cropAssociationRepository: _CropAssociationRepositoryFake(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final menuFinder = find.byTooltip('Azioni coltura');
+
+    await tester.ensureVisible(menuFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(menuFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Segna in crescita'));
+    await tester.pumpAndSettle();
+
+    expect(plantings.statusCalls, hasLength(1));
+
+    expect(
+      find.text(
+        'La coltura è stata modificata da un’altra sessione. '
+        'I dati sono stati aggiornati.',
+      ),
+      findsOneWidget,
+    );
+
+    expect(find.text('In crescita'), findsOneWidget);
+    expect(plantings.requestedBeds.length, greaterThanOrEqualTo(2));
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('invalid transition aggiorna i dati della coltura', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 9, 17, 12, 30);
+
+    final authority = ProfileWriteAuthorityController(
+      ProfileEditLockRepository.withRpcInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'acquire_profile_edit_lock');
+
+        return {
+          'status': 'acquired',
+          'lock_token': 'token-lifecycle-invalid-transition-s029',
+          'expires_at': '2026-09-17T12:40:00+00:00',
+          'row_version': 1,
+        };
+      }),
+      _Scheduler(),
+      utcNow: () => now,
+    );
+
+    addTearDown(authority.dispose);
+
+    await authority.initialize(
+      profileContext: const ProfileContext(
+        profileId: '44444444-4444-4444-8444-444444444444',
+        role: ProfileMemberRole.owner,
+      ),
+      identity: const AppSessionIdentity(
+        clientInstanceId: '55555555-5555-4555-8555-555555555555',
+        sessionId: '66666666-6666-4666-8666-666666666666',
+      ),
+    );
+
+    final original = _planting(status: 'growing', rowVersion: 7);
+
+    final refreshed = Planting(
+      id: original.id,
+      profileId: original.profileId,
+      gardenId: original.gardenId,
+      seasonId: original.seasonId,
+      bedId: original.bedId,
+      cropId: original.cropId,
+      varietyId: original.varietyId,
+      startMethod: original.startMethod,
+      startDate: original.startDate,
+      endDate: null,
+      startPositionCm: original.startPositionCm,
+      lengthCm: original.lengthCm,
+      plantSpacingCm: original.plantSpacingCm,
+      rowSpacingCm: original.rowSpacingCm,
+      rowsCount: original.rowsCount,
+      occupiedWidthCm: original.occupiedWidthCm,
+      plantsCount: original.plantsCount,
+      seedQuantityG: original.seedQuantityG,
+      status: 'harvest_ready',
+      notes: original.notes,
+      createdAt: original.createdAt,
+      updatedAt: DateTime.utc(2026, 9, 17, 10, 32),
+      rowVersion: 8,
+    );
+
+    final plantings = _PlantingRepositoryFake()..plantings = [original];
+
+    plantings.statusHandler =
+        ({
+          required plantingId,
+          required expectedRowVersion,
+          required status,
+          endDate,
+        }) async {
+          plantings.plantings = [refreshed];
+
+          return SetPlantingStatusInvalidTransition(
+            plantingId: plantingId,
+            currentStatus: 'harvest_ready',
+            targetStatus: status,
+          );
+        };
+
+    final repository = BedRepository.withLoader(
+      (_) async => throw StateError('Unexpected list request'),
+      (_, _) async => _bedMap(),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BedPage(
+          bed: Bed.fromMap(_bedMap()),
+          authority: authority,
+          repository: repository,
+          plantingRepository: plantings,
+          cropRepository: _CropRepositoryFake(),
+          cropAssociationRepository: _CropAssociationRepositoryFake(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final menuFinder = find.byTooltip('Azioni coltura');
+
+    await tester.ensureVisible(menuFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(menuFinder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Segna pronta alla raccolta'));
+    await tester.pumpAndSettle();
+
+    expect(plantings.statusCalls, hasLength(1));
+
+    expect(
+      find.text(
+        'Lo stato attuale della coltura non consente questa operazione. '
+        'I dati sono stati aggiornati.',
+      ),
+      findsOneWidget,
+    );
+
+    expect(find.text('Pronta alla raccolta'), findsOneWidget);
+    expect(plantings.requestedBeds.length, greaterThanOrEqualTo(2));
+    expect(tester.takeException(), isNull);
   });
 }

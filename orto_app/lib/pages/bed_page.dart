@@ -264,7 +264,122 @@ class _BedPageState extends State<BedPage> {
     }
   }
 
-  Future<void> _deletePlanting(Planting planting, Crop? crop) async {
+  String _formatPlantingDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+
+    return '$day/$month/$year';
+  }
+
+  Future<DateTime?> _requestPlantingEndDate({
+    required Planting planting,
+    required String cropName,
+    required String targetStatus,
+  }) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final startDate = DateTime(
+      planting.startDate.year,
+      planting.startDate.month,
+      planting.startDate.day,
+    );
+
+    var selectedDate = today;
+
+    final isRemoved = targetStatus == 'removed';
+
+    return showDialog<DateTime>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(
+                isRemoved
+                    ? 'Rimuovere la coltura?'
+                    : 'Terminare la coltivazione?',
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cropName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    isRemoved
+                        ? 'La coltura verrà rimossa dall’aiuola ma resterà '
+                              'conservata nello storico.'
+                        : 'La coltivazione verrà considerata terminata e '
+                              'non occuperà più spazio nell’aiuola.',
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Data di fine',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: dialogContext,
+                        initialDate: selectedDate,
+                        firstDate: startDate,
+                        lastDate: today,
+                      );
+
+                      if (picked != null) {
+                        setState(() {
+                          selectedDate = picked;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.calendar_today_outlined),
+                    label: Text(_formatPlantingDate(selectedDate)),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'La data deve essere compresa tra '
+                    '${_formatPlantingDate(startDate)} e '
+                    '${_formatPlantingDate(today)}.',
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Annulla'),
+                ),
+                FilledButton.icon(
+                  onPressed: () =>
+                      Navigator.of(dialogContext).pop(selectedDate),
+                  icon: Icon(
+                    isRemoved
+                        ? Icons.remove_circle_outline
+                        : Icons.check_circle_outline,
+                  ),
+                  label: Text(isRemoved ? 'Rimuovi' : 'Termina'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _changePlantingStatus(
+    Planting planting,
+    Crop? crop,
+    String targetStatus,
+  ) async {
     final authority = widget.authority;
 
     if (authority == null) {
@@ -275,52 +390,20 @@ class _BedPageState extends State<BedPage> {
         ? crop!.name
         : 'Coltura';
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Rimuovere la coltura?'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                cropName,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                planting.plantsCount == null
-                    ? 'Numero di piante non indicato'
-                    : '${planting.plantsCount} piante',
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'La coltura verrà rimossa dall’aiuola ma resterà '
-                'conservata nello storico.',
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Annulla'),
-            ),
-            FilledButton.icon(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              icon: const Icon(Icons.remove_circle_outline),
-              label: const Text('Rimuovi'),
-            ),
-          ],
-        );
-      },
-    );
+    final terminal = targetStatus == 'finished' || targetStatus == 'removed';
 
-    if (confirmed != true || !mounted) {
-      return;
+    DateTime? endDate;
+
+    if (terminal) {
+      endDate = await _requestPlantingEndDate(
+        planting: planting,
+        cropName: cropName,
+        targetStatus: targetStatus,
+      );
+
+      if (endDate == null || !mounted) {
+        return;
+      }
     }
 
     try {
@@ -329,8 +412,8 @@ class _BedPageState extends State<BedPage> {
       final result = await _plantingRepository.setPlantingStatus(
         plantingId: planting.id,
         expectedRowVersion: planting.rowVersion,
-        status: 'removed',
-        endDate: DateTime.now(),
+        status: targetStatus,
+        endDate: endDate,
       );
 
       if (!mounted) {
@@ -346,21 +429,34 @@ class _BedPageState extends State<BedPage> {
             return;
           }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$cropName rimossa correttamente.')),
-          );
-          break;
+          final message = switch (targetStatus) {
+            'growing' => '$cropName segnata in crescita.',
+            'harvest_ready' => '$cropName segnata pronta alla raccolta.',
+            'harvested' => '$cropName segnata come raccolta.',
+            'finished' => '$cropName terminata correttamente.',
+            'removed' => '$cropName rimossa correttamente.',
+            _ => 'Stato della coltura aggiornato.',
+          };
+
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
 
         case SetPlantingStatusVersionConflict():
+          await _refreshPlantings();
+
+          if (!mounted) {
+            return;
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
                 'La coltura è stata modificata da un’altra sessione. '
-                'Aggiorna i dati prima di riprovare.',
+                'I dati sono stati aggiornati.',
               ),
             ),
           );
-          break;
 
         case SetPlantingStatusForbidden():
           ScaffoldMessenger.of(context).showSnackBar(
@@ -368,7 +464,6 @@ class _BedPageState extends State<BedPage> {
               content: Text('Non sei autorizzato a modificare questa coltura.'),
             ),
           );
-          break;
 
         case SetPlantingStatusWriteForbidden():
           ScaffoldMessenger.of(context).showSnackBar(
@@ -376,33 +471,36 @@ class _BedPageState extends State<BedPage> {
               content: Text('Il server non ha autorizzato la scrittura.'),
             ),
           );
-          break;
 
         case SetPlantingStatusNotFound():
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('La coltura non è più disponibile.')),
           );
-          break;
 
         case SetPlantingStatusInvalidInput():
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Il server ha rifiutato la data o lo stato della rimozione.',
+                'Il server ha rifiutato lo stato o la data indicata.',
               ),
             ),
           );
-          break;
 
         case SetPlantingStatusInvalidTransition():
+          await _refreshPlantings();
+
+          if (!mounted) {
+            return;
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Lo stato attuale della coltura non consente la rimozione.',
+                'Lo stato attuale della coltura non consente questa operazione. '
+                'I dati sono stati aggiornati.',
               ),
             ),
           );
-          break;
       }
     } on ProfileWriteAuthorityUnavailableException {
       if (!mounted) {
@@ -413,7 +511,7 @@ class _BedPageState extends State<BedPage> {
         const SnackBar(content: Text('Autorità di scrittura non disponibile.')),
       );
     } on Object catch (error, stackTrace) {
-      debugPrint('Errore durante la rimozione della coltura: $error');
+      debugPrint('Errore durante il cambio stato della coltura: $error');
       debugPrintStack(stackTrace: stackTrace);
 
       if (!mounted) {
@@ -422,9 +520,7 @@ class _BedPageState extends State<BedPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Non è stato possibile confermare l’esito della rimozione.',
-          ),
+          content: Text('Non è stato possibile confermare il cambio di stato.'),
         ),
       );
     }
@@ -893,7 +989,12 @@ class _BedPageState extends State<BedPage> {
                           planting: planting,
                           crop: crop,
                           onEdit: () => _editPlanting(planting),
-                          onDelete: () => _deletePlanting(planting, crop),
+                          onStatusChange: (targetStatus) =>
+                              _changePlantingStatus(
+                                planting,
+                                crop,
+                                targetStatus,
+                              ),
                         );
                       }),
                   ],
