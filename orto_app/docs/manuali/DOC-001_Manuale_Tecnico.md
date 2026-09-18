@@ -4,7 +4,7 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.7
+**Versione:** 2.8
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 17/09/2026
+**Ultimo aggiornamento:** 18/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,14 +26,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.7 |
+| Versione | 2.8 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 17/09/2026 |
+| Ultimo aggiornamento | 18/09/2026 |
 
 ---
 
@@ -61,6 +61,7 @@
 | 2.5 | 11/09/2026 | Aggiornamento con la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, identificativi UUID, Profile ownership, nove RPC autoritative, RLS in lettura, revoca delle scritture dirette, Profile Write Authority, concorrenza ottimistica, validazioni gerarchiche e agronomiche, allineamento locale/remoto delle migration e definizione della S027 come integrazione Flutter del Catalogo V1 |
 | 2.6 | 13/09/2026 | Aggiornamento con la Sessione S027: integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, nuovi Repository e result type tipizzati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy controllata e verifica finale con 914/914 test superati |
 | 2.7 | 17/09/2026 | Aggiornamento con la Sessione S028: implementazione del Write Path autoritativo di `plantings`, introduzione del modello persistente completo, RPC `create_planting`, `update_planting` e `set_planting_status`, lifecycle autoritativo, controlli di sovrapposizione spaziale e temporale, integrazione con la geometria storicizzata delle aiuole, riallineamento di `PlantingRepository`, `AddPlantingPage`, `BedPage` e componenti correlati, Profile Write Authority fail-closed, concorrenza mediante `row_version` e verifica finale con 997 test superati |
+| 2.8 | 18/09/2026 | Aggiornamento con la Sessione S029: integrazione UI del lifecycle autoritativo di `plantings`, azioni contestuali in `PlantingCard`, gestione delle transizioni mediante `set_planting_status`, conferma esplicita di `end_date` per `finished` e `removed`, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition` e aggiornamento dei test dedicati |
 
 ---
 
@@ -2060,7 +2061,7 @@ flutter test
 997 tests passed
 ```
 
-Alla conclusione della S028 risultano quindi completati:
+Alla conclusione della S028 risultavano completati:
 
 - Catalogo DB V1 lato PostgreSQL/Supabase;
 - integrazione Flutter del Catalogo V1;
@@ -2073,14 +2074,203 @@ Alla conclusione della S028 risultano quindi completati:
 - concorrenza ottimistica;
 - protezione della geometria delle aiuole rispetto alle coltivazioni esistenti.
 
+La Sessione S029 ha completato il livello applicativo del lifecycle delle coltivazioni senza modificare schema, migration, RPC, RLS o contratto persistente definiti nella S028.
+
+La UI utilizza ora il lifecycle autoritativo mediante:
+
+```text
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+```
+
+Le azioni disponibili dipendono dallo stato corrente della coltivazione:
+
+```text
+sown
+  → growing
+  → removed
+
+growing
+  → harvest_ready
+  → removed
+
+harvest_ready
+  → harvested
+  → removed
+
+harvested
+  → finished
+  → removed
+
+finished
+  → nessuna transizione
+
+removed
+  → nessuna transizione
+```
+
+La precedente azione applicativa di eliminazione è stata rimossa dal normale flusso utente.
+
+Lo stato legacy:
+
+```text
+planned
+```
+
+non viene più utilizzato nella card delle coltivazioni.
+
+Per gli stati intermedi:
+
+```text
+sown → growing
+growing → harvest_ready
+harvest_ready → harvested
+```
+
+viene mantenuto:
+
+```text
+end_date = null
+```
+
+Per gli stati terminali:
+
+```text
+harvested → finished
+* → removed
+```
+
+l'utente deve invece confermare esplicitamente la data di fine.
+
+La UI propone come valore iniziale la data corrente, consentendo però la selezione entro i limiti:
+
+```text
+minimo  = planting.startDate
+massimo = oggi
+```
+
+La validazione definitiva rimane comunque responsabilità del server.
+
+La Sessione S029 ha inoltre rafforzato la sincronizzazione della UI in presenza degli esiti:
+
+```text
+version_conflict
+invalid_transition
+```
+
+In entrambi i casi i dati delle coltivazioni vengono riletti dal database prima di informare l'utente, evitando che la schermata continui a mostrare uno stato obsoleto.
+
+`PlantingCard` presenta ora azioni lifecycle contestuali e, nello stato:
+
+```text
+harvested
+```
+
+visualizza esplicitamente che l'aiuola rimane occupata fino alla conclusione o rimozione della coltivazione.
+
+La verifica tecnica finale S029 ha confermato:
+
+```text
+flutter analyze
+No issues found! (ran in 12.8s)
+```
+
+La suite completa finale è stata nuovamente eseguita dopo l'aggiunta dell'ultimo test dedicato a `PlantingCard` e ha prodotto:
+
+```text
+flutter test
+1011/1011 test passati
+```
+
+Restano inoltre confermate le verifiche dedicate:
+
+```text
+bed_page_test.dart
+30/30 test passati
+
+planting_card_test.dart
+9/9 test passati
+```
+
+Il totale di 1011 test è quindi un risultato effettivamente verificato mediante esecuzione completa della suite e costituisce il dato tecnico finale della Sessione S029.
+
+Alla conclusione della S029 risultano quindi completati:
+
+- lifecycle autoritativo server-side;
+- integrazione UI del lifecycle;
+- azioni contestuali per stato;
+- mantenimento dell'occupazione nello stato `harvested`;
+- gestione esplicita di `end_date` per `finished` e `removed`;
+- refresh autoritativo della UI su `version_conflict`;
+- refresh autoritativo della UI su `invalid_transition`;
+- eliminazione del normale flusso `delete`;
+- eliminazione dello stato legacy `planned` dalla card;
+- Profile Write Authority fail-closed;
+- concorrenza ottimistica mediante `row_version`.
+
 Restano aperti come incrementi successivi:
 
-- gestione UI completa del lifecycle di `plantings`;
 - selezione e gestione della `CropVariety` nel flusso utente;
-- gestione esplicita di `end_date` nei passaggi terminali;
 - progressiva eliminazione delle dipendenze legacy residue;
 - UI amministrativa completa del Catalogo V1;
-- operazioni amministrative protette su `profile_memberships`.
+- operazioni amministrative protette su `profile_memberships`;
+- eventuale hard delete amministrativo o tecnico di `plantings`, escluso dal normale lifecycle.
+
+Rimane inoltre aperta una verifica applicativa relativa alla creazione del primo orto quando l'app non contiene ancora alcun `garden`.
+
+Il Write Path autoritativo di `gardens` esiste già dalla S022; dovrà quindi essere verificato se la pagina di creazione esista ma non sia raggiungibile, se il relativo comando venga nascosto da una condizione oppure se manchi l'integrazione UI necessaria al primo inserimento.
+
+Questa verifica non è stata inclusa nel perimetro della S029.
+
+Come sviluppo futuro preparatorio, esterno alla Sessione S029, è stata inoltre consolidata la direzione progettuale per la futura S030 dedicata al **Catalogo Agronomico V1**.
+
+Il futuro Catalogo Agronomico dovrà essere:
+
+- multisorgente;
+- tracciabile;
+- versionabile;
+- contestualizzato;
+- separato dai dati candidati provenienti da fonti esterne.
+
+Il flusso concettuale previsto è:
+
+```text
+Fonte esterna
+        ↓
+AgronomicImport
+        ↓
+dato candidato
+        ↓
+AgronomicReview
+        ↓
+AgronomicCatalog
+```
+
+con stati:
+
+```text
+DRAFT
+REVIEW
+APPROVED
+ARCHIVED
+```
+
+Nessun dato importato o ottenuto mediante scraping potrà modificare automaticamente il Catalogo approvato.
+
+La futura progettazione dovrà inoltre distinguere:
+
+```text
+coltura
+varietà / cultivar
+origine commerciale
+```
+
+e prevedere ereditarietà dei valori dalla coltura alla varietà con possibilità di override specifici e tracciabilità della fonte a livello del singolo dato agronomico.
+
+La **carota** è stata individuata come primo caso pilota per verificare l'intero modello, ma i dati raccolti finora rimangono candidati e non devono essere considerati già approvati o utilizzabili operativamente.
+
+La Sessione S030 non è ancora iniziata.
 
 Il **DOC-004 — Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo nell'architettura complessiva di Orto Smart.
 
@@ -2832,7 +3022,7 @@ PlantingRepository.getPlantingsByBed
 
 e partecipano alla rappresentazione dello spazio occupato e disponibile.
 
-La geometria dell'aiuola e le coltivazioni persistite sono ora reciprocamente coerenti anche lato database.
+La geometria dell'aiuola e le coltivazioni persistite sono reciprocamente coerenti anche lato database.
 
 Le operazioni:
 
@@ -2841,7 +3031,7 @@ change_bed_geometry
 correct_bed_geometry
 ```
 
-possono infatti essere bloccate quando la nuova geometria risulterebbe incompatibile con coltivazioni esistenti.
+possono essere bloccate quando la nuova geometria risulterebbe incompatibile con coltivazioni esistenti.
 
 In tale situazione il server può restituire:
 
@@ -2849,13 +3039,144 @@ In tale situazione il server può restituire:
 blocked_by_plantings
 ```
 
-Dopo ogni operazione riuscita `BedPage` esegue una nuova lettura autoritativa e visualizza i dati aggiornati restituiti dai Repository.
+Dalla Sessione S029 `BedPage` gestisce inoltre il lifecycle operativo delle coltivazioni utilizzando:
+
+```text
+PlantingRepository.setPlantingStatus
+```
+
+che richiama il Write Path autoritativo:
+
+```text
+set_planting_status
+```
+
+Non vengono quindi eseguite scritture dirette sulla tabella `plantings`.
+
+La precedente gestione specifica di eliminazione della coltivazione è stata rimossa e sostituita da un'unica gestione delle transizioni di stato.
+
+Le transizioni consentite sono quelle definite dal contratto autoritativo:
+
+```text
+sown
+  → growing
+  → removed
+
+growing
+  → harvest_ready
+  → removed
+
+harvest_ready
+  → harvested
+  → removed
+
+harvested
+  → finished
+  → removed
+
+finished
+  → nessuna transizione
+
+removed
+  → nessuna transizione
+```
+
+Lo stato:
+
+```text
+harvested
+```
+
+non libera l'aiuola.
+
+La coltivazione continua a occupare lo spazio fino al passaggio a:
+
+```text
+finished
+```
+
+oppure:
+
+```text
+removed
+```
+
+Per le transizioni intermedie:
+
+```text
+sown → growing
+growing → harvest_ready
+harvest_ready → harvested
+```
+
+viene mantenuto:
+
+```text
+end_date = null
+```
+
+Per gli stati terminali:
+
+```text
+harvested → finished
+* → removed
+```
+
+`BedPage` richiede invece la conferma esplicita della data di fine.
+
+La data proposta inizialmente è quella corrente, ma l'utente può modificarla entro i limiti:
+
+```text
+minimo  = planting.startDate
+massimo = oggi
+```
+
+La data terminale non viene quindi più assegnata automaticamente senza conferma dell'utente.
+
+Le validazioni definitive restano comunque applicate anche lato server.
+
+La Sessione S029 ha inoltre rafforzato la gestione della concorrenza e della sincronizzazione.
+
+In presenza degli esiti:
+
+```text
+version_conflict
+invalid_transition
+```
+
+`BedPage` esegue prima:
+
+```text
+_refreshPlantings()
+```
+
+e successivamente informa l'utente.
+
+In questo modo la schermata viene riallineata allo stato corrente del database prima di mostrare il messaggio relativo al conflitto o alla transizione non più consentita.
+
+Per `version_conflict` viene quindi evitato che rimangano visualizzati dati ormai superati da una modifica concorrente.
+
+Per `invalid_transition` viene invece riletta la coltivazione corrente, evitando che l'interfaccia continui a proporre azioni basate su uno stato non più valido.
+
+Dopo ogni operazione riuscita `BedPage` esegue comunque una nuova lettura autoritativa e visualizza i dati aggiornati restituiti dai Repository.
 
 Gli esiti non confermabili impediscono retry automatici o inconsapevoli.
 
 `BedPage` può ricevere opzionalmente il `ProfileWriteAuthorityController`; quando l'autorità non viene fornita, la pagina rimane utilizzabile in un contesto di sola lettura.
 
-La sezione delle coltivazioni non dipende più dall'assenza di `public.plantings`: dalla S028 la relativa tabella e il suo Write Path autoritativo sono implementati.
+La sezione delle coltivazioni utilizza quindi:
+
+```text
+public.plantings
++
+PlantingRepository
++
+set_planting_status
++
+Profile Write Authority
+```
+
+mantenendo il comportamento fail-closed definito per i Write Path protetti.
 
 ### AddPlantingPage
 
@@ -3013,13 +3334,26 @@ direct_broadcast
 sown
 ```
 
-Il lifecycle successivo viene gestito separatamente tramite:
+Il lifecycle successivo rimane separato dalla normale modifica della coltivazione e viene gestito tramite:
 
 ```text
 set_planting_status
 ```
 
-e non mediante l'update ordinario.
+La Sessione S029 ha completato l'interfaccia necessaria per eseguire tali transizioni dalla schermata dell'aiuola.
+
+La gestione della data terminale è quindi ora esplicita per:
+
+```text
+finished
+removed
+```
+
+mentre gli stati intermedi continuano a mantenere:
+
+```text
+end_date = null
+```
 
 Per migliorare la testabilità senza modificare il comportamento di produzione, `AddPlantingPage` supporta dependency injection opzionale per:
 
@@ -3033,7 +3367,19 @@ Quando tali dipendenze non vengono fornite, vengono utilizzate le implementazion
 
 La pagina è coperta da test dedicati che verificano i principali flussi di creazione e validazione.
 
-Alla conclusione della S028 il lifecycle server-side è disponibile, mentre la UI completa per le transizioni di stato, la selezione della varietà e la gestione esplicita di `end_date` rimangono incrementi successivi.
+Alla conclusione della Sessione S029 risultano quindi disponibili:
+
+- creazione autoritativa delle coltivazioni;
+- modifica autoritativa delle coltivazioni;
+- determinazione dello stato iniziale;
+- lifecycle UI mediante `set_planting_status`;
+- gestione esplicita della data terminale per `finished` e `removed`;
+- mantenimento dell'occupazione dell'aiuola durante lo stato `harvested`;
+- sincronizzazione della UI in presenza di conflitti concorrenti o transizioni non più valide.
+
+Rimane invece un incremento successivo:
+
+- selezione opzionale e gestione della `CropVariety` nel flusso operativo.
 
 ### Pagine future
 
@@ -3077,6 +3423,169 @@ Visualizza la disposizione grafica delle colture all'interno dell'aiuola, mostra
 
 Questo componente costituisce uno degli elementi distintivi di Orto Smart e rappresenta il collegamento tra i dati gestiti dal Motore Agronomico e la loro visualizzazione grafica.
 
+### PlantingCard
+
+`PlantingCard` rappresenta una singola coltivazione persistita all'interno dell'interfaccia dell'aiuola.
+
+Il widget visualizza le principali informazioni della coltivazione e, dalla Sessione S029, espone azioni lifecycle contestuali coerenti con lo stato corrente.
+
+La precedente azione generica:
+
+```text
+Elimina
+```
+
+è stata rimossa dal normale flusso operativo.
+
+È stato inoltre eliminato dalla card il supporto allo stato legacy:
+
+```text
+planned
+```
+
+Il widget utilizza ora il callback:
+
+```dart
+onStatusChange
+```
+
+per comunicare a `BedPage` la transizione richiesta.
+
+La persistenza della transizione non viene quindi effettuata direttamente dal widget.
+
+Il flusso è:
+
+```text
+PlantingCard
+        ↓
+onStatusChange
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+```
+
+Le azioni disponibili dipendono dallo stato corrente.
+
+Per:
+
+```text
+sown
+```
+
+sono disponibili:
+
+```text
+Modifica
+Segna in crescita
+Rimuovi
+```
+
+Per:
+
+```text
+growing
+```
+
+sono disponibili:
+
+```text
+Modifica
+Segna pronta alla raccolta
+Rimuovi
+```
+
+Per:
+
+```text
+harvest_ready
+```
+
+sono disponibili:
+
+```text
+Modifica
+Segna raccolta
+Rimuovi
+```
+
+Per:
+
+```text
+harvested
+```
+
+sono disponibili:
+
+```text
+Modifica
+Termina coltivazione
+Rimuovi
+```
+
+Per gli stati terminali:
+
+```text
+finished
+removed
+```
+
+non vengono proposte ulteriori transizioni lifecycle.
+
+Rimane disponibile la modifica ordinaria dove prevista dal flusso applicativo, mentre il lifecycle resta gestito separatamente mediante il Write Path dedicato.
+
+Lo stato:
+
+```text
+harvested
+```
+
+non rappresenta la fine dell'occupazione fisica dell'aiuola.
+
+Per evitare interpretazioni errate, `PlantingCard` visualizza esplicitamente un messaggio informativo equivalente a:
+
+> L'aiuola resta occupata finché la coltivazione non viene terminata o rimossa.
+
+Soltanto il passaggio a:
+
+```text
+finished
+```
+
+oppure:
+
+```text
+removed
+```
+
+termina l'occupazione.
+
+La Sessione S029 ha aggiunto test dedicati al widget in:
+
+```text
+test/widgets/planting_card_test.dart
+```
+
+La verifica finale dedicata comprende:
+
+```text
+9/9 test passati
+```
+
+con copertura di:
+
+- menu nello stato `sown`;
+- menu nello stato `growing`;
+- menu nello stato `harvest_ready`;
+- menu nello stato `harvested`;
+- assenza di azioni lifecycle per `finished`;
+- assenza di azioni lifecycle per `removed`;
+- callback verso `harvest_ready`;
+- callback verso `removed`;
+- messaggio informativo relativo all'occupazione nello stato `harvested`.
+
 ### Widget futuri
 
 Con l'evoluzione del progetto verranno introdotti nuovi widget dedicati alla gestione dell'irrigazione, delle attività agricole, delle statistiche, dei grafici e delle funzionalità avanzate del Motore Agronomico.
@@ -3087,13 +3596,20 @@ L'utilizzo di widget indipendenti e riutilizzabili consente di mantenere l'inter
 
 La gestione dello stato dell'applicazione ha il compito di mantenere sincronizzate le informazioni visualizzate dall'interfaccia utente con i dati presenti nel database.
 
-Ogni pagina recupera i dati necessari tramite i Repository e aggiorna automaticamente la visualizzazione quando vengono effettuate operazioni di inserimento, modifica o eliminazione.
+Ogni pagina recupera i dati necessari tramite i Repository e aggiorna la visualizzazione quando vengono effettuate operazioni quali:
+
+- inserimento;
+- modifica;
+- attivazione o disattivazione;
+- variazione di configurazione;
+- transizione di stato;
+- rilettura conseguente a un conflitto concorrente.
 
 L'obiettivo è garantire che l'utente visualizzi sempre informazioni coerenti e aggiornate, evitando duplicazioni dei dati e mantenendo separata la logica di presentazione dalla logica applicativa.
 
 L'attuale architettura dell'applicazione adotta un approccio semplice e modulare, adeguato alle funzionalità oggi implementate e facilmente estendibile con la crescita del progetto.
 
-Il flusso di aggiornamento dello stato può essere rappresentato come segue.
+Il flusso generale di aggiornamento dello stato può essere rappresentato come segue.
 
 ```text
 Utente
@@ -3105,7 +3621,7 @@ Interazione con la UI
 Repository
    │
    ▼
-Supabase
+RPC / lettura Supabase
    │
    ▼
 PostgreSQL
@@ -3114,10 +3630,66 @@ PostgreSQL
 Repository
    │
    ▼
+Rilettura autoritativa
+   │
+   ▼
 Aggiornamento della UI
 ```
 
-Questa organizzazione consente di mantenere il comportamento dell'applicazione prevedibile, semplifica le attività di manutenzione e costituisce una solida base per l'introduzione di future tecniche di gestione dello stato, qualora la complessità del progetto lo rendesse necessario.
+Per i Write Path protetti, la UI non determina autonomamente l'esito definitivo dell'operazione.
+
+Il server rimane autoritativo rispetto a:
+
+- validità dell'operazione;
+- autorizzazioni;
+- concorrenza;
+- invarianti di dominio;
+- transizioni di stato consentite.
+
+La Sessione S029 ha applicato questo principio anche al lifecycle delle coltivazioni.
+
+Le transizioni richieste dall'interfaccia vengono inoltrate mediante:
+
+```text
+PlantingCard
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+```
+
+e la UI viene successivamente riallineata allo stato persistito.
+
+In particolare, in presenza degli esiti:
+
+```text
+version_conflict
+invalid_transition
+```
+
+`BedPage` esegue una nuova lettura delle coltivazioni prima di informare l'utente.
+
+Questo comportamento evita che l'interfaccia continui a rappresentare uno stato non più corrispondente al database.
+
+Il principio applicato è quindi:
+
+```text
+operazione richiesta
+        ↓
+validazione autoritativa
+        ↓
+esito server
+        ↓
+rilettura quando necessaria
+        ↓
+aggiornamento della UI
+```
+
+Non vengono effettuati retry automatici di scritture il cui esito non sia confermabile.
+
+Questa organizzazione mantiene il comportamento dell'applicazione prevedibile, riduce il rischio di visualizzare dati obsoleti e costituisce una base solida per l'introduzione futura di tecniche più evolute di gestione dello stato, qualora la complessità del progetto lo renda necessario.
 
 ## 7.7 Principi di progettazione dell'interfaccia
 
@@ -4669,24 +5241,113 @@ L'utilizzo sistematico di `flutter analyze` consente di:
 
 L'assenza di errori segnalati dall'analizzatore costituisce un requisito preliminare per considerare completata una sessione di sviluppo e procedere con le successive attività di verifica.
 
+Nella Sessione S029, dopo l'integrazione UI del lifecycle delle coltivazioni e dopo l'ultima modifica informativa a `PlantingCard`, è stato eseguito nuovamente:
+
+```text
+flutter analyze
+```
+
+con risultato:
+
+```text
+No issues found!
+```
+
+La verifica finale conferma quindi che le modifiche introdotte nella S029 non hanno generato errori rilevati dall'analisi statica.
+
 ## 9.4 Test automatici
 
 Oltre all'analisi statica del codice, Orto Smart utilizza test automatici per verificare il corretto funzionamento delle componenti implementate.
 
-I test consentono di controllare che gli algoritmi producano i risultati attesi e che le modifiche introdotte non alterino il comportamento delle funzionalità già sviluppate.
+I test consentono di controllare che gli algoritmi e i flussi applicativi producano i risultati attesi e che le modifiche introdotte non alterino il comportamento delle funzionalità già sviluppate.
 
-Particolare attenzione viene dedicata ai componenti del Motore Agronomico, dove la correttezza delle elaborazioni rappresenta un requisito fondamentale per l'affidabilità dell'applicazione.
+Particolare attenzione viene dedicata sia ai componenti del Motore Agronomico sia ai flussi applicativi che coinvolgono persistenza, Repository, concorrenza, Profile Write Authority e interfaccia utente.
 
 I test automatici permettono di:
 
 - verificare il comportamento delle singole componenti;
 - controllare la correttezza degli algoritmi implementati;
+- validare i flussi applicativi;
 - individuare rapidamente eventuali regressioni;
 - facilitare l'evoluzione del software mantenendo elevata l'affidabilità del progetto.
 
-L'esecuzione dei test viene effettuata mediante il comando `flutter test`, che consente di verificare automaticamente il corretto funzionamento delle funzionalità coperte dai test.
+L'esecuzione della suite completa viene effettuata mediante:
 
-I test rappresentano uno strumento essenziale del processo di sviluppo e costituiscono un'importante garanzia di qualità durante l'evoluzione di Orto Smart.
+```text
+flutter test
+```
+
+La Sessione S029 ha aggiunto verifiche dedicate al lifecycle delle coltivazioni.
+
+Il file:
+
+```text
+test/pages/bed_page_test.dart
+```
+
+è stato esteso per verificare, tra gli altri casi:
+
+```text
+sown → growing
+harvested → finished
+sown → removed
+```
+
+oltre alla gestione di:
+
+```text
+version_conflict
+invalid_transition
+```
+
+con rilettura autoritativa dei dati.
+
+La verifica dedicata di `BedPage` ha prodotto:
+
+```text
+30/30 test passati
+```
+
+È stato inoltre aggiunto:
+
+```text
+test/widgets/planting_card_test.dart
+```
+
+per verificare le azioni contestuali di `PlantingCard`, gli stati terminali e il messaggio che segnala il mantenimento dell'occupazione nello stato `harvested`.
+
+La verifica finale dedicata di `PlantingCard` ha prodotto:
+
+```text
+9/9 test passati
+```
+
+Dopo l'aggiunta dell'ultimo test dedicato a `PlantingCard` è stata nuovamente eseguita l'intera suite automatica.
+
+La verifica finale ha prodotto:
+
+```text
+flutter test
+1011/1011 test passati
+```
+
+È stata inoltre nuovamente eseguita l'analisi statica:
+
+```text
+flutter analyze
+No issues found! (ran in 12.8s)
+```
+
+Il quadro finale della verifica S029 è quindi:
+
+```text
+suite completa:               1011/1011 test passati
+BedPage:                        30/30 test passati
+PlantingCard finale:             9/9 test passati
+flutter analyze finale:          No issues found!
+```
+
+I test automatici continuano a costituire uno degli strumenti principali per prevenire regressioni e mantenere affidabile l'evoluzione di Orto Smart.
 
 ## 9.5 Qualità del codice
 
@@ -4742,9 +5403,39 @@ L'integrazione tra analisi statica del codice, test automatici, progettazione mo
 
 L'approccio adottato permette di introdurre nuove funzionalità mantenendo la stabilità delle componenti già sviluppate, riducendo il rischio di regressioni e favorendo una crescita progressiva del sistema.
 
-La strategia di qualità documentata in questo capitolo costituisce una base metodologica destinata ad accompagnare l'intero sviluppo di Orto Smart, contribuendo a garantire la robustezza dell'applicazione e la fiducia degli utenti nel suo utilizzo.
+La Sessione S029 ha confermato questo metodo anche nell'integrazione UI del lifecycle delle coltivazioni.
 
-Nel Capitolo 10 verranno illustrate le prospettive di evoluzione del progetto, con particolare riferimento alle funzionalità previste nelle future versioni e alla roadmap di sviluppo.
+Le modifiche a `BedPage` e `PlantingCard` sono state accompagnate dalla verifica finale:
+
+```text
+flutter analyze
+No issues found! (ran in 12.8s)
+```
+
+e dall'esecuzione completa della suite automatica:
+
+```text
+flutter test
+1011/1011 test passati
+```
+
+Restano inoltre confermate le verifiche dedicate:
+
+```text
+bed_page_test.dart
+30/30 test passati
+
+planting_card_test.dart
+9/9 test passati
+```
+
+Il dato di 1011 test rappresenta la suite completa finale effettivamente eseguita dopo l'aggiunta dell'ultimo test a `PlantingCard`.
+
+Il risultato complessivo della Sessione S029 è pertanto direttamente verificato e non deriva dalla somma manuale di esecuzioni parziali.
+
+La strategia di qualità documentata in questo capitolo costituisce una base metodologica destinata ad accompagnare l'intero sviluppo di Orto Smart, contribuendo a garantire robustezza, tracciabilità e affidabilità dell'applicazione.
+
+Nel Capitolo 10 vengono illustrate le prospettive di evoluzione del progetto, con particolare riferimento alle funzionalità previste nelle future versioni e alla roadmap di sviluppo.
 
 # 10. Evoluzione del Progetto
 

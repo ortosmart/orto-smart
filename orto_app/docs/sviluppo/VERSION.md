@@ -3,10 +3,10 @@
 | Campo | Valore |
 | ----------------- | -------------------- |
 | Progetto | Orto Smart |
-| Versione corrente | 0.1.19-alpha |
-| Versione Flutter | 0.1.19-alpha+4 |
+| Versione corrente | 0.1.20-alpha |
+| Versione Flutter | 0.1.20-alpha+5 |
 | Stato | Alpha |
-| Data versione | 17/09/2026 |
+| Data versione | 18/09/2026 |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase |
 | Repository | ortosmart/orto-smart |
@@ -45,17 +45,62 @@ e il file `pubspec.yaml` era stato riallineato a:
 
 Con la Sessione S028 sono stati modificati sia il Database V1 sia il client Flutter.
 
-La versione pubblica passa pertanto a:
+La versione pubblica era quindi passata a:
 
 ```text
 0.1.19-alpha
 ```
 
-e la versione Flutter viene aggiornata a:
+e la versione Flutter era stata aggiornata a:
 
 ```text
 0.1.19-alpha+4
 ```
+
+Con la Sessione S029 è stato completato il livello applicativo del lifecycle delle coltivazioni, riutilizzando il Write Path autoritativo introdotto nella S028 senza modificare il contratto persistente del Database V1.
+
+La versione pubblica passa pertanto a:
+
+```text
+0.1.20-alpha
+```
+
+e la versione Flutter viene aggiornata a:
+
+```text
+0.1.20-alpha+5
+```
+
+La S029 introduce in particolare:
+
+- UI completa del lifecycle di `plantings`;
+- azioni contestuali in `PlantingCard`;
+- gestione esplicita di `end_date` per gli stati terminali `finished` e `removed`;
+- mantenimento dell'occupazione dell'aiuola nello stato `harvested`;
+- refresh autoritativo su `version_conflict` e `invalid_transition`;
+- nessuna nuova migration;
+- nessuna nuova RPC;
+- nessuna modifica alle policy RLS.
+
+La verifica tecnica finale della S029 è:
+
+```text
+flutter test finale:
+1011/1011 test passati
+
+bed_page_test.dart:
+30/30 test passati
+
+planting_card_test.dart:
+9/9 test passati
+
+flutter analyze finale:
+No issues found! (ran in 12.8s)
+```
+
+Il dato di 1011 test rappresenta la suite completa finale effettivamente eseguita dopo l'aggiunta dell'ultimo test dedicato a `PlantingCard`.
+
+Le verifiche dedicate di `BedPage` e `PlantingCard` restano confermate come controlli specifici aggiuntivi rispetto alla suite completa.
 
 # Stato del progetto
 
@@ -635,8 +680,13 @@ flutter test
 - Gestione dei quattro metodi di avvio persistenti
 - Controllo delle date non future
 - Validazione della geometria e dei sesti
+- UI completa del lifecycle di `plantings`
+- Azioni contestuali in `PlantingCard`
+- Gestione esplicita di `end_date` per `finished` e `removed`
+- Mantenimento dell'occupazione dell'aiuola nello stato `harvested`
+- Rilascio dello spazio soltanto con `finished` o `removed`
+- Refresh autoritativo su `version_conflict` e `invalid_transition`
 - UI amministrativa dedicata al Catalogo V1 non ancora implementata
-- UI completa del lifecycle di `plantings` ancora da implementare
 - Selezione opzionale della varietà ancora da completare
 
 ## Motore agronomico
@@ -735,6 +785,11 @@ flutter test
 - Result type tipizzati per il Write Path di `plantings`
 - Scritture Flutter di `plantings` esclusivamente RPC-only
 - Comportamento applicativo fail-closed
+- UI lifecycle contestuale di `plantings`
+- Gestione esplicita di `end_date` per gli stati terminali
+- Stato `harvested` ancora occupante
+- Rilascio dell'occupazione soltanto con `finished` o `removed`
+- Refresh autoritativo su `version_conflict` e `invalid_transition`
 
 ## Documentazione
 
@@ -750,43 +805,107 @@ flutter test
 
 # Obiettivi della prossima versione
 
-La Sessione S028 ha completato il modello e il Write Path autoritativo di `plantings`.
+La Sessione S029 ha completato il livello applicativo del lifecycle delle coltivazioni reali.
 
-Il lifecycle server-side è implementato, ma il relativo flusso UI non è ancora completo.
+Sono ora implementati:
 
-La pianificazione preliminare dell'incremento successivo prevede:
+- visualizzazione delle sole transizioni lifecycle consentite;
+- gestione esplicita di `end_date` per gli stati terminali;
+- proposta del giorno corrente come valore iniziale della data terminale, mantenendola modificabile;
+- assenza di chiusura implicita della coltivazione;
+- mantenimento dell'occupazione dell'aiuola nello stato `harvested`;
+- rilascio dello spazio soltanto con `finished` o `removed`;
+- gestione esplicita degli esiti RPC del lifecycle;
+- gestione dei conflitti concorrenti;
+- refresh autoritativo dell'aiuola dopo `version_conflict` e `invalid_transition`;
+- test dedicati al lifecycle e alle date terminali.
 
-1. selezione opzionale della varietà attiva associata alla coltura;
-2. mantenimento della varietà durante la modifica;
-3. visualizzazione delle sole transizioni lifecycle consentite;
-4. gestione esplicita di `end_date` per gli stati terminali;
-5. proposta del giorno corrente come valore iniziale di `end_date`, mantenendolo modificabile;
-6. nessuna chiusura implicita della coltivazione;
-7. mantenimento dell'occupazione dell'aiuola nello stato `harvested`;
-8. rilascio dello spazio soltanto con `finished` o `removed`;
-9. gestione esplicita degli esiti RPC del lifecycle;
-10. gestione dei conflitti concorrenti;
-11. refresh dell'aiuola e dello spazio disponibile dopo le transizioni;
-12. test dedicati a varietà, lifecycle, date terminali, conflitti e refresh.
+Rimane ancora aperta la selezione opzionale della varietà nel flusso operativo delle coltivazioni.
 
-Restano fuori da questo incremento:
+Restano inoltre FUTURE:
 
-- hard delete ordinario di `plantings`;
+- hard delete ordinario di `plantings`, escluso dal normale flusso operativo;
 - correzioni amministrative avanzate;
 - statistiche di raccolto e rese effettive;
 - costi e ricavi;
 - irrigazione;
 - modifiche architetturali estese;
 - redesign generale;
-- UI amministrativa completa del Catalogo V1.
+- UI amministrativa completa del Catalogo V1;
+- progressiva eliminazione delle dipendenze legacy residue.
 
-L'eventuale hard delete di `plantings` rimane FUTURE e dovrà essere disponibile esclusivamente come correzione amministrativa o tecnica di record inseriti per errore, non nel normale flusso operativo.
+L'eventuale hard delete di `plantings` dovrà essere disponibile esclusivamente come correzione amministrativa o tecnica di record inseriti per errore e non nel normale flusso operativo.
 
 La UI amministrativa del Catalogo V1 rimane un blocco distinto.
 
 La progressiva rimozione delle dipendenze legacy dovrà continuare senza reintrodurre percorsi di persistenza diretta incompatibili con il contratto Database V1.
 
----
+Come preparazione futura, esterna alla Sessione S029, è stata consolidata la direzione progettuale del futuro:
+
+```text
+Catalogo Agronomico V1
+```
+
+con flusso preliminare:
+
+```text
+Fonte esterna
+        ↓
+AgronomicImport
+        ↓
+dato candidato
+        ↓
+AgronomicReview
+        ↓
+AgronomicCatalog
+```
+
+I dati provenienti da fonti esterne non potranno sovrascrivere automaticamente dati agronomici approvati.
+
+Gli stati preliminarmente previsti sono:
+
+```text
+DRAFT
+REVIEW
+APPROVED
+ARCHIVED
+```
+
+Dovranno inoltre essere mantenute distinte:
+
+```text
+coltura/specie
+varietà/cultivar
+origine commerciale
+```
+
+con ereditarietà dei dati agronomici dalla coltura alla varietà e possibilità di override specifico.
+
+Ogni valore agronomico dovrà mantenere la tracciabilità della propria fonte.
+
+La carota è stata individuata come possibile primo caso pilota, ma gli eventuali dati già raccolti devono essere considerati soltanto candidati e non ancora approvati.
+
+Questa preparazione:
+
+```text
+non appartiene al timing S029
+non costituisce implementazione
+non costituisce avvio della S030
+```
+
+La possibile Sessione:
+
+```text
+S030 — Catalogo Agronomico V1
+```
+
+rimane:
+
+```text
+NON INIZIATA
+```
+
+Rimane inoltre aperta, come verifica separata, la raggiungibilità nella UI della funzione di creazione del primo Garden.
 
 # Cronologia versioni
 
@@ -811,7 +930,8 @@ La progressiva rimozione delle dipendenze legacy dovrà continuare senza reintro
 | 0.1.16-alpha | 03/09/2026 | Archiviata | Completata l'integrazione UI dei Write Path autoritativi di `beds`, introdotte modifica dati, attivazione e disattivazione, variazione geometrica, correzione storica e gestione italiana delle date; verificati 841/841 test. |
 | 0.1.17-alpha | 11/09/2026 | Archiviata | Implementato il Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, introdotte due migration e nove RPC autoritative, consolidati ownership Profile, UUID, fallback Crop → Crop Variety, acqua quantitativa, resa strutturata, RLS e concorrenza; integrazione Flutter rinviata alla S027. |
 | 0.1.18-alpha | 13/09/2026 | Archiviata | Completata nella S027 l'integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version` e verifica completa con 914/914 test; `pubspec.yaml` riallineato a `0.1.18-alpha+3`. |
-| 0.1.19-alpha | 17/09/2026 | Corrente | Implementato nella S028 il modello e Write Path autoritativo di `plantings`, introdotto il lifecycle server-side, consolidati geometria, temporalità e overlap, protette le variazioni geometriche delle aiuole, riallineato il client Flutter e verificati 997/997 test; `pubspec.yaml` aggiornato a `0.1.19-alpha+4`. |
+| 0.1.19-alpha | 17/09/2026 | Archiviata | Implementato nella S028 il modello e Write Path autoritativo di `plantings`, introdotto il lifecycle server-side, consolidati geometria, temporalità e overlap, protette le variazioni geometriche delle aiuole, riallineato il client Flutter e verificati 997/997 test; `pubspec.yaml` aggiornato a `0.1.19-alpha+4`. |
+| 0.1.20-alpha | 18/09/2026 | Corrente | Completata nella S029 la UI del lifecycle di `plantings`, introdotte azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per `finished` e `removed`, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`; nessuna modifica al contratto persistente S028; suite completa finale verificata con 1011/1011 test passati, verifiche dedicate `BedPage` 30/30 e `PlantingCard` 9/9, `flutter analyze` finale pulito; `pubspec.yaml` aggiornato a `0.1.20-alpha+5`. |
 
 ---
 

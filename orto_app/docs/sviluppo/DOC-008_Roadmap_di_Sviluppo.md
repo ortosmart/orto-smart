@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 2.1
+**Versione:** 2.2
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 17/09/2026
+**Ultimo aggiornamento:** 18/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 2.1 |
+| Versione | 2.2 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 17/09/2026 |
+| Ultimo aggiornamento | 18/09/2026 |
 
 ---
 
@@ -54,6 +54,7 @@
 | 1.9 | 11/09/2026 | Aggiornamento dopo la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, RLS, Profile Write Authority, concorrenza ottimistica, validazioni gerarchiche e agronomiche e definizione della S027 come integrazione Flutter del Catalogo V1 |
 | 2.0 | 14/09/2026 | Aggiornamento dopo la Sessione S027: completamento dell'integrazione Flutter del Catalogo V1, introduzione di `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy controllata e verifica con 914/914 test; prossimo incremento tecnico non ancora approvato |
 | 2.1 | 17/09/2026 | Aggiornamento dopo la Sessione S028: implementazione del modello e Write Path autoritativo di `plantings`, lifecycle server-side, geometria e overlap spaziale/temporale, protezione delle geometrie delle aiuole mediante `blocked_by_plantings`, integrazione Flutter e verifica con 997/997 test; definizione preliminare della S029 come lifecycle e varietà delle coltivazioni, non ancora iniziata |
+| 2.2 | 18/09/2026 | Aggiornamento dopo la Sessione S029: completamento della UI del lifecycle di `plantings`, gestione esplicita di `end_date` per gli stati terminali, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`; nessuna modifica al contratto persistente S028; consolidamento preparatorio del futuro Catalogo Agronomico V1 e della possibile S030, non ancora iniziata |
 
 ---
 
@@ -131,9 +132,11 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | Modello persistente autoritativo `plantings` | ✅ Completato |
 | Write Path autoritativo `plantings` | ✅ Completato |
 | Lifecycle server-side delle coltivazioni | ✅ Completato |
-| UI completa lifecycle delle coltivazioni | 📋 Pianificato |
+| UI lifecycle delle coltivazioni | ✅ Completato |
+| Gestione `end_date` terminale | ✅ Completato |
+| Refresh autoritativo su conflitti/transizioni non valide | ✅ Completato |
 | Selezione varietà nelle coltivazioni | 📋 Pianificato |
-| Gestione `end_date` terminale | 📋 Pianificato |
+| Verifica flusso UI di creazione del primo Garden | 📋 Da verificare |
 | Hard delete ordinario delle coltivazioni | 💡 Escluso dal normale flusso / FUTURE amministrativo |
 
 ---
@@ -584,7 +587,80 @@ removed
 
 terminano l'occupazione.
 
-Il lifecycle è quindi già autoritativo lato database, ma la relativa esperienza UI non è ancora completa.
+Con la Sessione S029 anche l'esperienza UI del lifecycle è stata completata.
+
+`PlantingCard` espone azioni contestuali coerenti con lo stato corrente e inoltra le richieste mediante:
+
+```text
+onStatusChange
+```
+
+a:
+
+```text
+BedPage
+```
+
+Il flusso applicativo consolidato è:
+
+```text
+PlantingCard
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+        ↓
+PostgreSQL
+```
+
+Le transizioni intermedie:
+
+```text
+sown → growing
+growing → harvest_ready
+harvest_ready → harvested
+```
+
+mantengono:
+
+```text
+end_date = null
+```
+
+Le transizioni terminali:
+
+```text
+harvested → finished
+* → removed
+```
+
+richiedono invece una conferma esplicita di:
+
+```text
+end_date
+```
+
+La UI propone inizialmente il giorno corrente, lasciandolo modificabile entro i limiti:
+
+```text
+end_date >= start_date
+end_date <= giorno corrente
+```
+
+La S029 ha inoltre introdotto la rilettura autoritativa delle coltivazioni in presenza degli esiti:
+
+```text
+version_conflict
+invalid_transition
+```
+
+prima di informare l'utente.
+
+PostgreSQL continua a essere l'autorità definitiva per la validità delle transizioni, le autorizzazioni, la concorrenza e la validazione della data terminale.
+
+La Sessione S029 non ha introdotto nuove migration, nuove RPC, modifiche RLS o variazioni del contratto persistente S028.
 
 ## Integrazione Flutter S028
 
@@ -648,34 +724,89 @@ senza errori.
 
 Lo STEP 35.3 – Costruzione baseline SQL Database V1 rimane **in corso**, poiché la baseline completa delle 52 entità non è ancora fisicamente implementata.
 
-## Blocco tecnico successivo preliminarmente approvato
+## Integrazione Flutter S029
 
-È stata definita preliminarmente la Sessione:
+La Sessione S029 ha completato l'integrazione applicativa del lifecycle di `plantings`.
+
+Sono stati aggiornati principalmente:
+
+```text
+PlantingCard
+BedPage
+test/pages/bed_page_test.dart
+```
+
+ed è stato introdotto:
+
+```text
+test/widgets/planting_card_test.dart
+```
+
+`PlantingCard` espone ora le sole azioni lifecycle coerenti con lo stato corrente.
+
+Sono stati eliminati dal normale flusso:
+
+```text
+Elimina
+onDelete
+planned
+```
+
+come elementi del precedente comportamento applicativo.
+
+`BedPage` utilizza:
+
+```text
+PlantingRepository.setPlantingStatus
+```
+
+senza scritture dirette sulla tabella.
+
+La verifica tecnica finale S029 ha prodotto:
+
+```text
+flutter test finale:
+1011/1011 test passati
+
+bed_page_test.dart:
+30/30 test passati
+
+planting_card_test.dart finale:
+9/9 test passati
+
+flutter analyze finale:
+No issues found! (ran in 12.8s)
+```
+
+Il dato di 1011 test rappresenta la suite completa finale effettivamente eseguita dopo l'aggiunta dell'ultimo test dedicato a `PlantingCard`.
+
+Lo STEP 35.3 – Costruzione baseline SQL Database V1 rimane **in corso**, poiché la baseline completa delle 52 entità non è ancora fisicamente implementata.
+
+## Sessione S029 completata
+
+La pianificazione preliminare:
 
 ```text
 S029 — Lifecycle e varietà delle coltivazioni
 ```
 
-Lo stato è:
+ha portato all'effettiva Sessione S029, svolta il:
 
 ```text
-APPROVATO PRELIMINARMENTE
-NON INIZIATO
+17/09/2026
 ```
 
-La S029 non deve essere considerata iniziata fino a dichiarazione esplicita di avvio della sessione.
+La fase sviluppo è stata completata in:
 
-### Obiettivi preliminari S029
+```text
+1 h 19 min
+```
 
-Il perimetro preliminare comprende:
+La sessione ha completato:
 
-1. selezione facoltativa della varietà attiva associata alla coltura;
+1. visualizzazione in UI delle sole transizioni lifecycle consentite;
 
-2. mantenimento della varietà durante la modifica;
-
-3. visualizzazione in UI delle sole transizioni lifecycle consentite;
-
-4. utilizzo di:
+2. utilizzo di:
 
 ```text
 set_planting_status
@@ -683,7 +814,7 @@ set_planting_status
 
 come Write Path autoritativo delle transizioni;
 
-5. gestione esplicita di:
+3. gestione esplicita di:
 
 ```text
 end_date
@@ -696,11 +827,11 @@ finished
 removed
 ```
 
-6. proposta del giorno corrente come valore iniziale di `end_date`, mantenendolo modificabile;
+4. proposta del giorno corrente come valore iniziale di `end_date`, mantenendolo modificabile;
 
-7. nessuna chiusura implicita della coltivazione;
+5. assenza di chiusura implicita della coltivazione;
 
-8. evidenza applicativa che:
+6. evidenza applicativa che:
 
 ```text
 harvested
@@ -708,56 +839,46 @@ harvested
 
 continua a occupare l'aiuola;
 
-9. rilascio dello spazio soltanto mediante:
+7. rilascio dello spazio soltanto mediante:
 
 ```text
 finished
 removed
 ```
 
-10. gestione esplicita degli esiti RPC;
+8. gestione degli esiti RPC;
 
-11. gestione dei conflitti di versione;
+9. gestione di:
 
-12. gestione delle transizioni non valide;
+```text
+version_conflict
+invalid_transition
+```
 
-13. refresh di:
-    - `BedPage`;
-    - `PlantingCard`;
-    - occupazione dell'aiuola;
-    - spazio libero;
+10. refresh autoritativo delle coltivazioni dopo tali esiti;
 
-14. test dedicati a:
-    - varietà;
-    - lifecycle;
-    - `end_date`;
-    - conflitti;
-    - transizioni non valide;
-    - refresh.
+11. test dedicati al lifecycle e alla gestione terminale.
 
-### Fuori dal perimetro preliminare S029
+Non è stata invece implementata durante S029 la selezione facoltativa della varietà.
 
-Restano esclusi:
+Rimangono quindi aperti:
 
-- hard delete ordinario di `plantings`;
-
-- correzioni amministrative avanzate;
-
-- statistiche di raccolto;
-
-- rese effettive;
-
-- costi;
-
-- ricavi;
-
-- irrigazione;
-
-- modifiche architetturali estese;
-
-- redesign generale;
-
+- selezione della varietà nel flusso operativo delle coltivazioni;
+- mantenimento e gestione applicativa della varietà;
+- progressiva eliminazione delle dipendenze legacy;
 - UI amministrativa completa del Catalogo V1.
+
+La Sessione S029 non ha modificato il Database V1.
+
+Non sono state introdotte:
+
+```text
+migration
+nuove tabelle
+nuove colonne
+nuove RPC
+modifiche RLS
+```
 
 ## Hard delete di `plantings`
 
@@ -786,29 +907,48 @@ Non dovrà essere disponibile nel normale flusso operativo dell'orto.
 
 La UI amministrativa del Catalogo V1 rimane un blocco distinto.
 
-Prima dell'utilizzo operativo dei dati agronomici dovrà essere definito e verificato un **Catalogo Agronomico strutturato**.
+Prima dell'utilizzo operativo dei dati agronomici dovrà essere definito e verificato un **Catalogo Agronomico V1 strutturato, tracciabile e versionabile**.
 
 Non devono essere introdotti popolamenti manuali ad hoc o dati provvisori destinati a essere utilizzati come baseline operativa.
 
 Il database deve rimanere privo di dati di prova o provvisori fino all'avvio della gestione reale dell'orto.
 
-L'aggiornamento delle fonti esterne dovrà essere separato dai dati approvati.
-
-Il flusso previsto è:
+La preparazione successiva alla S029 ha consolidato il principio:
 
 ```text
-fonti esterne
+Fonte esterna
         ↓
-importazione / scraping
+AgronomicImport
         ↓
-dati candidati
+dato candidato
         ↓
-revisione
+AgronomicReview
         ↓
-approvazione
-        ↓
-Catalogo Agronomico
+AgronomicCatalog
 ```
+
+L'acquisizione da fonti esterne e il Catalogo approvato devono quindi essere livelli distinti.
+
+Lo scraping o l'importazione:
+
+```text
+NON
+```
+
+devono scrivere direttamente nel Catalogo Agronomico approvato.
+
+I dati acquisiti devono essere prima memorizzati come dati candidati e sottoposti a revisione.
+
+Gli stati preliminarmente previsti sono:
+
+```text
+DRAFT
+REVIEW
+APPROVED
+ARCHIVED
+```
+
+Soltanto dati nello stato appropriato di approvazione potranno essere utilizzati operativamente.
 
 Nessun dato esterno deve sovrascrivere automaticamente il Catalogo Agronomico approvato.
 
@@ -821,6 +961,54 @@ Catalogo Agronomico
         ↓
 Aggiornamento fonti
 ```
+
+La struttura dovrà distinguere chiaramente:
+
+```text
+coltura / specie
+varietà / cultivar
+origine commerciale
+```
+
+È inoltre previsto il principio di ereditarietà agronomica:
+
+```text
+Crop
+        ↓
+valore generale
+
+CropVariety
+        ↓
+override specifico quando necessario
+```
+
+Ogni singolo valore agronomico dovrà mantenere informazioni sulla propria provenienza e sulla fonte utilizzata.
+
+La gestione delle fonti dovrà quindi permettere di distinguere almeno:
+
+```text
+fonte
+dato acquisito
+dato candidato
+revisione
+dato approvato
+versione
+```
+
+La **carota** è stata individuata come possibile primo caso pilota per validare il modello completo.
+
+Gli eventuali valori agronomici già raccolti per tale coltura devono però essere considerati:
+
+```text
+CANDIDATI
+NON APPROVATI
+```
+
+fino alla definizione e verifica del Catalogo Agronomico V1.
+
+Questa progettazione preliminare è stata svolta fuori dal perimetro tecnico e dal timing della Sessione S029.
+
+Non costituisce ancora implementazione del Catalogo e non costituisce avvio della Sessione S030.
 
 ## Consolidamento legacy
 
@@ -865,16 +1053,98 @@ Restano inoltre pianificati:
 
 ## Prossimo incremento
 
-Il prossimo incremento preliminarmente approvato è:
+La Sessione S029 è stata completata nella fase di sviluppo.
+
+Il prossimo incremento tecnico non viene considerato automaticamente avviato né assegnato esclusivamente sulla base della roadmap.
+
+Come preparazione preliminare è stata individuata come possibile Sessione successiva:
 
 ```text
-S029 — Lifecycle e varietà delle coltivazioni
+S030 — Catalogo Agronomico V1
 ```
 
-La sessione risulta:
+Lo stato è:
 
-> **NON INIZIATA**
+```text
+PREPARAZIONE PRELIMINARE
+NON INIZIATO
+```
 
-e dovrà essere avviata esplicitamente prima di qualsiasi modifica tecnica appartenente al relativo perimetro.
+La possibile S030 dovrà iniziare con un checkpoint di ricezione e una ricognizione delle strutture già disponibili:
 
-La pianificazione preliminare non costituisce avvio della Sessione S029.
+```text
+crops
+crop_varieties
+regole e strutture agronomiche esistenti
+```
+
+Il percorso preliminare comprende:
+
+1. verifica della baseline Database V1 esistente;
+
+2. ricognizione delle strutture agronomiche attuali;
+
+3. definizione dei requisiti del Catalogo Agronomico V1;
+
+4. distinzione tra:
+   - fonte;
+   - dato importato;
+   - dato candidato;
+   - revisione;
+   - valore approvato;
+
+5. progettazione della tracciabilità:
+
+```text
+source
+        ↓
+candidate
+        ↓
+review
+        ↓
+catalog
+```
+
+6. stati:
+
+```text
+DRAFT
+REVIEW
+APPROVED
+ARCHIVED
+```
+
+7. versionamento dei valori;
+
+8. contestualizzazione geografica e produttiva;
+
+9. relazione e compatibilità con `plantings`;
+
+10. eventuale migration e relativi Write Path soltanto dopo approvazione della struttura;
+
+11. futura UI amministrativa;
+
+12. popolamento controllato esclusivamente con dati reali e verificati;
+
+13. utilizzo della carota come possibile primo caso completo di verifica.
+
+Rimane separato un altro punto aperto emerso durante la verifica applicativa:
+
+```text
+verifica della raggiungibilità UI
+della creazione del primo Garden
+```
+
+Il Write Path di `gardens` esiste già dalla S022, ma deve essere verificato se la relativa pagina:
+
+- esiste ed è raggiungibile;
+- esiste ma il comando è nascosto;
+- non è ancora integrata nel flusso corrente.
+
+Questo punto non viene assegnato automaticamente alla S030.
+
+La Sessione S030:
+
+> **NON È ANCORA INIZIATA**
+
+e dovrà essere avviata esplicitamente prima di qualsiasi modifica tecnica appartenente al suo eventuale perimetro.

@@ -4,7 +4,7 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.16
+**Versione:** 0.17
 
 **Stato:** In sviluppo
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 17/09/2026
+**Ultimo aggiornamento:** 18/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.16 |
+| Versione | 0.17 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 17/09/2026 |
+| Ultimo aggiornamento | 18/09/2026 |
 
 ---
 
@@ -55,6 +55,7 @@
 | 0.14 | 11/09/2026 | Aggiornamento del Quaderno con la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, Profile Write Authority, RLS, concorrenza ottimistica, validazioni agronomiche e definizione della S027 come integrazione Flutter del Catalogo V1 |
 | 0.15 | 14/09/2026 | Aggiornamento e chiusura documentale della Sessione S027: integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy controllata, 914/914 test superati e riallineamento della versione Flutter a `0.1.18-alpha+3` |
 | 0.16 | 17/09/2026 | Aggiornamento del Quaderno con la Sessione S028: implementazione del modello e Write Path autoritativo di `plantings`, lifecycle server-side, validazioni metodo-dipendenti, geometria e overlap spaziale/temporale, protezione delle geometrie delle aiuole mediante `blocked_by_plantings`, integrazione Flutter, 997/997 test superati e aggiornamento della versione a `0.1.19-alpha` / `0.1.19-alpha+4`; Sessione S028 conclusa con 9 h 04 min di sviluppo, 2 h 16 min di documentazione e 11 h 20 min complessivi |
+| 0.17 | 18/09/2026 | Aggiornamento e chiusura documentale della Sessione S029: completamento della UI del lifecycle di `plantings`, azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per gli stati terminali, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`, suite completa finale 1011/1011, commit tecnico `6b3fa92`; Sessione S029 conclusa con 1 h 19 min di sviluppo, 2 h 50 min di documentazione e 4 h 09 min complessivi |
 
 ---
 
@@ -94,6 +95,7 @@ Per una sessione ancora in corso viene riportato soltanto il tempo già consolid
 | S026 | 10–12/09/2026 | 8 h 55 min | 183 h 42 min | Implementazione del Catalogo DB V1 e dei relativi Write Path autoritativi | ✅ |
 | S027 | 13–14/09/2026 | 2 h 33 min | 186 h 15 min | Integrazione Flutter del Catalogo V1 | ✅ |
 | S028 | 15–17/09/2026 | 11 h 20 min | 197 h 35 min | Write Path autoritativo di `plantings` | ✅ |
+| S029 | 17–18/09/2026 | 4 h 09 min | 201 h 44 min | Lifecycle operativo delle coltivazioni | ✅ |
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -148,6 +150,47 @@ Il totale progressivo del progetto alla chiusura della S028 è:
 197 h 35 min
 ```
 
+Per la Sessione S029 il tempo complessivo è composto da:
+
+```text
+Sviluppo        1 h 19 min
+Documentazione  2 h 50 min
+-------------------------
+Totale          4 h 09 min
+```
+
+La fase sviluppo S029 è conclusa.
+
+La fase Manuali S029 è iniziata il:
+
+> **18/09/2026 alle 09:03**
+
+È stata sospesa il:
+
+> **18/09/2026 alle 10:41**
+
+ed è ripresa il:
+
+> **18/09/2026 alle 11:31**
+
+La fase Manuali S029 è stata chiusa il:
+
+> **18/09/2026 alle 12:43**
+
+L'intervallo di sospensione dalle 10:41 alle 11:31 è escluso dal conteggio.
+
+Il tempo documentale netto della Sessione S029 è quindi:
+
+```text
+2 h 50 min
+```
+
+Il totale progressivo definitivo del progetto alla chiusura della S029 è:
+
+```text
+201 h 44 min
+```
+
 ---
 
 # Indice
@@ -191,6 +234,7 @@ Il totale progressivo del progetto alla chiusura della S028 è:
 3.26 S026
 3.27 S027
 3.28 S028
+3.29 S029
 
 ## 4. Considerazioni finali
 
@@ -9256,3 +9300,696 @@ I progressivi definitivi del progetto alla chiusura della S028 sono:
 | **Totale progetto** | **197 h 35 min** |
 
 La Sessione S028 è conclusa sia nella fase di sviluppo sia nella fase documentale.
+
+# Sessione S029 — Lifecycle operativo delle coltivazioni
+
+## Obiettivo della sessione
+
+La Sessione S029 è stata dedicata all'integrazione applicativa del lifecycle autoritativo di:
+
+```text
+plantings
+```
+
+già introdotto lato server nella Sessione S028.
+
+L'obiettivo principale era rendere utilizzabili dalla UI le transizioni di stato previste dal contratto persistente, senza introdurre nuove migration, nuove RPC o modifiche allo schema Database V1.
+
+La Sessione S029 ha quindi lavorato principalmente su:
+
+```text
+PlantingCard
+BedPage
+PlantingRepository
+test applicativi
+```
+
+riutilizzando il Write Path autoritativo:
+
+```text
+set_planting_status
+```
+
+definito nella S028.
+
+## Timing dello sviluppo
+
+La fase sviluppo della Sessione S029 è iniziata il:
+
+> **17/09/2026 alle 12:34**
+
+ed è stata chiusa il:
+
+> **17/09/2026 alle 13:53**
+
+Non sono state dichiarate pause.
+
+Il tempo netto complessivo di sviluppo della Sessione S029 è:
+
+```text
+12:34 → 13:53
+=
+1 h 19 min
+```
+
+## Baseline iniziale
+
+All'apertura della S029 il repository risultava:
+
+```text
+branch:
+main
+
+HEAD:
+cc8ed43c0e8871ea7749db50df4a5fa932006d42
+
+origin/main:
+cc8ed43c0e8871ea7749db50df4a5fa932006d42
+
+working tree:
+clean
+```
+
+Il commit iniziale corrispondeva alla chiusura documentale della Sessione S028.
+
+Il contratto server-side disponibile comprendeva già le transizioni:
+
+```text
+sown → growing | removed
+growing → harvest_ready | removed
+harvest_ready → harvested | removed
+harvested → finished | removed
+finished → nessuna transizione
+removed → nessuna transizione
+```
+
+Era inoltre già consolidato il principio:
+
+```text
+harvested
+        ≠
+fine dell'occupazione dell'aiuola
+```
+
+Soltanto:
+
+```text
+finished
+removed
+```
+
+terminano l'occupazione fisica della coltivazione.
+
+## PlantingCard
+
+La Sessione S029 ha modificato `PlantingCard` sostituendo il precedente menu generico:
+
+```text
+Modifica
+Elimina
+```
+
+con azioni lifecycle contestuali.
+
+Per:
+
+```text
+sown
+```
+
+sono disponibili:
+
+```text
+Modifica
+Segna in crescita
+Rimuovi
+```
+
+Per:
+
+```text
+growing
+```
+
+sono disponibili:
+
+```text
+Modifica
+Segna pronta alla raccolta
+Rimuovi
+```
+
+Per:
+
+```text
+harvest_ready
+```
+
+sono disponibili:
+
+```text
+Modifica
+Segna raccolta
+Rimuovi
+```
+
+Per:
+
+```text
+harvested
+```
+
+sono disponibili:
+
+```text
+Modifica
+Termina coltivazione
+Rimuovi
+```
+
+Per:
+
+```text
+finished
+removed
+```
+
+non sono disponibili ulteriori transizioni lifecycle.
+
+È stato rimosso il callback precedente:
+
+```text
+onDelete
+```
+
+ed è stato introdotto:
+
+```text
+onStatusChange
+```
+
+È stato inoltre rimosso dalla card il supporto al precedente stato legacy:
+
+```text
+planned
+```
+
+## Occupazione nello stato `harvested`
+
+La UI chiarisce esplicitamente che:
+
+```text
+harvested
+```
+
+non libera l'aiuola.
+
+`PlantingCard` mostra un'informazione che segnala all'utente che l'aiuola rimane occupata fino al passaggio a:
+
+```text
+finished
+```
+
+oppure:
+
+```text
+removed
+```
+
+Questa rappresentazione UI è coerente con il contratto persistente introdotto nella S028.
+
+## BedPage
+
+`BedPage` è stata aggiornata per gestire il lifecycle mediante:
+
+```text
+PlantingRepository.setPlantingStatus
+```
+
+che utilizza la RPC autoritativa:
+
+```text
+set_planting_status
+```
+
+È stato rimosso il precedente flusso specifico:
+
+```text
+_deletePlanting(...)
+```
+
+La UI non esegue scritture dirette sulla tabella `plantings`.
+
+Il flusso corrente è:
+
+```text
+PlantingCard
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+        ↓
+PostgreSQL
+```
+
+La Profile Write Authority continua a operare in modalità fail-closed.
+
+## Gestione di `end_date`
+
+Le transizioni intermedie:
+
+```text
+sown → growing
+growing → harvest_ready
+harvest_ready → harvested
+```
+
+utilizzano:
+
+```text
+end_date = null
+```
+
+Le transizioni terminali:
+
+```text
+harvested → finished
+* → removed
+```
+
+richiedono invece una conferma esplicita della data finale.
+
+La UI propone come valore iniziale il giorno corrente, ma consente all'utente di modificarlo.
+
+I limiti applicativi sono:
+
+```text
+data minima:
+planting.startDate
+
+data massima:
+giorno corrente
+```
+
+La data terminale non viene quindi assegnata automaticamente senza conferma dell'utente.
+
+Il server continua comunque a rappresentare l'autorità definitiva per la validazione.
+
+## Concorrenza e sincronizzazione
+
+La Sessione S029 ha rafforzato la gestione degli esiti:
+
+```text
+version_conflict
+invalid_transition
+```
+
+In entrambi i casi `BedPage` esegue:
+
+```text
+_refreshPlantings()
+```
+
+prima di informare l'utente.
+
+Per:
+
+```text
+version_conflict
+```
+
+questo evita che la UI continui a visualizzare dati basati su una versione superata.
+
+Per:
+
+```text
+invalid_transition
+```
+
+la rilettura consente di riallineare la UI allo stato effettivo della coltivazione.
+
+Non vengono effettuati retry automatici della scrittura.
+
+## Result type
+
+La Sessione S029 riutilizza i result type introdotti nella S028:
+
+```text
+PlantingStatusUpdated
+SetPlantingStatusUnchanged
+SetPlantingStatusVersionConflict
+SetPlantingStatusForbidden
+SetPlantingStatusWriteForbidden
+SetPlantingStatusNotFound
+SetPlantingStatusInvalidInput
+SetPlantingStatusInvalidTransition
+```
+
+Non sono stati introdotti nuovi contratti RPC.
+
+## Database
+
+La Sessione S029 non ha introdotto:
+
+```text
+migration
+nuove tabelle
+nuove colonne
+nuove RPC
+modifiche RLS
+modifiche al contratto persistente
+```
+
+Il Database V1 rimane quindi invariato rispetto alla conclusione della S028.
+
+La S029 costituisce un incremento applicativo costruito sopra il Write Path autoritativo già consolidato.
+
+## Test introdotti e aggiornati
+
+È stato introdotto:
+
+```text
+test/widgets/planting_card_test.dart
+```
+
+con verifiche dedicate a:
+
+- menu nello stato `sown`;
+- menu nello stato `growing`;
+- menu nello stato `harvest_ready`;
+- menu nello stato `harvested`;
+- assenza di azioni lifecycle per `finished`;
+- assenza di azioni lifecycle per `removed`;
+- callback verso `harvest_ready`;
+- callback verso `removed`;
+- messaggio relativo all'occupazione nello stato `harvested`.
+
+Sono stati inoltre estesi i test di:
+
+```text
+test/pages/bed_page_test.dart
+```
+
+per verificare:
+
+```text
+sown → growing
+harvested → finished
+sown → removed
+version_conflict + refresh
+invalid_transition + refresh
+```
+
+## Verifiche Flutter
+
+La verifica dedicata di `BedPage` ha prodotto:
+
+```text
+30/30 test passati
+```
+
+La verifica finale dedicata di `PlantingCard` ha prodotto:
+
+```text
+9/9 test passati
+```
+
+Dopo l'aggiunta dell'ultimo test dedicato a `PlantingCard` è stata nuovamente eseguita l'intera suite automatica.
+
+La verifica finale ha prodotto:
+
+```text
+flutter test
+1011/1011 test passati
+```
+
+È stata inoltre nuovamente eseguita l'analisi statica:
+
+```text
+flutter analyze
+No issues found! (ran in 12.8s)
+```
+
+Il totale di 1011 test costituisce quindi il risultato finale della suite completa effettivamente eseguita nella Sessione S029.
+
+Le verifiche dedicate di `BedPage` e `PlantingCard` restano confermate come controlli specifici aggiuntivi rispetto alla suite completa.
+
+## Versionamento
+
+Per la Sessione S029 è previsto il passaggio della versione pubblica a:
+
+```text
+0.1.20-alpha
+```
+
+e della versione Flutter a:
+
+```text
+0.1.20-alpha+5
+```
+
+L'aggiornamento definitivo del versionamento viene registrato nella fase documentale S029.
+
+## APPROVATO / CONGELATO
+
+Con la conclusione dello sviluppo S029 vengono considerati consolidati:
+
+- lifecycle operativo delle coltivazioni nella UI;
+- azioni contestuali di `PlantingCard`;
+- rimozione del normale flusso UI di eliminazione;
+- separazione tra modifica ordinaria e transizioni lifecycle;
+- utilizzo esclusivo di `set_planting_status` per il lifecycle;
+- conferma esplicita di `end_date` negli stati terminali;
+- mantenimento di `end_date = null` nelle transizioni intermedie;
+- mantenimento dell'occupazione nello stato `harvested`;
+- rilascio dello spazio soltanto mediante `finished` o `removed`;
+- refresh autoritativo su `version_conflict`;
+- refresh autoritativo su `invalid_transition`;
+- Profile Write Authority fail-closed;
+- assenza di nuove migration o modifiche al contratto persistente S028.
+
+## Commit tecnico S029
+
+Il commit tecnico conclusivo della Sessione S029 è:
+
+```text
+6b3fa92 — Implementa lifecycle coltivazioni S029
+```
+
+SHA completo:
+
+```text
+6b3fa92a64bc0a047212f17f9943ee150ef686a9
+```
+
+Il commit è stato pubblicato sul repository remoto.
+
+## Stato Git al termine dello sviluppo
+
+Al termine della fase sviluppo:
+
+```text
+branch:
+main
+
+HEAD:
+6b3fa92a64bc0a047212f17f9943ee150ef686a9
+
+origin/main:
+6b3fa92a64bc0a047212f17f9943ee150ef686a9
+
+working tree:
+clean
+```
+
+Il repository locale e quello remoto risultavano sincronizzati.
+
+## APERTO / FUTURE
+
+Restano fuori dal perimetro tecnico completato della S029:
+
+1. selezione facoltativa della varietà nel flusso operativo di `plantings`;
+
+2. progressiva rimozione delle dipendenze legacy residue;
+
+3. UI amministrativa completa del Catalogo V1;
+
+4. operazioni amministrative protette su `profile_memberships`;
+
+5. futura persistenza delle ulteriori entità del Database V1;
+
+6. hard delete amministrativo o tecnico eccezionale di `plantings`, escluso dal normale flusso operativo.
+
+Durante la verifica applicativa è inoltre emerso un punto aperto distinto:
+
+```text
+assenza apparente di un flusso UI visibile
+per la creazione del primo Garden
+```
+
+L'applicazione, in assenza di dati, mostra:
+
+```text
+Nessun orto trovato
+```
+
+ma non è stata verificata nella S029 la raggiungibilità di un comando per creare il primo Garden.
+
+Questo punto deve essere analizzato separatamente per determinare se:
+
+- la pagina di creazione esiste ma non è raggiungibile;
+- il pulsante è nascosto da una condizione;
+- manca l'integrazione UI;
+- esiste un altro flusso previsto.
+
+Il Write Path autoritativo di `gardens` è già disponibile dalla S022.
+
+La questione non viene assegnata automaticamente alla Sessione S030.
+
+## Preparazione futura del Catalogo Agronomico V1
+
+Come attività preparatoria esterna al perimetro tecnico e al timing della Sessione S029 è stata consolidata la direzione progettuale per un futuro:
+
+```text
+Catalogo Agronomico V1
+```
+
+Il principio previsto è:
+
+```text
+Fonte esterna
+        ↓
+AgronomicImport
+        ↓
+dato candidato
+        ↓
+AgronomicReview
+        ↓
+AgronomicCatalog
+```
+
+I dati ottenuti da fonti esterne non devono sovrascrivere automaticamente i dati approvati.
+
+Sono stati preliminarmente individuati gli stati:
+
+```text
+DRAFT
+REVIEW
+APPROVED
+ARCHIVED
+```
+
+È stata inoltre consolidata la distinzione tra:
+
+```text
+coltura / specie
+varietà / cultivar
+origine commerciale
+```
+
+e il principio di ereditarietà:
+
+```text
+Crop
+        ↓
+valore generale
+
+CropVariety
+        ↓
+override specifico quando necessario
+```
+
+Ogni valore agronomico dovrà mantenere la propria provenienza.
+
+La carota è stata individuata come possibile primo caso pilota, ma i valori raccolti finora devono essere considerati esclusivamente candidati e non costituiscono dati approvati del Catalogo.
+
+Questa preparazione:
+
+```text
+non appartiene al timing S029
+non costituisce implementazione
+non costituisce avvio della S030
+```
+
+## Punto di continuità successivo
+
+Prima dell'avvio di una futura Sessione S030 dovrà essere eseguito un nuovo checkpoint tecnico.
+
+La preparazione preliminare suggerisce come possibile area di lavoro il **Catalogo Agronomico V1**, iniziando dalla ricognizione delle strutture già esistenti:
+
+```text
+crops
+crop_varieties
+strutture agronomiche correlate
+```
+
+e dalla progettazione delle relazioni:
+
+```text
+source
+        ↓
+source_value
+        ↓
+candidate / review
+        ↓
+catalog_value
+```
+
+La Sessione S030 non è ancora iniziata.
+
+# Timing della documentazione
+
+La fase Manuali S029 è iniziata il:
+
+> **18/09/2026 alle 09:03**
+
+È stata sospesa il:
+
+> **18/09/2026 alle 10:41**
+
+ed è ripresa il:
+
+> **18/09/2026 alle 11:31**
+
+La fase Manuali S029 è stata chiusa il:
+
+> **18/09/2026 alle 12:43**
+
+L'intervallo compreso tra le 10:41 e le 11:31 costituisce una pausa esplicita e non viene conteggiato.
+
+Il timing netto della documentazione è:
+
+```text
+09:03 → 10:41   1 h 38 min
+11:31 → 12:43   1 h 12 min
+---------------------------
+Totale          2 h 50 min
+```
+
+La fase Manuali S029 è quindi:
+
+```text
+CONCLUSA
+```
+
+## Progressivi definitivi S029
+
+Il tempo complessivo della Sessione S029 è:
+
+| Attività | Durata |
+|----------|-------:|
+| Sviluppo S029 | 1 h 19 min |
+| Documentazione S029 | 2 h 50 min |
+| **Totale S029** | **4 h 09 min** |
+
+I progressivi definitivi del progetto alla chiusura della S029 sono:
+
+| Indicatore | Totale definitivo |
+|------------|-------------------:|
+| Sviluppo complessivo | 147 h 33 min |
+| Documentazione complessiva | 54 h 11 min |
+| **Totale progetto** | **201 h 44 min** |
+
+La Sessione S029 è conclusa sia nella fase di sviluppo sia nella fase documentale.

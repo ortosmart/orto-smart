@@ -4,7 +4,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 2.6
+**Versione:** 2,7
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 17/09/2026
+**Ultimo aggiornamento:** 18/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |-------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 2.6 |
+| Versione | 2,7 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 17/09/2026 |
+| Ultimo aggiornamento | 18/09/2026 |
 
 ---
 
@@ -58,6 +58,7 @@
 | 2.4 | 11/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.17-alpha: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, sicurezza RLS, Profile Write Authority, concorrenza ottimistica e allineamento delle migration locali e remote |
 | 2.5 | 13/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.18-alpha: integrazione Flutter del Catalogo V1, nuovi modelli e Repository, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy temporanea e verifica completa con 914/914 test superati |
 | 2.6 | 17/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.19-alpha: implementazione del modello e Write Path autoritativo di `plantings`, lifecycle server-side, validazioni geometriche e temporali, protezione della geometria delle aiuole, integrazione Flutter di creazione e modifica delle coltivazioni e verifica completa con 997/997 test superati |
+| 2.7 | 18/09/2026 | Aggiornamento del CHANGELOG con la versione 0.1.20-alpha: completamento della UI del lifecycle di `plantings`, azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per gli stati terminali, refresh autoritativo su `version_conflict` e `invalid_transition`, nessuna modifica al contratto persistente S028 e aggiornamento delle verifiche applicative |
 
 ---
 
@@ -108,6 +109,8 @@
 3.19 Versione 0.1.18-alpha
 
 3.20 Versione 0.1.19-alpha
+
+3.21 Versione 0.1.20-alpha
 
 ## 4. Cronologia versioni
 
@@ -1938,6 +1941,295 @@ No issues found!
 
 - L'eventuale hard delete di `plantings` rimane escluso dal normale workflow e riservato a una futura gestione amministrativa o di correzione eccezionale.
 
+## 3.21 Versione 0.1.20-alpha
+
+**Data:** 18/09/2026
+
+### Aggiunto
+
+- Completata l'interfaccia operativa per la gestione del lifecycle delle coltivazioni.
+
+- `PlantingCard` espone ora azioni contestuali coerenti con lo stato corrente della coltivazione.
+
+Le transizioni disponibili sono:
+
+```text
+sown
+  → growing
+  → removed
+
+growing
+  → harvest_ready
+  → removed
+
+harvest_ready
+  → harvested
+  → removed
+
+harvested
+  → finished
+  → removed
+
+finished
+  → nessuna transizione
+
+removed
+  → nessuna transizione
+```
+
+- Introdotto il callback:
+
+```text
+onStatusChange
+```
+
+in `PlantingCard` per inoltrare a `BedPage` le richieste di transizione.
+
+- Introdotta la richiesta esplicita della data di fine per le transizioni terminali:
+
+```text
+finished
+removed
+```
+
+con:
+
+```text
+end_date >= start_date
+end_date <= data corrente
+```
+
+- Introdotto un messaggio informativo nello stato:
+
+```text
+harvested
+```
+
+per chiarire che la coltivazione continua a occupare fisicamente l'aiuola fino al passaggio a:
+
+```text
+finished
+removed
+```
+
+- Introdotto:
+
+```text
+test/widgets/planting_card_test.dart
+```
+
+con verifiche dedicate alle azioni lifecycle e alla semantica di occupazione.
+
+### Modificato
+
+- Aggiornata `BedPage` per gestire le transizioni lifecycle mediante:
+
+```text
+PlantingRepository.setPlantingStatus
+```
+
+che utilizza la RPC autoritativa:
+
+```text
+set_planting_status
+```
+
+- Eliminata dalla normale gestione UI l'azione generica di eliminazione della coltivazione.
+
+La chiusura ordinaria continua a utilizzare esclusivamente gli stati:
+
+```text
+finished
+removed
+```
+
+- Rimossa da `PlantingCard` la gestione del precedente stato legacy:
+
+```text
+planned
+```
+
+- Le transizioni intermedie:
+
+```text
+sown → growing
+growing → harvest_ready
+harvest_ready → harvested
+```
+
+mantengono:
+
+```text
+end_date = null
+```
+
+- Le transizioni terminali:
+
+```text
+harvested → finished
+* → removed
+```
+
+richiedono la conferma esplicita di `end_date`.
+
+- Rafforzata la sincronizzazione dell'interfaccia in presenza degli esiti:
+
+```text
+version_conflict
+invalid_transition
+```
+
+In entrambi i casi `BedPage` esegue una rilettura autoritativa delle coltivazioni prima di mostrare il feedback all'utente.
+
+### Architettura
+
+- La Sessione S029 non introduce modifiche al contratto persistente definito nella S028.
+
+Non sono state introdotte nuove:
+
+```text
+migration
+tabelle
+colonne
+RPC
+policy RLS
+```
+
+- Il lifecycle continua a essere autoritativo lato PostgreSQL.
+
+Il flusso applicativo è:
+
+```text
+PlantingCard
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+        ↓
+PostgreSQL
+```
+
+- La UI non determina autonomamente la validità definitiva di una transizione.
+
+Il server rimane autoritativo rispetto a:
+
+- stato corrente;
+- transizione consentita;
+- autorizzazioni;
+- concorrenza;
+- `row_version`;
+- validità di `end_date`.
+
+- Consolidata la distinzione tra:
+
+```text
+harvested
+        =
+raccolta effettuata ma aiuola ancora occupata
+```
+
+e:
+
+```text
+finished / removed
+        =
+occupazione terminata
+```
+
+### Concorrenza e sincronizzazione
+
+- `version_conflict` indica che la coltivazione è stata modificata dopo la lettura del client.
+
+- `invalid_transition` può indicare che lo stato corrente non consente più la transizione richiesta.
+
+In entrambi i casi viene eseguito:
+
+```text
+_refreshPlantings()
+```
+
+prima del feedback all'utente.
+
+Questo comportamento evita che l'interfaccia continui a rappresentare uno stato ormai superato.
+
+### Test
+
+- La verifica dedicata di `BedPage` ha prodotto:
+
+```text
+30/30 test passati
+```
+
+- La verifica finale dedicata di `PlantingCard` ha prodotto:
+
+```text
+9/9 test passati
+```
+
+- Dopo l'aggiunta dell'ultimo test dedicato a `PlantingCard` è stata nuovamente eseguita l'intera suite automatica.
+
+La verifica finale ha prodotto:
+
+```text
+flutter test
+1011/1011 test passati
+```
+
+- È stata inoltre nuovamente eseguita l'analisi statica:
+
+```text
+flutter analyze
+No issues found! (ran in 12.8s)
+```
+
+Il totale di 1011 test costituisce quindi il risultato finale della suite completa effettivamente eseguita nella Sessione S029.
+
+### Versionamento Flutter
+
+- La versione pubblica del progetto passa a:
+
+```text
+0.1.20-alpha
+```
+
+- La versione Flutter in `pubspec.yaml` passa a:
+
+```text
+0.1.20-alpha+5
+```
+
+### Aperto / Future
+
+- Rimane da implementare la UI amministrativa dedicata al Catalogo V1.
+
+- Rimane da integrare nel flusso operativo delle coltivazioni la selezione facoltativa della varietà.
+
+- Rimane da completare la progressiva rimozione delle dipendenze legacy residue.
+
+- L'eventuale hard delete di `plantings` continua a rimanere escluso dal normale workflow e riservato a una futura gestione amministrativa o di correzione eccezionale.
+
+- È stata inoltre consolidata, come preparazione futura esterna alla S029, la direzione progettuale per il futuro **Catalogo Agronomico V1**.
+
+Il flusso previsto sarà:
+
+```text
+Fonte esterna
+        ↓
+AgronomicImport
+        ↓
+dato candidato
+        ↓
+AgronomicReview
+        ↓
+AgronomicCatalog
+```
+
+I dati provenienti da fonti esterne non potranno sovrascrivere automaticamente dati agronomici già approvati.
+
+La Sessione S030 non è ancora iniziata.
+
 ---
 
 # 4. Cronologia versioni
@@ -1963,20 +2255,17 @@ No issues found!
 | 0.1.16-alpha | 03/09/2026 | Archiviata | Completata l'integrazione UI dei Write Path autoritativi di `beds`, introdotte modifica dati, attivazione e disattivazione, variazione geometrica, correzione storica e gestione italiana delle date; verificati 841/841 test. |
 | 0.1.17-alpha | 11/09/2026 | Archiviata | Implementato e verificato il Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, introdotte nove RPC autoritative, RLS, Profile Write Authority, concorrenza ottimistica e migration locali/remoto allineate; integrazione Flutter rinviata alla S027. |
 | 0.1.18-alpha | 13/09/2026 | Archiviata | Completata l'integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, `Crop` e `CropVariety`, introdotti e riallineati i Repository dedicati, consolidate letture RLS e scritture RPC-only, mantenuta la Profile Write Authority fail-closed e verificati 914/914 test. |
-| 0.1.19-alpha | 17/09/2026 | Corrente | Implementato il modello e Write Path autoritativo di `plantings`, introdotto il lifecycle server-side, consolidate geometria, temporalità e overlap, protette le variazioni della geometria delle aiuole, riallineati modello, Repository e UI Flutter e verificati 997/997 test. |
+| 0.1.19-alpha | 17/09/2026 | Archiviata | Implementato il modello e Write Path autoritativo di `plantings`, introdotto il lifecycle server-side, consolidate geometria, temporalità e overlap, protette le variazioni della geometria delle aiuole, riallineati modello, Repository e UI Flutter e verificati 997/997 test. |
+| 0.1.20-alpha | 18/09/2026 | Corrente | Completata la UI del lifecycle di `plantings`, introdotte azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per `finished` e `removed`, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`; suite completa finale verificata con 1011/1011 test passati e `flutter analyze` pulito. |
 
----
 
 # 5. Considerazioni finali
 
 Il presente CHANGELOG documenta in modo sintetico l'evoluzione di Orto Smart, registrando le modifiche più significative introdotte nelle diverse versioni del software.
 
-Con la versione `0.1.19-alpha`, corrispondente alla Sessione S028, il Database V1 compie un ulteriore incremento sostanziale mediante l'implementazione del modello autoritativo di `plantings`.
+Con la versione `0.1.19-alpha`, corrispondente alla Sessione S028, è stato completato il modello persistente autoritativo di `plantings`, comprendente:
 
-Il dominio delle coltivazioni reali dispone ora di:
-
-- struttura persistente dedicata;
-- relazioni coerenti con Profile, Garden, Season, Bed, Crop e Variety;
+- relazioni con Profile, Garden, Season, Bed, Crop e Variety;
 - Write Path autoritativo;
 - Profile Write Authority;
 - concorrenza ottimistica;
@@ -1988,11 +2277,62 @@ Il dominio delle coltivazioni reali dispone ora di:
 - Repository Layer Flutter;
 - UI di creazione e modifica riallineata al contratto persistente.
 
-Il completamento del Write Path di `plantings` non equivale ancora al completamento dell'intero Database V1.
+Con la versione `0.1.20-alpha`, corrispondente alla Sessione S029, è stato completato il livello applicativo del lifecycle delle coltivazioni.
+
+La S029 non ha modificato:
+
+```text
+schema
+migration
+RPC
+RLS
+contratto persistente
+```
+
+ma ha utilizzato integralmente il contratto S028 mediante:
+
+```text
+PlantingCard
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+```
+
+Sono ora disponibili nella UI:
+
+- transizioni lifecycle contestuali;
+- conferma esplicita di `end_date` per `finished` e `removed`;
+- mantenimento di `end_date = null` negli stati intermedi;
+- informazione esplicita che `harvested` mantiene occupata l'aiuola;
+- refresh autoritativo in caso di `version_conflict`;
+- refresh autoritativo in caso di `invalid_transition`.
+
+La verifica tecnica finale S029 ha prodotto:
+
+```text
+flutter test finale:           1011/1011 test passati
+bed_page_test.dart:              30/30 test passati
+planting_card_test.dart:           9/9 test passati
+flutter analyze finale:           No issues found! (ran in 12.8s)
+```
+
+Il dato di 1011 test rappresenta la suite completa finale effettivamente eseguita dopo l'aggiunta dell'ultimo test a `PlantingCard`.
+
+Il completamento del lifecycle di `plantings` non equivale ancora al completamento dell'intero Database V1.
 
 Rimangono infatti ulteriori entità della baseline da implementare e ulteriori incrementi applicativi da completare.
 
-In particolare, per `plantings` rimane da completare la UI dedicata al lifecycle e alla gestione della varietà e di `end_date`.
+In particolare rimangono aperti:
+
+- UI amministrativa del Catalogo V1;
+- selezione facoltativa della varietà nel flusso operativo delle coltivazioni;
+- progressiva eliminazione delle dipendenze legacy residue;
+- completamento delle restanti aree del Database V1.
+
+Come preparazione futura, esterna alla Sessione S029, è stata inoltre consolidata la direzione progettuale per il futuro **Catalogo Agronomico V1**, nel quale i dati provenienti da fonti esterne dovranno essere trattati come candidati da revisionare e approvare prima dell'utilizzo operativo.
 
 La separazione tra CHANGELOG, Quaderno di Sviluppo (DOC-005), Manuale Tecnico (DOC-001) e Manuale Database (DOC-004) consente di distinguere:
 

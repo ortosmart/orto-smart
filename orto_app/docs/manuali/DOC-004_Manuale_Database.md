@@ -177,15 +177,67 @@ flutter test
 997 tests passed
 ```
 
+La Sessione S029 non ha introdotto nuove migration, modifiche allo schema, variazioni delle RPC o modifiche alle policy RLS.
+
+Ha completato il livello applicativo del lifecycle delle coltivazioni utilizzando senza variazioni il contratto persistente definito nella S028.
+
+Il flusso applicativo corrente è:
+
+```text
+PlantingCard
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+        ↓
+PostgreSQL
+```
+
+Dalla Sessione S029 sono quindi disponibili nella UI:
+
+- le transizioni lifecycle consentite dal server;
+- la conferma esplicita di `end_date` per le transizioni verso `finished` e `removed`;
+- il mantenimento di `end_date = null` nelle transizioni intermedie;
+- il mantenimento dell'occupazione dell'aiuola nello stato `harvested`;
+- il refresh autoritativo delle coltivazioni in caso di `version_conflict`;
+- il refresh autoritativo delle coltivazioni in caso di `invalid_transition`;
+- azioni contestuali in `PlantingCard` coerenti con lo stato corrente.
+
+La verifica tecnica finale S029 ha prodotto:
+
+```text
+flutter test
+1011/1011 test passati
+```
+
+Sono inoltre confermate le verifiche dedicate:
+
+```text
+bed_page_test.dart
+30/30 test passati
+
+planting_card_test.dart
+9/9 test passati
+```
+
+e l'analisi statica finale:
+
+```text
+flutter analyze
+No issues found! (ran in 12.8s)
+```
+
+Il totale di 1011 test costituisce quindi il risultato finale della suite completa effettivamente eseguita nella Sessione S029.
+
 Il Database V1 non è ancora completamente implementato.
 
 La UI amministrativa dedicata al Catalogo V1 non è ancora implementata.
 
-Per `plantings` rimangono inoltre da completare, lato applicativo:
+Per `plantings` rimangono da completare, lato applicativo:
 
-- UI completa del lifecycle;
-- selezione della varietà;
-- gestione esplicita di `end_date` nelle transizioni terminali;
+- selezione facoltativa della varietà;
 - progressiva eliminazione delle dipendenze legacy residue.
 
 Il presente manuale documenta quindi sia la **baseline congelata** sia lo **stato effettivamente raggiunto**, mantenendo distinta la progettazione completa dall'implementazione progressiva.
@@ -296,6 +348,27 @@ Il Write Path applica Profile Write Authority, validazioni server-side, vincoli 
 
 Le operazioni Flutter ordinarie su `plantings` utilizzano il Repository Layer e le RPC autoritative senza eseguire scritture dirette sulla tabella.
 
+La Sessione S029 ha completato il livello applicativo del lifecycle delle coltivazioni senza modificare schema, migration, RPC, RLS o contratto persistente.
+
+La UI utilizza ora:
+
+```text
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+```
+
+per applicare le transizioni lifecycle consentite dal server.
+
+Sono inoltre disponibili:
+
+- azioni contestuali in `PlantingCard`;
+- conferma esplicita di `end_date` per `finished` e `removed`;
+- mantenimento di `end_date = null` nelle transizioni intermedie;
+- mantenimento dell'occupazione dell'aiuola nello stato `harvested`;
+- refresh autoritativo in caso di `version_conflict`;
+- refresh autoritativo in caso di `invalid_transition`.
+
 La UI amministrativa dedicata al Catalogo V1 non è ancora implementata.
 
 Il Database V1 completo non coincide ancora con l'intera baseline delle 52 entità progettate nella S017: l'implementazione fisica continua incrementalmente.
@@ -336,11 +409,12 @@ e sostituisce la precedente denominazione provvisoria `zone_target_assignments`.
 
 ## 2.3 Stato di implementazione
 
-Al termine della Sessione S028 la situazione del Database V1 è la seguente:
+Al termine della Sessione S029 la situazione del Database V1 è la seguente:
 
 - la progettazione logica e architetturale completata nella S017 rimane la baseline ufficiale congelata;
 - l'ambiente locale Supabase predisposto nella S018 è operativo per sviluppo, ricostruzione e collaudo;
 - sono implementate migration versionate fino alle due migration S028 dedicate a `plantings`;
+- la S029 non ha introdotto nuove migration;
 - è implementato il gruppo **Fondazioni**;
 - sono presenti lo schema `private`, gli helper autorizzativi, i trigger metadata e la matrice RLS;
 - è completato e verificato il protocollo server-side `profile_edit_locks`;
@@ -372,8 +446,14 @@ Al termine della Sessione S028 la situazione del Database V1 è la seguente:
 - le modifiche alla geometria delle aiuole sono protette rispetto alle coltivazioni esistenti;
 - `change_bed_geometry` e `correct_bed_geometry` possono restituire `blocked_by_plantings`;
 - il lifecycle autoritativo delle coltivazioni è implementato server-side;
+- il lifecycle autoritativo delle coltivazioni è integrato nella UI dalla S029;
+- `PlantingCard` espone azioni contestuali coerenti con lo stato corrente;
+- `BedPage` utilizza `PlantingRepository.setPlantingStatus`;
+- gli stati terminali `finished` e `removed` richiedono conferma esplicita di `end_date`;
+- lo stato `harvested` continua a mantenere occupata l'aiuola;
+- `version_conflict` e `invalid_transition` provocano una rilettura autoritativa delle coltivazioni;
 - la UI amministrativa dedicata al Catalogo V1 non è ancora implementata;
-- la gestione UI completa del lifecycle di `plantings` rimane un incremento successivo;
+- la selezione facoltativa della varietà nel flusso operativo delle coltivazioni rimane da completare;
 - il Database V1 completo non è ancora implementato.
 
 Le strutture applicative e di dominio attualmente implementate comprendono:
@@ -437,18 +517,28 @@ supabase db lint --local
 No schema errors found
 ```
 
-Sul lato Flutter la verifica completa ha inoltre prodotto:
+La verifica tecnica finale S029 ha inoltre confermato lato Flutter:
 
 ```text
-flutter analyze
-No issues found!
+flutter test
+1011/1011 test passati
+```
+
+con verifiche dedicate:
+
+```text
+bed_page_test.dart
+30/30 test passati
+
+planting_card_test.dart
+9/9 test passati
 ```
 
 e:
 
 ```text
-flutter test
-997 tests passed
+flutter analyze
+No issues found! (ran in 12.8s)
 ```
 
 ---
@@ -4057,7 +4147,7 @@ non ancora integrato
 
 La S027 ha completato il relativo passaggio applicativo.
 
-La Sessione S028 ha applicato lo stesso principio al dominio delle coltivazioni.
+La stessa separazione è stata applicata al dominio delle coltivazioni tra S028 e S029.
 
 Alla conclusione della S028:
 
@@ -4079,7 +4169,7 @@ AddPlantingPage
 riallineata al contratto S028
 ```
 
-L'integrazione comprende:
+L'integrazione S028 comprende:
 
 - modello `Planting` riallineato al contratto Database V1;
 - `PlantingRepository`;
@@ -4122,11 +4212,48 @@ supabase db lint --local
 No schema errors found
 ```
 
+La Sessione S029 ha completato il livello applicativo del lifecycle senza introdurre modifiche a:
+
+```text
+schema
+migration
+RPC
+RLS
+contratto persistente
+```
+
+La UI utilizza il contratto S028 già consolidato:
+
+```text
+PlantingCard
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+        ↓
+PostgreSQL
+```
+
+Dalla S029 risultano disponibili lato UI:
+
+- transizione `sown → growing`;
+- transizione `growing → harvest_ready`;
+- transizione `harvest_ready → harvested`;
+- transizione `harvested → finished`;
+- transizione verso `removed` dagli stati consentiti;
+- richiesta esplicita di `end_date` per `finished` e `removed`;
+- mantenimento di `end_date = null` nelle transizioni intermedie;
+- refresh autoritativo dei dati in caso di `version_conflict`;
+- refresh autoritativo dei dati in caso di `invalid_transition`;
+- informazione esplicita che `harvested` non libera ancora l'aiuola.
+
 La compatibilità con il codice applicativo precedente continua a non essere ottenuta mediante conversioni implicite.
 
 Gli alias legacy ancora presenti devono rimanere esplicitamente temporanei e non devono essere utilizzati per introdurre nuove dipendenze.
 
-Alla conclusione della S028 rimangono distinti:
+Alla conclusione della S029 risultano distinti:
 
 ```text
 integrazione dati Catalogo V1
@@ -4138,10 +4265,16 @@ Write Path plantings
 creazione/modifica plantings lato UI
         ✓
 
-UI amministrativa Catalogo V1
-        ✗
+UI lifecycle plantings
+        ✓
 
-UI completa lifecycle plantings
+end_date terminale esplicita lato UI
+        ✓
+
+refresh version_conflict / invalid_transition
+        ✓
+
+UI amministrativa Catalogo V1
         ✗
 
 selezione varietà nel flusso plantings
@@ -4593,7 +4726,7 @@ Database V1 progettato
 Database V1 completamente implementato
 ```
 
-Alla conclusione della S028:
+Alla conclusione della S029:
 
 ```text
 Catalogo DB V1
@@ -4617,10 +4750,19 @@ integrazione Flutter creazione/modifica plantings
 lifecycle server-side plantings
         ✓
 
+UI lifecycle plantings
+        ✓
+
+end_date terminale esplicita lato UI
+        ✓
+
+refresh su version_conflict / invalid_transition
+        ✓
+
 UI amministrativa Catalogo V1
         ✗
 
-UI completa lifecycle plantings
+selezione varietà nel flusso plantings
         ✗
 
 Database V1 completo
@@ -4642,22 +4784,44 @@ update_planting
 set_planting_status
 ```
 
-Il Database V1 continua quindi a essere considerato **parzialmente implementato**, ma `plantings` non appartiene più all'elenco delle entità ancora mancanti.
+La Sessione S029 non ha introdotto nuove migration, modifiche allo schema, variazioni delle RPC o modifiche alle policy RLS.
 
-Restano incrementi successivi le ulteriori entità della baseline non ancora tradotte nello schema operativo e le funzionalità applicative non ancora integrate.
+Ha invece completato il livello applicativo del lifecycle utilizzando il contratto persistente definito nella S028.
 
-La UI minima di gestione del Catalogo V1 rimane un incremento applicativo distinto.
+Il flusso corrente è:
 
-Per `plantings` rimangono invece aperti, lato applicativo:
+```text
+PlantingCard
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+        ↓
+PostgreSQL
+```
 
-- gestione UI completa del lifecycle;
-- selezione della varietà;
-- gestione esplicita di `end_date` nelle transizioni terminali;
-- eliminazione progressiva delle dipendenze legacy residue.
+Sono quindi ora integrate lato UI:
+
+- le transizioni lifecycle consentite;
+- la conferma esplicita di `end_date` per `finished` e `removed`;
+- il mantenimento di `end_date = null` nelle transizioni intermedie;
+- il mantenimento dell'occupazione dell'aiuola nello stato `harvested`;
+- la rilettura autoritativa dopo `version_conflict`;
+- la rilettura autoritativa dopo `invalid_transition`.
+
+Il Database V1 continua quindi a essere considerato **parzialmente implementato**, ma `plantings` non appartiene più all'elenco delle entità ancora mancanti e il relativo lifecycle dispone ora sia del contratto autoritativo server-side sia dell'integrazione operativa lato Flutter.
+
+Restano incrementi successivi:
+
+- le ulteriori entità della baseline non ancora tradotte nello schema operativo;
+- la UI amministrativa del Catalogo V1;
+- la selezione facoltativa della varietà nel flusso operativo delle coltivazioni;
+- la progressiva eliminazione delle dipendenze legacy residue;
+- le ulteriori funzionalità applicative non ancora integrate.
 
 Il completamento del Database V1 continuerà pertanto a essere valutato sulla base dello stato realmente implementato e verificato, non sulla sola presenza della progettazione nominale.
-
----
 
 # 12. Funzionalità escluse dal V1
 
@@ -5007,9 +5171,15 @@ integrazione Flutter creazione/modifica plantings
         ✓
 lifecycle server-side plantings
         ✓
+UI lifecycle plantings
+        ✓
+end_date terminale esplicita lato UI
+        ✓
+refresh UI su conflitti lifecycle
+        ✓
 UI gestione Catalogo V1
         ✗
-UI completa lifecycle plantings
+selezione varietà nel flusso plantings
         ✗
 Database V1 completo
         ✗
@@ -5063,7 +5233,7 @@ Il Database V1 completo non è ancora implementato, ma:
 public.plantings
 ```
 
-è ora presente nello schema implementato e dispone del relativo Write Path autoritativo.
+è presente nello schema implementato e dispone del relativo Write Path autoritativo.
 
 La verifica locale S028 ha confermato:
 
@@ -5078,6 +5248,32 @@ e:
 supabase db lint --local
 No schema errors found
 ```
+
+La Sessione S029 non ha modificato il Database V1.
+
+Ha invece completato l'integrazione Flutter del lifecycle utilizzando senza variazioni il contratto persistente definito nella S028.
+
+Il flusso applicativo corrente è:
+
+```text
+PlantingCard
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+```
+
+Sono quindi ora disponibili nella UI:
+
+- le transizioni lifecycle consentite dal server;
+- la richiesta esplicita di `end_date` per gli stati terminali;
+- il mantenimento dell'occupazione nello stato `harvested`;
+- il refresh autoritativo dopo `version_conflict`;
+- il refresh autoritativo dopo `invalid_transition`.
+
+La S029 conferma quindi la separazione tra evoluzione del contratto persistente e successiva integrazione del client Flutter.
 
 ## 13.3 Evoluzione dell'implementazione dalla S019 alla S028
 
@@ -5492,7 +5688,7 @@ Le future modifiche ai valori correnti del catalogo non devono riscrivere retroa
 
 ## 13.6 Incrementi successivi
 
-La sequenza tecnica consolidata fino alla S028 è:
+La sequenza tecnica consolidata fino alla S029 è:
 
 ```text
 Catalogo DB V1
@@ -5507,26 +5703,60 @@ Write Path plantings
         ↓
 integrazione Flutter creazione/modifica plantings
         ↓
+integrazione UI lifecycle plantings
+        ↓
 incrementi successivi
 ```
 
-La Sessione S028 ha completato il Write Path autoritativo di `plantings`.
+La Sessione S028 ha completato il modello persistente e il Write Path autoritativo di `plantings`.
 
-Non è stata invece completata l'intera esperienza utente relativa al lifecycle.
+La Sessione S029 ha completato l'integrazione UI del lifecycle senza modificare il contratto persistente definito nella S028.
+
+Risultano ora completati:
+
+- UI delle transizioni lifecycle;
+- gestione esplicita di `end_date` nelle transizioni terminali;
+- gestione degli esiti concorrenti `version_conflict` nella UI lifecycle;
+- gestione di `invalid_transition`;
+- refresh autoritativo dei componenti interessati dopo gli esiti che indicano uno stato non più corrente;
+- informazione esplicita che lo stato `harvested` mantiene l'occupazione dell'aiuola.
 
 Restano aperti, tra gli incrementi applicativi:
 
-- UI completa delle transizioni lifecycle;
 - scelta facoltativa della varietà durante la gestione della coltivazione;
-- gestione esplicita di `end_date` nelle transizioni terminali;
-- gestione degli esiti concorrenti nella UI lifecycle;
-- refresh completo dei componenti interessati dopo il cambio di stato;
 - progressiva rimozione delle dipendenze legacy residue;
-- UI amministrativa del Catalogo V1.
+- UI amministrativa del Catalogo V1;
+- completamento progressivo delle restanti aree del Database V1.
 
-Il lifecycle server-side è già implementato e costituisce il contratto autoritativo che la futura UI dovrà utilizzare.
+Il lifecycle server-side continua a costituire il contratto autoritativo.
 
-La pianificazione preliminare successiva prevede di portare queste funzionalità nella UI senza riaprire il contratto persistente definito nella S028.
+La UI introdotta nella S029 non replica autonomamente le regole persistenti, ma utilizza:
+
+```text
+set_planting_status
+```
+
+attraverso il Repository Layer.
+
+Come preparazione futura, esterna alla Sessione S029, è stata inoltre consolidata la direzione progettuale per il futuro **Catalogo Agronomico V1**.
+
+La progettazione prevista dovrà distinguere:
+
+```text
+fonte esterna
+        ↓
+dato candidato
+        ↓
+revisione
+        ↓
+dato approvato
+        ↓
+Catalogo Agronomico
+```
+
+senza consentire che dati importati o ottenuti mediante scraping sovrascrivano automaticamente dati agronomici già approvati.
+
+Questa preparazione non modifica il Database V1 attualmente implementato e non costituisce ancora avvio della Sessione S030.
 
 ## 13.7 Evoluzione del documento
 
@@ -5596,7 +5826,65 @@ Alla conclusione della Sessione S028:
 - la geometria delle aiuole è protetta rispetto alle coltivazioni esistenti;
 - `PlantingRepository` e la UI di creazione/modifica sono riallineati al contratto S028;
 - `flutter analyze` non segnala problemi;
-- la suite completa raggiunge **997 test superati**;
-- la UI amministrativa del Catalogo V1 non è ancora implementata;
-- la UI completa del lifecycle di `plantings` rimane un incremento successivo;
-- il Database V1 complessivo rimane parzialmente implementato.
+- la suite completa raggiunge **997 test superati**.
+
+La Sessione S029 non ha modificato il contratto persistente definito nella S028.
+
+Non sono state introdotte nuove:
+
+```text
+migration
+modifiche schema
+RPC
+policy RLS
+```
+
+La S029 ha invece completato il livello applicativo del lifecycle delle coltivazioni riutilizzando integralmente:
+
+```text
+set_planting_status
+```
+
+attraverso:
+
+```text
+PlantingCard
+        ↓
+BedPage
+        ↓
+PlantingRepository.setPlantingStatus
+        ↓
+set_planting_status
+```
+
+Alla conclusione della Sessione S029 risultano quindi disponibili:
+
+- UI completa delle transizioni lifecycle previste dal contratto server-side;
+- conferma esplicita di `end_date` per `finished` e `removed`;
+- mantenimento di `end_date = null` nelle transizioni intermedie;
+- mantenimento dell'occupazione dell'aiuola nello stato `harvested`;
+- refresh autoritativo in caso di `version_conflict`;
+- refresh autoritativo in caso di `invalid_transition`;
+- azioni contestuali in `PlantingCard` coerenti con lo stato corrente.
+
+La verifica applicativa finale S029 ha confermato:
+
+```text
+flutter test finale:           1011/1011 test passati
+bed_page_test.dart:              30/30 test passati
+planting_card_test.dart:           9/9 test passati
+flutter analyze finale:           No issues found! (ran in 12.8s)
+```
+
+Il dato di 1011 test rappresenta la suite completa finale effettivamente eseguita dopo l'aggiunta dell'ultimo test a `PlantingCard`.
+
+Restano ancora aperti:
+
+- la UI amministrativa del Catalogo V1;
+- la selezione facoltativa della varietà nel flusso operativo delle coltivazioni;
+- la progressiva eliminazione delle dipendenze legacy residue;
+- il completamento delle restanti aree del Database V1.
+
+Il Database V1 complessivo rimane pertanto **parzialmente implementato**.
+
+La Sessione S029 conferma il principio architetturale secondo cui il contratto persistente e la sua integrazione applicativa possono evolvere in fasi distinte, purché il client utilizzi esclusivamente i Write Path autoritativi già definiti e verificati.
