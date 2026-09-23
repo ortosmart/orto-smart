@@ -18,19 +18,19 @@ void main() {
       const rule = CropAgronomicWindowRule(cropId: 'lattuga', window: window);
 
       expect(rule.cropId, 'lattuga');
-      expect(rule.varietyId, isNull);
+      expect(rule.cultivarId, isNull);
       expect(rule.window, same(window));
     });
 
     test('rappresenta una regola specifica della varietà', () {
       const rule = CropAgronomicWindowRule(
         cropId: 'lattuga',
-        varietyId: 'romana',
+        cultivarId: 'romana',
         window: window,
       );
 
       expect(rule.cropId, 'lattuga');
-      expect(rule.varietyId, 'romana');
+      expect(rule.cultivarId, 'romana');
       expect(rule.window, same(window));
     });
   });

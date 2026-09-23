@@ -8,26 +8,26 @@ class AgronomicWindowResolver {
   List<AgronomicWindow> resolve({
     required List<CropAgronomicWindowRule> rules,
     required String cropId,
-    String? varietyId,
+    String? cultivarId,
     required PlannedPlantingStartMethod startMethod,
   }) {
     final applicableRules = rules.where(
       (rule) => rule.cropId == cropId && rule.window.startMethod == startMethod,
     );
 
-    if (varietyId != null) {
-      final varietyWindows = applicableRules
-          .where((rule) => rule.varietyId == varietyId)
+    if (cultivarId != null) {
+      final cultivarWindows = applicableRules
+          .where((rule) => rule.cultivarId == cultivarId)
           .map((rule) => rule.window)
           .toList();
 
-      if (varietyWindows.isNotEmpty) {
-        return varietyWindows;
+      if (cultivarWindows.isNotEmpty) {
+        return cultivarWindows;
       }
     }
 
     return applicableRules
-        .where((rule) => rule.varietyId == null)
+        .where((rule) => rule.cultivarId == null)
         .map((rule) => rule.window)
         .toList();
   }
@@ -39,7 +39,7 @@ class AgronomicWindowResolver {
     return resolve(
       rules: rules,
       cropId: batch.cropId,
-      varietyId: batch.varietyId,
+      cultivarId: batch.cultivarId,
       startMethod: batch.startMethod,
     );
   }

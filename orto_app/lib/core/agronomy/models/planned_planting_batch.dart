@@ -10,7 +10,7 @@ enum PlannedPlantingQuantityType { plants, seedGrams, areaSquareCm }
 class PlannedPlantingBatch {
   const PlannedPlantingBatch({
     required this.cropId,
-    this.varietyId,
+    this.cultivarId,
     required this.startMethod,
     required this.plannedDate,
     required this.quantity,
@@ -21,7 +21,7 @@ class PlannedPlantingBatch {
   final String cropId;
 
   /// ID opzionale della varietà.
-  final String? varietyId;
+  final String? cultivarId;
 
   /// Modalità prevista di avvio della coltura.
   final PlannedPlantingStartMethod startMethod;

@@ -92,12 +92,12 @@ void main() {
         endDate: DateTime(2026, 4, 15),
         startMethod: PlannedPlantingStartMethod.purchasedSeedlings,
         quantityType: PlannedPlantingQuantityType.plants,
-        varietyId: 'romana',
+        cultivarId: 'romana',
       );
 
       expect(batches.length, 2);
-      expect(batches[0].varietyId, 'romana');
-      expect(batches[1].varietyId, 'romana');
+      expect(batches[0].cultivarId, 'romana');
+      expect(batches[1].cultivarId, 'romana');
     });
     test('rifiuta una combinazione metodo quantità non valida', () {
       expect(

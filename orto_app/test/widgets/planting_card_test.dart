@@ -13,7 +13,7 @@ Planting _planting(String status) {
     seasonId: '44444444-4444-4444-8444-444444444444',
     bedId: '55555555-5555-4555-8555-555555555555',
     cropId: '66666666-6666-4666-8666-666666666666',
-    varietyId: null,
+    cultivarId: null,
     startMethod: 'direct_rows',
     startDate: DateTime(2026, 9, 1),
     endDate: terminal ? DateTime(2026, 9, 17) : null,

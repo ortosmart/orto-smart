@@ -19,6 +19,8 @@ void main() {
           id: '1',
           name: 'Pomodoro',
           plantSpacingCm: 40,
+          botanicalFamilyId: 'family-Solanaceae',
+
           botanicalFamily: 'Solanaceae',
           rotationSeasons: 3,
         ),
@@ -26,6 +28,8 @@ void main() {
           id: '2',
           name: 'Lattuga',
           plantSpacingCm: 20,
+          botanicalFamilyId: 'family-Asteraceae',
+
           botanicalFamily: 'Asteraceae',
           rotationSeasons: 2,
         ),
@@ -63,6 +67,8 @@ void main() {
             id: '1',
             name: 'Pomodoro',
             plantSpacingCm: 40,
+            botanicalFamilyId: 'family-Solanaceae',
+
             botanicalFamily: 'Solanaceae',
             rotationSeasons: 3,
           ),
@@ -70,6 +76,8 @@ void main() {
             id: '2',
             name: 'Lattuga',
             plantSpacingCm: 20,
+            botanicalFamilyId: 'family-Asteraceae',
+
             botanicalFamily: 'Asteraceae',
             rotationSeasons: 2,
           ),
@@ -105,6 +113,8 @@ void main() {
             id: '1',
             name: 'Coltura eccellente',
             plantSpacingCm: 40,
+            botanicalFamilyId: 'family-FamigliaA',
+
             botanicalFamily: 'FamigliaA',
             rotationSeasons: 3,
           ),
@@ -112,6 +122,8 @@ void main() {
             id: '2',
             name: 'Coltura buona',
             plantSpacingCm: 110,
+            botanicalFamilyId: 'family-FamigliaB',
+
             botanicalFamily: 'FamigliaB',
             rotationSeasons: 3,
           ),

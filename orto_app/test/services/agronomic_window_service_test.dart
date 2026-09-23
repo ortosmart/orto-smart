@@ -24,7 +24,7 @@ void main() {
       endDay: 15,
     );
 
-    const varietySpringWindow = AgronomicWindow(
+    const cultivarSpringWindow = AgronomicWindow(
       startMethod: PlannedPlantingStartMethod.directRows,
       startMonth: 3,
       startDay: 1,
@@ -32,7 +32,7 @@ void main() {
       endDay: 15,
     );
 
-    const varietyAutumnWindow = AgronomicWindow(
+    const cultivarAutumnWindow = AgronomicWindow(
       startMethod: PlannedPlantingStartMethod.directRows,
       startMonth: 9,
       startDay: 1,
@@ -45,13 +45,13 @@ void main() {
       CropAgronomicWindowRule(cropId: 'lattuga', window: generalAutumnWindow),
       CropAgronomicWindowRule(
         cropId: 'lattuga',
-        varietyId: 'romana',
-        window: varietySpringWindow,
+        cultivarId: 'romana',
+        window: cultivarSpringWindow,
       ),
       CropAgronomicWindowRule(
         cropId: 'lattuga',
-        varietyId: 'romana',
-        window: varietyAutumnWindow,
+        cultivarId: 'romana',
+        window: cultivarAutumnWindow,
       ),
     ];
 
@@ -60,7 +60,7 @@ void main() {
       () {
         final batch = PlannedPlantingBatch(
           cropId: 'lattuga',
-          varietyId: 'romana',
+          cultivarId: 'romana',
           startMethod: PlannedPlantingStartMethod.directRows,
           plannedDate: DateTime(2026, 4, 20),
           quantity: 4,
@@ -73,10 +73,10 @@ void main() {
         );
 
         expect(evaluation.status, AgronomicWindowEvaluationStatus.compatible);
-        expect(evaluation.matchedWindow, same(varietySpringWindow));
+        expect(evaluation.matchedWindow, same(cultivarSpringWindow));
         expect(evaluation.evaluatedWindows, [
-          same(varietySpringWindow),
-          same(varietyAutumnWindow),
+          same(cultivarSpringWindow),
+          same(cultivarAutumnWindow),
         ]);
       },
     );
@@ -86,7 +86,7 @@ void main() {
       () {
         final batch = PlannedPlantingBatch(
           cropId: 'lattuga',
-          varietyId: 'romana',
+          cultivarId: 'romana',
           startMethod: PlannedPlantingStartMethod.directRows,
           plannedDate: DateTime(2026, 9, 15),
           quantity: 4,
@@ -99,7 +99,7 @@ void main() {
         );
 
         expect(evaluation.status, AgronomicWindowEvaluationStatus.compatible);
-        expect(evaluation.matchedWindow, same(varietyAutumnWindow));
+        expect(evaluation.matchedWindow, same(cultivarAutumnWindow));
         expect(evaluation.evaluatedWindows, hasLength(2));
       },
     );
@@ -109,7 +109,7 @@ void main() {
       () {
         final batch = PlannedPlantingBatch(
           cropId: 'lattuga',
-          varietyId: 'romana',
+          cultivarId: 'romana',
           startMethod: PlannedPlantingStartMethod.directRows,
           plannedDate: DateTime(2026, 7, 10),
           quantity: 4,
@@ -124,8 +124,8 @@ void main() {
         expect(evaluation.status, AgronomicWindowEvaluationStatus.incompatible);
         expect(evaluation.matchedWindow, isNull);
         expect(evaluation.evaluatedWindows, [
-          same(varietySpringWindow),
-          same(varietyAutumnWindow),
+          same(cultivarSpringWindow),
+          same(cultivarAutumnWindow),
         ]);
       },
     );
@@ -152,7 +152,7 @@ void main() {
     test('usa tutte le finestre generali come fallback', () {
       final batch = PlannedPlantingBatch(
         cropId: 'lattuga',
-        varietyId: 'canasta',
+        cultivarId: 'canasta',
         startMethod: PlannedPlantingStartMethod.directRows,
         plannedDate: DateTime(2026, 9, 15),
         quantity: 4,

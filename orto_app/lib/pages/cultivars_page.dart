@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../data/models/crop.dart';
-import '../data/models/crop_variety.dart';
+import '../data/models/crop_cultivar.dart';
 import '../data/repositories/crop_repository.dart';
-import '../data/repositories/crop_variety_repository.dart';
-import 'add_variety_page.dart';
+import '../data/repositories/crop_cultivar_repository.dart';
 
-class VarietiesPage extends StatefulWidget {
-  const VarietiesPage({super.key});
+class CultivarsPage extends StatefulWidget {
+  const CultivarsPage({super.key});
 
   @override
-  State<VarietiesPage> createState() => _VarietiesPageState();
+  State<CultivarsPage> createState() => _CultivarsPageState();
 }
 
-class _VarietiesPageState extends State<VarietiesPage> {
+class _CultivarsPageState extends State<CultivarsPage> {
   final CropRepository _cropRepository = CropRepository();
-  final CropVarietyRepository _varietyRepository = CropVarietyRepository();
+  final CropCultivarRepository _cultivarRepository = CropCultivarRepository();
 
-  late Future<_VarietiesPageData> _pageDataFuture;
+  late Future<_CultivarsPageData> _pageDataFuture;
 
   @override
   void initState() {
@@ -29,15 +28,15 @@ class _VarietiesPageState extends State<VarietiesPage> {
     _pageDataFuture = _fetchData();
   }
 
-  Future<_VarietiesPageData> _fetchData() async {
+  Future<_CultivarsPageData> _fetchData() async {
     final results = await Future.wait([
       _cropRepository.getCrops(),
-      _varietyRepository.getAllVarieties(),
+      _cultivarRepository.getAllCultivars(),
     ]);
 
-    return _VarietiesPageData(
+    return _CultivarsPageData(
       crops: results[0] as List<Crop>,
-      varieties: results[1] as List<CropVariety>,
+      cultivars: results[1] as List<CropCultivar>,
     );
   }
 
@@ -46,33 +45,11 @@ class _VarietiesPageState extends State<VarietiesPage> {
     await _pageDataFuture;
   }
 
-  Future<void> _openAddVarietyPage() async {
-    await Navigator.push<void>(
-      context,
-      MaterialPageRoute<void>(builder: (context) => const AddVarietyPage()),
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(_loadData);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Varietà'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Nuova varietà',
-            onPressed: _openAddVarietyPage,
-          ),
-        ],
-      ),
-      body: FutureBuilder<_VarietiesPageData>(
+      appBar: AppBar(title: const Text('Varietà')),
+      body: FutureBuilder<_CultivarsPageData>(
         future: _pageDataFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -113,7 +90,7 @@ class _VarietiesPageState extends State<VarietiesPage> {
 
           final data = snapshot.data!;
 
-          if (data.varieties.isEmpty) {
+          if (data.cultivars.isEmpty) {
             return RefreshIndicator(
               onRefresh: _refresh,
               child: ListView(
@@ -133,14 +110,8 @@ class _VarietiesPageState extends State<VarietiesPage> {
                   ),
                   const SizedBox(height: 8),
                   const Center(
-                    child: Text('Premi + per inserire la prima varietà.'),
-                  ),
-                  const SizedBox(height: 24),
-                  Center(
-                    child: FilledButton.icon(
-                      onPressed: _openAddVarietyPage,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Aggiungi varietà'),
+                    child: Text(
+                      'Il catalogo globale non contiene ancora cultivar.',
                     ),
                   ),
                 ],
@@ -150,15 +121,15 @@ class _VarietiesPageState extends State<VarietiesPage> {
 
           final cropsById = {for (final crop in data.crops) crop.id: crop};
 
-          final varietiesByCrop = <String, List<CropVariety>>{};
+          final cultivarsByCrop = <String, List<CropCultivar>>{};
 
-          for (final variety in data.varieties) {
-            final cropId = variety.cropId.toString();
+          for (final cultivar in data.cultivars) {
+            final cropId = cultivar.cropId.toString();
 
-            varietiesByCrop.putIfAbsent(cropId, () => []).add(variety);
+            cultivarsByCrop.putIfAbsent(cropId, () => []).add(cultivar);
           }
 
-          final cropIds = varietiesByCrop.keys.toList()
+          final cropIds = cultivarsByCrop.keys.toList()
             ..sort((a, b) {
               final nameA = cropsById[a]?.name ?? '';
               final nameB = cropsById[b]?.name ?? '';
@@ -173,7 +144,7 @@ class _VarietiesPageState extends State<VarietiesPage> {
               itemBuilder: (context, index) {
                 final cropId = cropIds[index];
                 final crop = cropsById[cropId];
-                final varieties = varietiesByCrop[cropId] ?? [];
+                final cultivars = cultivarsByCrop[cropId] ?? [];
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -183,12 +154,12 @@ class _VarietiesPageState extends State<VarietiesPage> {
                       crop?.name ?? 'Coltura sconosciuta',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text('${varieties.length} varietà'),
-                    children: varieties.map((variety) {
+                    subtitle: Text('${cultivars.length} varietà'),
+                    children: cultivars.map((cultivar) {
                       return ListTile(
                         leading: const Icon(Icons.eco_outlined),
-                        title: Text(variety.name),
-                        subtitle: _buildSubtitle(variety),
+                        title: Text(cultivar.name),
+                        subtitle: _buildSubtitle(cultivar),
                         trailing: const Icon(Icons.chevron_right),
                       );
                     }).toList(),
@@ -202,19 +173,15 @@ class _VarietiesPageState extends State<VarietiesPage> {
     );
   }
 
-  Widget? _buildSubtitle(CropVariety variety) {
+  Widget? _buildSubtitle(CropCultivar cultivar) {
     final details = <String>[];
 
-    if (variety.defaultPlantingMethod != null) {
-      details.add(_formatPlantingMethod(variety.defaultPlantingMethod!));
+    if (cultivar.verificationStatus != 'VERIFIED') {
+      details.add(cultivar.verificationStatus);
     }
 
-    if (variety.plantSpacingCm != null) {
-      details.add('${variety.plantSpacingCm} cm tra le piante');
-    }
-
-    if (variety.harvestDays != null) {
-      details.add('${variety.harvestDays} giorni al raccolto');
+    if (cultivar.description != null) {
+      details.add(cultivar.description!);
     }
 
     if (details.isEmpty) {
@@ -223,24 +190,11 @@ class _VarietiesPageState extends State<VarietiesPage> {
 
     return Text(details.join(' · '));
   }
-
-  String _formatPlantingMethod(String value) {
-    switch (value) {
-      case 'sowing':
-        return 'Semina';
-      case 'transplant':
-        return 'Trapianto';
-      case 'broadcast':
-        return 'Semina a spaglio';
-      default:
-        return value;
-    }
-  }
 }
 
-class _VarietiesPageData {
+class _CultivarsPageData {
   final List<Crop> crops;
-  final List<CropVariety> varieties;
+  final List<CropCultivar> cultivars;
 
-  const _VarietiesPageData({required this.crops, required this.varieties});
+  const _CultivarsPageData({required this.crops, required this.cultivars});
 }

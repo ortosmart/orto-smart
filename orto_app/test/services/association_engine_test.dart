@@ -29,7 +29,7 @@ void main() {
       seasonId: 'season-2026',
       bedId: 'bed-1',
       cropId: cropId,
-      varietyId: null,
+      cultivarId: null,
       startMethod: 'purchased_seedlings',
       startDate: DateTime(2026, 4, 1),
       endDate: null,

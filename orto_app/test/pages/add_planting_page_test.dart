@@ -105,7 +105,7 @@ Planting _directRowsPlanting({
     seasonId: _seasonId,
     bedId: _bedId,
     cropId: _cropId,
-    varietyId: null,
+    cultivarId: null,
     startMethod: 'direct_rows',
     startDate: DateTime(2026, 9, 15),
     endDate: null,

@@ -10,6 +10,8 @@ void main() {
   const pomodoro = Crop(
     id: 'crop-pomodoro',
     name: 'Pomodoro',
+    botanicalFamilyId: 'family-Solanaceae',
+
     botanicalFamily: 'Solanaceae',
     rotationSeasons: 3,
     heavyFeeder: true,
@@ -18,6 +20,8 @@ void main() {
   const peperone = Crop(
     id: 'crop-peperone',
     name: 'Peperone',
+    botanicalFamilyId: 'family-Solanaceae',
+
     botanicalFamily: 'Solanaceae',
     rotationSeasons: 3,
     heavyFeeder: true,
@@ -26,6 +30,8 @@ void main() {
   const lattuga = Crop(
     id: 'crop-lattuga',
     name: 'Lattuga',
+    botanicalFamilyId: 'family-Asteraceae',
+
     botanicalFamily: 'Asteraceae',
     rotationSeasons: 2,
   );
@@ -33,6 +39,8 @@ void main() {
   const basilico = Crop(
     id: 'crop-basilico',
     name: 'Basilico',
+    botanicalFamilyId: 'family-Lamiaceae',
+
     botanicalFamily: 'Lamiaceae',
     rotationSeasons: 2,
   );
@@ -66,7 +74,7 @@ void main() {
       seasonId: 'season-$year',
       bedId: bedId,
       cropId: crop.id,
-      varietyId: null,
+      cultivarId: null,
       startMethod: 'purchased_seedlings',
       startDate: startDate,
       endDate: DateTime(year, 12, 31),

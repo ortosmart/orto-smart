@@ -12,7 +12,7 @@ class SuccessionPlanningEngine {
     required DateTime endDate,
     required PlannedPlantingStartMethod startMethod,
     required PlannedPlantingQuantityType quantityType,
-    String? varietyId,
+    String? cultivarId,
   }) {
     final needValidation = FamilyConsumptionNeedValidator.validate(need);
 
@@ -45,7 +45,7 @@ class SuccessionPlanningEngine {
     while (!plannedDate.isAfter(endDate)) {
       final batch = PlannedPlantingBatch(
         cropId: need.cropId,
-        varietyId: varietyId,
+        cultivarId: cultivarId,
         startMethod: startMethod,
         plannedDate: plannedDate,
         quantity: need.quantity,

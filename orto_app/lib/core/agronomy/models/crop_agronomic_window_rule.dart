@@ -3,7 +3,7 @@ import 'agronomic_window.dart';
 class CropAgronomicWindowRule {
   const CropAgronomicWindowRule({
     required this.cropId,
-    this.varietyId,
+    this.cultivarId,
     required this.window,
   });
 
@@ -14,7 +14,7 @@ class CropAgronomicWindowRule {
   ///
   /// Se nullo, la regola è generale per la coltura.
   /// Se valorizzato, la regola è specifica per quella varietà.
-  final String? varietyId;
+  final String? cultivarId;
 
   /// Finestra agronomica associata.
   final AgronomicWindow window;

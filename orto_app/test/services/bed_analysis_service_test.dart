@@ -12,7 +12,7 @@ Planting _planting(String cropId) {
     seasonId: 'season-1',
     bedId: 'bed-1',
     cropId: cropId,
-    varietyId: null,
+    cultivarId: null,
     startMethod: 'purchased_seedlings',
     startDate: DateTime(2026, 1, 1),
     endDate: null,

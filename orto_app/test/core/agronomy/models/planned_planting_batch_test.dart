@@ -9,7 +9,7 @@ void main() {
 
       final batch = PlannedPlantingBatch(
         cropId: 'lattuga',
-        varietyId: 'romana',
+        cultivarId: 'romana',
         startMethod: PlannedPlantingStartMethod.nurseryThenTransplant,
         plannedDate: plannedDate,
         quantity: 6,
@@ -17,7 +17,7 @@ void main() {
       );
 
       expect(batch.cropId, 'lattuga');
-      expect(batch.varietyId, 'romana');
+      expect(batch.cultivarId, 'romana');
       expect(
         batch.startMethod,
         PlannedPlantingStartMethod.nurseryThenTransplant,

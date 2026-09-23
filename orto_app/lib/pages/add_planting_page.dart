@@ -892,7 +892,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
           expectedRowVersion: planting.rowVersion,
           seasonId: seasonId,
           cropId: selectedCrop.id,
-          varietyId: planting.varietyId,
+          cultivarId: planting.cultivarId,
           startMethod: _startMethod,
           startDate: _startDate,
           startPositionCm: _startPositionCm,
@@ -955,7 +955,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
             });
             return;
 
-          case UpdatePlantingBlockedByInactiveVariety():
+          case UpdatePlantingBlockedByInactiveCultivar():
             setState(() {
               _saveError = 'La varietà selezionata non è più attiva.';
             });
@@ -1000,7 +1000,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
         seasonId: seasonId,
         bedId: widget.bed.id,
         cropId: selectedCrop.id,
-        varietyId: null,
+        cultivarId: null,
         startMethod: _startMethod,
         startDate: _startDate,
         startPositionCm: _startPositionCm,
@@ -1069,7 +1069,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
           });
           return;
 
-        case CreatePlantingBlockedByInactiveVariety():
+        case CreatePlantingBlockedByInactiveCultivar():
           setState(() {
             _saveError = 'La varietà selezionata non è più attiva.';
           });

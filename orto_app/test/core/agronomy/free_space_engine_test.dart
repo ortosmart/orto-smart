@@ -16,7 +16,7 @@ Planting _buildPlanting({
     seasonId: 'season-1',
     bedId: 'bed-1',
     cropId: cropId,
-    varietyId: null,
+    cultivarId: null,
     startMethod: 'purchased_seedlings',
     startDate: startDate,
     endDate: null,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'documentation_page.dart';
-import 'varieties_page.dart';
+import 'cultivars_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -25,7 +25,7 @@ class SettingsPage extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute<void>(builder: (_) => const VarietiesPage()),
+                MaterialPageRoute<void>(builder: (_) => const CultivarsPage()),
               );
             },
           ),

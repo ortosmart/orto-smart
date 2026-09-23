@@ -7,7 +7,7 @@ const _gardenId = '33333333-3333-4333-8333-333333333333';
 const _seasonId = '44444444-4444-4444-8444-444444444444';
 const _bedId = '55555555-5555-4555-8555-555555555555';
 const _cropId = '66666666-6666-4666-8666-666666666666';
-const _varietyId = '77777777-7777-4777-8777-777777777777';
+const _cultivarId = '77777777-7777-4777-8777-777777777777';
 
 Map<String, dynamic> _plantingMap() {
   return {
@@ -17,7 +17,7 @@ Map<String, dynamic> _plantingMap() {
     'season_id': _seasonId,
     'bed_id': _bedId,
     'crop_id': _cropId,
-    'variety_id': _varietyId,
+    'cultivar_id': _cultivarId,
     'start_method': 'direct_rows',
     'start_date': '2026-09-16',
     'end_date': null,
@@ -48,7 +48,7 @@ void main() {
       expect(planting.seasonId, _seasonId);
       expect(planting.bedId, _bedId);
       expect(planting.cropId, _cropId);
-      expect(planting.varietyId, _varietyId);
+      expect(planting.cultivarId, _cultivarId);
 
       expect(planting.startMethod, 'direct_rows');
       expect(planting.startDate, DateTime.utc(2026, 9, 16));
@@ -73,7 +73,7 @@ void main() {
 
     test('accepts null optional fields', () {
       final map = _plantingMap()
-        ..['variety_id'] = null
+        ..['cultivar_id'] = null
         ..['plant_spacing_cm'] = null
         ..['row_spacing_cm'] = null
         ..['rows_count'] = null
@@ -83,7 +83,7 @@ void main() {
 
       final planting = Planting.fromMap(map);
 
-      expect(planting.varietyId, isNull);
+      expect(planting.cultivarId, isNull);
       expect(planting.plantSpacingCm, isNull);
       expect(planting.rowSpacingCm, isNull);
       expect(planting.rowsCount, isNull);
@@ -127,7 +127,7 @@ void main() {
       'empty season id': {'season_id': ''},
       'empty bed id': {'bed_id': ''},
       'empty crop id': {'crop_id': ''},
-      'empty variety id': {'variety_id': ''},
+      'empty cultivar id': {'cultivar_id': ''},
       'empty notes': {'notes': ''},
       'invalid start method': {'start_method': 'manual'},
       'invalid status': {'status': 'completed'},

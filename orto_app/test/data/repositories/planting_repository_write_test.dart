@@ -10,7 +10,7 @@ const _gardenId = '22222222-2222-4222-8222-222222222222';
 const _seasonId = '33333333-3333-4333-8333-333333333333';
 const _bedId = '44444444-4444-4444-8444-444444444444';
 const _cropId = '55555555-5555-4555-8555-555555555555';
-const _varietyId = '66666666-6666-4666-8666-666666666666';
+const _cultivarId = '66666666-6666-4666-8666-666666666666';
 const _plantingId = '77777777-7777-4777-8777-777777777777';
 const _clientInstanceId = '88888888-8888-4888-8888-888888888888';
 const _sessionId = '99999999-9999-4999-8999-999999999999';
@@ -66,7 +66,7 @@ Future<CreatePlantingResult> _create(PlantingRepository repository) {
     seasonId: _seasonId,
     bedId: _bedId,
     cropId: _cropId,
-    varietyId: _varietyId,
+    cultivarId: _cultivarId,
     startMethod: 'direct_rows',
     startDate: DateTime.utc(2026, 9, 16, 18, 30),
     startPositionCm: 120,
@@ -87,7 +87,7 @@ Future<UpdatePlantingResult> _update(PlantingRepository repository) {
     expectedRowVersion: 3,
     seasonId: _seasonId,
     cropId: _cropId,
-    varietyId: _varietyId,
+    cultivarId: _cultivarId,
     startMethod: 'direct_rows',
     startDate: DateTime.utc(2026, 9, 16, 20),
     startPositionCm: 150,
@@ -135,7 +135,7 @@ void main() {
         'season_id': _seasonId,
         'bed_id': _bedId,
         'crop_id': _cropId,
-        'variety_id': _varietyId,
+        'cultivar_id': _cultivarId,
         'start_method': 'direct_rows',
         'start_date': '2026-09-16',
         'end_date': null,
@@ -159,7 +159,7 @@ void main() {
       expect(created.seasonId, _seasonId);
       expect(created.bedId, _bedId);
       expect(created.cropId, _cropId);
-      expect(created.varietyId, _varietyId);
+      expect(created.cultivarId, _cultivarId);
       expect(created.startMethod, 'direct_rows');
       expect(created.startDate, DateTime.utc(2026, 9, 16));
       expect(created.endDate, isNull);
@@ -177,7 +177,7 @@ void main() {
       expect(rpc.parameters!['target_season_id'], _seasonId);
       expect(rpc.parameters!['target_bed_id'], _bedId);
       expect(rpc.parameters!['target_crop_id'], _cropId);
-      expect(rpc.parameters!['target_variety_id'], _varietyId);
+      expect(rpc.parameters!['target_cultivar_id'], _cultivarId);
       expect(rpc.parameters!['target_client_id'], _clientInstanceId);
       expect(rpc.parameters!['target_session_id'], _sessionId);
       expect(rpc.parameters!['lock_token'], _fakeToken);
@@ -204,8 +204,8 @@ void main() {
           isA<CreatePlantingBlockedByInactiveGarden>(),
       'blocked_by_inactive_bed': isA<CreatePlantingBlockedByInactiveBed>(),
       'blocked_by_inactive_crop': isA<CreatePlantingBlockedByInactiveCrop>(),
-      'blocked_by_inactive_variety':
-          isA<CreatePlantingBlockedByInactiveVariety>(),
+      'blocked_by_inactive_cultivar':
+          isA<CreatePlantingBlockedByInactiveCultivar>(),
       'outside_bed_geometry': isA<CreatePlantingOutsideBedGeometry>(),
       'overlap': isA<CreatePlantingOverlap>(),
     };
@@ -230,7 +230,7 @@ void main() {
         'bed_id': _bedId,
         'season_id': _seasonId,
         'crop_id': _cropId,
-        'variety_id': _varietyId,
+        'cultivar_id': _cultivarId,
         'start_method': 'direct_rows',
         'start_date': '2026-09-16',
         'start_position_cm': 150,
@@ -263,7 +263,7 @@ void main() {
       expect(rpc.parameters!['lock_token'], _fakeToken);
       expect(rpc.parameters!['planting_season_id'], _seasonId);
       expect(rpc.parameters!['planting_crop_id'], _cropId);
-      expect(rpc.parameters!['planting_variety_id'], _varietyId);
+      expect(rpc.parameters!['planting_cultivar_id'], _cultivarId);
       expect(rpc.parameters!['planting_start_method'], 'direct_rows');
       expect(rpc.parameters!['planting_start_date'], '2026-09-16');
       expect(rpc.parameters!['planting_start_position_cm'], 150);
@@ -310,8 +310,8 @@ void main() {
       'not_found': isA<UpdatePlantingNotFound>(),
       'invalid_input': isA<UpdatePlantingInvalidInput>(),
       'blocked_by_inactive_crop': isA<UpdatePlantingBlockedByInactiveCrop>(),
-      'blocked_by_inactive_variety':
-          isA<UpdatePlantingBlockedByInactiveVariety>(),
+      'blocked_by_inactive_cultivar':
+          isA<UpdatePlantingBlockedByInactiveCultivar>(),
       'start_method_locked': isA<UpdatePlantingStartMethodLocked>(),
       'start_date_locked': isA<UpdatePlantingStartDateLocked>(),
       'outside_bed_geometry': isA<UpdatePlantingOutsideBedGeometry>(),

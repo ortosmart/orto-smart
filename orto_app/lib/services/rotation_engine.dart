@@ -34,9 +34,9 @@ class RotationEngine {
     required Map<String, Crop> cropsById,
     DateTime? referenceDate,
   }) {
-    final candidateFamily = _normalize(candidateCrop.botanicalFamily);
+    final candidateFamilyId = _normalize(candidateCrop.botanicalFamilyId);
 
-    if (candidateFamily == null) {
+    if (candidateFamilyId == null) {
       return RotationResult.unknown(
         reason:
             'La famiglia botanica di ${candidateCrop.name} non è disponibile.',
@@ -57,13 +57,13 @@ class RotationEngine {
 
     final sameFamilyPlantings = history.where((planting) {
       final historicalCrop = cropsById[planting.cropId];
-      final historicalFamily = _normalize(historicalCrop?.botanicalFamily);
+      final historicalFamilyId = _normalize(historicalCrop?.botanicalFamilyId);
 
-      if (historicalFamily == null) {
+      if (historicalFamilyId == null) {
         return false;
       }
 
-      return historicalFamily == candidateFamily &&
+      return historicalFamilyId == candidateFamilyId &&
           !planting.startDate.isAfter(evaluationDate);
     }).toList()..sort((a, b) => b.startDate.compareTo(a.startDate));
 

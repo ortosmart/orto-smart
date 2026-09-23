@@ -25,7 +25,7 @@ void main() {
       endDay: 15,
     );
 
-    const varietySpringWindow = AgronomicWindow(
+    const cultivarSpringWindow = AgronomicWindow(
       startMethod: PlannedPlantingStartMethod.directRows,
       startMonth: 3,
       startDay: 1,
@@ -33,7 +33,7 @@ void main() {
       endDay: 15,
     );
 
-    const varietyAutumnWindow = AgronomicWindow(
+    const cultivarAutumnWindow = AgronomicWindow(
       startMethod: PlannedPlantingStartMethod.directRows,
       startMonth: 9,
       startDay: 1,
@@ -46,13 +46,13 @@ void main() {
       CropAgronomicWindowRule(cropId: 'lattuga', window: generalAutumnWindow),
       CropAgronomicWindowRule(
         cropId: 'lattuga',
-        varietyId: 'romana',
-        window: varietySpringWindow,
+        cultivarId: 'romana',
+        window: cultivarSpringWindow,
       ),
       CropAgronomicWindowRule(
         cropId: 'lattuga',
-        varietyId: 'romana',
-        window: varietyAutumnWindow,
+        cultivarId: 'romana',
+        window: cultivarAutumnWindow,
       ),
     ];
 
@@ -60,18 +60,18 @@ void main() {
       final windows = resolver.resolve(
         rules: rules,
         cropId: 'lattuga',
-        varietyId: 'romana',
+        cultivarId: 'romana',
         startMethod: PlannedPlantingStartMethod.directRows,
       );
 
-      expect(windows, [same(varietySpringWindow), same(varietyAutumnWindow)]);
+      expect(windows, [same(cultivarSpringWindow), same(cultivarAutumnWindow)]);
     });
 
     test('non mescola finestre generali quando esistono quelle specifiche', () {
       final windows = resolver.resolve(
         rules: rules,
         cropId: 'lattuga',
-        varietyId: 'romana',
+        cultivarId: 'romana',
         startMethod: PlannedPlantingStartMethod.directRows,
       );
 
@@ -84,7 +84,7 @@ void main() {
       final windows = resolver.resolve(
         rules: rules,
         cropId: 'lattuga',
-        varietyId: 'canasta',
+        cultivarId: 'canasta',
         startMethod: PlannedPlantingStartMethod.directRows,
       );
 
@@ -108,7 +108,7 @@ void main() {
       final windows = resolver.resolve(
         rules: rules,
         cropId: 'pomodoro',
-        varietyId: 'romana',
+        cultivarId: 'romana',
         startMethod: PlannedPlantingStartMethod.directRows,
       );
 
@@ -119,7 +119,7 @@ void main() {
       final windows = resolver.resolve(
         rules: rules,
         cropId: 'lattuga',
-        varietyId: 'romana',
+        cultivarId: 'romana',
         startMethod: PlannedPlantingStartMethod.purchasedSeedlings,
       );
 
@@ -132,7 +132,7 @@ void main() {
         final windows = resolver.resolve(
           rules: const [],
           cropId: 'lattuga',
-          varietyId: 'romana',
+          cultivarId: 'romana',
           startMethod: PlannedPlantingStartMethod.directRows,
         );
 
@@ -143,7 +143,7 @@ void main() {
     test('risolve tutte le finestre specifiche direttamente da un lotto', () {
       final batch = PlannedPlantingBatch(
         cropId: 'lattuga',
-        varietyId: 'romana',
+        cultivarId: 'romana',
         startMethod: PlannedPlantingStartMethod.directRows,
         plannedDate: DateTime(2026, 4, 20),
         quantity: 4,
@@ -152,13 +152,13 @@ void main() {
 
       final windows = resolver.resolveForBatch(rules: rules, batch: batch);
 
-      expect(windows, [same(varietySpringWindow), same(varietyAutumnWindow)]);
+      expect(windows, [same(cultivarSpringWindow), same(cultivarAutumnWindow)]);
     });
 
     test('usa il fallback generale anche per un lotto pianificato', () {
       final batch = PlannedPlantingBatch(
         cropId: 'lattuga',
-        varietyId: 'canasta',
+        cultivarId: 'canasta',
         startMethod: PlannedPlantingStartMethod.directRows,
         plannedDate: DateTime(2026, 4, 20),
         quantity: 4,

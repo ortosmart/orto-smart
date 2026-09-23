@@ -21,7 +21,7 @@ class Planting {
   final String seasonId;
   final String bedId;
   final String cropId;
-  final String? varietyId;
+  final String? cultivarId;
 
   final String startMethod;
   final DateTime startDate;
@@ -52,7 +52,7 @@ class Planting {
     required this.seasonId,
     required this.bedId,
     required this.cropId,
-    required this.varietyId,
+    required this.cultivarId,
     required this.startMethod,
     required this.startDate,
     required this.endDate,
@@ -124,7 +124,7 @@ class Planting {
       seasonId: seasonId,
       bedId: bedId,
       cropId: cropId,
-      varietyId: _nullableNonEmptyString(map, 'variety_id'),
+      cultivarId: _nullableNonEmptyString(map, 'cultivar_id'),
       startMethod: startMethod,
       startDate: startDate,
       endDate: endDate,

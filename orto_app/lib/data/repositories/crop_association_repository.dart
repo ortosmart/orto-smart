@@ -1,56 +1,25 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../models/crop_association.dart';
 
+/// Backend delle consociazioni intenzionalmente non attivo nella Tranche 11.
+///
+/// Il database non espone ancora una relazione canonica `crop_associations`.
+/// Le liste vuote mantengono operativi i motori senza eseguire query verso una
+/// tabella inesistente. La funzione verra riattivata con una tranche dedicata.
 class CropAssociationRepository {
-  final SupabaseClient _client;
-
-  CropAssociationRepository({SupabaseClient? client})
-    : _client = client ?? Supabase.instance.client;
+  const CropAssociationRepository();
 
   Future<List<CropAssociation>> getAssociationsForCrop(String cropId) async {
-    final response = await _client
-        .from('crop_associations')
-        .select()
-        .eq('crop_id', cropId)
-        .order('score', ascending: false);
-
-    return (response as List<dynamic>)
-        .map((item) => CropAssociation.fromMap(item as Map<String, dynamic>))
-        .toList();
+    return const [];
   }
 
   Future<List<CropAssociation>> getAssociationsBetweenCrops(
     String cropId,
     Iterable<String> associatedCropIds,
   ) async {
-    final ids = associatedCropIds.toSet().toList();
-
-    if (ids.isEmpty) {
-      return const [];
-    }
-
-    final response = await _client
-        .from('crop_associations')
-        .select()
-        .eq('crop_id', cropId)
-        .inFilter('associated_crop_id', ids)
-        .order('score', ascending: false);
-
-    return (response as List<dynamic>)
-        .map((item) => CropAssociation.fromMap(item as Map<String, dynamic>))
-        .toList();
+    return const [];
   }
 
   Future<List<CropAssociation>> getAllAssociations() async {
-    final response = await _client
-        .from('crop_associations')
-        .select()
-        .order('crop_id')
-        .order('score', ascending: false);
-
-    return (response as List<dynamic>)
-        .map((item) => CropAssociation.fromMap(item as Map<String, dynamic>))
-        .toList();
+    return const [];
   }
 }

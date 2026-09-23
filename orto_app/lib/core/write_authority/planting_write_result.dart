@@ -18,7 +18,7 @@ final class PlantingCreated extends CreatePlantingResult {
   final String seasonId;
   final String bedId;
   final String cropId;
-  final String? varietyId;
+  final String? cultivarId;
 
   final String startMethod;
   final DateTime startDate;
@@ -39,7 +39,7 @@ final class PlantingCreated extends CreatePlantingResult {
     required this.seasonId,
     required this.bedId,
     required this.cropId,
-    required this.varietyId,
+    required this.cultivarId,
     required this.startMethod,
     required this.startDate,
     required this.endDate,
@@ -80,9 +80,9 @@ final class CreatePlantingBlockedByInactiveCrop extends CreatePlantingResult {
   const CreatePlantingBlockedByInactiveCrop();
 }
 
-final class CreatePlantingBlockedByInactiveVariety
+final class CreatePlantingBlockedByInactiveCultivar
     extends CreatePlantingResult {
-  const CreatePlantingBlockedByInactiveVariety();
+  const CreatePlantingBlockedByInactiveCultivar();
 }
 
 final class CreatePlantingOutsideBedGeometry extends CreatePlantingResult {
@@ -103,7 +103,7 @@ final class PlantingUpdated extends UpdatePlantingResult {
   final String bedId;
   final String seasonId;
   final String cropId;
-  final String? varietyId;
+  final String? cultivarId;
 
   final String startMethod;
   final DateTime startDate;
@@ -122,7 +122,7 @@ final class PlantingUpdated extends UpdatePlantingResult {
     required this.bedId,
     required this.seasonId,
     required this.cropId,
-    required this.varietyId,
+    required this.cultivarId,
     required this.startMethod,
     required this.startDate,
     required this.startPositionCm,
@@ -180,9 +180,9 @@ final class UpdatePlantingBlockedByInactiveCrop extends UpdatePlantingResult {
   const UpdatePlantingBlockedByInactiveCrop();
 }
 
-final class UpdatePlantingBlockedByInactiveVariety
+final class UpdatePlantingBlockedByInactiveCultivar
     extends UpdatePlantingResult {
-  const UpdatePlantingBlockedByInactiveVariety();
+  const UpdatePlantingBlockedByInactiveCultivar();
 }
 
 final class UpdatePlantingStartMethodLocked extends UpdatePlantingResult {
