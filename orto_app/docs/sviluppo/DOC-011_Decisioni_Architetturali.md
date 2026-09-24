@@ -4,7 +4,7 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 2.2
+**Versione:** 2.3
 
 **Stato:** In sviluppo
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 28/07/2026
 
-**Ultimo aggiornamento:** 17/09/2026
+**Ultimo aggiornamento:** 23/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |-------|--------|
 | Documento | DOC-011 |
 | Titolo | Decisioni Architetturali (ADR) |
-| Versione | 2.2 |
+| Versione | 2.3 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 17/09/2026 |
+| Ultimo aggiornamento | 23/09/2026 |
 
 ---
 
@@ -61,6 +61,7 @@
 | 2.0 | 11/09/2026 | Introduzione della DEC-013: architettura del Catalogo DB V1, gerarchia `botanical_families` → `crops` → `crop_varieties`, ownership a livello Profile, UUID, fallback Crop → Crop Variety, Write Path autoritativi e principio catalogo corrente + snapshot storico |
 | 2.1 | 14/09/2026 | Aggiornamento della DEC-013 dopo la Sessione S027: completamento dell'integrazione Flutter del Catalogo V1, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy temporanea e conferma di `plantings` come incremento successivo distinto |
 | 2.2 | 17/09/2026 | Introduzione della DEC-014 dopo la Sessione S028: modello autoritativo di `plantings`, metodi di avvio canonici, occupazione longitudinale half-open, controllo congiunto degli overlap temporali e longitudinali, compatibilità con la geometria storicizzata delle aiuole, lifecycle autoritativo, separazione tra aggiornamento ordinario e transizione di stato, Write Path RPC-only, concorrenza ottimistica e assenza di hard delete nel normale flusso operativo |
+| 2.3 | 23/09/2026 | Introduzione della DEC-015 dopo la Sessione S030: evoluzione del Catalogo DB V1 Profile-owned in Catalogo Agronomico V1 globale, multisorgente, tracciabile, versionabile, contestualizzabile ed editorialmente controllato; introduzione della Catalog Authority, separazione tra identità botaniche e Knowledge agronomica, workflow di ingestion/revisione/pubblicazione, Resolver e cutover finale `botanical_taxa` → `crops` → `crop_cultivars` con riallineamento di `plantings` e Flutter. |
 
 ---
 
@@ -99,6 +100,8 @@
 3.13 DEC-013 – Architettura del Catalogo DB V1 e specializzazione Crop → Crop Variety
 
 3.14 DEC-014 – Modello autoritativo, occupazione e lifecycle di `plantings`
+
+3.15 DEC-015 – Architettura globale, multisorgente ed editoriale del Catalogo Agronomico V1
 
 ## 4. Registro delle decisioni
 
@@ -3121,6 +3124,744 @@ Le alternative sono state escluse perché avrebbero introdotto ambiguità semant
 
 ---
 
+## 3.15 DEC-015 – Architettura globale, multisorgente ed editoriale del Catalogo Agronomico V1
+
+**Stato:** Approvata
+
+**Data:** 23/09/2026
+
+**Sessione:** S030
+
+### Contesto
+
+Le Sessioni S026 e S027 avevano introdotto e integrato il primo Catalogo DB V1 persistente, formalizzato dalla DEC-013.
+
+Quel modello era basato sulla gerarchia:
+
+```text
+botanical_families
+        ↓
+crops
+        ↓
+crop_varieties
+```
+
+ed era posseduto dal singolo Profile.
+
+La DEC-013 aveva inoltre consolidato principi tuttora rilevanti, tra cui:
+
+- separazione tra Crop e specializzazione varietale;
+- identificativi persistenti;
+- protezione server-side delle invarianti;
+- assenza di scritture dirette dal client;
+- comportamento fail-closed;
+- principio di conservazione della riproducibilità storica;
+- distinzione tra catalogo corrente e valori già utilizzati nelle decisioni operative.
+
+Durante la progettazione del Catalogo Agronomico V1 è tuttavia emerso che un catalogo destinato a rappresentare conoscenza agronomica verificata non può essere correttamente modellato come semplice insieme di dati posseduti dal singolo Profile.
+
+Il nuovo catalogo deve poter:
+
+- identificare in modo globale le entità botaniche e agronomiche;
+- acquisire informazioni provenienti da più fonti;
+- conservare provenienza e osservazioni;
+- distinguere dati acquisiti da dati approvati;
+- gestire conflitti e informazioni contestuali;
+- sottoporre i dati a revisione editoriale;
+- pubblicare revisioni canoniche;
+- conservare la storia delle revisioni;
+- risolvere la Knowledge applicabile a uno specifico contesto;
+- impedire che dati esterni modifichino automaticamente il comportamento operativo dell'orto.
+
+La Sessione S030 ha pertanto sostituito l'architettura operativa del Catalogo DB V1 introdotta dalla DEC-013 con una nuova architettura globale.
+
+### Decisione
+
+Il Catalogo Agronomico V1 è una struttura:
+
+```text
+globale
+multisorgente
+tracciabile
+versionabile
+contestualizzabile
+editorialmente controllata
+```
+
+Il Catalogo non appartiene a un singolo Profile e non è duplicato per Garden.
+
+Le identità botaniche e agronomiche globali vengono separate:
+
+- dai dati acquisiti dalle fonti;
+- dalle osservazioni;
+- dal workflow editoriale;
+- dalla Knowledge agronomica canonica;
+- dai dati operativi di uno specifico orto.
+
+Il Catalogo costituisce quindi un dominio globale distinto dai dati operativi Profile-owned.
+
+### Separazione tra identità e Knowledge agronomica
+
+L'identità di una entità botanica non coincide con l'insieme delle conoscenze agronomiche associate a essa.
+
+La tassonomia botanica canonica utilizza:
+
+```text
+botanical_taxa
+```
+
+con ranghi botanici espliciti.
+
+Le identità agronomiche operative utilizzano:
+
+```text
+crops
+crop_cultivars
+```
+
+La gerarchia canonica risultante è:
+
+```text
+botanical_taxa
+        ↓
+crops
+        ↓
+crop_cultivars
+```
+
+La cultivar costituisce una identità agronomica distinta collegata alla relativa Crop.
+
+La terminologia tecnica canonica è:
+
+```text
+cultivar
+cultivar_id
+CropCultivar
+```
+
+La terminologia italiana dell'interfaccia può continuare a utilizzare la parola:
+
+```text
+Varietà
+```
+
+quando ciò risulta più comprensibile per l'utente.
+
+### Identità botaniche globali
+
+`botanical_taxa` rappresenta la tassonomia botanica globale.
+
+I ranghi previsti comprendono:
+
+```text
+FAMILY
+GENUS
+SPECIES
+VARIETY
+CULTIVAR
+```
+
+Le identità botaniche non vengono duplicate per Profile.
+
+La normalizzazione delle identità deve impedire che differenze puramente formali producano duplicati semanticamente equivalenti.
+
+### Normalizzazione canonica
+
+La normalizzazione dei testi del Catalogo è responsabilità server-side.
+
+La funzione canonica:
+
+```text
+private.normalize_catalog_text(text)
+```
+
+applica almeno:
+
+- normalizzazione Unicode;
+- trim;
+- collasso degli spazi multipli;
+- normalizzazione per il confronto case-insensitive.
+
+La normalizzazione non deve dipendere dal comportamento del client Flutter.
+
+### Catalog Authority
+
+La gestione del Catalogo globale non utilizza la Profile Write Authority come fonte dell'autorità editoriale.
+
+Viene introdotta una autorità globale dedicata:
+
+```text
+catalog_authorities
+```
+
+Le capability sono separate almeno in:
+
+```text
+can_manage_identity
+can_ingest
+can_review
+can_publish
+```
+
+Il possesso di una capability non implica automaticamente il possesso delle altre.
+
+L'autorizzazione effettiva deve essere verificata server-side.
+
+Il client Flutter non costituisce autorità.
+
+### Bootstrap della Catalog Authority
+
+L'inizializzazione della prima Catalog Authority avviene mediante un'operazione esplicita.
+
+Le capability dell'utente corrente possono essere lette mediante:
+
+```text
+get_my_catalog_capabilities()
+```
+
+L'inizializzazione iniziale utilizza:
+
+```text
+claim_initial_catalog_authority()
+```
+
+Il claim:
+
+- non viene eseguito automaticamente dal client;
+- è consentito soltanto quando l'autorità non è ancora inizializzata;
+- richiede che esista un unico owner idoneo;
+- è idempotente;
+- non consente di riappropriarsi di una Catalog Authority già inizializzata.
+
+Una futura UI dedicata dovrà esporre questa operazione in modo esplicito e sicuro.
+
+### Fonti, acquisizioni e osservazioni
+
+I dati provenienti da fonti esterne non vengono scritti direttamente nella Knowledge canonica.
+
+Il flusso concettuale è:
+
+```text
+Fonte esterna
+        ↓
+acquisizione / ingestion
+        ↓
+osservazione
+        ↓
+dato candidato
+        ↓
+revisione editoriale
+        ↓
+approvazione
+        ↓
+pubblicazione
+        ↓
+Knowledge agronomica canonica
+```
+
+Le informazioni acquisite devono conservare la provenienza necessaria alla tracciabilità.
+
+L'ingestion non equivale ad approvazione.
+
+La presenza di un dato in una fonte non lo rende automaticamente dato canonico.
+
+### Dati candidati e Catalogo approvato
+
+I dati candidati devono rimanere separati dai dati pubblicati.
+
+Nessuna fonte esterna può:
+
+- sovrascrivere automaticamente la Knowledge approvata;
+- modificare automaticamente i dati operativi dell'orto;
+- modificare automaticamente una `planting`;
+- diventare automaticamente fonte autoritativa soltanto perché acquisita.
+
+Il principio è:
+
+```text
+dato acquisito ≠ dato approvato
+```
+
+e:
+
+```text
+dato approvato ≠ modifica automatica della realtà operativa
+```
+
+### Alias delle identità agronomiche
+
+Il Catalogo può associare alle identità canoniche alias provenienti dalle fonti o da rappresentazioni alternative.
+
+Gli alias consentono di riconciliare denominazioni differenti senza creare automaticamente nuove identità canoniche.
+
+Il mapping deve rimanere esplicito e tracciabile.
+
+### Workflow editoriale
+
+La Knowledge agronomica viene gestita mediante un workflow editoriale separato dall'ingestion.
+
+Il workflow deve permettere di distinguere almeno:
+
+- dati acquisiti;
+- dati candidati;
+- dati in revisione;
+- dati approvati;
+- dati pubblicati;
+- dati ritirati quando necessario.
+
+Le operazioni editoriali sono autorizzate mediante capability dedicate della Catalog Authority.
+
+L'approvazione e la pubblicazione non possono essere implicitamente sostituite dall'importazione di una fonte.
+
+### Revisioni canoniche
+
+La Knowledge pubblicata è versionabile.
+
+Le revisioni devono conservare una catena esplicita mediante:
+
+```text
+previous_revision_id
+```
+
+La relazione consente di ricostruire l'evoluzione della conoscenza canonica.
+
+Una revisione successiva non deve cancellare il significato storico della revisione precedente.
+
+### Semantic freeze
+
+Il contenuto semantico diventa immutabile a partire dal primo artefatto che richiede immutabilità per garantire tracciabilità e riproducibilità.
+
+Dopo il semantic freeze, una modifica concettuale non deve alterare retroattivamente il contenuto già congelato.
+
+La correzione o evoluzione avviene mediante una nuova revisione.
+
+### Reintroduzione controllata
+
+Un contenuto precedentemente ritirato può essere reintrodotto mediante una nuova operazione di creazione controllata quando il contratto editoriale lo consente.
+
+La reintroduzione non deve alterare retroattivamente la revisione ritirata.
+
+La storia editoriale deve rimanere ricostruibile.
+
+### Classificazione della mappabilità
+
+Quando un'osservazione non può essere tradotta direttamente nella Knowledge canonica, la classificazione:
+
+```text
+NOT_MAPPABLE
+```
+
+è consentita esclusivamente nei casi:
+
+```text
+CONFLICTING
+CONTEXTUAL
+```
+
+La classificazione non deve essere utilizzata come scorciatoia generica per evitare la revisione o la normalizzazione di dati altrimenti mappabili.
+
+### WITHDRAW e tracciabilità
+
+Il ritiro di Knowledge canonica deve preservare la tracciabilità del contenuto ritirato.
+
+L'operazione di:
+
+```text
+WITHDRAW
+```
+
+deve conservare o copiare il contenuto canonico necessario a ricostruire ciò che era stato pubblicato.
+
+Il ritiro non equivale alla cancellazione della storia.
+
+### Knowledge agronomica canonica
+
+La Knowledge canonica è distinta:
+
+- dalle identità;
+- dalle fonti;
+- dalle acquisizioni;
+- dalle osservazioni;
+- dai candidati editoriali;
+- dai dati operativi dell'orto.
+
+La Knowledge rappresenta ciò che il sistema considera pubblicato e utilizzabile come riferimento agronomico.
+
+La presenza di Knowledge canonica non autorizza comunque una modifica automatica della realtà operativa.
+
+### Contesto agronomico
+
+Una informazione agronomica può dipendere dal contesto.
+
+Il Catalogo prevede vocabolari e strutture contestuali dedicate per rappresentare differenze rilevanti senza duplicare arbitrariamente le identità botaniche.
+
+Il contesto deve essere espresso mediante dati strutturati quando previsto dal contratto e non mediante interpretazioni implicite del client.
+
+### Registry dei parametri agronomici
+
+I parametri agronomici utilizzabili dalla Knowledge sono definiti mediante un registry dedicato.
+
+Il registry separa l'identità e la semantica del parametro dai singoli valori osservati o pubblicati.
+
+L'introduzione di nuovi parametri deve rispettare il contratto del registry e le relative invarianti.
+
+### Pubblicazione
+
+La pubblicazione costituisce un'operazione editoriale autoritativa distinta dall'ingestion e dalla revisione.
+
+Soltanto una Catalog Authority dotata della capability prevista può pubblicare Knowledge canonica.
+
+Le invarianti di pubblicazione sono verificate server-side.
+
+Il client non può trasformare autonomamente un candidato in Knowledge pubblicata.
+
+### Resolver
+
+Il Catalogo introduce un Resolver per individuare la Knowledge agronomica applicabile a una specifica identità e a uno specifico contesto.
+
+Il Resolver:
+
+- consulta la Knowledge canonica pubblicata;
+- applica le regole di identità e contesto previste dal contratto;
+- restituisce una conoscenza risolta o l'assenza di conoscenza applicabile;
+- non deve inventare valori mancanti;
+- non deve trasformare automaticamente una proposta agronomica in modifica operativa.
+
+Il Resolver costituisce quindi un meccanismo di consultazione e proposta, non un'autorità sulla realtà dell'orto.
+
+### Catalogo e dati operativi
+
+Il Catalogo globale e i dati operativi Profile-owned rimangono domini separati.
+
+In particolare una `planting` rappresenta una realtà operativa specifica dell'orto.
+
+I valori agronomici memorizzati sulla `planting`, quando previsti, costituiscono snapshot operativi.
+
+Un aggiornamento successivo del Catalogo non deve modificare retroattivamente tali snapshot.
+
+Il Resolver potrà proporre nuovi valori durante i flussi applicativi previsti, ma l'applicazione ai dati operativi richiederà conferma esplicita dell'utente quando prevista dal contratto.
+
+### Cutover finale
+
+La Sessione S030 completa il cutover dal precedente Catalogo DB V1 al Catalogo Agronomico globale.
+
+Le tabelle legacy:
+
+```text
+botanical_families
+catalog_crops_s030
+crop_varieties
+```
+
+non costituiscono più il modello operativo finale.
+
+Il modello canonico utilizza:
+
+```text
+botanical_taxa
+crops
+crop_cultivars
+```
+
+`catalog_crops_s030` ha avuto funzione transitoria durante la migrazione e non costituisce una entità canonica finale.
+
+### Read model canonici
+
+Le letture applicative del Catalogo utilizzano read model dedicati:
+
+```text
+crop_catalog_read
+crop_cultivar_catalog_read
+```
+
+configurati con:
+
+```text
+security_invoker = true
+```
+
+Le view di lettura non introducono un percorso alternativo per aggirare l'autorizzazione del database.
+
+### Riallineamento di `plantings`
+
+La DEC-014 rimane valida per:
+
+- distinzione tra `planned_plantings` e `plantings`;
+- geometria;
+- occupazione temporale;
+- sovrapposizioni;
+- lifecycle;
+- Write Path autoritativo;
+- concorrenza;
+- comportamento fail-closed;
+- conservazione dello storico;
+- assenza di hard delete nel normale flusso operativo.
+
+La relazione agronomica di `plantings` viene però riallineata al Catalogo S030.
+
+Il riferimento canonico è:
+
+```text
+crop_id
+cultivar_id
+```
+
+dove `cultivar_id` è opzionale.
+
+Il precedente:
+
+```text
+variety_id
+```
+
+viene rimosso.
+
+La coerenza tra cultivar e Crop è garantita anche mediante il vincolo composto:
+
+```text
+(cultivar_id, crop_id)
+        ↓
+crop_cultivars(id, crop_id)
+```
+
+Una cultivar non può quindi essere associata a una `planting` riferita a una Crop differente.
+
+### Riallineamento Flutter
+
+Il client Flutter viene riallineato alla nuova architettura.
+
+La terminologia tecnica utilizza:
+
+```text
+CropCultivar
+cultivarId
+cultivar_id
+```
+
+e non utilizza più come contratto corrente:
+
+```text
+CropVariety
+varietyId
+variety_id
+crop_variety
+inactive_variety
+```
+
+Vengono introdotti:
+
+```text
+CatalogCapabilities
+CatalogAuthorityRepository
+CropCultivar
+CropCultivarRepository
+```
+
+`CropRepository` utilizza:
+
+```text
+crop_catalog_read
+```
+
+`CropCultivarRepository` utilizza:
+
+```text
+crop_cultivar_catalog_read
+```
+
+`CatalogAuthorityRepository` consente la lettura delle capability e l'azione esplicita di inizializzazione della Catalog Authority.
+
+Il claim iniziale non deve essere eseguito automaticamente.
+
+### Motore di rotazione
+
+Il motore di rotazione deve utilizzare l'identità canonica della famiglia botanica.
+
+Il confronto utilizza il relativo UUID canonico.
+
+Il nome della famiglia rimane informazione di presentazione e non deve sostituire l'identità persistente nei confronti agronomici.
+
+### Associazioni colturali
+
+La Sessione S030 non introduce ancora il backend canonico definitivo delle associazioni colturali.
+
+Il motore applicativo delle associazioni rimane disponibile, ma il Repository non deve interrogare una relazione canonica inesistente.
+
+In assenza del backend definitivo, il Repository restituisce insiemi vuoti.
+
+La realizzazione del backend canonico delle associazioni rimane:
+
+```text
+FUTURE
+```
+
+### Sicurezza
+
+Le operazioni sensibili del Catalogo utilizzano Write Path autoritativi server-side.
+
+Le RPC sensibili adottano i principi già consolidati nel progetto:
+
+- `SECURITY DEFINER` quando richiesto dal contratto;
+- `search_path = ''`;
+- autorizzazione esplicita;
+- capability verificate server-side;
+- revoca dei privilegi non necessari;
+- assenza di fiducia nel client Flutter;
+- privilegi Data API concessi esplicitamente quando necessari.
+
+L'esistenza di RLS non sostituisce i controlli specifici richiesti dalle operazioni editoriali e di pubblicazione.
+
+### Migrazioni e riproducibilità
+
+Le migration Supabase costituiscono la fonte riproducibile dello schema.
+
+La Sessione S030 introduce progressivamente:
+
+- identità globali;
+- registry dei parametri;
+- vocabolari contestuali;
+- fonti, acquisizioni e osservazioni;
+- alias delle identità;
+- workflow editoriale;
+- Knowledge canonica;
+- hardening delle invarianti;
+- Write Path autoritativi;
+- pubblicazione;
+- Resolver;
+- cutover globale finale.
+
+Il database deve poter essere ricostruito da zero applicando ordinatamente le migration.
+
+### Dati di prova
+
+Il database operativo non deve essere popolato con dati dimostrativi o provvisori per anticipare l'utilizzo del Catalogo.
+
+Il popolamento reale deve iniziare soltanto quando la baseline del Catalogo sarà verificata e approvata.
+
+I dati temporanei utilizzati nei test tecnici devono essere isolati e rimossi o sottoposti a rollback secondo il relativo contratto di test.
+
+### Rapporto con DEC-013
+
+La DEC-013 rimane conservata come decisione storica che documenta l'architettura realmente approvata e implementata nelle Sessioni S026 e S027.
+
+La DEC-015 ne sostituisce, per lo stato corrente del sistema, le parti relative a:
+
+- ownership Profile del Catalogo;
+- utilizzo di `botanical_families` come livello canonico corrente;
+- utilizzo di `crop_varieties`;
+- `CropVariety` come modello tecnico corrente;
+- `CropVarietyRepository`;
+- Write Path del Catalogo subordinato alla Profile Write Authority;
+- nove RPC del precedente Catalogo Profile-owned;
+- fallback Crop → Crop Variety come contratto persistente corrente.
+
+Restano invece validi come principi generali, quando compatibili con la nuova architettura:
+
+- identificativi persistenti;
+- protezione server-side delle invarianti;
+- client non fidato;
+- assenza di scritture dirette non autorizzate;
+- comportamento fail-closed;
+- conservazione della tracciabilità;
+- necessità di non riscrivere retroattivamente dati e decisioni operative storiche.
+
+DEC-013 non viene riscritta retroattivamente.
+
+### Rapporto con DEC-014
+
+La DEC-014 rimane la decisione di riferimento per il modello autoritativo, l'occupazione e il lifecycle di `plantings`.
+
+La DEC-015 ne sostituisce esclusivamente le parti rese obsolete dal cutover del Catalogo, in particolare:
+
+```text
+Crop Variety
+variety_id
+botanical_families → crops → crop_varieties → plantings
+```
+
+che vengono sostituite, nello stato corrente, da:
+
+```text
+Crop Cultivar
+cultivar_id
+botanical_taxa → crops → crop_cultivars → plantings
+```
+
+Le restanti invarianti di DEC-014 rimangono valide salvo successive decisioni esplicite.
+
+DEC-014 non viene riscritta retroattivamente.
+
+### Motivazione
+
+Un Catalogo agronomico Profile-owned sarebbe adeguato a memorizzare preferenze o dati privati dell'utente, ma non costituisce una base sufficiente per una Knowledge agronomica verificabile e condivisibile.
+
+La separazione tra identità, fonti, osservazioni, workflow editoriale e Knowledge canonica consente di conoscere:
+
+- quale informazione è stata acquisita;
+- da quale fonte proviene;
+- come è stata interpretata;
+- quale revisione è stata approvata;
+- quale revisione è stata pubblicata;
+- quale contesto rende il dato applicabile;
+- quale conoscenza era disponibile in un determinato momento.
+
+La Catalog Authority evita di utilizzare il possesso di un Profile come autorizzazione implicita a modificare conoscenza globale.
+
+Il workflow editoriale impedisce che lo scraping o l'importazione equivalgano a pubblicazione.
+
+Il Resolver permette di utilizzare la Knowledge senza trasferire al Catalogo l'autorità sulla realtà operativa dell'orto.
+
+Il cutover finale elimina inoltre la coesistenza permanente tra il precedente modello Profile-owned e il nuovo modello globale.
+
+### Alternative valutate
+
+Sono state scartate o rinviate le seguenti alternative:
+
+- mantenere il Catalogo definitivamente Profile-owned;
+- duplicare il Catalogo per ciascun Garden;
+- mantenere `botanical_families` e `crop_varieties` come modello canonico finale;
+- utilizzare permanentemente le tabelle transitorie S030;
+- considerare ingestion e pubblicazione come la stessa operazione;
+- permettere alle fonti esterne di sovrascrivere automaticamente la Knowledge;
+- applicare automaticamente alle `plantings` gli aggiornamenti del Catalogo;
+- affidare al client Flutter le capability editoriali;
+- utilizzare la Profile Write Authority come autorità globale del Catalogo;
+- modificare in-place revisioni già semanticamente congelate;
+- eliminare la storia delle revisioni ritirate;
+- introdurre dati dimostrativi nel database operativo per anticipare il popolamento reale;
+- mantenere contemporaneamente come contratti correnti `CropVariety` e `CropCultivar`;
+- conservare `variety_id` come riferimento corrente di `plantings`.
+
+Tali alternative avrebbero prodotto ambiguità di ownership, perdita di provenienza, insufficiente separazione tra dati esterni e conoscenza approvata, rischio di modifiche operative automatiche, duplicazione delle identità oppure coesistenza indefinita tra due modelli concorrenti.
+
+### Conseguenze
+
+- Il Catalogo Agronomico V1 è globale e non Profile-owned.
+- Le identità botaniche canoniche utilizzano `botanical_taxa`.
+- Le identità agronomiche canoniche utilizzano `crops` e `crop_cultivars`.
+- La terminologia tecnica corrente utilizza `cultivar`.
+- Le fonti esterne producono dati acquisiti e candidati, non Knowledge automaticamente approvata.
+- Provenienza e osservazioni sono conservate separatamente.
+- Il workflow editoriale è distinto dall'ingestion.
+- La pubblicazione richiede autorità esplicita.
+- Le capability della Catalog Authority sono separate.
+- Le revisioni canoniche sono versionabili e tracciabili.
+- `previous_revision_id` mantiene la catena delle revisioni.
+- Il semantic freeze impedisce modifiche retroattive del contenuto congelato.
+- WITHDRAW preserva la tracciabilità della Knowledge ritirata.
+- Il Resolver consulta la Knowledge canonica ma non modifica automaticamente la realtà operativa.
+- `crop_catalog_read` e `crop_cultivar_catalog_read` costituiscono i read model applicativi canonici.
+- `plantings` utilizza `crop_id` e `cultivar_id`.
+- `variety_id` non costituisce più il contratto corrente.
+- Flutter utilizza `CropCultivar` e i repository del nuovo Catalogo.
+- Il motore di rotazione confronta l'identità canonica della famiglia botanica.
+- Il backend canonico delle associazioni colturali rimane FUTURE.
+- Le migration Supabase costituiscono la fonte riproducibile dello schema.
+- Il database operativo rimane privo di dati dimostrativi o provvisori prima del popolamento reale approvato.
+- DEC-013 e DEC-014 vengono preservate come documentazione storica e non riscritte retroattivamente.
+
+---
+
 # 4. Registro delle decisioni
 
 | ID | Data | Sessione | Titolo | Stato |
@@ -3139,6 +3880,7 @@ Le alternative sono state escluse perché avrebbero introdotto ambiguità semant
 | DEC-012 | 06/09/2026 | S020–S025 | Sicurezza e gestione concorrente del `profile_edit_locks` e fondamento del Write Path autoritativo di Categoria A | Approvata |
 | DEC-013 | 11/09/2026 | S026 | Architettura del Catalogo DB V1 e specializzazione Crop → Crop Variety | Approvata |
 | DEC-014 | 16/09/2026 | S028 | Modello autoritativo, occupazione e lifecycle di `plantings` | Approvata |
+| DEC-015 | 23/09/2026 | S030 | Architettura globale, multisorgente ed editoriale del Catalogo Agronomico V1 | Approvata |
 
 ---
 
