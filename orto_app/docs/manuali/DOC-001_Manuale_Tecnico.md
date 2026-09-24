@@ -4,7 +4,7 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.8
+**Versione:** 2.9
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 18/09/2026
+**Ultimo aggiornamento:** 24/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,14 +26,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.8 |
+| Versione | 2.9 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 18/09/2026 |
+| Ultimo aggiornamento | 24/09/2026 |
 
 ---
 
@@ -55,13 +55,14 @@
 | 1.9 | 20/08/2026 | Aggiornamento della S020 con hardening di `profile_edit_locks`, implementazione e verifica delle prime cinque RPC server-side per acquisizione, heartbeat, rilascio, richiesta e annullamento del takeover, consolidamento delle regole di sicurezza concorrente e distinzione delle operazioni di takeover ancora da completare |
 | 2.0 | 23/08/2026 | Aggiornamento con la Sessione S021: completamento del protocollo `profile_edit_locks`, hardening delle transizioni concorrenti, audit server-side e definizione del successivo Write Path autoritativo delle entità di Categoria A |
 | 2.1 | 24/08/2026 | Aggiornamento con la Sessione S022: introduzione del primo Write Path autoritativo di Categoria A per `gardens`, Profile Write Authority, RPC `create_garden` e `update_garden`, blocco delle scritture dirette su `public.gardens` e validazioni server-side del Write Path |
-| 2.2 | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, introduzione dell’identità tecnica del client e della sessione applicativa, integrazione Flutter della Profile Write Authority, gate locale fail-closed e adapter tipizzato per le scritture delle stagioni |
+| 2.2 | 28/08/2026 | Aggiornamento con la Sessione S023: hardening concorrente di `update_garden`, Write Path autoritativo di `seasons`, introduzione dell'identità tecnica del client e della sessione applicativa, integrazione Flutter della Profile Write Authority, gate locale fail-closed e adapter tipizzato per le scritture delle stagioni |
 | 2.3 | 01/09/2026 | Aggiornamento con la Sessione S024: implementazione V1 di `beds` e `bed_geometries`, geometria storicizzata, cinque RPC autoritative, integrazione Flutter del Write Path delle aiuole, nuova `CreateBedPage` e configurazione Supabase parametrizzabile |
-| 2.4 | 06/09/2026 | Aggiornamento con la Sessione S025: completamento dell’integrazione UI dei Write Path autoritativi di `beds`, introduzione di `CivilDate`, nuove pagine di modifica e gestione geometrica, attivazione e disattivazione dell’aiuola, rilettura autoritativa e comportamento fail-closed |
+| 2.4 | 06/09/2026 | Aggiornamento con la Sessione S025: completamento dell'integrazione UI dei Write Path autoritativi di `beds`, introduzione di `CivilDate`, nuove pagine di modifica e gestione geometrica, attivazione e disattivazione dell'aiuola, rilettura autoritativa e comportamento fail-closed |
 | 2.5 | 11/09/2026 | Aggiornamento con la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, identificativi UUID, Profile ownership, nove RPC autoritative, RLS in lettura, revoca delle scritture dirette, Profile Write Authority, concorrenza ottimistica, validazioni gerarchiche e agronomiche, allineamento locale/remoto delle migration e definizione della S027 come integrazione Flutter del Catalogo V1 |
 | 2.6 | 13/09/2026 | Aggiornamento con la Sessione S027: integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, nuovi Repository e result type tipizzati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy controllata e verifica finale con 914/914 test superati |
 | 2.7 | 17/09/2026 | Aggiornamento con la Sessione S028: implementazione del Write Path autoritativo di `plantings`, introduzione del modello persistente completo, RPC `create_planting`, `update_planting` e `set_planting_status`, lifecycle autoritativo, controlli di sovrapposizione spaziale e temporale, integrazione con la geometria storicizzata delle aiuole, riallineamento di `PlantingRepository`, `AddPlantingPage`, `BedPage` e componenti correlati, Profile Write Authority fail-closed, concorrenza mediante `row_version` e verifica finale con 997 test superati |
 | 2.8 | 18/09/2026 | Aggiornamento con la Sessione S029: integrazione UI del lifecycle autoritativo di `plantings`, azioni contestuali in `PlantingCard`, gestione delle transizioni mediante `set_planting_status`, conferma esplicita di `end_date` per `finished` e `removed`, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition` e aggiornamento dei test dedicati |
+| 2.9 | 24/09/2026 | Aggiornamento con la Sessione S030: evoluzione del Catalogo Agronomico da modello Profile-owned a architettura globale, multisorgente, tracciabile, versionabile, contestualizzabile ed editorialmente controllata; introduzione di identità botaniche globali, Catalog Authority e capability, provenienza e ingestion, workflow editoriale, Knowledge agronomica canonica, pubblicazione, WITHDRAW, Resolver e read model canonici; riallineamento del contratto operativo da `variety_id` a `cultivar_id` opzionale; aggiornamento dell'integrazione Flutter, della documentazione architetturale e delle verifiche locali e remote |
 
 ---
 
@@ -234,124 +235,204 @@ Mantenere il Manuale Tecnico sincronizzato con il codice sorgente garantisce la 
 
 ## 2.1 Obiettivi dell'architettura
 
-L'architettura di **Orto Smart** è stata progettata per realizzare un'applicazione robusta, modulare, facilmente estendibile e capace di accompagnare l'evoluzione del progetto nel lungo periodo.
+L'architettura di **Orto Smart** è progettata per realizzare un'applicazione robusta, modulare, sicura, facilmente estendibile e capace di accompagnare l'evoluzione del progetto nel lungo periodo.
 
-Fin dalle prime fasi di sviluppo è stato adottato un approccio orientato alla separazione delle responsabilità (*Separation of Concerns*), organizzando il software in componenti indipendenti e ben definiti. Ogni componente svolge un ruolo specifico e comunica con gli altri attraverso interfacce chiare, riducendo le dipendenze e semplificando la manutenzione del codice.
+Fin dalle prime fasi di sviluppo è stato adottato un approccio orientato alla separazione delle responsabilità (*Separation of Concerns*), organizzando il software in componenti indipendenti e ben definiti. Ogni componente svolge un ruolo specifico e comunica con gli altri attraverso interfacce controllate, riducendo le dipendenze e semplificando la manutenzione del codice.
 
-Questa impostazione consente di introdurre nuove funzionalità, correggere eventuali problemi e migliorare le prestazioni senza dover modificare l'intera struttura dell'applicazione.
+L'evoluzione del progetto fino alla Sessione S030 ha progressivamente rafforzato questo principio introducendo, oltre alla separazione tra Flutter, Repository, Motore Agronomico e persistenza, ulteriori confini architetturali tra:
+
+- dati operativi dell'orto;
+- identità botaniche e agronomiche globali;
+- dati provenienti da fonti esterne;
+- dati candidati e dati approvati;
+- Knowledge agronomica canonica;
+- risoluzione della Knowledge applicabile;
+- proposta applicativa;
+- decisione esplicita dell'utente;
+- fatto operativo persistito.
 
 Gli obiettivi principali dell'architettura sono:
 
 - separare l'interfaccia utente dalla logica applicativa;
 - isolare l'accesso ai dati mediante il **Repository Layer**;
-- mantenere il Motore Agronomico indipendente dal database e dall'interfaccia utente;
+- mantenere il Motore Agronomico indipendente dalla persistenza;
+- rendere il database autorevole per sicurezza, integrità, autorizzazioni e invarianti persistenti;
+- mantenere il client Flutter non autorevole per le decisioni di sicurezza;
+- distinguere la Knowledge agronomica canonica dai dati operativi dell'orto;
+- garantire provenienza, tracciabilità e versionamento dei dati agronomici;
+- impedire che dati esterni modifichino automaticamente il Catalogo approvato;
+- impedire che una variazione della Knowledge canonica modifichi automaticamente fatti operativi già confermati;
 - favorire il riutilizzo dei componenti software;
-- semplificare le attività di test, manutenzione ed evoluzione del progetto;
-- garantire un'architettura scalabile, adatta all'integrazione di nuove funzionalità.
+- semplificare test, manutenzione ed evoluzione del progetto;
+- garantire un'architettura scalabile per i futuri moduli applicativi.
 
-L'architettura è stata inoltre progettata per supportare gli sviluppi previsti del progetto, tra cui l'espansione del Motore Agronomico, la gestione avanzata delle attività, l'integrazione con sistemi di irrigazione automatica, l'utilizzo dei dati meteorologici e l'introduzione di ulteriori moduli intelligenti.
+L'architettura è inoltre predisposta per supportare l'espansione del Motore Agronomico, la gestione avanzata delle attività, l'integrazione con sistemi di irrigazione automatica, l'utilizzo dei dati meteorologici e l'introduzione di ulteriori moduli di supporto decisionale.
 
-L'obiettivo finale è disporre di una base software stabile, coerente e facilmente manutenibile, capace di sostenere la crescita di Orto Smart senza compromettere la qualità del codice e della documentazione.
+L'obiettivo finale è disporre di una base software stabile, coerente, verificabile e facilmente manutenibile, capace di sostenere la crescita di Orto Smart senza compromettere qualità del codice, sicurezza dei dati e tracciabilità delle decisioni.
 
 ## 2.2 Principi progettuali
 
-L'architettura di Orto Smart si basa su un insieme di principi progettuali che guidano tutte le decisioni di sviluppo. L'obiettivo è realizzare un'applicazione ordinata, coerente e facilmente evolvibile, mantenendo una chiara separazione tra le diverse responsabilità del sistema.
+L'architettura di Orto Smart si basa su un insieme di principi progettuali che guidano le decisioni di sviluppo. L'obiettivo è realizzare un'applicazione ordinata, coerente e facilmente evolvibile, mantenendo una chiara separazione tra le diverse responsabilità del sistema.
 
-Ogni nuova funzionalità viene progettata nel rispetto di questi principi, così da preservare nel tempo la qualità del codice e la semplicità dell'architettura.
-
-I principi fondamentali adottati sono i seguenti.
+Ogni nuova funzionalità viene progettata nel rispetto di questi principi, così da preservare nel tempo la qualità del codice e la coerenza dell'architettura.
 
 ### Modularità
 
-L'applicazione è suddivisa in moduli indipendenti, ciascuno con una responsabilità ben definita. Questa organizzazione consente di sviluppare, modificare o sostituire un componente senza influire sul funzionamento degli altri.
+L'applicazione è suddivisa in componenti con responsabilità definite. Questa organizzazione consente di sviluppare, modificare o sostituire una parte del sistema limitando l'impatto sugli altri componenti.
 
 ### Separazione delle responsabilità
 
 Ogni livello dell'applicazione svolge un compito specifico.
 
-- L'interfaccia utente gestisce la presentazione dei dati e l'interazione con l'utente.
-- I Repository si occupano esclusivamente dell'accesso ai dati.
-- I modelli rappresentano le entità del dominio applicativo.
-- Il Motore Agronomico implementa la logica decisionale e gli algoritmi di elaborazione.
+- La Flutter UI gestisce presentazione, navigazione e interazione con l'utente.
+- I Repository costituiscono il confine applicativo verso persistenza e servizi backend.
+- I modelli Dart rappresentano i dati utilizzati dal dominio applicativo.
+- Il Motore Agronomico implementa elaborazioni, valutazioni e algoritmi di supporto decisionale.
+- Supabase espone i servizi backend utilizzati dal client.
+- PostgreSQL applica integrità, autorizzazioni, invarianti persistenti, concorrenza e Write Path autoritativi.
+- Il Catalogo Agronomico globale conserva identità, provenienza, workflow editoriale e Knowledge canonica.
+- Il Resolver individua la Knowledge canonica applicabile a un determinato contesto senza trasformarla automaticamente in una decisione operativa.
 
-Questa suddivisione riduce l'accoppiamento tra i componenti e rende il sistema più semplice da comprendere e mantenere.
+Questa suddivisione riduce l'accoppiamento e impedisce che responsabilità appartenenti a livelli differenti vengano confuse.
+
+### Autorità server-side
+
+Le verifiche che determinano se una modifica persistente è ammessa non vengono affidate al solo client Flutter.
+
+Quando un Write Path è protetto, il backend verifica le condizioni necessarie lato server, comprese — secondo il dominio interessato — autenticazione, ownership, autorità, capability, concorrenza, integrità referenziale e invarianti del dominio.
+
+Il client può eseguire controlli preliminari per migliorare l'esperienza utente, ma tali controlli non sostituiscono quelli autoritativi del backend.
+
+### Separazione tra Knowledge e fatto operativo
+
+La Knowledge agronomica canonica rappresenta conoscenza approvata e contestualizzabile.
+
+Un fatto operativo rappresenta invece una decisione realmente applicata all'orto.
+
+Di conseguenza:
+
+```text
+Knowledge canonica
+        ↓
+Resolver
+        ↓
+proposta applicativa
+        ↓
+valutazione / conferma dell'utente
+        ↓
+fatto operativo persistito
+```
+
+La risoluzione di una Knowledge non comporta quindi automaticamente la modifica di una `Planting` o di un altro dato operativo.
+
+I valori agronomici eventualmente salvati in un fatto operativo costituiscono snapshot della decisione confermata e non vengono modificati automaticamente quando cambia successivamente la Knowledge canonica.
+
+### Tracciabilità e provenienza
+
+I dati agronomici provenienti da fonti esterne non diventano automaticamente Knowledge canonica.
+
+Il modello introdotto nella Sessione S030 separa:
+
+```text
+fonte
+  ↓
+acquisizione
+  ↓
+osservazione
+  ↓
+revisione editoriale
+  ↓
+Knowledge canonica
+  ↓
+pubblicazione
+```
+
+Questo consente di conservare provenienza, revisioni e stato editoriale evitando sovrascritture automatiche del Catalogo approvato.
 
 ### Riutilizzo del codice
 
-Le funzionalità comuni vengono implementate una sola volta e rese disponibili ai diversi moduli dell'applicazione. Questo approccio riduce la duplicazione del codice e facilita la manutenzione.
+Le funzionalità comuni vengono implementate una sola volta e rese disponibili ai diversi moduli dell'applicazione. Questo approccio riduce la duplicazione e facilita la manutenzione.
 
 ### Testabilità
 
-L'architettura è progettata per consentire il test dei singoli componenti in modo indipendente. La separazione tra logica applicativa, accesso ai dati e interfaccia utente permette di verificare il comportamento di ciascun modulo senza dipendere dagli altri.
+L'architettura è progettata per consentire il test dei componenti in modo indipendente. La separazione tra logica applicativa, accesso ai dati, backend autoritativo e interfaccia utente permette di verificare ciascun livello con test appropriati.
 
 ### Scalabilità
 
-La struttura dell'applicazione è predisposta per accogliere nuove funzionalità senza richiedere modifiche sostanziali all'architettura esistente. Nuovi moduli potranno essere integrati mantenendo la stessa organizzazione del progetto.
+La struttura dell'applicazione è predisposta per accogliere nuove funzionalità senza richiedere la riprogettazione dell'intero sistema.
 
 ### Manutenibilità
 
-Il codice è organizzato in modo chiaro e coerente, favorendo interventi di manutenzione rapidi e riducendo il rischio di introdurre errori durante l'evoluzione del software.
+Il codice e il database vengono evoluti mediante modifiche controllate, migration versionate e documentazione sincronizzata, riducendo il rischio di regressioni e incoerenze.
 
 ### Efficienza
 
-Le scelte architetturali sono orientate a un utilizzo efficiente delle risorse, con particolare attenzione all'organizzazione del database, alla riduzione delle duplicazioni e all'ottimizzazione delle comunicazioni tra applicazione e backend.
-
-L'adozione sistematica di questi principi costituisce la base dell'architettura di Orto Smart e garantisce una crescita ordinata del progetto nel tempo.
+Le scelte architetturali sono orientate a un utilizzo efficiente delle risorse, con particolare attenzione alla riduzione delle duplicazioni, alla separazione tra dati globali e dati operativi e alla memorizzazione soltanto delle informazioni realmente utili.
 
 ## 2.3 Architettura generale
 
-L'architettura di Orto Smart è organizzata secondo una struttura a livelli (*layered architecture*), nella quale ogni componente svolge una funzione specifica e comunica esclusivamente con i livelli adiacenti.
+Orto Smart utilizza un'architettura a livelli nella quale Flutter costituisce il client applicativo, Supabase espone i servizi backend e PostgreSQL rappresenta il livello persistente e autoritativo.
 
-Questa organizzazione consente di mantenere il codice ordinato, ridurre le dipendenze tra i moduli e facilitare l'introduzione di nuove funzionalità senza compromettere la stabilità dell'applicazione.
+La Sessione S030 ha esteso questa architettura introducendo nel backend il Catalogo Agronomico V1 globale e i relativi livelli di provenienza, workflow editoriale, Knowledge canonica, pubblicazione e risoluzione.
 
-Lo schema seguente rappresenta la struttura logica dell'intero sistema.
+Lo schema logico generale può essere rappresentato nel modo seguente:
 
 ```mermaid
 flowchart TD
-
     U[Utente]
-
     UI[Flutter UI<br/>Pagine e Widget]
-
     REPO[Repository Layer]
-
-    MODEL[Modelli Dati]
-
+    MODEL[Modelli Dart]
     ENGINE[Motore Agronomico]
-
     SUPA[Supabase]
-
     DB[(PostgreSQL)]
+    CAT[Catalogo Agronomico globale]
+    KNOW[Knowledge canonica]
+    RES[Resolver]
 
     U --> UI
     UI --> REPO
 
-    REPO --> MODEL
-    MODEL --> REPO
-
+    REPO <--> MODEL
     REPO --> SUPA
-    SUPA --> DB
-    DB --> SUPA
+    SUPA <--> DB
+
+    DB --- CAT
+    CAT --> KNOW
+    KNOW --> RES
 
     REPO --> ENGINE
     ENGINE --> REPO
+
+    REPO --> RES
+    RES --> REPO
 ```
 
-**Figura 2.1 – Architettura logica di Orto Smart.**
+**Figura 2.1 – Architettura logica di Orto Smart dopo la Sessione S030.**
 
-L'utente interagisce esclusivamente con l'interfaccia sviluppata in Flutter. L'interfaccia non accede direttamente al database, ma utilizza il Repository Layer come punto di accesso ai dati.
+L'utente interagisce con l'interfaccia Flutter. La UI utilizza i Repository per accedere ai dati e ai servizi backend e non deve aggirare i confini di persistenza definiti dall'architettura.
 
-Il Repository Layer gestisce tutte le comunicazioni con Supabase, trasforma i dati provenienti dal database in modelli Dart e li rende disponibili all'applicazione.
+Il Repository Layer converte i dati tra rappresentazione backend e dominio Dart e costituisce il confine applicativo verso Supabase.
 
-Il Motore Agronomico utilizza i dati forniti dai Repository per eseguire analisi, elaborazioni e suggerimenti, senza effettuare accessi diretti al database. Questa separazione rende il sistema più modulare, facilmente testabile e semplice da estendere.
+Il Motore Agronomico utilizza i dati messi a disposizione dall'applicazione per produrre analisi, valutazioni e suggerimenti senza assumere direttamente il ruolo di livello persistente.
 
-L'intera architettura è progettata per mantenere indipendenti i diversi livelli dell'applicazione, garantendo un'elevata manutenibilità e una crescita ordinata del progetto.
+Il database PostgreSQL conserva sia i dati operativi dell'orto sia le strutture globali del Catalogo Agronomico, mantenendo tuttavia distinti i rispettivi domini e modelli di autorità.
+
+Nel Catalogo Agronomico, la catena canonica delle identità utilizzata dopo il cutover S030 è:
+
+```text
+botanical_taxa
+      ↓
+    crops
+      ↓
+crop_cultivars
+```
+
+Il Catalogo comprende inoltre le strutture necessarie a parametri agronomici, contesti, fonti, acquisizioni, osservazioni, alias e mapping, workflow editoriale, Knowledge canonica, pubblicazione e risoluzione.
+
+Il Resolver rappresenta il livello che seleziona la Knowledge canonica applicabile. Il risultato della risoluzione può alimentare una proposta applicativa, ma non costituisce automaticamente un fatto operativo.
 
 ## 2.4 Componenti dell'architettura
-
-L'architettura di Orto Smart è composta da un insieme di componenti specializzati che collaborano tra loro per garantire una chiara separazione delle responsabilità e una gestione efficiente dell'applicazione.
-
-Ogni componente svolge un ruolo ben definito e comunica con gli altri esclusivamente attraverso interfacce chiare, mantenendo basso l'accoppiamento e favorendo la manutenibilità del sistema.
 
 ### Flutter UI
 
@@ -362,164 +443,336 @@ Gestisce:
 - pagine;
 - widget;
 - navigazione;
-- acquisizione degli input dell'utente;
-- presentazione dei dati.
+- acquisizione degli input;
+- presentazione dei dati;
+- richieste di conferma delle decisioni operative.
 
-La UI non contiene logica di business né accede direttamente al database.
+La UI non costituisce un confine di sicurezza autorevole.
 
----
+Quando una funzione richiede autorizzazioni o capability specifiche, la UI può adattare ciò che mostra all'utente, ma la decisione definitiva rimane server-side.
 
 ### Repository Layer
 
-Il Repository Layer costituisce il livello di accesso ai dati.
+Il Repository Layer costituisce il confine applicativo di accesso ai dati e ai servizi backend.
 
-I Repository centralizzano tutte le operazioni di lettura e scrittura verso Supabase, trasformando i dati provenienti dal database in oggetti Dart utilizzabili dall'applicazione.
+I Repository:
 
-Questo livello isola completamente l'interfaccia utente dalla struttura del database. L'organizzazione e le responsabilità dei Repository sono approfondite nel Capitolo 6.
+- centralizzano letture e scritture;
+- convertono i payload backend in modelli Dart;
+- invocano le RPC previste dai Write Path autoritativi;
+- gestiscono gli esiti tipizzati;
+- applicano comportamento fail-closed dove previsto;
+- impediscono alle pagine di dipendere direttamente dai dettagli della persistenza.
 
----
+Dopo S030 il Repository Layer comprende anche l'accesso ai read model canonici del Catalogo e alle capability della Catalog Authority.
 
-### Modelli dati
+### Modelli Dart
 
-I modelli rappresentano le principali entità del dominio applicativo.
+I modelli rappresentano le entità utilizzate dal dominio applicativo.
 
-Ogni modello descrive la struttura dei dati e fornisce i metodi necessari per la conversione tra gli oggetti Dart e i record del database.
+Dopo il cutover S030 la terminologia tecnica corrente del Catalogo utilizza, tra gli altri:
 
-I modelli non contengono logica di business né effettuano interrogazioni dirette al database.
+- `Crop`;
+- `CropCultivar`;
+- `CatalogCapabilities`.
 
----
+La precedente entità applicativa `CropVariety` appartiene all'architettura S027 precedente al cutover e non costituisce più il modello tecnico corrente del Catalogo.
+
+La UI italiana può continuare a utilizzare il termine **Varietà** quando risulta più naturale per l'utente.
 
 ### Motore Agronomico
 
-Il Motore Agronomico rappresenta il componente intelligente dell'applicazione.
+Il Motore Agronomico rappresenta il livello di elaborazione e supporto decisionale dell'applicazione.
 
-Riceve i dati dai Repository, applica algoritmi e regole agronomiche e restituisce analisi, suggerimenti e risultati utilizzati dall'interfaccia utente.
+Riceve dati e contesto, applica regole e algoritmi e produce valutazioni o suggerimenti.
 
-La sua indipendenza dal database e dall'interfaccia utente ne facilita lo sviluppo, il collaudo e l'estensione con nuovi algoritmi. Il Motore Agronomico viene descritto in dettaglio nel Capitolo 8.
+La sua responsabilità rimane distinta da quella del database:
 
----
+- il database conserva dati, vincoli, autorità e Knowledge persistente;
+- il Resolver individua la Knowledge canonica applicabile;
+- il Motore Agronomico elabora il contesto e produce valutazioni;
+- l'utente conferma le decisioni operative quando richiesto;
+- il Write Path persiste il fatto operativo.
 
 ### Supabase
 
-Supabase costituisce il backend dell'applicazione.
+Supabase costituisce il backend applicativo e fornisce:
 
-Fornisce il database PostgreSQL, i servizi di autenticazione, le API di accesso ai dati e i meccanismi di sicurezza necessari al corretto funzionamento del sistema.
+- accesso a PostgreSQL;
+- autenticazione;
+- Data API;
+- RPC;
+- integrazione con RLS e privilegi del database.
 
-L'applicazione comunica esclusivamente con Supabase attraverso il Repository Layer.
+Le migration Supabase costituiscono la sorgente riproducibile dello schema implementato.
 
----
+Le nuove strutture esposte attraverso la Data API devono disporre dei privilegi espliciti necessari; l'esistenza di una tabella o vista nel database non implica da sola che debba essere accessibile al client.
 
 ### PostgreSQL
 
-PostgreSQL rappresenta il livello di persistenza dei dati.
+PostgreSQL rappresenta il livello persistente e autoritativo.
 
-Contiene tutte le informazioni gestite dall'applicazione, organizzate secondo un modello relazionale progettato per garantire integrità, efficienza ed espandibilità.
+Gestisce, secondo il dominio:
 
-Il database costituisce la fonte autorevole di tutti i dati utilizzati da Orto Smart. La struttura del database e il modello dati vengono approfonditi nei Capitoli 4 e 5.
+- integrità referenziale;
+- vincoli;
+- ownership;
+- RLS;
+- privilegi;
+- concorrenza;
+- Write Path;
+- capability;
+- provenienza;
+- revisioni;
+- workflow editoriale;
+- pubblicazione;
+- Knowledge canonica.
 
----
+La Sessione S030 ha consolidato nel database il Catalogo Agronomico globale, mantenendolo separato dai dati operativi del singolo orto.
 
-L'interazione coordinata di questi componenti consente di mantenere un'architettura ordinata, modulare e facilmente evolvibile, rendendo possibile l'introduzione di nuove funzionalità senza alterare la struttura generale dell'applicazione.
+### Catalog Authority
+
+La Catalog Authority rappresenta il modello di autorizzazione specifico del Catalogo Agronomico globale.
+
+Le capability implementate distinguono:
+
+- gestione delle identità;
+- ingestion;
+- review;
+- publication.
+
+Questa autorità non deriva automaticamente dall'ownership di un Profile o di un Garden.
+
+L'inizializzazione dell'autorità è esplicita e controllata. Le funzioni dedicate comprendono:
+
+- `get_my_catalog_capabilities()`;
+- `claim_initial_catalog_authority()`.
+
+Il claim iniziale non viene eseguito automaticamente dal client.
+
+### Catalogo Agronomico e Knowledge canonica
+
+Il Catalogo Agronomico V1 non è una semplice anagrafica di colture.
+
+L'architettura S030 separa:
+
+- identità botaniche e agronomiche;
+- parametri;
+- contesti;
+- fonti;
+- acquisizioni;
+- osservazioni;
+- alias e mapping;
+- revisione editoriale;
+- Knowledge canonica;
+- pubblicazione;
+- risoluzione.
+
+Questa separazione consente di importare informazioni da più fonti senza confondere il dato acquisito con quello approvato.
+
+### Resolver
+
+Il Resolver individua la Knowledge canonica applicabile al contesto richiesto.
+
+La sua funzione è risolvere la conoscenza, non prendere autonomamente una decisione operativa per l'utente.
+
+Pertanto:
+
+```text
+Knowledge risolta != Planting modificato
+```
+
+e:
+
+```text
+raccomandazione agronomica != fatto operativo
+```
 
 ## 2.5 Flusso dei dati
 
-Il flusso dei dati all'interno di Orto Smart segue un percorso ben definito, progettato per mantenere separate le responsabilità dei diversi livelli dell'applicazione.
+Il flusso applicativo varia in funzione del tipo di operazione.
 
-Ogni richiesta dell'utente attraversa una serie di componenti specializzati che elaborano i dati e restituiscono il risultato all'interfaccia. Nessun componente accede direttamente a livelli che non rientrano nelle proprie responsabilità, garantendo così un'architettura ordinata e facilmente manutenibile.
+### Lettura operativa
 
-Il diagramma seguente rappresenta il flusso logico delle informazioni.
+Per una normale lettura di dati operativi:
 
-```mermaid
-sequenceDiagram
-    actor U as Utente
-
-    participant UI as Flutter UI
-    participant R as Repository Layer
-    participant S as Supabase
-    participant DB as PostgreSQL
-    participant E as Motore Agronomico
-
-    U->>UI: Interazione
-    UI->>R: Richiesta dati
-    R->>S: Query
-    S->>DB: Accesso ai dati
-    DB-->>S: Risultato
-    S-->>R: Dati
-
-    R->>E: Elaborazione (se necessaria)
-    E-->>R: Risultato
-
-    R-->>UI: Modelli dati
-    UI-->>U: Aggiornamento dell'interfaccia
+```text
+Utente
+  ↓
+Flutter UI
+  ↓
+Repository
+  ↓
+Supabase
+  ↓
+PostgreSQL
+  ↓
+Repository
+  ↓
+Flutter UI
 ```
 
-**Figura 2.2 – Flusso dei dati tra i principali componenti dell'applicazione.**
+Il Repository converte il risultato nella rappresentazione Dart richiesta dall'applicazione.
 
-Il processo può essere riassunto nelle seguenti fasi:
+### Scrittura operativa protetta
 
-1. L'utente esegue un'azione attraverso l'interfaccia dell'applicazione.
-2. La Flutter UI inoltra la richiesta al Repository competente.
-3. Il Repository comunica con Supabase per leggere o aggiornare i dati.
-4. Supabase interroga il database PostgreSQL ed esegue l'operazione richiesta.
-5. I dati vengono restituiti al Repository.
-6. Se necessario, il Repository richiede un'elaborazione al Motore Agronomico.
-7. Il Repository restituisce all'interfaccia i modelli dati già pronti per l'utilizzo.
-8. La Flutter UI aggiorna la schermata mostrando il risultato all'utente.
+Per una scrittura soggetta a Write Path autoritativo:
 
-Questo flusso garantisce che ogni componente operi esclusivamente nell'ambito delle proprie responsabilità, migliorando la leggibilità del codice, facilitando i test e riducendo il rischio di effetti collaterali durante l'evoluzione del progetto.
+```text
+Utente
+  ↓
+Flutter UI
+  ↓
+Repository
+  ↓
+RPC autoritativa
+  ↓
+verifiche server-side
+  ↓
+PostgreSQL
+  ↓
+esito tipizzato
+  ↓
+Repository
+  ↓
+Flutter UI
+```
+
+Il client non sostituisce le verifiche autoritative del server.
+
+### Lettura del Catalogo Agronomico
+
+Dopo S030 le letture canoniche di colture e cultivar utilizzano read model dedicati:
+
+```text
+crop_catalog_read
+        ↓
+CropRepository
+        ↓
+Crop
+```
+
+e:
+
+```text
+crop_cultivar_catalog_read
+        ↓
+CropCultivarRepository
+        ↓
+CropCultivar
+```
+
+I read model sono configurati con semantica `security_invoker=true`.
+
+### Ingestion e revisione
+
+L'acquisizione di informazioni agronomiche esterne segue un percorso separato:
+
+```text
+Fonte esterna
+      ↓
+acquisizione
+      ↓
+osservazione
+      ↓
+dato candidato
+      ↓
+revisione editoriale
+      ↓
+Knowledge canonica
+      ↓
+pubblicazione
+```
+
+Nessuna fonte esterna può sovrascrivere automaticamente il Catalogo approvato.
+
+### Utilizzo della Knowledge
+
+Quando l'applicazione necessita di conoscenza agronomica contestualizzata:
+
+```text
+Knowledge canonica pubblicata
+            ↓
+         Resolver
+            ↓
+    Knowledge applicabile
+            ↓
+   logica applicativa /
+   Motore Agronomico
+            ↓
+         proposta
+            ↓
+ conferma dell'utente
+            ↓
+   fatto operativo
+```
+
+Questo flusso mantiene distinta la conoscenza disponibile dalla decisione realmente adottata.
 
 ## 2.6 Vantaggi dell'architettura
 
-L'architettura adottata da Orto Smart offre numerosi vantaggi sia durante lo sviluppo sia nelle future attività di manutenzione ed evoluzione del progetto.
-
-La suddivisione dell'applicazione in componenti indipendenti consente di mantenere il codice ordinato, ridurre la complessità e semplificare l'introduzione di nuove funzionalità.
-
-I principali vantaggi sono i seguenti.
+L'architettura adottata offre vantaggi sia nello sviluppo sia nella manutenzione e nell'evoluzione futura.
 
 ### Manutenibilità
 
-La chiara separazione delle responsabilità permette di intervenire su un singolo componente senza influenzare il funzionamento degli altri, riducendo il rischio di introdurre errori durante le modifiche.
+La separazione delle responsabilità permette di modificare un componente limitando gli effetti sugli altri livelli.
 
 ### Scalabilità
 
-L'architettura è predisposta per accogliere nuovi moduli e nuove funzionalità mantenendo invariata la struttura generale dell'applicazione. Questo consente una crescita progressiva del progetto senza dover riprogettare il software.
+Nuovi moduli possono essere aggiunti mantenendo i confini architetturali esistenti.
+
+Il Catalogo globale evita inoltre di duplicare identità e Knowledge per ogni singolo orto.
 
 ### Testabilità
 
-Ogni componente può essere verificato in modo indipendente. La separazione tra interfaccia utente, accesso ai dati e logica applicativa facilita la realizzazione di test automatici e rende più semplice individuare eventuali anomalie.
+UI, Repository, modelli, Motore Agronomico, RPC, vincoli e workflow backend possono essere verificati ai rispettivi livelli.
 
 ### Riutilizzo del codice
 
-La suddivisione in moduli favorisce il riutilizzo delle componenti comuni, riducendo la duplicazione del codice e migliorandone la qualità complessiva.
+La modularità favorisce il riutilizzo di componenti e riduce la duplicazione.
 
 ### Affidabilità
 
-L'isolamento delle responsabilità limita gli effetti delle modifiche e rende il comportamento dell'applicazione più prevedibile e stabile nel tempo.
+Vincoli e autorizzazioni critiche vengono applicati nel backend, senza dipendere esclusivamente dal comportamento del client.
+
+### Tracciabilità
+
+La separazione tra fonte, acquisizione, osservazione, revisione, Knowledge e pubblicazione consente di ricostruire l'origine e l'evoluzione dell'informazione agronomica.
+
+### Stabilità storica dei dati operativi
+
+La separazione tra Knowledge corrente e snapshot operativo evita che l'evoluzione del Catalogo alteri retroattivamente decisioni già confermate.
 
 ### Evoluzione del progetto
 
-L'architettura costituisce una base solida per l'introduzione di nuove funzionalità, come l'espansione del Motore Agronomico, la gestione avanzata delle attività, l'integrazione con sistemi di irrigazione automatica e l'utilizzo di ulteriori sorgenti dati.
-
-Nel complesso, l'architettura di Orto Smart è stata progettata per garantire un equilibrio tra semplicità, flessibilità ed estendibilità, accompagnando l'evoluzione del progetto senza compromettere la qualità del software.
+L'architettura costituisce una base per l'espansione del Motore Agronomico, l'automazione dell'irrigazione, la gestione delle attività, l'utilizzo dei dati meteorologici e ulteriori funzionalità di supporto decisionale.
 
 ## 2.7 Evoluzione futura
 
-L'architettura di Orto Smart è stata progettata con una visione di lungo periodo, prevedendo fin dalle prime fasi di sviluppo la possibilità di integrare nuove funzionalità senza modificare la struttura portante dell'applicazione.
+La Sessione S030 ha trasformato il Catalogo Agronomico da precedente area di evoluzione progettuale a componente backend concretamente implementato.
 
-L'organizzazione modulare del sistema consente di ampliare progressivamente le capacità dell'applicazione, mantenendo invariati i principi progettuali descritti nei paragrafi precedenti.
+Le evoluzioni successive devono quindi partire dall'architettura ormai consolidata, senza reintrodurre i modelli superati dal cutover.
 
-Tra le principali aree di evoluzione previste rientrano:
+Tra gli incrementi FUTURE attualmente previsti rientrano:
 
+- backend canonico per le consociazioni tra colture;
+- interfaccia editoriale e amministrativa completa del Catalogo Agronomico;
+- flusso operativo **Impostazioni → Catalogo Agronomico → Aggiornamento fonti**;
+- azione UI esplicita e sicura per l'eventuale `claim_initial_catalog_authority()`;
+- integrazione completa del Resolver nei flussi di creazione e pianificazione delle coltivazioni;
+- popolamento editoriale del Catalogo con dati agronomici verificabili e fonti tracciate;
 - ampliamento del Motore Agronomico con nuovi algoritmi di analisi e supporto decisionale;
-- gestione avanzata delle attività e pianificazione automatica dei lavori nell'orto;
-- integrazione con sistemi di irrigazione automatica basati su Raspberry Pi ed ESP32;
-- utilizzo dei dati meteorologici per supportare irrigazione, pianificazione e analisi agronomiche;
-- introduzione di moduli dedicati a raccolti, fertilizzazioni, trattamenti, costi, ricavi e statistiche;
-- sviluppo di funzionalità intelligenti basate sull'analisi storica dei dati raccolti.
+- gestione avanzata delle attività e pianificazione dei lavori;
+- integrazione con sistemi di irrigazione automatica;
+- utilizzo dei dati meteorologici per irrigazione, pianificazione e analisi agronomiche;
+- moduli dedicati a raccolti, fertilizzazioni, trattamenti, costi, ricavi e statistiche;
+- ulteriori incrementi previsti dalla Database V1 non ancora implementati.
 
-L'architettura potrà inoltre essere estesa con nuovi servizi e componenti senza compromettere il funzionamento dei moduli esistenti, preservando la compatibilità con le versioni precedenti dell'applicazione.
+Il popolamento reale del Catalogo dovrà avvenire mediante dati verificati e approvati. Fino all'avvio operativo non devono essere introdotti seed dimostrativi o dati provvisori destinati a confondersi con i dati reali.
 
-L'obiettivo è accompagnare la crescita di Orto Smart mantenendo nel tempo un software affidabile, facilmente manutenibile e in grado di adattarsi alle future esigenze del progetto.
+L'architettura continuerà a evolvere in modo incrementale mediante migration versionate, verifiche riproducibili, test automatici e aggiornamento coordinato della documentazione.
+
+L'obiettivo rimane accompagnare la crescita di Orto Smart mantenendo un software affidabile, sicuro, tracciabile e facilmente manutenibile.
 
 # 3. Struttura del progetto
 
@@ -541,11 +794,12 @@ Il codice sorgente principale dell'applicazione è contenuto nella cartella `lib
 
 Al suo interno il codice è organizzato in directory specializzate, ciascuna dedicata a un preciso livello dell'architettura software.
 
-La seguente struttura rappresenta l'organizzazione attuale del progetto.
+La struttura generale utilizzata dall'applicazione è:
 
 ```text
 lib/
 ├── core/
+│   ├── agronomy/
 │   ├── config/
 │   ├── date/
 │   ├── identity/
@@ -560,111 +814,168 @@ lib/
 └── main.dart
 ```
 
-Ogni directory svolge una responsabilità specifica e contribuisce a mantenere il progetto ordinato e facilmente manutenibile.
+La directory `core/agronomy/` raccoglie i componenti del dominio agronomico indipendenti dalla persistenza, mentre `data/` contiene i modelli e i Repository che costituiscono il confine applicativo verso Supabase.
 
-Nei paragrafi successivi verrà descritto il ruolo di ciascun componente della struttura.
+L'evoluzione S030 del Catalogo Agronomico non modifica questo principio organizzativo: i nuovi modelli `CropCultivar` e `CatalogCapabilities` e i Repository dedicati vengono integrati mantenendo separati dominio applicativo, accesso ai dati e autorità server-side.
+
+Ogni directory svolge quindi una responsabilità specifica e contribuisce a mantenere il progetto ordinato e manutenibile.
 
 ## 3.3 Struttura delle directory principali
 
-La cartella `lib/` contiene tutti i componenti software sviluppati per Orto Smart. La sua organizzazione segue i principi architetturali descritti nel Capitolo 2, mantenendo una netta separazione tra interfaccia utente, logica applicativa, gestione dei dati e configurazione.
-
-Ogni directory è dedicata a uno specifico ambito funzionale, riducendo l'accoppiamento tra i componenti e facilitando la manutenzione del codice.
+La cartella `lib/` contiene i componenti software sviluppati per Orto Smart. La sua organizzazione segue i principi architetturali descritti nel Capitolo 2, mantenendo separati interfaccia utente, dominio applicativo, accesso ai dati, servizi e componenti trasversali.
 
 Le principali directory del progetto sono:
 
 | Directory | Responsabilità |
 |-----------|----------------|
-| `core/` | Configurazioni e componenti condivisi dell'applicazione. |
-| `data/` | Modelli del dominio e Repository per l'accesso ai dati. |
-| `pages/` | Schermate dell'applicazione e gestione della navigazione. |
+| `core/` | Componenti condivisi, configurazione, identità, contesto Profile, Write Authority e dominio agronomico. |
+| `data/` | Modelli Dart e Repository per l'accesso ai dati e ai servizi backend. |
+| `pages/` | Schermate dell'applicazione e gestione dell'interazione utente. |
 | `widgets/` | Componenti grafici riutilizzabili. |
-| `services/` | Servizi applicativi e logica di supporto. |
+| `services/` | Servizi applicativi e logica di coordinamento. |
 | `main.dart` | Punto di ingresso dell'applicazione Flutter. |
-| `supabase_config.dart` | Parametri di configurazione della connessione a Supabase. |
+| `supabase_config.dart` | Configurazione della connessione a Supabase. |
 
-Questa organizzazione consente di individuare rapidamente il punto in cui intervenire durante lo sviluppo, mantenendo il codice ordinato e facilmente comprensibile anche all'aumentare delle funzionalità dell'applicazione.
+Questa organizzazione consente di individuare rapidamente il livello responsabile di una funzionalità e riduce il rischio di introdurre dipendenze improprie tra UI, dominio e persistenza.
 
 ## 3.4 Cartella `core`
 
-La directory `core/` contiene gli elementi condivisi dall’intera applicazione che non appartengono a uno specifico modulo funzionale.
+La directory `core/` contiene elementi condivisi dall'intera applicazione che non appartengono a una singola schermata o a uno specifico Repository.
 
-La struttura comprende attualmente:
+Tra le aree principali rientrano:
 
-- `config/`, per le configurazioni generali del progetto;
-- `date/`, per la validazione e la conversione delle date civili utilizzate dall’interfaccia;
-- `identity/`, per l’identità tecnica persistente del client e l’identità della sessione applicativa;
-- `profile/`, per il contesto del Profile corrente e il gate della sessione Profile;
+- `agronomy/`, per modelli, motori, validatori e componenti del dominio agronomico indipendenti dalla persistenza;
+- `config/`, per le configurazioni generali;
+- `date/`, per la gestione delle date civili;
+- `identity/`, per l'identità tecnica del client e della sessione applicativa;
+- `profile/`, per il contesto del Profile corrente;
 - `write_authority/`, per il coordinamento applicativo della Profile Write Authority.
 
-La sottocartella `date/` contiene `CivilDate`, helper condiviso che interpreta e presenta le date civili nel formato italiano `GG/MM/AAAA`, mantenendo il formato canonico ISO `AAAA-MM-GG` nei modelli, nei payload RPC e nel backend. Questa separazione impedisce che una scelta di presentazione dell’interfaccia modifichi il contratto dati autoritativo.
+La sottocartella `date/` contiene `CivilDate`, helper condiviso che interpreta e presenta le date civili nel formato italiano `GG/MM/AAAA`, mantenendo il formato canonico ISO `AAAA-MM-GG` nei modelli, nei payload RPC e nel backend.
 
-La sottocartella `identity/` distingue due concetti:
+La sottocartella `identity/` distingue:
 
-- l’identità stabile dell’installazione o istanza client, conservata localmente;
-- l’identità della sessione applicativa, nuova a ogni avvio e non persistita come continuazione automatica di una sessione precedente.
+- l'identità stabile dell'installazione o istanza client, conservata localmente;
+- l'identità della sessione applicativa, nuova a ogni avvio.
 
-La persistenza dell’identificatore stabile del client utilizza `shared_preferences` versione `2.5.5`, mentre la generazione degli identificatori tecnici utilizza `uuid` versione `4.6.0`. Il token del lease non appartiene all’identità persistente del client e non viene conservato in questo storage.
+La persistenza dell'identificatore stabile del client utilizza `shared_preferences`, mentre la generazione degli identificativi tecnici utilizza `uuid`. Il token del lease non appartiene all'identità persistente del client.
 
-La sottocartella `profile/` mantiene il contesto applicativo del Profile e impedisce l’accesso al ciclo operativo protetto finché identità, appartenenza e stato della sessione non sono stati risolti in modo coerente.
+La sottocartella `profile/` mantiene il contesto applicativo del Profile e impedisce l'accesso al ciclo operativo protetto finché identità, appartenenza e stato della sessione non sono stati risolti coerentemente.
 
-La sottocartella `write_authority/` contiene il modello del lock, lo scheduler, il controller, lo scope applicativo e i risultati tipizzati delle scritture protette. Il controller mantiene lo stato locale della Write Authority, coordina acquisizione, heartbeat, scadenza e rilascio del lease e applica un comportamento fail-closed quando l’autorità non può essere dimostrata.
+La sottocartella `write_authority/` contiene i componenti applicativi utilizzati per la Profile Write Authority: modello del lock, scheduler, controller, scope e risultati tipizzati. Il gate locale costituisce un controllo preventivo, ma non sostituisce le verifiche autoritative eseguite dal database.
 
-Il gate locale costituisce un controllo preventivo dell’applicazione: evita di avviare scritture note come non autorizzate, ma non sostituisce mai le verifiche autoritative eseguite dal database all’interno delle RPC.
+La **Catalog Authority introdotta nella S030 è distinta dalla Profile Write Authority**. Non deriva dall'ownership del Profile e le relative capability vengono ottenute dal backend mediante il Repository dedicato. Non deve quindi essere interpretata come un'estensione del lease Profile.
 
-Lo scopo della directory `core/` è centralizzare queste responsabilità trasversali, evitando duplicazioni e mantenendo uniforme il comportamento dell’applicazione.
+La directory `core/` mantiene pertanto separate le responsabilità trasversali del client dalle decisioni autoritative appartenenti al backend.
 
 ## 3.5 Cartella `data`
 
-La directory `data/` raccoglie tutti i componenti dedicati alla gestione dei dati dell'applicazione.
+La directory `data/` raccoglie i componenti dedicati alla rappresentazione e all'accesso ai dati dell'applicazione.
 
-Questo livello rappresenta il collegamento tra il database Supabase e la logica applicativa, occupandosi della rappresentazione delle entità del dominio e dell'accesso ai dati.
+È suddivisa principalmente in:
 
-La cartella è suddivisa in due aree principali:
+- `models/`, che contiene i modelli Dart utilizzati dall'applicazione;
+- `repositories/`, che implementa il confine di accesso verso Supabase.
 
-- `models/`, che contiene le classi che rappresentano le entità dell'applicazione;
-- `repositories/`, che implementa l'accesso ai dati e le comunicazioni con Supabase.
+Il livello `data/` non attribuisce autonomamente autorità alle operazioni. I Repository possono eseguire controlli preventivi e convertire gli esiti backend in tipi Dart, mentre autorizzazioni, capability e invarianti persistenti rimangono responsabilità del server.
 
-Questa organizzazione mantiene separata la struttura dei dati dalla logica di accesso al database, semplificando la manutenzione e rendendo il codice più leggibile e facilmente estendibile.
+La Sessione S030 ha mantenuto questa organizzazione introducendo i componenti necessari al Catalogo globale senza creare percorsi diretti dalla UI alle tabelle PostgreSQL.
 
 ## 3.6 Cartella `models`
 
-La directory `models/` contiene le classi che rappresentano il modello dati di Orto Smart.
+La directory `models/` contiene le classi che rappresentano i dati utilizzati dall'applicazione.
 
-Ogni modello descrive una specifica entità del dominio applicativo, come orti, aiuole, colture, stagioni, piantagioni e gli altri elementi gestiti dal sistema.
+Tra i modelli operativi e infrastrutturali rientrano, secondo il dominio interessato:
 
-Le classi presenti in questa cartella hanno il compito di:
+- Garden;
+- Bed;
+- BedGeometry;
+- Season;
+- Planting;
+- Crop;
+- CropCultivar;
+- CatalogCapabilities.
 
-- rappresentare i dati provenienti dal database;
-- convertire i record di Supabase in oggetti Dart;
-- convertire gli oggetti Dart nei dati da salvare nel database;
-- garantire una struttura dati coerente all'interno dell'applicazione.
+I modelli hanno il compito di:
 
-I modelli non contengono logica di business né effettuano operazioni di accesso al database. La loro responsabilità è esclusivamente quella di rappresentare le informazioni in modo strutturato.
+- rappresentare i dati restituiti dal backend;
+- convertire i payload Supabase in oggetti Dart;
+- fornire la struttura necessaria ai Repository e alla logica applicativa;
+- rappresentare, quando previsto, metadati tecnici quali `rowVersion`.
 
-Dalla Sessione S023 il modello `Season` espone anche `rowVersion`, necessario per applicare il controllo di concorrenza ottimistico durante le scritture autoritative. Il valore rappresenta la versione server-side della riga e non viene incrementato autonomamente dal client.
+Non tutti i modelli devono necessariamente esporre una conversione generica verso una scrittura diretta. Nei domini protetti da RPC autoritative, il payload di scrittura deve rispettare il contratto del relativo Write Path.
 
-Questa separazione consente di mantenere il codice più ordinato, facilita il riutilizzo delle classi e rende più semplice l'introduzione di nuove entità durante l'evoluzione del progetto.
+Dalla Sessione S023 il modello `Season` espone `rowVersion`, necessario per il controllo di concorrenza ottimistico. Il valore rappresenta la versione server-side della riga e non viene incrementato autonomamente dal client.
+
+La Sessione S030 ha sostituito nel contratto tecnico corrente il precedente modello `CropVariety` con `CropCultivar`. Il termine italiano **Varietà** può continuare a essere utilizzato nella UI, ma il dominio tecnico corrente utilizza `cultivarId`, `cultivar_id` e `CropCultivar`.
+
+`CatalogCapabilities` rappresenta invece le capability restituite dal backend per la Catalog Authority e consente al client di conoscere le operazioni potenzialmente disponibili senza trasformare tale informazione in un'autorizzazione client-side.
+
+I modelli non costituiscono il luogo in cui vengono decise le autorizzazioni persistenti né effettuano direttamente interrogazioni al database.
 
 ## 3.7 Cartella `repositories`
 
 La directory `repositories/` implementa il Repository Layer descritto nel Capitolo 2.
 
-Ogni Repository è responsabile dell'accesso ai dati relativi a una specifica entità dell'applicazione.
+Ogni Repository costituisce un confine applicativo verso un determinato insieme di dati o servizi backend.
 
-Le principali responsabilità dei Repository sono:
+Le responsabilità principali comprendono:
 
-- eseguire le interrogazioni di lettura verso Supabase;
+- eseguire le letture previste verso Supabase;
+- utilizzare read model quando definiti dal contratto backend;
 - invocare le RPC autoritative previste per le scritture protette;
-- convertire i risultati nei modelli e nei risultati tipizzati Dart;
-- validare in modo fail-closed i payload restituiti dal backend;
-- gestire gli errori di comunicazione e gli esiti applicativi;
-- fornire all’applicazione un’interfaccia uniforme per l’accesso ai dati.
+- convertire payload e risultati nei tipi Dart;
+- validare in modo fail-closed gli esiti quando previsto;
+- gestire errori di comunicazione ed esiti applicativi;
+- evitare che pagine e widget dipendano direttamente dai dettagli della persistenza.
 
-I Repository non attribuiscono autonomamente l’autorità di scrittura. Quando un’operazione è protetta, ottengono il lease dal livello Profile Write Authority e demandano al database la verifica definitiva di identità, ownership, client, sessione, token, lease, takeover, invarianti e versione della riga.
+Per i dati operativi Profile-owned, i Repository protetti continuano a utilizzare il contesto della **Profile Write Authority** quando richiesto dal relativo Write Path. Il database esegue comunque la verifica definitiva di identità, ownership, client, sessione, token, lease, takeover, invarianti e versione della riga.
 
-Grazie a questa architettura, le pagine dell'applicazione non comunicano mai direttamente con il database, ma utilizzano esclusivamente i Repository.
+Il Catalogo Agronomico globale segue invece un modello differente.
 
-Questo approccio riduce l'accoppiamento tra i componenti, facilita i test e permette di modificare il backend senza influire sul resto dell'applicazione.
+Dopo S030:
+
+- `CropRepository` legge il Catalogo canonico tramite `crop_catalog_read`;
+- `CropCultivarRepository` legge le cultivar tramite `crop_cultivar_catalog_read`;
+- `CatalogAuthorityRepository` espone la lettura delle capability e l'operazione esplicita di inizializzazione dell'autorità prevista dal backend.
+
+Il Catalogo globale non è Profile-owned e la sua autorità non viene ricavata dalla Profile Write Authority.
+
+`CatalogAuthorityRepository` utilizza le funzioni backend dedicate, tra cui:
+
+```text
+get_my_catalog_capabilities()
+claim_initial_catalog_authority()
+```
+
+Il claim iniziale non viene eseguito automaticamente.
+
+I read model:
+
+```text
+crop_catalog_read
+crop_cultivar_catalog_read
+```
+
+sono il contratto di lettura corrente utilizzato dal client per colture e cultivar e sono configurati lato database con `security_invoker=true`.
+
+Il precedente `CropVarietyRepository`, introdotto nella S027, appartiene alla fase storica precedente al cutover S030 e non costituisce più il Repository corrente del Catalogo.
+
+Anche il Repository delle consociazioni richiede una distinzione importante: il motore applicativo delle associazioni rimane disponibile, ma il backend canonico delle consociazioni non è ancora stato implementato. Per evitare interrogazioni verso una relazione canonica inesistente, il Repository corrente restituisce insiemi vuoti fino al futuro incremento dedicato.
+
+Il Repository Layer mantiene quindi separati:
+
+```text
+dati operativi Profile-owned
+        ↓
+Profile Write Authority / RPC operative
+
+Catalogo globale
+        ↓
+Catalog Authority / capability / read model / RPC dedicate
+```
+
+Questa distinzione impedisce di applicare impropriamente il modello di ownership del singolo orto al Catalogo Agronomico globale.
 
 ## 3.8 Cartella `pages`
 
@@ -775,991 +1086,631 @@ Nel Capitolo 4 verrà descritto il modello dati dell'applicazione, analizzando l
 
 ## 4.1 Obiettivo
 
-Il modello dati rappresenta il fondamento dell'intera applicazione Orto Smart.
+Il modello dati rappresenta il fondamento dell'applicazione Orto Smart.
 
-Il suo scopo è descrivere in modo strutturato tutte le informazioni gestite dal sistema, definendo le principali entità del dominio applicativo e le relazioni esistenti tra esse.
+Il suo scopo è descrivere in modo strutturato le informazioni gestite dal sistema, definendo le entità del dominio, le relative responsabilità e le relazioni che le collegano.
 
-Una progettazione accurata del modello dati garantisce coerenza, integrità e semplicità di evoluzione del software, consentendo di introdurre nuove funzionalità senza compromettere la compatibilità con la struttura esistente.
+Con l'evoluzione del progetto il modello dati è passato da un nucleo prevalentemente operativo a una struttura che distingue esplicitamente:
 
-Il modello dati costituisce inoltre il collegamento tra il database PostgreSQL, i Repository e il Motore Agronomico, assicurando una rappresentazione uniforme delle informazioni all'interno dell'applicazione.
+- identità e dati del Profile;
+- struttura fisica e storica dell'orto;
+- stagioni e coltivazioni operative;
+- identità botaniche e agronomiche globali;
+- Catalogo Agronomico;
+- provenienza dei dati esterni;
+- workflow editoriale;
+- Knowledge agronomica canonica;
+- dati operativi confermati dall'utente.
+
+La Sessione S030 ha consolidato questa separazione introducendo il Catalogo Agronomico V1 globale e completando il cutover dal precedente modello Profile-owned del Catalogo S026/S027.
+
+Il modello dati costituisce quindi il collegamento tra PostgreSQL, Repository, dominio applicativo e Motore Agronomico, mantenendo distinti i dati globali condivisi dalla realtà operativa di uno specifico orto.
 
 ## 4.2 Principi del modello dati
 
-Il modello dati di Orto Smart è stato progettato seguendo gli stessi principi che guidano l'intera architettura software dell'applicazione: semplicità, modularità, coerenza ed estendibilità.
-
-L'obiettivo è rappresentare in modo fedele gli elementi che caratterizzano la gestione di un orto, mantenendo una struttura sufficientemente flessibile da supportare l'evoluzione del progetto nel tempo.
-
-La progettazione del modello dati si basa sui seguenti principi fondamentali.
+Il modello dati di Orto Smart è progettato secondo principi di coerenza, integrità, modularità, estendibilità, tracciabilità ed efficienza.
 
 ### Coerenza
 
-Ogni informazione viene rappresentata una sola volta, evitando duplicazioni e mantenendo un'unica fonte autorevole per ciascun dato.
+Ogni concetto deve avere una rappresentazione autorevole chiaramente identificabile.
+
+La normalizzazione viene utilizzata per evitare duplicazioni improprie, mentre eventuali copie intenzionali di valori operativi devono avere una funzione precisa, come nel caso degli snapshot salvati su una coltivazione.
 
 ### Integrità
 
-Le relazioni tra le entità sono definite in modo da garantire la consistenza dei dati e prevenire la presenza di informazioni incoerenti o non valide.
+Le relazioni tra le entità vengono protette mediante chiavi esterne, vincoli e controlli server-side.
+
+L'integrità non viene demandata esclusivamente al client Flutter.
 
 ### Modularità
 
-Ogni entità descrive uno specifico concetto del dominio applicativo e può evolvere indipendentemente dalle altre, riducendo l'accoppiamento tra i diversi componenti del sistema.
+I domini principali vengono mantenuti distinti.
+
+In particolare:
+
+```text
+dati operativi dell'orto
+        !=
+Catalogo Agronomico globale
+        !=
+provenienza / ingestion
+        !=
+workflow editoriale
+        !=
+Knowledge canonica
+```
+
+Questa separazione consente a ciascun dominio di evolvere senza confondere responsabilità differenti.
 
 ### Estendibilità
 
-Il modello dati è stato progettato per consentire l'introduzione di nuove entità e nuove relazioni senza richiedere modifiche sostanziali alla struttura esistente.
+Il modello è progettato per essere ampliato mediante migration incrementali e strutture compatibili con l'architettura esistente.
+
+### Tracciabilità
+
+Per la conoscenza agronomica non è sufficiente memorizzare il valore finale.
+
+Il sistema deve poter distinguere:
+
+```text
+fonte
+  ↓
+acquisizione
+  ↓
+osservazione
+  ↓
+revisione
+  ↓
+Knowledge canonica
+  ↓
+pubblicazione
+```
+
+Le revisioni e la provenienza costituiscono quindi parte del modello dati.
+
+### Stabilità del fatto operativo
+
+Una raccomandazione o una Knowledge agronomica può evolvere nel tempo, mentre una decisione già applicata all'orto deve conservarne il contesto storico.
+
+Per questo motivo i valori agronomici confermati e memorizzati su un fatto operativo possono costituire snapshot intenzionali.
+
+Una successiva modifica della Knowledge canonica non modifica automaticamente i fatti operativi già persistiti.
 
 ### Efficienza
 
-Particolare attenzione è dedicata all'ottimizzazione dello spazio di archiviazione e alla riduzione delle ridondanze, mantenendo il database semplice, performante e facilmente manutenibile.
+Il modello privilegia la normalizzazione e limita le duplicazioni non necessarie.
 
-Questi principi costituiscono la base su cui vengono progettate tutte le tabelle del database e le corrispondenti classi del modello dati utilizzate dall'applicazione.
+Le informazioni esterne che possono essere mantenute nelle relative fonti non devono essere replicate integralmente nel database quando è sufficiente conservare provenienza, dati agronomicamente utili o riferimenti necessari.
 
-## 4.3 Entità principali
+## 4.3 Domini ed entità principali
 
-Il modello dati di Orto Smart è composto da un insieme di entità che rappresentano gli elementi fondamentali per la gestione dell'orto e delle attività agronomiche.
+Il modello dati corrente comprende più domini collegati ma distinti.
 
-Ogni entità descrive uno specifico concetto del dominio applicativo ed è rappresentata sia all'interno del database PostgreSQL sia tramite una corrispondente classe Dart utilizzata dall'applicazione.
+### Profile
 
-Le sezioni seguenti descrivono le principali entità attualmente implementate nel sistema, evidenziandone il ruolo all'interno del dominio applicativo e le relazioni con gli altri componenti del modello dati.
+Rappresenta il contesto proprietario dei dati operativi personali dell'applicazione.
+
+Il Profile rimane centrale per i dati dell'orto e per la relativa Profile Write Authority, ma **non costituisce il proprietario del Catalogo Agronomico globale** introdotto con S030.
 
 ### Garden
 
 Rappresenta un orto gestito dall'applicazione.
 
-Contiene le informazioni generali dell'orto, come il nome, la posizione e le impostazioni principali. Costituisce l'entità principale alla quale sono collegate tutte le aiuole.
+Contiene le informazioni generali dell'orto ed è il riferimento per le relative aiuole.
 
 ### Bed
 
-Rappresenta l’identità stabile di una singola aiuola appartenente a un Garden.
+Rappresenta l'identità stabile di una singola aiuola appartenente a un Garden.
 
-Il modello mantiene separati i dati identificativi e descrittivi dalla geometria valida nel tempo. Espone inoltre `rowVersion`, utilizzato per la concorrenza ottimistica delle operazioni autoritative.
+I dati identificativi vengono mantenuti separati dalla geometria storicizzata.
 
 ### BedGeometry
 
-Rappresenta la geometria dell’aiuola valida in uno specifico intervallo temporale.
+Rappresenta la geometria dell'aiuola valida in uno specifico intervallo temporale.
 
-Comprende le dimensioni, la decorrenza `validFrom`, l’eventuale termine `validTo` e la propria `rowVersion`. La separazione da `Bed` consente di modificare la configurazione fisica dell’aiuola senza riscriverne retroattivamente la storia.
+Comprende dimensioni, decorrenza `validFrom`, eventuale termine `validTo` e informazioni necessarie alla concorrenza.
 
-### Crop
-
-Rappresenta una coltura.
-
-Contiene le informazioni agronomiche utilizzate dal sistema, come il nome della coltura e i parametri necessari al Motore Agronomico per elaborare suggerimenti e verifiche.
+La separazione tra `Bed` e `BedGeometry` consente di modificare nel tempo la configurazione fisica dell'aiuola senza riscriverne retroattivamente la storia.
 
 ### Season
 
 Rappresenta una stagione agricola.
 
-Permette di organizzare le coltivazioni in periodi distinti, mantenendo separata la cronologia delle diverse annate.
+Consente di organizzare le coltivazioni e gli eventi operativi nel relativo contesto temporale.
+
+### BotanicalTaxon
+
+Nel database il Catalogo globale utilizza `botanical_taxa` come struttura canonica per le identità tassonomiche.
+
+I rank previsti comprendono:
+
+- `FAMILY`;
+- `GENUS`;
+- `SPECIES`;
+- `VARIETY`;
+- `CULTIVAR`.
+
+Le identità botaniche sono globali e non dipendono dal Profile del singolo utente.
+
+La normalizzazione dei testi consente confronti coerenti senza sostituire l'identità stabile delle entità.
+
+### Crop
+
+Rappresenta l'identità agronomica canonica di una coltura nel Catalogo globale.
+
+Dopo il cutover S030 `crops` non costituisce più una tabella Profile-owned del precedente Catalogo DB V1.
+
+Le letture applicative canoniche vengono esposte attraverso:
+
+```text
+crop_catalog_read
+```
+
+Il modello Dart `Crop` rappresenta la coltura utilizzata dal client.
+
+### CropCultivar
+
+Rappresenta una cultivar appartenente a una specifica coltura.
+
+La relazione canonica è:
+
+```text
+Crop
+  ↓
+CropCultivar
+```
+
+Nel database la tabella corrente è:
+
+```text
+crop_cultivars
+```
+
+mentre il client utilizza il modello:
+
+```text
+CropCultivar
+```
+
+La precedente terminologia tecnica `CropVariety`, `varietyId` e `variety_id` appartiene al modello precedente al cutover S030 e non costituisce più il contratto tecnico corrente.
+
+Nell'interfaccia italiana può continuare a essere utilizzato il termine **Varietà**.
+
+Le letture canoniche vengono esposte attraverso:
+
+```text
+crop_cultivar_catalog_read
+```
+
+### CatalogCapabilities
+
+Rappresenta lato Flutter le capability della Catalog Authority restituite dal backend.
+
+Le capability distinguono le responsabilità di:
+
+- gestione delle identità;
+- ingestion;
+- review;
+- publication.
+
+Il modello informa il client sulle capability disponibili ma non sostituisce l'autorizzazione server-side.
 
 ### Planting
 
-Rappresenta una coltivazione presente in un'aiuola.
+Rappresenta una coltivazione realmente registrata in un'aiuola.
 
-Ogni piantagione è associata a una specifica coltura, appartiene a una stagione e contiene tutte le informazioni necessarie alla gestione dello spazio occupato e delle caratteristiche della coltivazione.
+Il contratto persistente corrente associa una `Planting` a:
 
-L'insieme di queste entità costituisce il nucleo del modello dati attualmente utilizzato dall'applicazione e rappresenta la base su cui verranno sviluppate le future funzionalità di Orto Smart.
+- una `Bed`;
+- una `Season`;
+- una `Crop`;
+- opzionalmente una `CropCultivar`.
 
-## 4.4 Relazioni tra le entità
-
-Le entità descritte nel paragrafo precedente non sono indipendenti, ma sono collegate tra loro attraverso relazioni che rappresentano la struttura logica dell'applicazione.
-
-Questo insieme di relazioni rappresenta il nucleo del modello dati, evitando duplicazioni e garantendo l'integrità dei dati.
-
-Lo schema seguente rappresenta le principali relazioni attualmente implementate.
+La relazione coltura/cultivar viene protetta anche mediante il vincolo composito:
 
 ```text
-Garden
-   │
-   └───────< Bed
-                │
-                └───────< Planting >─────── Crop
-                               │
-                               ▼
-                            Season
+(cultivar_id, crop_id)
+        ↓
+crop_cultivars(id, crop_id)
 ```
 
-Le relazioni principali sono le seguenti.
+In questo modo una cultivar non può essere associata a una coltura diversa da quella alla quale appartiene.
 
-- Un **Garden** può contenere una o più **Bed**.
-- Ogni **Bed** appartiene a un solo **Garden**.
-- Una **Bed** può contenere più **Planting**.
-- Ogni **Planting** appartiene a una sola **Bed**.
-- Ogni **Planting** è associata a una sola **Crop**.
-- Una **Crop** può essere utilizzata in molte **Planting**.
-- Ogni **Planting** appartiene a una sola **Season**.
-- Una **Season** può comprendere numerose **Planting**.
+Il precedente campo `variety_id` è stato rimosso durante il cutover S030.
 
-Questa organizzazione rappresenta il nucleo del modello dati attualmente utilizzato da Orto Smart e costituisce la base per l'integrazione delle future funzionalità, come la gestione dell'irrigazione, delle attività, delle rotazioni colturali e delle analisi agronomiche.
+La `Planting` mantiene inoltre i dati necessari alla gestione operativa, tra cui geometria di occupazione, intervallo temporale, lifecycle e snapshot agronomici previsti dal contratto persistente.
 
+Gli snapshot appartengono alla decisione operativa confermata e non vengono aggiornati automaticamente quando cambia il Catalogo.
 
-## 4.5 Flusso dei dati applicativi
+## 4.4 Catalogo Agronomico globale
 
-Le entità del modello dati costituiscono il punto di collegamento tra il database, la logica applicativa e l'interfaccia utente.
+La Sessione S030 ha introdotto un modello dati dedicato al Catalogo Agronomico V1.
 
-Ogni informazione segue un percorso ben definito che garantisce coerenza, separazione delle responsabilità e facilità di manutenzione.
+La catena canonica delle principali identità è:
 
-Il flusso generale dei dati può essere riassunto come segue.
+```text
+botanical_taxa
+      ↓
+    crops
+      ↓
+crop_cultivars
+```
+
+Questa struttura sostituisce come stato corrente il precedente modello S026:
+
+```text
+botanical_families
+      ↓
+    crops
+      ↓
+crop_varieties
+```
+
+Il modello S026 rimane parte della storia evolutiva del progetto, ma non rappresenta più lo schema corrente.
+
+Il perimetro S030 comprende complessivamente **26 tabelle** dedicate alla nuova architettura del Catalogo e alle relative strutture di supporto.
+
+Oltre alle identità canoniche, il modello comprende aree dedicate a:
+
+- Catalog Authority;
+- registry dei parametri agronomici;
+- vocabolari di contesto;
+- fonti;
+- acquisizioni;
+- osservazioni;
+- alias delle identità;
+- mapping;
+- workflow editoriale;
+- revisioni;
+- Knowledge agronomica canonica;
+- pubblicazione.
+
+Il Catalogo è globale e non appartiene a un singolo Garden o Profile.
+
+## 4.5 Provenienza, ingestion e workflow editoriale
+
+I dati provenienti da fonti esterne vengono mantenuti separati dai dati approvati.
+
+Il flusso concettuale è:
+
+```text
+Fonte esterna
+      ↓
+acquisizione
+      ↓
+osservazione
+      ↓
+dato candidato
+      ↓
+revisione editoriale
+      ↓
+Knowledge canonica
+      ↓
+pubblicazione
+```
+
+L'ingestion non equivale quindi all'approvazione.
+
+Una fonte esterna non può sovrascrivere automaticamente il Catalogo approvato.
+
+Il workflow editoriale permette di mantenere una catena esplicita delle revisioni mediante `previous_revision_id`.
+
+Quando una revisione entra nel perimetro immutabile previsto dall'architettura, la semantica viene preservata per garantire la ricostruzione storica.
+
+Anche il ritiro di contenuti pubblicati deve preservare le informazioni canoniche necessarie alla tracciabilità.
+
+## 4.6 Knowledge agronomica e Resolver
+
+La Knowledge agronomica canonica rappresenta conoscenza approvata e pubblicabile.
+
+Essa rimane distinta sia dalle osservazioni provenienti dalle fonti sia dai fatti operativi del singolo orto.
+
+Il Resolver ha il compito di individuare la Knowledge canonica applicabile a un determinato contesto.
+
+Il flusso logico è:
+
+```text
+Knowledge canonica
+        ↓
+Resolver
+        ↓
+Knowledge applicabile
+        ↓
+proposta applicativa
+        ↓
+conferma dell'utente
+        ↓
+fatto operativo
+```
+
+Il Resolver non modifica autonomamente una `Planting`.
+
+La selezione della Knowledge e la persistenza di una decisione operativa sono quindi due operazioni concettualmente distinte.
+
+Questa separazione permette di aggiornare nel tempo la conoscenza agronomica senza alterare retroattivamente la storia reale dell'orto.
+
+## 4.7 Relazioni principali
+
+Le principali relazioni operative possono essere sintetizzate nel modo seguente:
+
+```text
+Profile
+   │
+   └───────< Garden
+                 │
+                 └───────< Bed
+                              │
+                              └───────< Planting >─────── Season
+                                            │
+                                            ├──────────── Crop
+                                            │
+                                            └─────── CropCultivar
+                                                     (opzionale)
+```
+
+Il Catalogo globale segue invece una struttura indipendente dall'ownership del Profile:
+
+```text
+BotanicalTaxon
+      │
+      ▼
+     Crop
+      │
+      ▼
+ CropCultivar
+```
+
+Le principali regole sono:
+
+- un Garden appartiene al relativo contesto Profile;
+- un Garden può contenere più Bed;
+- ogni Bed appartiene a un Garden;
+- una Bed può contenere più Planting nel tempo;
+- ogni Planting appartiene a una Bed;
+- ogni Planting appartiene a una Season;
+- ogni Planting fa riferimento a una Crop canonica;
+- una Planting può fare riferimento a una CropCultivar;
+- una CropCultivar appartiene a una sola Crop;
+- la combinazione `cultivar_id` / `crop_id` della Planting deve essere coerente;
+- le identità del Catalogo sono globali e non vengono duplicate per ciascun Profile.
+
+La geometria storicizzata della Bed e l'intervallo temporale della Planting consentono inoltre di verificare l'occupazione dello spazio rispetto alla configurazione fisica valida nel periodo interessato.
+
+## 4.8 Flusso dei dati applicativi
+
+Il modello dati non utilizza un unico flusso indistinto per tutte le informazioni.
+
+### Dati operativi
+
+Per i dati dell'orto:
 
 ```text
 PostgreSQL
-      │
-      ▼
+      ↓
 Supabase
-      │
-      ▼
+      ↓
 Repository
-      │
-      ▼
+      ↓
 Modelli Dart
-      │
-      ▼
-Motore Agronomico
-      │
-      ▼
-Flutter UI
+      ↓
+logica applicativa / UI
 ```
 
-Durante la lettura dei dati, i Repository recuperano le informazioni dal database tramite Supabase e le convertono nei corrispondenti modelli Dart.
+Le scritture protette utilizzano i rispettivi Write Path autoritativi.
 
-Il Motore Agronomico utilizza tali modelli per effettuare elaborazioni, verifiche e suggerimenti, senza accedere direttamente al database.
+### Catalogo
 
-L'interfaccia utente riceve infine dati già elaborati e pronti per la visualizzazione, mantenendo completamente separata la logica di presentazione dalla logica applicativa.
+Per colture e cultivar:
 
-Questa organizzazione rende il sistema facilmente testabile, favorisce il riutilizzo del codice e consente di introdurre nuove funzionalità senza modificare il flusso generale delle informazioni.
+```text
+PostgreSQL
+      ↓
+read model canonico
+      ↓
+Supabase
+      ↓
+Repository
+      ↓
+Crop / CropCultivar
+      ↓
+applicazione
+```
 
-## 4.6 Evoluzione del modello dati
+### Knowledge agronomica
 
-Il modello dati di Orto Smart è stato progettato con un approccio incrementale, prevedendo fin dalle prime fasi di sviluppo la possibilità di estendere il sistema senza modificare la struttura fondamentale delle entità già implementate.
+Per il supporto decisionale:
 
-Le entità attualmente presenti costituiscono il nucleo operativo dell'applicazione e supportano la gestione degli orti, delle aiuole, delle colture, delle stagioni e delle piantagioni.
+```text
+Knowledge canonica
+      ↓
+Resolver
+      ↓
+logica applicativa /
+Motore Agronomico
+      ↓
+proposta
+      ↓
+utente
+      ↓
+fatto operativo
+```
 
-Con l'evoluzione del progetto il modello dati verrà progressivamente ampliato per supportare nuove funzionalità, tra cui:
+Questa separazione impedisce di confondere una conoscenza generale con una decisione realmente applicata.
 
-- gestione delle attività agronomiche;
-- registrazione degli eventi di irrigazione;
-- gestione delle fertilizzazioni e dei trattamenti;
-- monitoraggio dei raccolti;
-- gestione dei costi e dei ricavi;
+## 4.9 Evoluzione del modello dati
+
+Il modello dati viene sviluppato incrementalmente mediante migration versionate.
+
+Con S030 il Catalogo Agronomico globale, la provenienza, il workflow editoriale, la Knowledge canonica, la pubblicazione e il Resolver costituiscono componenti implementati e non devono più essere descritti come semplice evoluzione futura.
+
+Restano invece FUTURE, tra gli altri:
+
+- backend canonico delle consociazioni tra colture;
+- ulteriori integrazioni operative del Resolver;
+- gestione completa delle attività agronomiche;
+- eventi di irrigazione e automazione;
+- fertilizzazioni e trattamenti;
+- raccolti;
+- costi e ricavi;
 - statistiche e analisi storiche;
-- integrazione con il Motore Agronomico per supportare decisioni sempre più avanzate.
+- ulteriori moduli previsti dalla Database V1 non ancora implementati.
 
-L'espansione del modello dati seguirà gli stessi principi descritti nei paragrafi precedenti, privilegiando la modularità, la normalizzazione delle informazioni e la compatibilità con le strutture già esistenti.
+Il popolamento reale del Catalogo dovrà avvenire mediante dati verificati e approvati.
 
-Questo approccio consentirà di mantenere il database ordinato, facilmente manutenibile e pronto ad accogliere le future evoluzioni del progetto senza richiedere modifiche sostanziali alle entità già consolidate.
+Fino all'avvio della gestione reale dell'orto il database non deve essere popolato con dati dimostrativi o provvisori destinati a confondersi con quelli operativi.
 
-## 4.7 Considerazioni finali
+## 4.10 Considerazioni finali
 
-Il modello dati di Orto Smart rappresenta la base sulla quale si sviluppano tutte le funzionalità dell'applicazione.
+Il modello dati di Orto Smart è evoluto da un nucleo dedicato prevalentemente alla gestione dell'orto a una struttura che distingue esplicitamente realtà operativa, identità globali e conoscenza agronomica.
 
-La suddivisione delle informazioni in entità ben definite, unite da relazioni coerenti e gestite attraverso i Repository, garantisce un'elevata manutenibilità del codice e consente di estendere il sistema senza compromettere le funzionalità esistenti.
+La Sessione S030 rappresenta un passaggio architetturale rilevante perché consolida:
 
-L'adozione di un modello dati modulare permette inoltre di integrare progressivamente nuove caratteristiche, mantenendo separati il livello di persistenza, la logica applicativa e l'interfaccia utente.
+- Catalogo Agronomico globale;
+- tassonomia botanica canonica;
+- identità `Crop` e `CropCultivar`;
+- provenienza multisorgente;
+- workflow editoriale;
+- Knowledge canonica;
+- pubblicazione;
+- Resolver;
+- collegamento delle Planting al nuovo Catalogo.
 
-Nei Capitoli 5, 6, 7 e 8 verranno approfonditi rispettivamente il database PostgreSQL, il Repository Layer, l'Interfaccia Utente e il Motore Agronomico, descrivendo il ruolo e il funzionamento di ciascun componente all'interno dell'architettura di Orto Smart.
+Il principio fondamentale rimane che il database protegge integrità e autorità, il Catalogo conserva conoscenza tracciabile, il Resolver individua la Knowledge applicabile e l'applicazione trasforma tale conoscenza in una proposta che diventa fatto operativo soltanto attraverso il flusso previsto.
+
+Nei Capitoli 5, 6, 7 e 8 vengono approfonditi rispettivamente il database PostgreSQL, il Repository Layer, l'interfaccia utente e il Motore Agronomico.
 
 # 5. Database PostgreSQL
 
 ## 5.1 Obiettivo
 
-Il database PostgreSQL costituisce il livello di persistenza dei dati di Orto Smart ed è responsabile della memorizzazione permanente delle informazioni che richiedono conservazione, integrità, relazioni e ricostruibilità storica.
+PostgreSQL costituisce il livello di persistenza autoritativo di Orto Smart ed è responsabile della conservazione delle informazioni che richiedono integrità, relazioni, sicurezza e ricostruibilità storica.
 
-Orto Smart utilizza **Supabase** come piattaforma Backend-as-a-Service (BaaS), sfruttando PostgreSQL come database relazionale e i servizi della piattaforma per autenticazione, sicurezza e accesso ai dati.
+Orto Smart utilizza **Supabase** come piattaforma backend, sfruttando PostgreSQL per la persistenza relazionale e i servizi Supabase per autenticazione e accesso applicativo.
 
-L'architettura della persistenza distingue esplicitamente:
+La progettazione del database distingue:
 
-- il database Supabase remoto attualmente utilizzato dall'applicazione;
-- la baseline logica e architetturale del **Database V1**, completata e congelata nella Sessione S017;
-- l'implementazione fisica incrementale della baseline V1 mediante migration PostgreSQL/Supabase versionate.
+- la baseline logica e architetturale **Database V1**, definita nella Sessione S017;
+- la sua implementazione fisica incrementale mediante migration versionate;
+- le successive decisioni architetturali che ne hanno specializzato o sostituito parti del modello;
+- lo stato fisicamente implementato e verificato;
+- gli elementi della baseline non ancora realizzati.
 
-La progettazione Database V1 definisce **52 entità di dominio** e una struttura tecnica separata, `profile_edit_locks`.
+La baseline S017 comprende **52 entità di dominio** e la struttura tecnica separata `profile_edit_locks`.
 
-Con la Sessione S019 è iniziata l'implementazione fisica della baseline mediante la prima migration versionata:
+Questo numero descrive la baseline nominale storica e non deve essere interpretato come conteggio dello schema PostgreSQL corrente: l'implementazione successiva ha introdotto strutture tecniche, tabelle di supporto e, con S030, un nuovo perimetro fisico per il Catalogo Agronomico.
+
+Il riferimento specialistico per schema, entità, relazioni, sicurezza, invarianti, migration e stato implementativo è:
 
 ```text
-supabase/migrations/20260817103916_database_v1_baseline.sql
+DOC-004 – Manuale Database
 ```
 
-La prima fase implementativa comprende il blocco **Fondazioni** del Database V1:
-
-- `profiles`;
-- `profile_memberships`;
-- `gardens`;
-- `workers`;
-- `seasons`;
-- `profile_edit_locks`.
-
-La migration introduce inoltre lo schema `private`, gli helper autorizzativi necessari alla prima matrice di sicurezza, i trigger per la gestione dei metadata e la prima configurazione Row Level Security.
-
-L'intera baseline V1 non è ancora implementata: la traduzione fisica procede incrementalmente per gruppi coerenti di entità e dipendenze, verificando contestualmente schema, integrità e sicurezza.
-
-Il riferimento specialistico per struttura, baseline nominale, relazioni, temporalità, ownership, sicurezza, invarianti e strategia di migrazione è il **DOC-004 – Manuale Database**.
-
-Il presente Manuale Tecnico mantiene invece la visione architetturale generale e il rapporto tra database, Repository, dominio applicativo e interfaccia utente.
+Il presente capitolo mantiene invece la visione tecnica necessaria a comprendere il ruolo del database nell'architettura complessiva dell'applicazione.
 
 ## 5.2 Architettura del database
 
-Il database di Orto Smart è basato su PostgreSQL ed è ospitato sulla piattaforma Supabase.
+L'architettura PostgreSQL di Orto Smart segue un modello relazionale nel quale persistenza e logica applicativa mantengono responsabilità distinte.
 
-L'architettura Database V1 segue un modello relazionale nel quale le informazioni persistenti sono organizzate in entità e relazioni progettate per preservare:
+Il database protegge:
 
+- identità persistenti;
+- relazioni;
 - integrità referenziale;
-- ownership verificabile;
-- separazione tra configurazioni e fatti realmente avvenuti;
-- separazione tra pianificazione e realtà;
-- temporalità e storicizzazione;
-- riduzione delle duplicazioni;
-- possibilità di evoluzione incrementale.
+- ownership dei dati operativi;
+- autorizzazioni;
+- invarianti;
+- temporalità;
+- concorrenza;
+- provenienza;
+- revisioni;
+- Knowledge canonica;
+- fatti operativi.
 
-Una distinzione fondamentale dell'architettura è quella tra **struttura persistente** e **logica decisionale del dominio Dart**.
+Il dominio Dart e il Motore Agronomico elaborano invece le informazioni e producono risultati che non devono necessariamente diventare nuove strutture persistenti.
 
-Il database conserva i fatti, le configurazioni e le informazioni che richiedono persistenza. I risultati che possono essere determinati in modo affidabile dal dominio non devono essere trasformati automaticamente in nuove tabelle persistenti.
+Un esempio rimane `AgronomicWindow`: è un risultato calcolato dalle relative regole e non richiede una tabella persistente `agronomic_windows`.
 
-Un esempio significativo è `AgronomicWindow`: rimane un risultato calcolato a partire da `agronomic_window_rules` e non corrisponde a una tabella persistente `agronomic_windows`.
-
-L'accesso applicativo ai dati deve continuare a essere mediato dal Repository Layer, mantenendo separati persistenza, dominio e interfaccia utente.
-
-Il flusso architetturale generale rimane:
+Il flusso generale è:
 
 ```text
 Flutter UI
-        ↓
+    ↓
 Application / Domain
-        ↓
+    ↓
 Repository
-        ↓
+    ↓
 Supabase Client
-        ↓
+    ↓
 Supabase / PostgreSQL
 ```
 
-La sicurezza non viene affidata al client Flutter. Autenticazione, autorizzazione, Row Level Security, vincoli e operazioni sensibili devono essere protetti anche lato database/server.
+Il client Flutter viene considerato **non fidato** dal punto di vista della sicurezza.
 
-Il Database V1 adotta inoltre un modello di accesso **monoutente per Garden nel V1**, con un account/profilo principale e possibilità per i componenti dello stesso nucleo familiare di utilizzare il medesimo accesso. Le persone che svolgono attività nell'orto possono essere rappresentate mediante `workers` senza richiedere account applicativi distinti.
+Una validazione eseguita nel client può migliorare l'esperienza utente, ma non sostituisce i controlli server-side necessari.
 
-Per il coordinamento delle modifiche concorrenti è previsto un modello **single-writer**, supportato dalla struttura tecnica `profile_edit_locks`.
+### Dati operativi e Catalogo globale
 
-La multiutenza con account distinti e la condivisione dello stesso Garden sono rinviate a evoluzioni future.
+Dopo S030 è fondamentale distinguere due perimetri.
 
-La descrizione completa di questi meccanismi è mantenuta nel **DOC-004 – Manuale Database**.
-
-È necessario distinguere:
-
-- il database operativo preesistente utilizzato dall'applicazione;
-- la baseline completa del **Database V1**, progettata e congelata nella S017;
-- le strutture della nuova baseline già tradotte in SQL e verificate localmente a partire dalla S019.
-
-### Database operativo preesistente
-
-Prima dell'avvio della nuova baseline V1, il nucleo operativo dell'applicazione comprendeva già strutture quali:
-
-- `gardens`;
-- `beds`;
-- `crops`;
-- `seasons`;
-- `plantings`.
-
-Queste strutture appartengono alla storia implementativa del progetto e non devono essere confuse con lo stato di avanzamento della nuova baseline Database V1.
-
-In particolare, `plantings` continua a rappresentare concettualmente la coltivazione realmente eseguita e rimane prevista anche nella baseline V1.
-
-### Baseline Database V1
-
-Durante la Sessione S017 è stata completata e congelata una baseline composta da:
-
-- **52 entità di dominio**;
-- **1 struttura tecnica separata**, `profile_edit_locks`.
-
-La baseline comprende strutture dedicate a:
-
-- identità, ownership e stagioni;
-- catalogo agronomico;
-- struttura fisica e geometria dell'orto;
-- configurazioni temporali;
-- fabbisogni e preferenze;
-- pianificazione produttiva;
-- attività e lavoro realmente svolto;
-- raccolti e valorizzazioni;
-- irrigazione;
-- fertilizzazioni e trattamenti;
-- eventi dell'orto e diario;
-- costi e prezzi di mercato;
-- contesto ambientale.
-
-L'elenco nominale definitivo delle 52 entità, le rispettive relazioni e i principi di progettazione sono documentati nel **DOC-004 – Manuale Database**.
-
-### Primo incremento SQL della baseline V1
-
-Con la Sessione S019 la baseline non è più soltanto una specifica progettuale: è iniziata la sua traduzione concreta in PostgreSQL/Supabase mediante migration versionate.
-
-La prima migration è:
+I dati relativi alla gestione reale dell'orto seguono il modello operativo basato sul Profile:
 
 ```text
-supabase/migrations/20260817103916_database_v1_baseline.sql
+Profile
+  ↓
+Garden
+  ↓
+Bed / Season / Planting / ...
 ```
 
-Il primo gruppo implementato, denominato **Fondazioni**, comprende:
+Il Catalogo Agronomico segue invece un modello globale:
+
+```text
+botanical_taxa
+      ↓
+    crops
+      ↓
+crop_cultivars
+```
+
+Il Catalogo globale non appartiene a un singolo Profile e non utilizza la Profile Write Authority come fonte della propria autorità editoriale.
+
+### Persistenza e Knowledge
+
+Il database distingue inoltre:
+
+```text
+osservazione esterna
+        ≠
+Knowledge canonica
+        ≠
+fatto operativo
+```
+
+Questa separazione impedisce che un dato acquisito da una fonte esterna diventi automaticamente conoscenza approvata o modifichi una decisione già applicata all'orto.
+
+## 5.3 Stato implementativo corrente
+
+L'implementazione fisica del Database V1 è proceduta incrementalmente dalla Sessione S019 alla Sessione S030.
+
+### Fondazioni e Profile Write Authority
+
+Le prime sessioni hanno introdotto e consolidato:
 
 - `profiles`;
 - `profile_memberships`;
 - `gardens`;
 - `workers`;
 - `seasons`;
-- `profile_edit_locks`.
-
-La stessa migration introduce inoltre:
-
+- `profile_edit_locks`;
 - schema `private`;
 - helper autorizzativi;
-- trigger per i metadata;
-- Row Level Security sulle strutture interessate;
-- **13 policy RLS** verificate.
-
-La migration è stata ricostruita da zero nell'ambiente locale mediante:
-
-```text
-supabase db reset
-```
-
-e la struttura effettivamente generata è stata controllata anche mediante un dump diagnostico temporaneo, successivamente eliminato.
-
-Il completamento di questo primo gruppo non equivale al completamento dell'intero Database V1.
-
-Lo stato evolutivo è quindi:
-
-```text
-baseline Database V1 congelata
-        ↓
-Fondazioni implementate e verificate localmente
-        ↓
-successivi gruppi SQL e meccanismi server-side
-        ↓
-Database V1 completo
-```
-
-La verifica locale della S019 non deve inoltre essere confusa con l'applicazione completa della nuova baseline al database operativo remoto.
-
-L'implementazione continuerà progressivamente per gruppi coerenti di entità e dipendenze, verificando insieme struttura, integrità, ownership e sicurezza.
-
-## 5.4 Relazioni e vincoli
-
-Le entità del Database V1 sono collegate mediante relazioni esplicite, chiavi primarie, chiavi esterne e vincoli progettati per preservare la coerenza del dominio.
-
-Le relazioni non vengono incorporate automaticamente nelle entità principali quando possiedono una propria semantica, devono essere storicizzate oppure possono cambiare nel tempo.
-
-Per questo motivo la baseline V1 introduce, dove necessario, entità relazionali dedicate, ad esempio per:
-
-- associazioni tra aree e aiuole;
-- assegnazioni di dispositivi;
-- collegamenti tra dispositivi;
-- configurazioni delle zone irrigue;
-- collegamenti tra fonti idriche;
-- target delle zone irrigue;
-- target di task, work log ed eventi.
-
-Quando una configurazione possiede validità temporale, il modello può utilizzare intervalli del tipo:
-
-```text
-[valid_from, valid_to)
-```
-
-In questo modo una nuova configurazione non sovrascrive retroattivamente quella storicamente valida.
-
-Un principio fondamentale riguarda inoltre la separazione tra **configurazione** ed **evento realmente avvenuto**.
-
-Ad esempio:
-
-```text
-configurazione irrigua
-        ≠
-irrigation_event
-```
-
-La configurazione descrive come il sistema è organizzato; l'evento registra ciò che è realmente accaduto.
-
-Lo stesso principio viene applicato alla distinzione tra pianificazione e realtà:
-
-```text
-planned_plantings
-        ↓
-plantings
-```
-
-e:
-
-```text
-tasks
-        ↓
-work_logs
-```
-
-Una pianificazione non viene trasformata implicitamente in un fatto realmente avvenuto.
-
-Le relazioni verso target eterogenei vengono rappresentate mediante strutture dedicate quando questo consente di mantenere il modello più coerente e verificabile, evitando di duplicare inutilmente informazioni nelle entità principali.
-
-I vincoli del database devono inoltre impedire, quando tecnicamente appropriato:
-
-- riferimenti a record inesistenti;
-- relazioni incompatibili con l'ownership;
-- intervalli temporali non validi;
-- sovrapposizioni temporali vietate;
-- quantità semanticamente impossibili;
-- configurazioni incompatibili con gli invarianti del dominio.
-
-La definizione dettagliata delle relazioni e degli invarianti del Database V1 è mantenuta nel **DOC-004 – Manuale Database**.
-
-## 5.5 Integrità dei dati
-
-L'integrità dei dati costituisce un requisito architetturale del Database V1 e non viene affidata esclusivamente alla logica applicativa Flutter.
-
-Le regole fondamentali che devono rimanere valide indipendentemente dal client vengono protette, quando tecnicamente appropriato, mediante strumenti PostgreSQL quali:
-
-- `PRIMARY KEY`;
-- `FOREIGN KEY`;
-- `UNIQUE`;
-- `NOT NULL`;
-- `CHECK`;
-- vincoli temporali;
-- indici univoci;
-- transazioni;
-- funzioni o procedure server-side per le operazioni che richiedono atomicità.
-
-Il principio generale adottato è:
-
-```text
-integrità del dominio
-        ↓
-protezione nel database
-        ↓
-validazione applicativa aggiuntiva
-```
-
-La validazione eseguita dall'applicazione migliora l'esperienza utente e consente di intercettare anticipatamente gli errori, ma non sostituisce i vincoli necessari nel livello persistente.
-
-Tra gli invarianti individuati nella progettazione V1 rientrano, a seconda delle entità coinvolte:
-
-- integrità referenziale;
-- coerenza dell'ownership;
-- validità degli intervalli temporali;
-- controllo delle sovrapposizioni temporali quando non ammesse;
-- identità stabile delle aiuole rispetto alla loro geometria storica;
-- separazione tra pianificazione e fatti realmente avvenuti;
-- validità delle quantità;
-- coerenza dei target e delle relazioni;
-- separazione tra configurazione irrigua ed eventi di irrigazione;
-- coerenza delle regole agronomiche;
-- preservazione degli eventi storici;
-- idempotenza delle operazioni automatiche quando richiesta;
-- rispetto del modello single-writer;
-- coerenza degli snapshot ambientali.
-
-Le correzioni di informazioni storiche non devono distruggere arbitrariamente la ricostruibilità degli eventi realmente avvenuti.
-
-Analogamente, un dato sconosciuto non deve essere sostituito automaticamente con un valore neutro che ne modifichi il significato.
-
-Il principio architetturale adottato è quindi quello di privilegiare **l'integrità e la correttezza del dato rispetto alla comodità del client**.
-
-La definizione dettagliata degli invarianti e delle relative strategie di protezione è mantenuta nel **DOC-004 – Manuale Database**.
-
-## 5.6 Prestazioni e ottimizzazione
-
-La progettazione del Database V1 privilegia innanzitutto correttezza, integrità e chiarezza del modello dati. Le ottimizzazioni devono essere introdotte sulla base di esigenze reali e misurabili, evitando complessità premature.
-
-Un principio fondamentale è la riduzione delle duplicazioni.
-
-Un'informazione non deve essere memorizzata più volte quando può essere ricostruita in modo affidabile attraverso relazioni, fatti persistenti o logica applicativa.
-
-Il principio generale è:
-
-```text
-dato persistente necessario
-        +
-dato derivabile
-        ↓
-persistenza minima sufficiente
-```
-
-Questo criterio consente di:
-
-- ridurre l'occupazione dello storage;
-- evitare incoerenze tra copie dello stesso dato;
-- semplificare gli aggiornamenti;
-- preservare una fonte autorevole per ciascuna informazione;
-- mantenere più chiara la separazione tra fatti e risultati calcolati.
-
-I risultati derivabili non vengono quindi persistiti automaticamente.
-
-Ad esempio, `AgronomicWindow` rimane un risultato calcolato dalle regole persistenti e non richiede una tabella `agronomic_windows`.
-
-Lo stesso principio viene applicato alla pianificazione: avanzamenti, scostamenti e quantità realmente eseguite devono essere derivati dai fatti reali quando questo è possibile in modo affidabile, invece di essere duplicati senza necessità.
-
-Per il contesto meteorologico, Orto Smart non deve duplicare in Supabase un archivio grezzo completo delle osservazioni già disponibili attraverso le fonti meteorologiche autorevoli. Nel Database V1 vengono conservati soltanto snapshot, collegamenti, sintesi o informazioni ambientali necessarie alla ricostruzione delle decisioni e degli eventi agronomicamente rilevanti.
-
-Gli indici devono essere introdotti in funzione delle effettive modalità di accesso ai dati, con particolare attenzione a:
-
-- chiavi esterne;
-- campi utilizzati frequentemente nei filtri;
-- intervalli temporali;
-- ordinamenti ricorrenti;
-- vincoli di unicità;
-- relazioni utilizzate frequentemente dal Repository Layer.
-
-La normalizzazione rimane il criterio predefinito. Eventuali denormalizzazioni potranno essere introdotte soltanto quando motivate da esigenze prestazionali concrete e dopo aver valutato il rischio di incoerenza.
-
-La progettazione deve inoltre mantenere attenzione all'efficienza dello storage e delle query, evitando strutture ridondanti o dati persistenti privi di un'utilità applicativa reale.
-
-Le ottimizzazioni future dovranno essere guidate da misurazioni e casi d'uso effettivi, senza compromettere gli invarianti definiti nella baseline Database V1.
-
-Il dettaglio delle convenzioni di persistenza e della strategia di implementazione è mantenuto nel **DOC-004 – Manuale Database**.
-
-## 5.7 Sicurezza
-
-La sicurezza del Database V1 segue un principio **deny-by-default**: l'accesso ai dati non deve essere consentito implicitamente, ma soltanto quando esiste una regola esplicita che lo autorizza.
-
-L'autenticazione dell'utente viene gestita tramite Supabase Auth, mentre l'autorizzazione ai dati deve essere applicata anche lato database.
-
-Il client Flutter è considerato un **client non fidato**.
-
-Questo significa che controlli eseguiti esclusivamente nell'interfaccia utente o nel codice Dart non costituiscono una protezione sufficiente per i dati persistenti.
-
-Il principio architetturale è:
-
-```text
-Flutter
-        ↓
-richiesta
-        ↓
-autorizzazione server-side
-        ↓
-RLS / vincoli / operazione protetta
-        ↓
-PostgreSQL
-```
-
-### Row Level Security
-
-Le tabelle esposte attraverso Supabase utilizzano **Row Level Security (RLS)** come uno dei principali meccanismi di protezione contro accessi non autorizzati.
-
-Le policy devono essere progettate in funzione dell'ownership effettiva dei dati, della membership e del ruolo, e non semplicemente della possibilità tecnica del client di conoscere un identificativo.
-
-Nel Database V1 l'ownership applicativa ha come radice il `profile`, mentre il `garden` costituisce uno dei principali confini operativi dei dati dell'orto.
-
-Con la Sessione S019 questo principio è stato applicato concretamente al primo gruppo di Fondazioni.
-
-La prima matrice RLS implementata riguarda:
-
-- `profiles`;
-- `profile_memberships`;
-- `gardens`;
-- `workers`;
-- `seasons`;
-- `profile_edit_locks`.
-
-Sono state verificate complessivamente:
-
-> **13 policy RLS**
-
-Le policy sono state sottoposte a test manuali sia positivi sia negativi.
-
-Tra gli scenari verificati rientrano:
-
-- isolamento tra Profile differenti;
-- comportamento dell'owner;
-- comportamento di worker/viewer;
-- membership disabilitata;
-- accesso ai `gardens`;
-- accesso alle `profile_memberships`;
-- accesso a `profile_edit_locks`;
-- accesso alle `seasons`;
-- accesso ai `workers`;
-- tentativi di scrittura non autorizzati;
-- tentativi di eliminazione non autorizzati.
-
-Il principio di verifica adottato è:
-
-```text
-operazione autorizzata
-        ↓
-deve riuscire
-
-operazione non autorizzata
-        ↓
-deve fallire
-```
-
-La verifica negativa costituisce quindi parte integrante del collaudo della sicurezza e non un controllo opzionale successivo.
-
-La prima matrice RLS implementata nella S019 non esaurisce la sicurezza dell'intero Database V1: le successive strutture dovranno essere protette e collaudate progressivamente secondo lo stesso approccio **deny-by-default** e di privilegio minimo.
-
-### Modello di accesso familiare
-
-Nel V1 viene adottato un modello monoutente: un solo account/profilo applicativo rappresenta l'accesso principale al Garden.
-
-I componenti dello stesso nucleo familiare possono utilizzare il medesimo accesso.
-
-Le persone che partecipano ai lavori dell'orto possono essere rappresentate mediante `workers`, senza che questo comporti automaticamente la creazione di ulteriori account autenticati.
-
-La multiutenza con account distinti e la condivisione dello stesso Garden sono rinviate a evoluzioni future.
-
-### Single-writer
-
-Per evitare modifiche concorrenti incompatibili, il Database V1 adotta un modello **single-writer**.
-
-La struttura tecnica:
-
-```text
-profile_edit_locks
-```
-
-rimane separata dalle 52 entità di dominio ed è stata fisicamente introdotta con la prima migration Database V1 della Sessione S019.
-
-La tabella costituisce la base persistente per il coordinamento delle modifiche concorrenti sul Profile.
-
-Il lock non sostituisce:
-
-- autenticazione;
-- autorizzazione;
-- Row Level Security;
-- vincoli di integrità;
-- controllo atomico delle operazioni sensibili.
-
-Costituisce invece un ulteriore meccanismo di coordinamento del writer.
-
-Con la Sessione S020 è stata avviata l'implementazione delle RPC sicure e atomiche destinate a gestire `profile_edit_locks`. La Sessione S021 ha completato il protocollo e ne ha effettuato l'hardening mediante audit incrociato delle transizioni concorrenti.
-
-Il protocollo completo comprende:
-
-- `acquire_profile_edit_lock`;
-- `heartbeat_profile_edit_lock`;
-- `release_profile_edit_lock`;
-- `request_profile_edit_takeover`;
-- `cancel_profile_edit_takeover`;
-- `reject_profile_edit_takeover`;
-- `grant_profile_edit_takeover`;
-- `complete_profile_edit_takeover`;
-- `get_profile_edit_lock_state`.
-
-L'acquisizione del lock è riservata all'`owner` del Profile. I ruoli `worker` e `viewer` non possono acquisirlo.
-
-Il protocollo utilizza heartbeat ogni **30 secondi** e un lease del lock pari a **2 minuti**. Le richieste di takeover hanno validità pari a **10 minuti**, mentre il grant di takeover ha validità pari a **60 secondi**. Il silenziamento delle nuove richieste può essere impostato a **5, 15 o 30 minuti**.
-
-Il `lock_token` viene generato lato server mediante materiale casuale di 32 byte. Nel database viene conservato solamente l'hash SHA-256 del token.
-
-Queste operazioni sono realizzate lato server senza consentire al client di modificare direttamente lo stato del lock in modo non controllato.
-
-### Operazioni sensibili
-
-Le operazioni che richiedono controllo atomico, verifiche di ownership o modifica coordinata di più strutture non devono essere affidate a sequenze non protette eseguite dal client.
-
-Quando necessario devono essere utilizzati strumenti server-side e transazioni PostgreSQL in modo che:
-
-```text
-verifica
-        +
-autorizzazione
-        +
-modifica
-        =
-operazione atomica
-```
-
-La Sessione S019 ha confermato che alcune operazioni delle Fondazioni richiedono un livello di protezione superiore alla sola possibilità di scrivere direttamente sulle tabelle.
-
-La Sessione S020 ha avviato le RPC server-side controllate per `profile_edit_locks`. La Sessione S021 ha completato le RPC mancanti e ha sottoposto l'intero protocollo a un audit concorrente.
-
-Le verifiche della S021 hanno riguardato in particolare:
-
-- serializzazione mediante `FOR UPDATE`;
-- rivalidazione di holder, client, sessione, token e lease dopo l'eventuale attesa sul row lock;
-- utilizzo di `clock_timestamp()` nei punti temporali autoritativi interessati;
-- impossibilità di resuscitare un lease scaduto mediante heartbeat;
-- conservazione del lock durante un grant di takeover ancora valido;
-- protezione del lease durante l'handoff di takeover;
-- precedenza del grant valido nello stato restituito da `get_profile_edit_lock_state`;
-- trasferimento atomico mediante `complete_profile_edit_takeover`;
-- generazione di un nuovo token al completamento del takeover;
-- comportamento conservativo delle operazioni concorrenti.
-
-Il protocollo `profile_edit_lock` e takeover è considerato architetturalmente coerente allo stato attuale.
-
-Le RPC implementate applicano i seguenti principi:
-
-- privilegio minimo;
-- verifica dell'identità mediante `auth.uid()`;
-- nessuna fiducia nei dati di autorizzazione forniti dal client;
-- utilizzo di `SECURITY DEFINER` soltanto quando realmente necessario;
-- `search_path` esplicito e sicuro;
-- `REVOKE` e `GRANT EXECUTE` espliciti;
-- controllo atomico delle modifiche;
-- test positivi e negativi;
-- verifica dei principali tentativi di bypass.
-
-Il completamento del protocollo `profile_edit_locks` ha consentito nella Sessione S022 l’introduzione del primo **Write Path autoritativo di Categoria A**, applicato all’entità `gardens`. Il Write Path verifica lato server l’identità autenticata, l’ownership attiva del Profile, la Profile Write Authority, il client, la sessione, il token, il lease e lo stato del takeover, senza affidarsi al solo preflight del client.
-
-Per `gardens` sono state introdotte le RPC autoritative `create_garden` e `update_garden`. Le scritture dirette `INSERT`, `UPDATE` e `DELETE` da parte di `authenticated` sono state revocate e le modifiche applicative vengono concentrate nelle RPC server-side, con validazione e controllo atomico delle operazioni.
-
-Nella Sessione S023 `update_garden` è stata rafforzata rendendo obbligatorio `expected_row_version`. La RPC confronta la versione attesa dal client con quella corrente e applica l’aggiornamento soltanto se la condizione rimane valida nella scrittura finale. In caso contrario restituisce `version_conflict`, impedendo che una modifica basata su dati obsoleti sovrascriva un aggiornamento più recente.
-
-La Sessione S023 ha inoltre esteso il Write Path autoritativo all’entità `seasons` mediante:
-
-- `create_season`;
-- `update_season`;
-- `activate_season`.
-
-Le scritture dirette `INSERT`, `UPDATE` e `DELETE` su `public.seasons` sono state revocate, mentre la lettura rimane disponibile secondo le autorizzazioni previste.
-
-`create_season` crea sempre una nuova stagione inizialmente inattiva. `update_season` modifica esclusivamente i dati descrittivi e temporali, mantiene immutabile `garden_id` e non può modificare direttamente `is_active`.
-
-L’attivazione viene eseguita esclusivamente da `activate_season`. La RPC attiva la stagione target e disattiva nella stessa transazione l’eventuale stagione precedentemente attiva, preservando l’invariante di una sola stagione attiva per Garden.
-
-`update_season` e `activate_season` applicano la concorrenza ottimistica mediante `expected_row_version`. Il contratto server-side distingue gli esiti `created`, `updated`, `activated`, `unchanged`, `version_conflict`, `duplicate_year`, `forbidden`, `write_forbidden`, `not_found` e `invalid_input`.
-
-I Write Path di `gardens` e `seasons` sono considerati completati e coerenti allo stato attuale. L’estensione alle ulteriori entità di Categoria A dovrà mantenere verifiche server-side, privilegi minimi, concorrenza controllata e comportamento fail-closed, adattando il contratto alle invarianti della singola entità.
-
-Le operazioni amministrative protette su `profile_memberships` restano un blocco tecnico successivo e non risultano implementate nella Sessione S023.
-
-Le credenziali privilegiate e i segreti server-side non devono essere incorporati nel client Flutter.
-
-Eventuali dispositivi automatici futuri, come componenti destinati all'irrigazione, dovranno utilizzare un'identità tecnica e autorizzazioni appropriate senza riutilizzare impropriamente le credenziali dell'utente.
-
-Gli eventi generati automaticamente dovranno inoltre essere progettati, quando necessario, con meccanismi di idempotenza per evitare registrazioni duplicate dovute a retry o ripetizioni della stessa operazione.
-
-### Sicurezza e migration
-
-La sicurezza costituisce parte integrante dell'implementazione del database.
-
-La creazione di una nuova struttura persistente non deve quindi essere considerata completa senza aver valutato contestualmente:
-
-- ownership;
+- metadata;
 - RLS;
-- policy;
-- vincoli;
-- operazioni sensibili;
-- eventuale necessità di transazioni;
-- test di accesso autorizzato e non autorizzato.
+- protocollo single-writer;
+- takeover;
+- Write Path autoritativi.
 
-La Sessione S019 ha applicato concretamente questo principio alla prima migration Database V1.
-
-La migration:
-
-```text
-supabase/migrations/20260817103916_database_v1_baseline.sql
-```
-
-è stata verificata mediante ricostruzione completa dell'ambiente locale con:
-
-```text
-supabase db reset
-```
-
-Dopo la ricostruzione sono stati controllati:
-
-- le sei tabelle Fondazioni;
-- lo schema `private`;
-- gli helper autorizzativi;
-- i trigger metadata;
-- l'attivazione della Row Level Security;
-- le **13 policy RLS**;
-- il comportamento degli accessi autorizzati;
-- il comportamento degli accessi non autorizzati.
-
-La verifica della sicurezza comprende quindi sia casi positivi sia casi negativi.
-
-Il principio operativo applicato nella S019 è:
-
-```text
-migration
-        ↓
-ricostruzione da zero
-        ↓
-verifica struttura effettiva
-        ↓
-test accessi consentiti
-        ↓
-test accessi negati
-        ↓
-incremento verificato
-```
-
-La struttura effettivamente generata è stata inoltre controllata mediante un dump diagnostico locale temporaneo, successivamente eliminato.
-
-Questo metodo dovrà essere mantenuto anche per i successivi incrementi del Database V1: schema e sicurezza devono essere sviluppati e verificati insieme.
-
-La definizione specialistica del modello di sicurezza Database V1 è mantenuta nel **DOC-004 – Manuale Database**.
-
-## 5.8 Evoluzione del database
-
-La Sessione S017 ha completato e congelato la progettazione logica e architetturale del **Database V1**.
-
-La baseline approvata costituisce pertanto il riferimento ufficiale per le successive modifiche della persistenza e comprende:
-
-- **52 entità di dominio**;
-- **1 struttura tecnica separata**, `profile_edit_locks`;
-- ownership e modello di accesso;
-- modello familiare monoutente;
-- coordinamento single-writer;
-- relazioni e configurazioni temporali;
-- temporalità e storicizzazione;
-- convenzioni dei dati;
-- sicurezza e Row Level Security;
-- invarianti e integrità;
-- strategia di implementazione e migrazione.
-
-Il controllo nominale finale della S017 ha inoltre stabilito che:
-
-- `AgronomicWindow` rimane un risultato calcolato e `agronomic_windows` non appartiene alle tabelle persistenti V1;
-- `irrigation_zone_target_assignments` è il nome SQL definitivo della relativa entità;
-- `profile_edit_locks` è infrastruttura tecnica e non appartiene al conteggio delle 52 entità di dominio.
-
-Il completamento della progettazione nella S017 non equivale al completamento dell'implementazione fisica.
-
-Con la Sessione S019 è però iniziata concretamente la traduzione della baseline congelata in strutture PostgreSQL/Supabase versionate e verificabili.
-
-Il primo incremento ha introdotto le **Fondazioni**:
-
-- `profiles`;
-- `profile_memberships`;
-- `gardens`;
-- `workers`;
-- `seasons`;
-- `profile_edit_locks`.
-
-Lo stato evolutivo deve quindi essere letto come:
-
-```text
-Database operativo preesistente
-        ↓
-baseline Database V1 congelata — S017
-        ↓
-ambiente locale Supabase predisposto — S018
-        ↓
-prima migration + Fondazioni + prima sicurezza RLS — S019
-        ↓
-RPC sicure/atomiche e successivi gruppi della baseline
-        ↓
-Database V1 completo
-```
-
-La S019 rappresenta pertanto il passaggio dalla sola progettazione architetturale alla **prima implementazione fisica verificata** del Database V1.
-
-L'implementazione completa rimane tuttavia in corso: il primo incremento non deve essere interpretato come completamento dell'intera baseline.
-
-Le fasi successive dovranno continuare a tradurre progressivamente la baseline congelata senza riprogettarla liberamente, salvo l'emersione di un errore concreto che richieda una nuova valutazione architetturale.
-
-L'implementazione continuerà in modo incrementale e secondo l'ordine delle dipendenze, evitando una migrazione unica di tipo big bang.
-
-Ogni incremento dovrà considerare congiuntamente:
-
-- schema SQL;
-- chiavi e relazioni;
-- vincoli;
-- ownership;
-- RLS e policy;
-- indici necessari;
-- eventuali funzioni o transazioni server-side;
-- compatibilità con il Repository Layer;
-- compatibilità con il dominio Dart;
-- migrazione degli eventuali dati esistenti;
-- test tecnici e applicativi.
-
-Il principio operativo è:
-
-```text
-piccola migration
-        ↓
-verifica database
-        ↓
-adeguamento Repository / dominio
-        ↓
-flutter analyze
-        ↓
-test
-        ↓
-incremento successivo
-```
-
-Le migration dovranno essere tracciabili e versionate nel repository in modo da poter ricostruire l'evoluzione dello schema.
-
-Prima delle modifiche che possano interessare dati esistenti dovrà essere valutata la disponibilità di un adeguato meccanismo di backup e recupero.
-
-Il codice applicativo non dovrà essere adattato mediante scorciatoie che compromettano la separazione tra Repository, dominio e persistenza. Il Repository Layer rimane il confine principale attraverso il quale l'applicazione accede al database.
-
-Le funzionalità esplicitamente escluse dal V1 non devono essere introdotte durante l'implementazione della baseline salvo una nuova decisione architetturale approvata e documentata.
-
-Tra le principali esclusioni V1 rientrano:
-
-- inventario e magazzino;
-- lotti di scorta;
-- ammortamenti;
-- contabilità avanzata;
-- GIS/PostGIS;
-- multi-writer completo;
-- multiutenza avanzata con account distinti e condivisione dello stesso Garden;
-- duplicazione in Supabase dell'archivio meteorologico grezzo;
-- automazione irrigua completa;
-- correzione climatica e meteorologica avanzata.
-
-Eventuali modifiche future alla baseline congelata dovranno essere motivate da esigenze emerse durante l'implementazione o da nuove decisioni di progetto e dovranno essere registrate nella documentazione architetturale.
-
-Il riferimento ufficiale per la baseline congelata e per la strategia dettagliata di implementazione e migrazione è il **DOC-004 – Manuale Database**.
-
-## 5.9 Considerazioni finali
-
-Il Database V1 di Orto Smart dispone, a partire dalla Sessione S017, di una **baseline logica e architetturale completa, approvata e congelata**.
-
-La progettazione definisce il modello persistente necessario a sostenere l'evoluzione dell'applicazione mantenendo separati:
-
-- dati persistenti e risultati calcolati;
-- pianificazione e fatti realmente avvenuti;
-- configurazioni ed eventi;
-- identità stabile e configurazioni variabili nel tempo;
-- ownership applicativa e partecipazione dei `workers`;
-- sicurezza del database e controlli del client.
-
-La baseline comprende **52 entità di dominio** e la struttura tecnica separata `profile_edit_locks`.
-
-Con la Sessione S019 è iniziata la sua implementazione fisica mediante la prima migration Database V1:
-
-```text
-supabase/migrations/20260817103916_database_v1_baseline.sql
-```
-
-Il primo incremento implementato comprende le sei strutture Fondazioni:
-
-- `profiles`;
-- `profile_memberships`;
-- `gardens`;
-- `workers`;
-- `seasons`;
-- `profile_edit_locks`.
-
-Sono stati inoltre introdotti e verificati lo schema `private`, gli helper autorizzativi, i trigger metadata, la prima matrice RLS e **13 policy RLS**.
-
-La baseline completa non coincide ancora con lo schema fisicamente implementato: l'implementazione continua in modo incrementale per gruppi coerenti di entità e dipendenze.
-
-L'evoluzione della persistenza deve preservare i principi stabiliti durante la progettazione S017 e applicati concretamente nelle sessioni successive:
-
-- integrità prima della comodità del client;
-- ownership verificabile;
-- sicurezza deny-by-default;
-- privilegio minimo;
-- Row Level Security;
-- test positivi e negativi delle autorizzazioni;
-- modello familiare monoutente nel V1;
-- coordinamento single-writer;
-- storicizzazione delle configurazioni che cambiano nel tempo;
-- riduzione delle duplicazioni;
-- persistenza soltanto delle informazioni necessarie;
-- separazione tra database, Repository Layer e dominio applicativo;
-- implementazione incrementale senza migration big bang;
-- comportamento fail-closed quando l'esito di una operazione non è confermabile;
-- nessun retry automatico di una scrittura dal risultato incerto;
-- concorrenza ottimistica mediante `row_version` ed `expected_row_version` quando prevista dal contratto.
-
-La Sessione S020 ha avviato l'incremento relativo alle **RPC sicure e atomiche** per le operazioni sensibili, con particolare attenzione alla gestione di `profile_edit_locks`.
-
-La Sessione S021 ha completato il protocollo delle RPC per `profile_edit_locks` e ne ha effettuato l'hardening mediante audit del percorso concorrente.
-
-Sono implementate e verificate:
+Il protocollo `profile_edit_locks` comprende:
 
 ```text
 acquire_profile_edit_lock
@@ -1773,123 +1724,34 @@ complete_profile_edit_takeover
 get_profile_edit_lock_state
 ```
 
-Il protocollo utilizza serializzazione concorrente, rivalidazione server-side, lease, token e trasferimento atomico del lock.
+La Profile Write Authority è utilizzata per le scritture operative che richiedono il relativo contratto autoritativo.
 
-Nella Sessione S022 questo meccanismo è stato utilizzato come fondamento del primo **Write Path autoritativo**, implementato per `gardens` mediante:
+### Garden, Season e Bed
 
-```text
-create_garden
-update_garden
-```
-
-La Sessione S023 ha esteso il modello a `seasons` mediante:
+Sono stati implementati Write Path server-side per:
 
 ```text
-create_season
-update_season
-activate_season
-```
-
-e ha consolidato nel client:
-
-- identità tecnica persistente del client;
-- identità distinta della sessione applicativa;
-- contesto Profile;
-- Repository del lock;
-- scheduler;
-- controller;
-- scope;
-- gate della Profile Write Authority.
-
-La Sessione S024 ha esteso il modello autoritativo a:
-
-```text
+gardens
+seasons
 beds
 bed_geometries
 bed_geometry_corrections
 ```
 
-mediante:
+Le operazioni sensibili utilizzano RPC autoritative, controllo delle invarianti e, quando previsto, concorrenza ottimistica mediante:
 
 ```text
-create_bed
-update_bed
-set_bed_active
-change_bed_geometry
-correct_bed_geometry
+row_version
+expected_row_version
 ```
 
-separando l'identità stabile dell'aiuola dalla geometria valida nel tempo.
+L'identità stabile della Bed rimane separata dalla geometria valida nel tempo.
 
-La Sessione S025 ha completato l'integrazione Flutter di tali operazioni, includendo modifica, attivazione, disattivazione, variazione geometrica ordinaria e correzione storica.
+### Planting
 
-La Sessione S026 ha introdotto il **Catalogo DB V1**:
+`plantings` rappresenta la coltivazione realmente effettuata.
 
-```text
-botanical_families
-        ↓
-crops
-        ↓
-crop_varieties
-```
-
-mediante le migration:
-
-```text
-20260911084752_add_crop_catalog.sql
-20260911091047_add_crop_catalog_write_rpcs.sql
-```
-
-e le nove RPC autoritative:
-
-```text
-create_botanical_family
-update_botanical_family
-set_botanical_family_active
-
-create_crop
-update_crop
-set_crop_active
-
-create_crop_variety
-update_crop_variety
-set_crop_variety_active
-```
-
-Il catalogo è Profile-owned, utilizza UUID, RLS, concorrenza ottimistica, Profile Write Authority e scritture RPC-only.
-
-La Sessione S027 ha integrato il Catalogo DB V1 nel client Flutter mediante:
-
-```text
-BotanicalFamily
-Crop
-CropVariety
-```
-
-e i Repository:
-
-```text
-BotanicalFamilyRepository
-CropRepository
-CropVarietyRepository
-```
-
-con letture RLS, scritture RPC-only, result type dedicati, `row_version` e comportamento fail-closed.
-
-La Sessione S028 ha completato un ulteriore incremento fondamentale della baseline mediante l'implementazione autoritativa di:
-
-```text
-public.plantings
-```
-
-Sono state introdotte le migration:
-
-```text
-20260915080700_add_plantings_authoritative_model.sql
-20260915081444_add_plantings_write_rpcs.sql
-```
-
-La tabella `plantings` rappresenta ora la coltivazione realmente effettuata e mantiene un contesto persistente esplicito mediante:
+Il modello autoritativo comprende il contesto:
 
 ```text
 profile_id
@@ -1897,40 +1759,22 @@ garden_id
 season_id
 bed_id
 crop_id
-variety_id
+cultivar_id
 ```
 
-Il modello comprende inoltre:
+`cultivar_id` è opzionale.
+
+Il precedente `variety_id`, presente nel modello S028/S029, è stato rimosso durante il cutover S030.
+
+La coerenza tra cultivar e coltura è protetta mediante la relazione composita:
 
 ```text
-start_method
-start_date
-end_date
-start_position_cm
-length_cm
-plant_spacing_cm
-row_spacing_cm
-rows_count
-occupied_width_cm
-plants_count
-seed_quantity_g
-status
-notes
-row_version
+(cultivar_id, crop_id)
+        ↓
+crop_cultivars(id, crop_id)
 ```
 
-I metodi di avvio persistiti sono:
-
-```text
-purchased_seedlings
-nursery_then_transplant
-direct_rows
-direct_broadcast
-```
-
-Il valore legacy `manual` non costituisce un metodo agronomico persistito.
-
-Il Write Path autoritativo di `plantings` utilizza:
+Il Write Path comprende:
 
 ```text
 create_planting
@@ -1938,14 +1782,14 @@ update_planting
 set_planting_status
 ```
 
-Le scritture applicano:
+e applica, secondo il contratto dell'operazione:
 
 - Profile Write Authority;
-- RLS;
-- validazioni server-side;
-- concorrenza ottimistica tramite `row_version`;
-- controllo degli stati delle entità collegate;
-- controllo della geometria dell'aiuola;
+- autorizzazione server-side;
+- validazioni;
+- concorrenza ottimistica;
+- controllo delle entità collegate;
+- controllo della geometria;
 - controllo delle sovrapposizioni;
 - comportamento fail-closed.
 
@@ -1957,710 +1801,867 @@ La semantica spaziale utilizza intervalli half-open:
 
 Due coltivazioni possono quindi toccarsi sul confine senza risultare sovrapposte.
 
-La compatibilità geometrica viene verificata anche rispetto alla geometria storicizzata dell'aiuola.
-
-Le RPC:
-
-```text
-change_bed_geometry
-correct_bed_geometry
-```
-
-sono state rafforzate per impedire modifiche incompatibili con coltivazioni esistenti e possono restituire:
-
-```text
-blocked_by_plantings
-```
-
-Il lifecycle autoritativo di `plantings` utilizza gli stati:
+Il lifecycle autoritativo utilizza:
 
 ```text
 sown
+  ↓
 growing
+  ↓
 harvest_ready
+  ↓
 harvested
+  ↓
 finished
+```
+
+con possibilità di passaggio a:
+
+```text
 removed
 ```
 
-con transizioni:
+nei punti previsti dal contratto.
+
+`harvested` mantiene l'occupazione dell'aiuola.
+
+Soltanto gli stati terminali previsti dal contratto chiudono l'occupazione temporale.
+
+La cancellazione fisica non appartiene al normale lifecycle utente. Un eventuale hard delete rimane riservato a un futuro strumento amministrativo o tecnico per correzioni eccezionali.
+
+### Catalogo Agronomico
+
+Le Sessioni S026 e S027 avevano introdotto il primo Catalogo DB V1:
 
 ```text
-sown          -> growing | removed
-growing       -> harvest_ready | removed
-harvest_ready -> harvested | removed
-harvested     -> finished | removed
-finished      -> nessuna
-removed       -> nessuna
+botanical_families
+      ↓
+    crops
+      ↓
+crop_varieties
 ```
 
-`harvested` continua a occupare fisicamente l'aiuola.
+con ownership Profile, Profile Write Authority e integrazione Flutter dedicata.
 
-Solo:
+Questa architettura costituisce uno stadio storico e non rappresenta più il modello corrente.
+
+La Sessione S030 ha completato il cutover verso il **Catalogo Agronomico V1 globale**, organizzato in **11 tranche tecniche**.
+
+La catena canonica corrente è:
 
 ```text
-finished
-removed
+botanical_taxa
+      ↓
+    crops
+      ↓
+crop_cultivars
 ```
 
-chiudono l'occupazione temporale e richiedono `end_date`.
-
-La cancellazione fisica ordinaria non viene utilizzata.
-
-Il normale ciclo applicativo termina mediante:
+Le strutture legacy:
 
 ```text
-finished
-removed
+botanical_families
+catalog_crops_s030
+crop_varieties
 ```
 
-mentre un eventuale hard delete rimane riservato a futuri strumenti amministrativi o di correzione eccezionale.
+sono state rimosse al completamento del cutover.
 
-Sul lato Flutter la S028 ha riallineato:
+Il nuovo perimetro S030 comprende **26 tabelle** dedicate al Catalogo e alle relative strutture di supporto.
+
+L'architettura comprende:
+
+- identità botaniche globali;
+- identità agronomiche globali;
+- Catalog Authority;
+- registry dei parametri agronomici;
+- vocabolari di contesto;
+- fonti;
+- acquisizioni;
+- osservazioni;
+- alias;
+- mapping;
+- workflow editoriale;
+- revisioni;
+- Knowledge agronomica canonica;
+- pubblicazione;
+- Resolver.
+
+Le letture applicative canoniche per colture e cultivar vengono esposte mediante:
 
 ```text
-Planting
-PlantingRepository
-AddPlantingPage
-BedPage
-GardenPage
-GardenMap
-PlantingCard
-RotationEngine
+crop_catalog_read
+crop_cultivar_catalog_read
 ```
 
-È stato inoltre introdotto:
+configurate con:
 
 ```text
-lib/core/write_authority/planting_write_result.dart
+security_invoker = true
 ```
 
-per rappresentare in modo tipizzato gli esiti delle scritture.
+### Catalog Authority
 
-`PlantingRepository` utilizza le RPC autoritative e non esegue scritture dirette sul normale flusso applicativo.
+La Catalog Authority è distinta dalla Profile Write Authority.
 
-La verifica finale S028 ha incluso:
+Le capability previste distinguono:
+
+```text
+can_manage_identity
+can_ingest
+can_review
+can_publish
+```
+
+Il backend espone, tra le altre, le funzioni:
+
+```text
+get_my_catalog_capabilities()
+claim_initial_catalog_authority()
+```
+
+Le funzioni sensibili utilizzano i principi previsti dal contratto server-side, tra cui `SECURITY DEFINER`, `search_path` controllato e privilegi espliciti.
+
+Il claim iniziale dell'autorità è un'operazione esplicita e non viene eseguito automaticamente dal client.
+
+### Knowledge e Resolver
+
+La Knowledge canonica è separata dalle osservazioni e dai dati candidati.
+
+Il Resolver individua la Knowledge applicabile a uno specifico contesto, ma non modifica automaticamente una `Planting`.
+
+Il flusso rimane:
+
+```text
+Knowledge
+   ↓
+Resolver
+   ↓
+proposta
+   ↓
+conferma utente
+   ↓
+fatto operativo
+```
+
+## 5.4 Relazioni e vincoli
+
+Le entità sono collegate mediante:
+
+- `PRIMARY KEY`;
+- `FOREIGN KEY`;
+- `UNIQUE`;
+- `NOT NULL`;
+- `CHECK`;
+- indici;
+- vincoli temporali;
+- relazioni composite quando necessarie.
+
+Le relazioni con semantica propria non vengono incorporate automaticamente nelle entità principali.
+
+Questo principio consente di rappresentare correttamente:
+
+- configurazioni temporali;
+- relazioni storicizzate;
+- assegnazioni;
+- target;
+- fatti realmente avvenuti.
+
+Quando una configurazione possiede validità temporale viene utilizzata, quando appropriato, una semantica del tipo:
+
+```text
+[valid_from, valid_to)
+```
+
+Una nuova configurazione non deve quindi riscrivere retroattivamente quella storicamente valida.
+
+Rimane fondamentale la distinzione:
+
+```text
+configurazione
+      ≠
+evento
+```
+
+e:
+
+```text
+pianificazione
+      ≠
+fatto realmente avvenuto
+```
+
+Un esempio è:
+
+```text
+planned_plantings
+        ↓
+plantings
+```
+
+La pianificazione non diventa implicitamente realtà.
+
+### Vincoli Catalogo
+
+Nel Catalogo S030 i vincoli proteggono anche:
+
+- identità globali;
+- normalizzazione delle chiavi di confronto;
+- relazioni tra identità botaniche e agronomiche;
+- coerenza Crop/Cultivar;
+- provenienza;
+- workflow editoriale;
+- revisioni;
+- Knowledge;
+- pubblicazione.
+
+Per le `plantings`, il vincolo composito tra `cultivar_id` e `crop_id` impedisce associazioni incoerenti.
+
+Il database deve impedire, quando previsto dal dominio:
+
+- riferimenti inesistenti;
+- ownership incompatibile;
+- intervalli non validi;
+- sovrapposizioni vietate;
+- quantità impossibili;
+- transizioni non consentite;
+- relazioni semanticamente incompatibili;
+- modifiche che violino la ricostruibilità storica.
+
+Il dettaglio completo degli invarianti è mantenuto nel DOC-004.
+
+## 5.5 Integrità dei dati
+
+L'integrità costituisce una responsabilità primaria del database.
+
+Il principio adottato è:
+
+```text
+integrità del dominio
+        ↓
+protezione server-side
+        ↓
+validazione applicativa aggiuntiva
+```
+
+Il client non può essere considerato l'unico garante di una regola persistente.
+
+Tra gli invarianti rilevanti rientrano:
+
+- integrità referenziale;
+- ownership;
+- autorizzazione;
+- validità temporale;
+- controllo delle sovrapposizioni;
+- identità stabile delle Bed;
+- geometria storicizzata;
+- coerenza Crop/Cultivar;
+- lifecycle delle Planting;
+- concorrenza ottimistica;
+- separazione tra pianificazione e realtà;
+- separazione tra configurazioni ed eventi;
+- provenienza della Knowledge;
+- coerenza delle revisioni;
+- preservazione della storia editoriale;
+- preservazione dei fatti operativi;
+- idempotenza quando richiesta.
+
+Un dato sconosciuto non deve essere trasformato automaticamente in un valore neutro che ne cambi il significato.
+
+Allo stesso modo, una correzione non deve distruggere arbitrariamente la ricostruibilità di un evento storico.
+
+Il principio generale rimane:
+
+> integrità e correttezza del dato prima della comodità del client.
+
+## 5.6 Prestazioni e ottimizzazione
+
+Le ottimizzazioni vengono introdotte sulla base di esigenze concrete, senza compromettere integrità e chiarezza del modello.
+
+Il criterio generale è:
+
+```text
+dato persistente necessario
+        +
+dato affidabilmente derivabile
+        ↓
+persistenza minima sufficiente
+```
+
+La normalizzazione rimane il comportamento predefinito.
+
+Una duplicazione è accettabile quando possiede una funzione esplicita, come uno snapshot necessario a conservare il contesto storico di una decisione operativa.
+
+I risultati derivabili non vengono persistiti automaticamente.
+
+Gli indici devono essere valutati in funzione delle effettive modalità di accesso, con particolare attenzione a:
+
+- chiavi esterne;
+- filtri frequenti;
+- ordinamenti;
+- intervalli temporali;
+- unicità;
+- relazioni utilizzate frequentemente;
+- read model e percorsi applicativi effettivi.
+
+Per i dati meteorologici non è previsto duplicare in Supabase l'intero archivio grezzo già disponibile attraverso la fonte meteorologica autorevole.
+
+Devono essere conservati soltanto i dati, gli snapshot, le sintesi o i riferimenti necessari alle funzioni agronomiche e alla ricostruzione delle decisioni.
+
+Lo stesso principio si applica alle fonti esterne del Catalogo: l'obiettivo non è creare copie indiscriminate delle fonti, ma conservare ciò che serve a provenienza, valutazione, Knowledge e tracciabilità.
+
+## 5.7 Sicurezza
+
+La sicurezza segue un approccio:
+
+```text
+deny-by-default
++
+least privilege
++
+server-side authority
+```
+
+Supabase Auth gestisce l'identità autenticata, mentre PostgreSQL protegge l'accesso mediante RLS, privilegi, vincoli e funzioni server-side.
+
+### Row Level Security
+
+Le tabelle esposte tramite Data API vengono protette mediante RLS quando previsto dal relativo modello di accesso.
+
+Per i dati operativi Profile-owned, le policy rispettano ownership e membership.
+
+Per il Catalogo globale, il modello di autorizzazione non deve essere confuso con l'ownership del Profile: vengono utilizzate la Catalog Authority e le relative capability.
+
+### Profile Write Authority
+
+La Profile Write Authority coordina il writer dei dati operativi protetti.
+
+Il lock non sostituisce:
+
+- autenticazione;
+- autorizzazione;
+- RLS;
+- vincoli;
+- concorrenza ottimistica;
+- controlli atomici.
+
+Costituisce un livello ulteriore di coordinamento.
+
+Le RPC autoritative verificano server-side gli elementi richiesti dal relativo contratto e non assumono come attendibili le dichiarazioni di autorizzazione provenienti dal client.
+
+### Catalog Authority
+
+La Catalog Authority protegge le operazioni sensibili sul Catalogo globale.
+
+Le capability separano gestione delle identità, ingestion, review e publication.
+
+Questa separazione evita che la possibilità di utilizzare un Catalogo equivalga automaticamente alla possibilità di modificarne le identità o pubblicarne la Knowledge.
+
+### Operazioni sensibili
+
+Le operazioni che richiedono atomicità o verifiche autoritative devono utilizzare funzioni server-side e transazioni appropriate.
+
+Il principio è:
+
+```text
+verifica
+   +
+autorizzazione
+   +
+validazione
+   +
+modifica
+   =
+operazione autoritativa
+```
+
+Quando utilizzato, `SECURITY DEFINER` deve essere accompagnato da un contratto di sicurezza esplicito, comprendente un `search_path` sicuro e privilegi coerenti con il principio del minimo privilegio.
+
+I privilegi di esecuzione devono essere concessi esplicitamente ai ruoli necessari e revocati quando non richiesti.
+
+Le credenziali privilegiate non devono essere incorporate nel client Flutter.
+
+### Data API
+
+Le migration che introducono nuovi oggetti esposti alla Data API devono includere esplicitamente i privilegi necessari.
+
+RLS e `GRANT` svolgono funzioni differenti e devono essere entrambi valutati:
+
+```text
+GRANT
+  ↓
+possibilità di raggiungere l'oggetto
+
+RLS
+  ↓
+possibilità di accedere alle righe consentite
+```
+
+Una nuova tabella non deve essere considerata correttamente integrata soltanto perché esiste fisicamente nello schema.
+
+## 5.8 Migration e verifiche
+
+Le migration PostgreSQL/Supabase costituiscono la fonte riproducibile dell'evoluzione dello schema.
+
+Ogni incremento deve considerare congiuntamente:
+
+- schema;
+- relazioni;
+- vincoli;
+- sicurezza;
+- RLS;
+- privilegi;
+- RPC;
+- compatibilità applicativa;
+- migrazione dei dati;
+- test.
+
+Il flusso generale è:
+
+```text
+migration
+   ↓
+ricostruzione da zero
+   ↓
+verifica schema
+   ↓
+verifica sicurezza
+   ↓
+verifica Repository / dominio
+   ↓
+flutter analyze
+   ↓
+test
+```
+
+La ricostruzione completa locale viene verificata mediante:
 
 ```text
 supabase db reset
-success
 ```
+
+e il database viene sottoposto a lint.
+
+Alla conclusione della S030 sono stati verificati:
+
+```text
+supabase db reset
+→ completato con successo
+```
+
+e:
 
 ```text
 supabase db lint --local
+→ No schema errors found
+```
+
+Il lint del database remoto ha restituito anch'esso:
+
+```text
 No schema errors found
 ```
 
-```text
-flutter analyze
-No issues found!
-```
+Le acceptance S030 dedicate alle tranche finali sono state completate con successo e le fixture utilizzate per le verifiche sono state sottoposte a rollback.
+
+La migration finale del cutover è:
 
 ```text
-flutter test
-997 tests passed
+20260923154831_finalize_global_catalog_cutover.sql
 ```
 
-Alla conclusione della S028 risultavano completati:
+ed è stata applicata anche all'ambiente remoto.
 
-- Catalogo DB V1 lato PostgreSQL/Supabase;
-- integrazione Flutter del Catalogo V1;
-- modello persistente autoritativo di `plantings`;
-- Write Path autoritativo di `plantings`;
-- integrazione Flutter di creazione e modifica;
-- validazioni geometriche e temporali;
-- lifecycle server-side;
+La versione finale della migration risultava allineata:
+
+```text
+local  = 20260923154831
+remote = 20260923154831
+```
+
+La riproducibilità mediante migration rimane un requisito: modifiche manuali non tracciate allo schema non devono diventare una dipendenza dell'applicazione.
+
+## 5.9 Evoluzione post-S030
+
+La baseline Database V1 rimane il riferimento storico e progettuale generale, ma la sua implementazione procede attraverso decisioni e incrementi documentati.
+
+S030 ha completato il nuovo perimetro del Catalogo Agronomico e non deve più essere descritta come sviluppo futuro.
+
+Restano invece aperti, tra gli incrementi successivi:
+
+- backend canonico delle consociazioni;
+- operazioni amministrative protette ancora non implementate;
+- integrazione completa del Resolver nei flussi di pianificazione e inserimento;
+- ulteriori entità della Database V1 non ancora tradotte fisicamente;
+- attività;
+- irrigazione;
+- fertilizzazioni;
+- trattamenti;
+- raccolti;
+- costi e ricavi;
+- ulteriori eventi e funzioni operative;
+- eventuale hard delete amministrativo di Planting;
+- evoluzioni future della multiutenza.
+
+Rimane inoltre da verificare o ripristinare il percorso UI per la creazione del primo Garden quando il Profile non possiede ancora orti.
+
+Il Write Path backend per Garden esiste già; la verifica riguarda il percorso applicativo che consente all'utente di raggiungere la creazione iniziale.
+
+Il popolamento operativo dovrà rispettare una sequenza controllata.
+
+In particolare, prima dell'utilizzo reale:
+
+```text
+verifica DB locale pulito
+        ↓
+verifica separata DB remoto
+        ↓
+popolamento Catalogo verificato
+        ↓
+creazione Garden reale
+        ↓
+creazione Bed reali
+        ↓
+apertura Season reale
+        ↓
+registrazione Planting reali
+```
+
+Non devono essere introdotti dati dimostrativi o provvisori destinati a confondersi con il futuro patrimonio operativo reale.
+
+L'implementazione continuerà mediante incrementi piccoli e verificabili, evitando migration di tipo big bang.
+
+## 5.10 Considerazioni finali
+
+PostgreSQL costituisce il livello autoritativo della persistenza di Orto Smart.
+
+Dalla baseline S017 fino al cutover S030, l'architettura ha progressivamente consolidato:
+
+- struttura Profile-owned dei dati operativi;
 - Profile Write Authority;
+- Write Path autoritativi;
 - concorrenza ottimistica;
-- protezione della geometria delle aiuole rispetto alle coltivazioni esistenti.
+- geometria storicizzata delle aiuole;
+- modello autoritativo delle Planting;
+- lifecycle delle coltivazioni;
+- Catalogo Agronomico globale;
+- Catalog Authority;
+- provenienza multisorgente;
+- workflow editoriale;
+- Knowledge canonica;
+- pubblicazione;
+- Resolver.
 
-La Sessione S029 ha completato il livello applicativo del lifecycle delle coltivazioni senza modificare schema, migration, RPC, RLS o contratto persistente definiti nella S028.
+Lo stato corrente non coincide quindi né con il database operativo originario né con la sola baseline nominale S017.
 
-La UI utilizza ora il lifecycle autoritativo mediante:
+È il risultato delle migration e delle decisioni architetturali approvate fino alla S030.
 
-```text
-PlantingRepository.setPlantingStatus
-        ↓
-set_planting_status
-```
+I principi che devono continuare a guidarne l'evoluzione sono:
 
-Le azioni disponibili dipendono dallo stato corrente della coltivazione:
+- integrità prima della comodità del client;
+- sicurezza server-side;
+- privilegio minimo;
+- RLS e privilegi espliciti;
+- autorità coerente con il dominio interessato;
+- concorrenza controllata;
+- comportamento fail-closed;
+- tracciabilità;
+- preservazione della storia;
+- separazione tra Knowledge e fatto operativo;
+- persistenza minima sufficiente;
+- migration riproducibili;
+- verifiche locali e remote;
+- implementazione incrementale.
 
-```text
-sown
-  → growing
-  → removed
-
-growing
-  → harvest_ready
-  → removed
-
-harvest_ready
-  → harvested
-  → removed
-
-harvested
-  → finished
-  → removed
-
-finished
-  → nessuna transizione
-
-removed
-  → nessuna transizione
-```
-
-La precedente azione applicativa di eliminazione è stata rimossa dal normale flusso utente.
-
-Lo stato legacy:
-
-```text
-planned
-```
-
-non viene più utilizzato nella card delle coltivazioni.
-
-Per gli stati intermedi:
-
-```text
-sown → growing
-growing → harvest_ready
-harvest_ready → harvested
-```
-
-viene mantenuto:
-
-```text
-end_date = null
-```
-
-Per gli stati terminali:
-
-```text
-harvested → finished
-* → removed
-```
-
-l'utente deve invece confermare esplicitamente la data di fine.
-
-La UI propone come valore iniziale la data corrente, consentendo però la selezione entro i limiti:
-
-```text
-minimo  = planting.startDate
-massimo = oggi
-```
-
-La validazione definitiva rimane comunque responsabilità del server.
-
-La Sessione S029 ha inoltre rafforzato la sincronizzazione della UI in presenza degli esiti:
-
-```text
-version_conflict
-invalid_transition
-```
-
-In entrambi i casi i dati delle coltivazioni vengono riletti dal database prima di informare l'utente, evitando che la schermata continui a mostrare uno stato obsoleto.
-
-`PlantingCard` presenta ora azioni lifecycle contestuali e, nello stato:
-
-```text
-harvested
-```
-
-visualizza esplicitamente che l'aiuola rimane occupata fino alla conclusione o rimozione della coltivazione.
-
-La verifica tecnica finale S029 ha confermato:
-
-```text
-flutter analyze
-No issues found! (ran in 12.8s)
-```
-
-La suite completa finale è stata nuovamente eseguita dopo l'aggiunta dell'ultimo test dedicato a `PlantingCard` e ha prodotto:
-
-```text
-flutter test
-1011/1011 test passati
-```
-
-Restano inoltre confermate le verifiche dedicate:
-
-```text
-bed_page_test.dart
-30/30 test passati
-
-planting_card_test.dart
-9/9 test passati
-```
-
-Il totale di 1011 test è quindi un risultato effettivamente verificato mediante esecuzione completa della suite e costituisce il dato tecnico finale della Sessione S029.
-
-Alla conclusione della S029 risultano quindi completati:
-
-- lifecycle autoritativo server-side;
-- integrazione UI del lifecycle;
-- azioni contestuali per stato;
-- mantenimento dell'occupazione nello stato `harvested`;
-- gestione esplicita di `end_date` per `finished` e `removed`;
-- refresh autoritativo della UI su `version_conflict`;
-- refresh autoritativo della UI su `invalid_transition`;
-- eliminazione del normale flusso `delete`;
-- eliminazione dello stato legacy `planned` dalla card;
-- Profile Write Authority fail-closed;
-- concorrenza ottimistica mediante `row_version`.
-
-Restano aperti come incrementi successivi:
-
-- selezione e gestione della `CropVariety` nel flusso utente;
-- progressiva eliminazione delle dipendenze legacy residue;
-- UI amministrativa completa del Catalogo V1;
-- operazioni amministrative protette su `profile_memberships`;
-- eventuale hard delete amministrativo o tecnico di `plantings`, escluso dal normale lifecycle.
-
-Rimane inoltre aperta una verifica applicativa relativa alla creazione del primo orto quando l'app non contiene ancora alcun `garden`.
-
-Il Write Path autoritativo di `gardens` esiste già dalla S022; dovrà quindi essere verificato se la pagina di creazione esista ma non sia raggiungibile, se il relativo comando venga nascosto da una condizione oppure se manchi l'integrazione UI necessaria al primo inserimento.
-
-Questa verifica non è stata inclusa nel perimetro della S029.
-
-Come sviluppo futuro preparatorio, esterno alla Sessione S029, è stata inoltre consolidata la direzione progettuale per la futura S030 dedicata al **Catalogo Agronomico V1**.
-
-Il futuro Catalogo Agronomico dovrà essere:
-
-- multisorgente;
-- tracciabile;
-- versionabile;
-- contestualizzato;
-- separato dai dati candidati provenienti da fonti esterne.
-
-Il flusso concettuale previsto è:
-
-```text
-Fonte esterna
-        ↓
-AgronomicImport
-        ↓
-dato candidato
-        ↓
-AgronomicReview
-        ↓
-AgronomicCatalog
-```
-
-con stati:
-
-```text
-DRAFT
-REVIEW
-APPROVED
-ARCHIVED
-```
-
-Nessun dato importato o ottenuto mediante scraping potrà modificare automaticamente il Catalogo approvato.
-
-La futura progettazione dovrà inoltre distinguere:
-
-```text
-coltura
-varietà / cultivar
-origine commerciale
-```
-
-e prevedere ereditarietà dei valori dalla coltura alla varietà con possibilità di override specifici e tracciabilità della fonte a livello del singolo dato agronomico.
-
-La **carota** è stata individuata come primo caso pilota per verificare l'intero modello, ma i dati raccolti finora rimangono candidati e non devono essere considerati già approvati o utilizzabili operativamente.
-
-La Sessione S030 non è ancora iniziata.
-
-Il **DOC-004 — Manuale Database** costituisce il riferimento specialistico ufficiale per la baseline Database V1, mentre il presente capitolo ne documenta il ruolo nell'architettura complessiva di Orto Smart.
-
-Le future modifiche strutturali o applicative dovranno mantenere allineati:
-
-```text
-schema
-+
-sicurezza
-+
-Repository
-+
-dominio applicativo
-+
-UI
-+
-test
-```
+Il **DOC-004 – Manuale Database** rimane il riferimento specialistico per il dettaglio completo dello schema, delle migration, degli invarianti e dello stato di implementazione.
 
 # 6. Repository Layer
 
 ## 6.1 Obiettivo
 
-Il Repository Layer rappresenta il livello dell'architettura software incaricato della gestione dell'accesso ai dati dell'applicazione.
+Il Repository Layer rappresenta il confine applicativo tra il dominio Flutter e le sorgenti persistenti gestite tramite Supabase/PostgreSQL.
 
-Il suo compito principale è isolare tutta la logica di comunicazione con il database dal resto del sistema, fornendo un'interfaccia semplice e uniforme per la lettura, l'inserimento, l'aggiornamento e l'eliminazione delle informazioni.
+Il suo compito è incapsulare l'accesso ai dati e impedire che pagine, widget e componenti del dominio dipendano direttamente dai dettagli dello schema SQL o dalle modalità con cui vengono invocate le API Supabase.
 
-Grazie a questa separazione, l'interfaccia utente, il Motore Agronomico e gli altri componenti dell'applicazione non devono conoscere i dettagli implementativi del database o delle API di Supabase, ma interagiscono esclusivamente con i Repository.
+I Repository gestiscono, secondo il contratto della specifica entità:
 
-Questo approccio rende il codice più modulare, facilmente manutenibile e maggiormente riutilizzabile, oltre a semplificare le attività di test e l'evoluzione futura dell'applicazione.
+- letture;
+- invocazione delle RPC;
+- conversione dei payload;
+- costruzione dei modelli Dart;
+- mapping degli esiti server-side;
+- gestione fail-closed delle risposte non riconoscibili.
 
-Nei paragrafi successivi verranno descritti l'architettura del Repository Layer, i Repository attualmente implementati e il loro ruolo nel funzionamento di Orto Smart.
+Il Repository non sostituisce l'autorità del database.
+
+Le verifiche applicative possono costituire un preflight, ma autorizzazione, integrità e decisione finale delle operazioni protette rimangono server-side.
 
 ## 6.2 Architettura del Repository Layer
 
-Il Repository Layer costituisce il livello di collegamento tra la logica applicativa e il database PostgreSQL gestito tramite Supabase.
-
-Ogni Repository è responsabile della gestione di una specifica entità del sistema e incapsula tutte le operazioni di accesso ai dati, evitando che il resto dell'applicazione interagisca direttamente con il database.
-
-L'architettura adottata segue il principio della separazione delle responsabilità (Separation of Concerns), assegnando a ciascun livello un compito ben definito:
-
-- **Interfaccia utente**: gestisce la presentazione delle informazioni e l'interazione con l'utente;
-- **Repository**: si occupano delle operazioni di lettura e scrittura dei dati;
-- **Modelli**: rappresentano le entità dell'applicazione;
-- **Supabase**: gestisce la comunicazione con il database PostgreSQL;
-- **Database**: garantisce la persistenza e l'integrità delle informazioni.
-
-Questa organizzazione rende il codice più ordinato, facilita la manutenzione e consente di modificare o estendere il sistema senza impattare sugli altri livelli dell'applicazione.
+Il flusso generale è:
 
 ```text
-┌─────────────────────────────┐
-│        Flutter UI           │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│      Repository Layer       │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│       Modelli Dart          │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│     Supabase Flutter SDK    │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│    PostgreSQL Database      │
-└─────────────────────────────┘
-```
-
-## 6.3 Repository implementati
-
-Orto Smart adotta un'architettura basata su Repository specializzati, ciascuno dedicato alla gestione di una specifica entità del sistema.
-
-Ogni Repository incapsula le operazioni di accesso ai dati, fornendo metodi dedicati per interrogare, inserire, aggiornare ed eliminare le informazioni archiviate nel database.
-
-Attualmente il progetto comprende i seguenti Repository principali:
-
-### GardenRepository
-
-Gestisce le informazioni relative all’orto principale. Le scritture protette utilizzano le RPC autoritative `create_garden` e `update_garden`. Dalla Sessione S023 `update_garden` richiede anche `expected_row_version` e restituisce `version_conflict` quando la riga è stata modificata dopo la lettura del client, prevenendo i lost update.
-
-### BedRepository
-
-Gestisce la lettura dell’elenco delle aiuole e del dettaglio di una singola aiuola secondo il contratto V1, mantenendo separati `Bed` e `BedGeometry`.
-
-Dalla Sessione S024 integra le RPC autoritative:
-
-- `create_bed`;
-- `update_bed`;
-- `set_bed_active`;
-- `change_bed_geometry`;
-- `correct_bed_geometry`.
-
-Il Repository ottiene il lease dal livello Profile Write Authority, converte le risposte RPC in risultati Dart tipizzati e applica un comportamento fail-closed ai payload sconosciuti, incompleti o incoerenti. Le pagine non gestiscono direttamente il token del lease.
-
-Dalla Sessione S025 le operazioni sono integrate nelle pagine Flutter dedicate. Le modifiche utilizzano la versione letta dell’aiuola o della geometria come `expectedRowVersion`; gli esiti di conflitto, autorizzazione negata, lease non valido, input errato, risorsa non trovata o risposta non confermabile rimangono distinti e vengono gestiti senza scritture dirette sulle tabelle Supabase.
-
-### CropRepository
-
-`CropRepository` rappresenta il punto di accesso applicativo al catalogo delle colture.
-
-Il Catalogo DB V1, introdotto nella Sessione S026, è costituito da:
-
-```text
-botanical_families
-        ↓
-crops
-        ↓
-crop_varieties
-```
-
-Il catalogo è:
-
-- Profile-owned;
-- condiviso tra i Gardens appartenenti allo stesso Profile;
-- basato su identificativi UUID;
-- protetto in lettura mediante RLS;
-- modificabile esclusivamente attraverso RPC autoritative;
-- soggetto alla Profile Write Authority;
-- protetto mediante `row_version` ed `expected_row_version` quando previsto dal contratto.
-
-Le nove RPC autoritative disponibili lato database sono:
-
-```text
-create_botanical_family
-update_botanical_family
-set_botanical_family_active
-
-create_crop
-update_crop
-set_crop_active
-
-create_crop_variety
-update_crop_variety
-set_crop_variety_active
-```
-
-Le scritture dirette:
-
-```text
-INSERT
-UPDATE
-DELETE
-```
-
-sulle tabelle:
-
-```text
-botanical_families
-crops
-crop_varieties
-```
-
-sono revocate ad `authenticated`.
-
-Con la Sessione S027 il Repository Layer Flutter è stato riallineato al nuovo contratto del Catalogo DB V1.
-
-Il catalogo applicativo utilizza ora:
-
-```text
-BotanicalFamilyRepository
-CropRepository
-CropVarietyRepository
-```
-
-### Letture
-
-Le letture vengono effettuate direttamente sotto protezione RLS.
-
-`CropRepository` supporta la lettura delle colture del Profile e la relazione con la famiglia botanica.
-
-`CropVarietyRepository` supporta la lettura delle varietà associate a una coltura mediante `cropId` e può applicare il filtro sui record attivi.
-
-Gli identificativi UUID del database sono rappresentati nel dominio Dart mediante `String`.
-
-### Scritture
-
-Le scritture del catalogo vengono eseguite esclusivamente mediante RPC autoritative.
-
-`CropRepository` espone le operazioni applicative corrispondenti a:
-
-```text
-create_crop
-update_crop
-set_crop_active
-```
-
-`CropVarietyRepository` espone le operazioni applicative corrispondenti a:
-
-```text
-create_crop_variety
-update_crop_variety
-set_crop_variety_active
-```
-
-Le operazioni sulle famiglie botaniche sono gestite da `BotanicalFamilyRepository` mediante:
-
-```text
-create_botanical_family
-update_botanical_family
-set_botanical_family_active
-```
-
-Nei tre Repository è stata verificata l'assenza di scritture dirette tramite:
-
-```text
-.insert()
-.update()
-.delete()
-.upsert()
-```
-
-Il percorso applicativo delle scritture è quindi:
-
-```text
-UI / dominio
-        ↓
-Repository
-        ↓
-Profile Write Authority
-        ↓
-RPC autoritativa
-        ↓
+Flutter UI
+    ↓
+Application / Domain
+    ↓
+Repository Layer
+    ↓
+Supabase Flutter SDK
+    ↓
 PostgreSQL
 ```
 
-Il Repository ottiene il contesto necessario alla scrittura dal livello Profile Write Authority e opera in modalità fail-closed quando l'autorizzazione non è disponibile o il payload restituito dal server non è riconoscibile.
+Ogni livello mantiene una responsabilità distinta.
 
-L'autorità definitiva rimane nel database PostgreSQL.
+- **Flutter UI**: presentazione e interazione con l'utente.
+- **Application / Domain**: regole e coordinamento applicativo.
+- **Repository**: accesso ai dati e mapping dei contratti persistenti.
+- **Modelli Dart**: rappresentazione applicativa delle entità.
+- **Supabase**: comunicazione con il backend.
+- **PostgreSQL**: persistenza, integrità e autorità server-side.
 
-### Concorrenza e result type
+Non tutte le scritture utilizzano la stessa autorità.
 
-La concorrenza ottimistica utilizza `row_version` e il valore atteso richiesto dalle RPC.
-
-Sono stati introdotti result type dedicati per:
-
-```text
-BotanicalFamily
-Crop
-CropVariety
-```
-
-Il mapping gestisce esplicitamente gli status reali restituiti dalle RPC, tra cui:
+Per i dati operativi Profile-owned il flusso può comprendere:
 
 ```text
-created
-updated
-unchanged
-version_conflict
-forbidden
-write_forbidden
-not_found
-invalid_input
+Repository
+    ↓
+Profile Write Authority
+    ↓
+RPC autoritativa
+    ↓
+PostgreSQL
 ```
 
-oltre agli esiti specifici relativi a:
-
-- duplicati;
-- famiglia botanica inattiva;
-- coltura padre inattiva;
-- colture attive che impediscono la disattivazione di una famiglia botanica;
-- varietà attive che impediscono la disattivazione di una coltura.
-
-Payload sconosciuti, incompleti o incoerenti non vengono interpretati ottimisticamente e producono comportamento fail-closed.
-
-### Modelli utilizzati
-
-`Crop` è stato riallineato al contratto DB V1 e comprende, tra gli altri:
-
-- `profileId`;
-- `botanicalFamilyId`;
-- `defaultStartMethod`;
-- parametri agronomici;
-- dati quantitativi del fabbisogno idrico;
-- dati di resa;
-- `isActive`;
-- `rowVersion`;
-- timestamp.
-
-`CropVariety` utilizza:
-
-- `id`, `profileId` e `cropId` come UUID `String`;
-- override agronomici V1;
-- fabbisogno idrico quantitativo;
-- resa;
-- `rowVersion`;
-- timestamp.
-
-`CropVariety.toMap()` è stato rimosso per evitare un percorso generico di scrittura diretta non coerente con il modello RPC-only.
-
-### Fallback Crop → CropVariety
-
-Il Repository Layer deve rispettare il principio di fallback definito nel Catalogo DB V1:
+Per il Catalogo Agronomico globale il modello è distinto:
 
 ```text
-Crop
-        ↓
-valore generale / default
-
-CropVariety
-        ↓
-override specifico quando presente
+Repository
+    ↓
+Catalog Authority / capability
+    ↓
+RPC autoritativa
+    ↓
+PostgreSQL
 ```
 
-per i campi che prevedono specializzazione varietale.
+La Profile Write Authority e la Catalog Authority non sono intercambiabili.
 
-Il fallback applicativo non deve alterare le invarianti server-side né sostituire le validazioni del database.
+Il client non deve inoltre ricostruire autonomamente regole di autorizzazione che appartengono al server.
 
-### Compatibilità legacy temporanea
+## 6.3 Repository principali implementati
 
-La Sessione S027 ha mantenuto alcuni alias applicativi temporanei per non interrompere flussi ancora non migrati:
+Orto Smart utilizza Repository specializzati per mantenere separati i diversi domini applicativi.
 
-- `Crop.sowingMethod`;
-- `Crop.botanicalFamily`;
-- `heavyFeeder`;
-- `CropVariety.defaultPlantingMethod`.
+### GardenRepository
 
-Questi elementi non fanno parte del nuovo contratto persistente del Catalogo DB V1.
+`GardenRepository` gestisce l'accesso applicativo ai Garden.
 
-In particolare:
-
-- `Crop.sowingMethod` è ancora utilizzato da `AddPlantingPage`;
-- `Crop.botanicalFamily` è ancora utilizzato dal motore di rotazione e dai relativi widget/test;
-- `heavyFeeder` rimane necessario per compatibilità con componenti e test legacy;
-- `CropVariety.defaultPlantingMethod` rimane un alias temporaneo.
-
-La loro rimozione dovrà avvenire soltanto dopo la migrazione esplicita dei relativi flussi.
-
-### Verifiche S027
-
-L'integrazione del Repository Layer del catalogo è stata verificata mediante:
+Le scritture protette utilizzano le RPC autoritative:
 
 ```text
-124 test mirati superati
-914 test complessivi superati
-flutter analyze: No issues found
+create_garden
+update_garden
 ```
 
-Sono stati inoltre verificati:
+`update_garden` utilizza `expected_row_version` per la concorrenza ottimistica e consente al backend di rilevare modifiche concorrenti mediante `version_conflict`.
+
+Il Repository non esegue una scrittura diretta sulla tabella come alternativa al Write Path autoritativo.
+
+### BedRepository
+
+`BedRepository` gestisce le aiuole e la relativa geometria storicizzata.
+
+Il contratto mantiene distinti:
 
 ```text
-git diff --check
-git diff --cached --check
+Bed
+BedGeometry
 ```
 
-entrambi senza errori.
+Le operazioni autoritative comprendono:
 
-La Sessione S027 non ha introdotto nuove migration Supabase.
+```text
+create_bed
+update_bed
+set_bed_active
+change_bed_geometry
+correct_bed_geometry
+```
 
-La UI dedicata alla gestione amministrativa del Catalogo V1 non è stata implementata nella S027 e rimane un blocco distinto.
+Il Repository utilizza la Profile Write Authority quando richiesta dal contratto e converte gli esiti RPC in risultati applicativi.
 
-Il Write Path autoritativo completo di `plantings` non è ancora implementato.
+Le pagine non devono gestire direttamente il token del lease.
+
+Le operazioni che utilizzano concorrenza ottimistica trasmettono la versione attesa della risorsa interessata.
+
+Le risposte sconosciute, incomplete o incoerenti vengono trattate in modalità fail-closed.
 
 ### SeasonRepository
 
-Gestisce la lettura della stagione attiva e, dalla Sessione S023, integra le RPC autoritative:
+`SeasonRepository` gestisce la lettura e le operazioni sulle stagioni.
 
-- `create_season`;
-- `update_season`;
-- `activate_season`.
+Le RPC autoritative comprendono:
 
-Il Repository ottiene il lease dal livello Profile Write Authority, senza richiedere alle pagine di conoscere o trasmettere direttamente il token. Le risposte RPC vengono convertite in risultati Dart tipizzati e validate in modo fail-closed.
+```text
+create_season
+update_season
+activate_season
+```
 
-`create_season` crea una stagione inizialmente inattiva. `update_season` modifica soltanto i dati descrittivi e temporali, mantenendo immutabile `garden_id`. `activate_season` esegue l’attivazione server-side e restituisce anche l’eventuale stagione precedente disattivata atomicamente.
+`create_season` crea una stagione inizialmente inattiva.
+
+`update_season` modifica i dati consentiti dal contratto senza cambiare arbitrariamente il Garden di appartenenza.
+
+`activate_season` applica lato server l'invariante relativo alla stagione attiva del Garden.
+
+Le operazioni protette utilizzano la Profile Write Authority e la concorrenza ottimistica quando prevista.
 
 ### ProfileContextRepository
 
-Risolve il contesto Profile dell’utente autenticato e fornisce all’applicazione gli identificatori e le informazioni necessarie per costruire una sessione Profile coerente.
+`ProfileContextRepository` risolve il contesto Profile dell'utente autenticato.
+
+Fornisce all'applicazione le informazioni necessarie per costruire una sessione coerente e per utilizzare i flussi operativi Profile-owned.
+
+Il ProfileContext non rappresenta l'autorità del Catalogo Agronomico globale.
 
 ### ProfileEditLockRepository
 
-Incapsula le RPC server-side del protocollo `profile_edit_locks` e converte gli stati restituiti dal database nel modello applicativo del lock. Il Repository non decide autonomamente la validità dell’autorità: utilizza lo stato e i tempi autoritativi restituiti dal server.
+`ProfileEditLockRepository` incapsula il protocollo server-side di `profile_edit_locks`.
+
+Il Repository utilizza le RPC del protocollo e converte gli stati restituiti dal backend nel corrispondente modello applicativo.
+
+La validità dell'autorità non viene decisa autonomamente dal Repository: stato del lock, lease e tempi autoritativi provengono dal server.
+
+Il protocollo comprende:
+
+```text
+acquire_profile_edit_lock
+heartbeat_profile_edit_lock
+release_profile_edit_lock
+request_profile_edit_takeover
+cancel_profile_edit_takeover
+reject_profile_edit_takeover
+grant_profile_edit_takeover
+complete_profile_edit_takeover
+get_profile_edit_lock_state
+```
+
+### CropRepository
+
+Dopo il cutover S030, `CropRepository` rappresenta il punto di accesso applicativo alle colture del **Catalogo Agronomico globale**.
+
+Il Repository non utilizza più il precedente contratto Profile-owned del Catalogo S026/S027.
+
+Le letture correnti vengono effettuate attraverso il read model canonico:
+
+```text
+crop_catalog_read
+```
+
+Il read model è configurato con:
+
+```text
+security_invoker = true
+```
+
+`CropRepository` non espone più il precedente percorso applicativo di scrittura personale delle colture.
+
+L'identità e la gestione editoriale del Catalogo appartengono al backend autoritativo del Catalogo e alle capability previste per la Catalog Authority.
+
+Il modello Dart corrente rimane:
+
+```text
+Crop
+```
+
+ma il relativo contratto deve essere letto secondo il Catalogo globale S030 e non secondo la precedente struttura Profile-owned.
+
+### CropCultivarRepository
+
+`CropCultivarRepository` rappresenta il punto di accesso applicativo alle cultivar.
+
+Le letture vengono effettuate mediante:
+
+```text
+crop_cultivar_catalog_read
+```
+
+anch'esso configurato con:
+
+```text
+security_invoker = true
+```
+
+Il modello Dart utilizzato è:
+
+```text
+CropCultivar
+```
+
+La terminologia tecnica precedente:
+
+```text
+CropVariety
+CropVarietyRepository
+varietyId
+variety_id
+```
+
+non appartiene più al contratto applicativo corrente dopo il cutover S030.
+
+Nell'interfaccia utente italiana può continuare a essere utilizzato il termine **Varietà**.
+
+La relazione tra cultivar e coltura rimane determinata dal Catalogo canonico.
+
+### CatalogAuthorityRepository
+
+`CatalogAuthorityRepository` incapsula le operazioni applicative relative alle capability della Catalog Authority.
+
+Espone il percorso per la lettura delle capability tramite:
+
+```text
+get_my_catalog_capabilities()
+```
+
+e il percorso esplicito per l'inizializzazione dell'autorità mediante:
+
+```text
+claim_initial_catalog_authority()
+```
+
+Il claim iniziale non viene eseguito automaticamente.
+
+Il Repository non attribuisce autonomamente capability all'utente e non sostituisce le verifiche server-side.
+
+Il modello applicativo utilizzato per rappresentare le capability è:
+
+```text
+CatalogCapabilities
+```
+
+Le capability distinguono almeno i perimetri relativi a:
+
+```text
+identity
+ingestion
+review
+publication
+```
 
 ### PlantingRepository
 
 `PlantingRepository` gestisce l'accesso applicativo alle coltivazioni persistite in `public.plantings`.
 
-A partire dalla Sessione S028 il Repository è allineato al modello autoritativo Database V1 e utilizza il modello Dart:
+Il modello Dart utilizzato è:
 
 ```text
 Planting
 ```
 
-Il Repository espone principalmente:
+Il Repository espone il flusso corrente attraverso operazioni quali:
 
 ```text
 getPlantingsByBed
@@ -2669,9 +2670,15 @@ updatePlanting
 setPlantingStatus
 ```
 
-Le letture delle coltivazioni vengono eseguite sotto protezione RLS.
+Le scritture ordinarie passano attraverso:
 
-Le scritture del flusso ordinario non utilizzano operazioni dirette:
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+e non utilizzano come alternativa normale:
 
 ```text
 .insert()
@@ -2680,31 +2687,23 @@ Le scritture del flusso ordinario non utilizzano operazioni dirette:
 .upsert()
 ```
 
-ma passano esclusivamente attraverso le RPC autoritative:
+sulla tabella `plantings`.
 
-```text
-create_planting
-update_planting
-set_planting_status
-```
-
-Il percorso applicativo delle scritture è quindi:
+Il flusso delle scritture protette è:
 
 ```text
 Flutter UI
-        ↓
+    ↓
 PlantingRepository
-        ↓
+    ↓
 Profile Write Authority
-        ↓
+    ↓
 RPC autoritativa
-        ↓
+    ↓
 PostgreSQL
 ```
 
-La Profile Write Authority viene applicata in modalità fail-closed.
-
-L'autorità definitiva rimane server-side: il controllo locale costituisce un preflight e non sostituisce le verifiche della RPC.
+La Profile Write Authority locale costituisce un gate applicativo; l'autorità definitiva rimane server-side.
 
 La concorrenza utilizza:
 
@@ -2713,25 +2712,103 @@ row_version
 expected_row_version
 ```
 
-quando richiesto dal contratto.
+quando previsto dal contratto.
 
-Il Repository converte gli status restituiti dalle RPC nei result type definiti in:
+Le risposte RPC vengono convertite in result type applicativi e i payload sconosciuti, incompleti o incoerenti producono comportamento fail-closed.
+
+Dopo S030 il riferimento opzionale alla cultivar utilizza:
 
 ```text
-lib/core/write_authority/planting_write_result.dart
+cultivar_id
 ```
 
-Sono previste famiglie di risultato distinte per:
+e il relativo modello applicativo utilizza la terminologia `cultivar`.
 
-- creazione;
-- aggiornamento;
-- cambio di stato.
+Il precedente `variety_id` non appartiene più al contratto persistente corrente.
 
-Tra gli esiti gestiti rientrano:
+`setPlantingStatus` gestisce il lifecycle autoritativo separatamente dall'aggiornamento ordinario della coltivazione.
+
+### CropAssociationRepository
+
+Il motore delle consociazioni rimane disponibile nel dominio applicativo, ma il backend canonico delle associazioni tra colture non è ancora stato implementato nel nuovo Catalogo S030.
+
+Per evitare query verso una relazione canonica inesistente, lo stato corrente di `CropAssociationRepository` restituisce insiemi vuoti.
+
+Questo comportamento è intenzionale e temporaneo.
+
+Non deve essere interpretato come assenza concettuale delle consociazioni dal progetto.
+
+La realizzazione del backend canonico delle associazioni rimane un elemento **FUTURE**.
+
+## 6.4 Letture e scritture
+
+Il Repository Layer distingue esplicitamente le operazioni di lettura dai percorsi di scrittura autoritativi.
+
+### Letture
+
+Le letture possono utilizzare:
+
+- tabelle protette da RLS;
+- read model;
+- viste;
+- RPC di lettura;
+- altre interfacce server-side previste dal relativo contratto.
+
+Per il Catalogo S030, le letture principali utilizzate dal client comprendono:
+
+```text
+crop_catalog_read
+crop_cultivar_catalog_read
+```
+
+Il Repository converte il payload restituito dal backend nel modello Dart corrispondente.
+
+### Scritture
+
+Una scrittura protetta non viene trasformata in una sequenza arbitraria di operazioni dirette sulle tabelle.
+
+Il flusso generale è:
+
+```text
+UI / dominio
+    ↓
+Repository
+    ↓
+eventuale gate applicativo
+    ↓
+RPC autoritativa
+    ↓
+validazione e autorizzazione server-side
+    ↓
+transazione / modifica
+```
+
+Il gate applicativo dipende dal dominio.
+
+Per esempio:
+
+```text
+dati operativi
+    → Profile Write Authority
+
+Catalogo globale
+    → Catalog Authority / capability
+```
+
+Il Repository non deve confondere questi due modelli.
+
+## 6.5 Mapping degli esiti e gestione degli errori
+
+Il Repository Layer traduce le risposte tecniche del backend in risultati utilizzabili dal dominio e dalla UI.
+
+Gli esiti vengono gestiti esplicitamente quando fanno parte del contratto della specifica operazione.
+
+Esempi comprendono:
 
 ```text
 created
 updated
+activated
 unchanged
 version_conflict
 forbidden
@@ -2739,280 +2816,369 @@ write_forbidden
 not_found
 invalid_input
 invalid_transition
-blocked_by_inactive_garden
-blocked_by_inactive_bed
-blocked_by_inactive_crop
-blocked_by_inactive_variety
-start_method_locked
-start_date_locked
-outside_bed_geometry
-overlap
 ```
 
-Le risposte sconosciute, incomplete o incoerenti vengono trattate in modo fail-closed.
+oltre agli esiti specifici previsti dalle singole RPC.
 
-`createPlanting` crea una nuova coltivazione nel rispetto del metodo di avvio, della geometria, delle date e delle relazioni autoritative.
+Non tutti gli status sono necessariamente condivisi da tutti i Repository.
 
-`updatePlanting` modifica i dati consentiti mantenendo immutabili:
+Il mapping deve riflettere il contratto effettivo della singola operazione.
+
+Un payload:
+
+- sconosciuto;
+- incompleto;
+- incoerente;
+- non confermabile;
+
+non viene interpretato come successo.
+
+Il comportamento adottato è **fail-closed**.
+
+Quando un errore può lasciare la UI con uno stato non più affidabile, il flusso applicativo può richiedere una nuova lettura autoritativa prima di presentare il risultato definitivo all'utente.
+
+Questo principio viene applicato, tra gli altri casi, al lifecycle delle Planting in presenza di conflitti o transizioni non più valide.
+
+I dettagli tecnici interni non devono essere esposti direttamente all'utente quando non sono necessari alla comprensione dell'errore.
+
+## 6.6 Repository e autorità
+
+Uno dei principi consolidati dell'architettura corrente è che il Repository **non è l'autorità finale**.
+
+Il Repository:
+
+- prepara la richiesta;
+- utilizza il contesto applicativo disponibile;
+- può applicare controlli preliminari;
+- invoca il backend;
+- interpreta il risultato.
+
+Il database:
+
+- autentica il contesto server-side;
+- verifica l'autorizzazione;
+- applica gli invarianti;
+- controlla la concorrenza;
+- esegue la modifica;
+- restituisce l'esito autoritativo.
+
+Il modello può essere sintetizzato come:
 
 ```text
-profile_id
-garden_id
-bed_id
-id
+Repository
+    ↓
+richiesta
+    ↓
+server authority
+    ↓
+decisione
+    ↓
+risultato
+    ↓
+Repository
 ```
 
-Il lifecycle e `end_date` non vengono gestiti mediante l'update ordinario.
-
-`setPlantingStatus` applica invece le transizioni autoritative del lifecycle.
-
-Il Repository costituisce quindi il confine applicativo tra il dominio Flutter e il Write Path autoritativo di `plantings`.
-
-## 6.4 Flusso delle operazioni
-
-Il Repository Layer svolge il ruolo di intermediario tra l'interfaccia utente e il database, garantendo che tutte le operazioni di accesso ai dati seguano un flusso ben definito.
-
-Quando l'utente esegue un'azione nell'applicazione, la richiesta viene elaborata dall'interfaccia utente e inoltrata al Repository competente. Quest'ultimo comunica con Supabase, che esegue le operazioni sul database PostgreSQL e restituisce i risultati al Repository.
-
-I dati ricevuti vengono convertiti nei corrispondenti modelli dell'applicazione e resi disponibili ai componenti che li hanno richiesti, mantenendo separati i diversi livelli dell'architettura.
-
-Questo flusso consente di centralizzare la logica di accesso ai dati, ridurre le duplicazioni di codice e garantire un comportamento uniforme in tutta l'applicazione.
-
-Per le scritture protette il flusso comprende un ulteriore gate applicativo:
+Questo principio è particolarmente importante perché Orto Smart possiede ora più domini di autorità.
 
 ```text
-Flutter UI
-   ↓
-Repository
-   ↓
-Profile Write Authority locale
-   ↓
-RPC autoritativa
-   ↓
-verifiche e transazione PostgreSQL
+Profile Write Authority
+        ≠
+Catalog Authority
 ```
 
-Il controllo locale evita chiamate note come prive di lease valido. La RPC ripete comunque tutte le verifiche necessarie e rappresenta l’unico punto autoritativo della scrittura. Una risposta sconosciuta, incompleta o incoerente viene rifiutata dal client secondo un comportamento fail-closed.
+La prima protegge il writer dei dati operativi Profile-owned.
+
+La seconda protegge le operazioni sensibili sul Catalogo Agronomico globale.
+
+## 6.7 Relazione con il Motore Agronomico
+
+Il Motore Agronomico può utilizzare i dati forniti dai Repository senza accedere direttamente al database.
+
+Con S030 questa separazione assume ulteriore importanza per la Knowledge agronomica.
+
+Il flusso concettuale è:
 
 ```text
-Utente
-   │
-   ▼
-Flutter UI
-   │
-   ▼
+Repository / Resolver
+        ↓
+dati e Knowledge applicabili
+        ↓
+Motore Agronomico
+        ↓
+proposta
+        ↓
+UI
+        ↓
+conferma utente
+        ↓
 Repository
-   │
-   ▼
-Supabase
-   │
-   ▼
-PostgreSQL
-   │
-   ▼
-Supabase
-   │
-   ▼
-Repository
-   │
-   ▼
-Flutter UI
-   │
-   ▼
-Utente
+        ↓
+fatto operativo
 ```
 
-## 6.5 Gestione degli errori
+Una proposta derivata dalla Knowledge non deve diventare automaticamente una modifica persistente.
 
-La gestione degli errori rappresenta un aspetto fondamentale del Repository Layer, poiché consente di intercettare eventuali anomalie durante le operazioni di accesso al database e di impedirne la propagazione incontrollata all'interno dell'applicazione.
+Il Resolver individua la Knowledge applicabile; il Motore Agronomico può utilizzarla per formulare una proposta; il normale flusso applicativo determina se e come tale proposta diventa un fatto operativo.
 
-Gli errori possono derivare da diverse cause, tra cui problemi di connessione, dati non validi, violazioni dei vincoli del database o malfunzionamenti dei servizi esterni.
+## 6.8 Vantaggi dell'architettura
 
-I Repository hanno il compito di rilevare tali situazioni, gestirle in modo appropriato e restituire ai livelli superiori informazioni utili per consentire all'applicazione di reagire correttamente.
+Il Repository Layer consente di:
 
-Quando possibile, gli errori vengono trasformati in messaggi comprensibili per l'utente, evitando l'esposizione di dettagli tecnici interni che potrebbero risultare poco chiari o compromettere la sicurezza del sistema.
+- separare UI e persistenza;
+- centralizzare l'accesso ai dati;
+- evitare duplicazioni dei percorsi di accesso;
+- mantenere i dettagli Supabase fuori dalle pagine;
+- rendere espliciti i contratti server-side;
+- distinguere letture e scritture autoritative;
+- applicare mapping tipizzati degli esiti;
+- utilizzare comportamento fail-closed;
+- facilitare i test;
+- sostituire o evolvere il backend con impatto controllato sul resto dell'applicazione.
 
-Questa strategia contribuisce a migliorare l'affidabilità dell'applicazione, semplifica le attività di debug durante lo sviluppo e favorisce una migliore esperienza d'uso.
+L'architettura consente inoltre di modificare il modello persistente senza obbligare la UI a conoscere direttamente tabelle, viste, vincoli o dettagli delle RPC.
 
-## 6.6 Vantaggi dell'architettura
+## 6.9 Evoluzione futura
 
-L'adozione del Repository Layer offre numerosi vantaggi dal punto di vista progettuale e contribuisce a rendere Orto Smart un'applicazione modulare, scalabile e facilmente manutenibile.
+Il Repository Layer continuerà a crescere insieme ai domini ancora da implementare.
 
-Tra i principali benefici dell'architettura adottata si evidenziano:
+Tra gli sviluppi FUTURE rientrano Repository o estensioni dedicate a:
 
-- separazione tra la logica di accesso ai dati e l'interfaccia utente;
-- riduzione della duplicazione del codice;
-- maggiore leggibilità e organizzazione del progetto;
-- facilità di manutenzione e aggiornamento dei singoli componenti;
-- possibilità di eseguire test in modo più semplice e mirato;
-- elevata scalabilità grazie all'aggiunta di nuovi Repository senza modificare quelli esistenti.
+- backend canonico delle consociazioni;
+- workflow operativo di ingestion;
+- workflow editoriale completo;
+- integrazione completa del Resolver;
+- attività agronomiche;
+- irrigazione;
+- raccolti;
+- fertilizzazioni;
+- trattamenti;
+- costi e ricavi;
+- statistiche e analisi storiche;
+- ulteriori entità previste dalla Database V1.
 
-Questa organizzazione consente inoltre di concentrare tutta la logica di comunicazione con il database in un unico livello dell'applicazione, semplificando l'introduzione di nuove funzionalità e l'eventuale evoluzione delle tecnologie utilizzate.
+L'introduzione di nuovi Repository dovrà mantenere la distinzione tra:
 
-L'architettura a Repository rappresenta quindi una scelta progettuale che favorisce la qualità del software e garantisce una solida base per la crescita futura del progetto Orto Smart.
+```text
+accesso applicativo
+        ≠
+autorità server-side
+```
 
-## 6.7 Evoluzione futura
+e dovrà evitare di reintrodurre scritture dirette quando il relativo dominio richiede un Write Path autoritativo.
 
-Il Repository Layer è stato progettato con una struttura modulare che ne facilita l'estensione in parallelo alla crescita dell'applicazione.
+## 6.10 Considerazioni finali
 
-Con l'introduzione di nuove funzionalità verranno sviluppati Repository dedicati ai rispettivi domini applicativi, mantenendo invariati i principi architetturali adottati fin dalle prime fasi del progetto.
+Il Repository Layer costituisce il confine stabile tra applicazione Flutter e backend di Orto Smart.
 
-Tra le future evoluzioni previste rientrano Repository per la gestione delle attività agricole, dell'irrigazione, dei raccolti, delle fertilizzazioni, dei trattamenti, delle statistiche e dei moduli economici.
+Dopo S030 il suo ruolo non consiste soltanto nell'incapsulare query Supabase, ma anche nel rappresentare correttamente contratti differenti:
 
-L'introduzione di nuovi Repository consentirà di mantenere il codice organizzato, limitando l'impatto delle modifiche sulle componenti già esistenti e favorendo il riutilizzo della logica di accesso ai dati.
+- dati operativi Profile-owned;
+- Profile Write Authority;
+- Catalogo Agronomico globale;
+- Catalog Authority;
+- read model canonici;
+- Planting collegate a Crop e CropCultivar;
+- Knowledge e Resolver.
 
-Questo approccio garantisce la continuità dell'architettura software e permette al progetto di evolvere in modo ordinato, mantenendo elevati standard di qualità e manutenibilità.
+Il Repository prepara e interpreta le operazioni, ma l'autorità definitiva rimane nel backend.
 
-## 6.8 Considerazioni finali
+Questa separazione consente di mantenere il client semplice, testabile e non fidato, preservando nel database sicurezza, integrità e invarianti.
 
-Il Repository Layer costituisce uno degli elementi fondamentali dell'architettura software di Orto Smart, rappresentando il punto di collegamento tra la logica applicativa e il database.
-
-La separazione tra interfaccia utente, Repository, modelli e database consente di realizzare un sistema modulare, facilmente estendibile e semplice da mantenere nel tempo.
-
-L'adozione di Repository specializzati favorisce inoltre il riutilizzo del codice, la riduzione delle duplicazioni e una gestione uniforme delle operazioni di accesso ai dati.
-
-Questa architettura fornisce una base solida per l'evoluzione futura del progetto, consentendo l'integrazione di nuove funzionalità senza compromettere l'organizzazione e la qualità del software.
-
-Nel Capitolo 7 – Interfaccia Utente verranno descritte l'organizzazione delle pagine, la navigazione e i principali componenti grafici dell'applicazione.
+Nel Capitolo 7 – Interfaccia Utente vengono descritte l'organizzazione delle pagine, la navigazione e le modalità con cui tali contratti vengono presentati all'utente.
 
 # 7. Interfaccia Utente
 
 ## 7.1 Obiettivo
 
-L'Interfaccia Utente rappresenta il livello dell'applicazione con cui l'utilizzatore interagisce durante tutte le attività di gestione dell'orto.
+L'Interfaccia Utente costituisce il livello attraverso il quale l'utilizzatore interagisce con Orto Smart.
 
-Il suo obiettivo è fornire un'esperienza d'uso semplice, intuitiva e coerente, consentendo di accedere rapidamente alle funzionalità offerte da Orto Smart senza richiedere conoscenze tecniche.
+È sviluppata con Flutter e deve consentire di utilizzare le funzioni disponibili senza esporre i dettagli tecnici relativi a PostgreSQL, Supabase, RPC, RLS o meccanismi di autorizzazione.
 
-L'interfaccia è progettata per adattarsi sia all'utilizzo su computer durante le attività di pianificazione, sia all'impiego su dispositivi mobili direttamente nell'orto, dove velocità, chiarezza e semplicità operativa assumono un ruolo fondamentale.
+L'interfaccia è progettata per:
 
-L'organizzazione delle pagine, dei componenti grafici e dei flussi di navigazione segue gli stessi principi architetturali adottati per il resto dell'applicazione, mantenendo separata la logica di presentazione dalla logica di business e dall'accesso ai dati.
+- utilizzo da computer durante configurazione e pianificazione;
+- utilizzo da dispositivi mobili durante le attività nell'orto;
+- percorsi operativi brevi;
+- messaggi comprensibili;
+- conferma esplicita delle operazioni che modificano fatti operativi;
+- riallineamento allo stato autoritativo del backend quando necessario.
 
-Nei paragrafi successivi verranno descritti l'architettura dell'interfaccia, la struttura della navigazione, le principali pagine dell'applicazione e i criteri progettuali adottati durante lo sviluppo.
+La UI non rappresenta il livello autoritativo del sistema.
 
 ## 7.2 Architettura dell'interfaccia
 
-L'interfaccia utente di Orto Smart è sviluppata con Flutter e adotta un'architettura basata su widget, nella quale ogni elemento grafico rappresenta un componente autonomo e riutilizzabile.
+L'interfaccia utilizza pagine e widget Flutter mantenendo separati:
 
-L'organizzazione dell'interfaccia segue una struttura gerarchica che separa chiaramente la presentazione delle informazioni dalla logica applicativa e dall'accesso ai dati.
+```text
+presentazione
+    ↓
+logica applicativa
+    ↓
+Repository
+    ↓
+backend autoritativo
+```
 
-Le pagine dell'applicazione richiedono le informazioni ai Repository, ricevono i modelli elaborati dal livello applicativo e si occupano esclusivamente della loro visualizzazione e dell'interazione con l'utente.
-
-Questa separazione delle responsabilità rende l'interfaccia più semplice da mantenere, facilita il riutilizzo dei componenti grafici e consente di introdurre nuove funzionalità senza modificare la struttura generale dell'applicazione.
-
-L'architettura dell'interfaccia può essere rappresentata dal seguente schema.
+Il flusso generale è:
 
 ```text
 Utente
-    │
-    ▼
+  ↓
 Flutter UI
-    │
-    ▼
-Pagine (Pages)
-    │
-    ▼
-Widget
-    │
-    ▼
+  ↓
+Page / Widget
+  ↓
+Application / Domain
+  ↓
 Repository
-    │
-    ▼
+  ↓
 Supabase
-    │
-    ▼
+  ↓
 PostgreSQL
 ```
 
-Ogni livello svolge un ruolo specifico e comunica esclusivamente con il livello immediatamente adiacente, contribuendo a mantenere il codice ordinato, modulare e facilmente estendibile.
+Le pagine:
+
+- raccolgono input;
+- mostrano informazioni;
+- applicano validazioni utili all'esperienza utente;
+- invocano il livello applicativo o i Repository;
+- interpretano gli esiti ricevuti;
+- aggiornano la rappresentazione.
+
+Non devono:
+
+- sostituire le verifiche server-side;
+- modificare direttamente dati protetti aggirando i Repository;
+- assumere che una scrittura sia riuscita senza un esito confermabile;
+- trasformare automaticamente una proposta agronomica in fatto operativo.
 
 ## 7.3 Navigazione dell'applicazione
 
-La navigazione di Orto Smart è stata progettata per consentire all'utente di accedere rapidamente alle principali funzionalità dell'applicazione, riducendo il numero di passaggi necessari per svolgere le attività più frequenti.
+La navigazione è organizzata intorno alle principali aree funzionali dell'applicazione.
 
-L'organizzazione delle pagine segue una struttura semplice e intuitiva, nella quale ogni sezione dell'applicazione è dedicata a uno specifico ambito funzionale.
-
-La schermata principale rappresenta il punto di accesso alle diverse aree operative dell'applicazione, permettendo all'utente di spostarsi rapidamente tra le varie funzionalità senza perdere il contesto di lavoro.
-
-La navigazione è stata progettata tenendo conto sia dell'utilizzo su computer sia dell'impiego su dispositivi mobili, privilegiando percorsi brevi, pulsanti facilmente raggiungibili e una disposizione coerente degli elementi dell'interfaccia.
-
-Lo schema generale della navigazione può essere rappresentato come segue.
+Lo schema concettuale comprende:
 
 ```text
-Home
- │
- ├── Dashboard
- ├── Orto
- │      │
- │      └── Aiuola
- │              │
- │              ├── Dettaglio colture
- │              └── Aggiungi coltura
- │
- ├── Irrigazione
- ├── Attività
- └── Impostazioni
+Home / Dashboard
+      │
+      ├── Orto
+      │    └── Aiuole
+      │         └── Coltivazioni
+      │
+      ├── Irrigazione
+      ├── Attività
+      └── Impostazioni
+           └── Catalogo Agronomico
 ```
 
-Questa struttura consente di mantenere la navigazione chiara e facilmente estendibile, rendendo possibile l'introduzione di nuove sezioni senza modificare l'organizzazione generale dell'applicazione.
+Non tutte le sezioni previste dall'architettura complessiva possiedono già lo stesso livello di implementazione.
 
-## 7.4 Pagine principali dell'applicazione
+La UI deve quindi distinguere chiaramente:
 
-L'interfaccia di Orto Smart è organizzata in un insieme di pagine, ciascuna dedicata a uno specifico ambito funzionale della gestione dell'orto.
+- funzioni operative disponibili;
+- schermate informative;
+- funzioni ancora FUTURE.
 
-Ogni pagina è progettata per svolgere un compito ben definito e collabora con le altre attraverso un flusso di navigazione semplice e coerente, mantenendo separata la logica di presentazione dalla logica applicativa.
+La presenza di una voce nell'architettura generale non implica automaticamente che il relativo workflow sia già completo.
 
-Le principali pagine attualmente implementate sono le seguenti.
+## 7.4 Pagine operative principali
 
-### HomePage
+### HomePage / Dashboard
 
-Costituisce la schermata principale dell'applicazione e rappresenta il punto di accesso a tutte le funzionalità di Orto Smart.
+La schermata principale costituisce il punto di accesso alle funzioni disponibili dell'applicazione.
 
-Da questa pagina l'utente può raggiungere rapidamente le diverse sezioni operative dell'applicazione.
+La Dashboard deve rappresentare lo stato effettivamente disponibile senza simulare dati operativi non presenti nel database.
 
 ### GardenPage
 
-Visualizza l’orto e l’elenco delle aiuole disponibili.
+`GardenPage` rappresenta il Garden e consente di raggiungere le relative aiuole.
 
-Da questa schermata è possibile selezionare un’aiuola per visualizzarne il dettaglio oppure avviare la creazione di una nuova aiuola mediante il Write Path autoritativo.
+Il backend dispone già del Write Path autoritativo per la creazione e la modifica del Garden.
+
+Alla conclusione della S030 rimane tuttavia **APERTA** una verifica specifica sul percorso UI per la creazione del primo Garden quando il Profile non possiede ancora alcun orto.
+
+Durante lo smoke test S030, con database privo di Garden, l'applicazione ha mostrato correttamente lo stato equivalente a:
+
+```text
+Nessun orto trovato per questo profilo
+```
+
+ma non è stato possibile proseguire verso le Aiuole.
+
+Deve quindi essere verificato se:
+
+- la pagina di creazione del primo Garden esista ma non sia raggiungibile;
+- il relativo comando venga nascosto da una condizione;
+- manchi l'integrazione UI necessaria.
+
+Questo limite riguarda il percorso applicativo e non l'esistenza del Write Path backend.
 
 ### CreateBedPage
 
-Consente di creare una nuova aiuola raccogliendo separatamente i dati identificativi e la geometria iniziale.
+`CreateBedPage` consente di creare una nuova aiuola raccogliendo separatamente identità e geometria iniziale.
 
-La pagina utilizza `BedRepository.createBed`, richiede la disponibilità della Profile Write Authority e non esegue scritture dirette sulle tabelle Supabase.
+Utilizza:
 
-Dalla Sessione S025 il campo della data utilizza il formato italiano `GG/MM/AAAA`; prima dell’invio il valore viene convertito nel formato canonico ISO richiesto dal contratto applicativo.
+```text
+BedRepository.createBed
+```
+
+e il relativo Write Path autoritativo.
+
+Il campo data utilizza il formato visuale italiano:
+
+```text
+GG/MM/AAAA
+```
+
+convertito nel formato canonico richiesto dal contratto applicativo prima dell'invio.
 
 ### EditBedPage
 
-Consente di modificare numero, nome e note dell’aiuola mediante `BedRepository.updateBed`.
+`EditBedPage` consente di modificare i dati generali dell'aiuola.
 
-La pagina utilizza la `rowVersion` letta come versione attesa, distingue il caso di dati invariati dai conflitti concorrenti e gestisce in modo specifico numero duplicato, autorizzazione assente, risorsa non trovata, input non valido ed esito non confermabile.
+Utilizza:
+
+```text
+BedRepository.updateBed
+```
+
+e la versione letta della risorsa come versione attesa quando previsto dal contratto.
+
+La UI distingue gli esiti rilevanti senza assumere ottimisticamente il successo della scrittura.
 
 ### ChangeBedGeometryPage
 
-Consente di registrare una variazione fisica ordinaria della geometria, raccogliendo larghezza, lunghezza e data di decorrenza nel formato `GG/MM/AAAA`.
+`ChangeBedGeometryPage` registra una variazione fisica ordinaria della geometria dell'aiuola.
 
-La pagina utilizza `BedRepository.changeBedGeometry`. Se il server restituisce che è necessaria una correzione storica, l’operazione non viene convertita automaticamente: l’utente viene indirizzato alla funzione dedicata.
+Utilizza:
+
+```text
+BedRepository.changeBedGeometry
+```
+
+La variazione ordinaria e la correzione storica rimangono operazioni semanticamente distinte.
+
+Quando il backend indica che l'operazione richiede una correzione storica, la UI non converte automaticamente la richiesta.
 
 ### CorrectBedGeometryPage
 
-Consente di correggere un dato storico errato della geometria mediante `BedRepository.correctBedGeometry`.
+`CorrectBedGeometryPage` consente di correggere un dato storico errato della geometria.
 
-La pagina richiede larghezza, lunghezza, data di validità e una motivazione obbligatoria. La motivazione viene normalizzata mediante `trim()` e inviata esplicitamente al Write Path autoritativo insieme agli identificativi e alle versioni attese dell’aiuola e della geometria.
+Utilizza:
+
+```text
+BedRepository.correctBedGeometry
+```
+
+e richiede una motivazione esplicita della correzione.
+
+Le modifiche della geometria rimangono subordinate alla compatibilità con le coltivazioni persistite.
 
 ### BedPage
 
-`BedPage` mostra il dettaglio di una singola aiuola e ne esegue la rilettura autoritativa tramite `BedRepository`.
-
-Dalla Sessione S025 integra:
-
-- modifica dei dati generali;
-- attivazione e disattivazione;
-- variazione geometrica ordinaria;
-- correzione storica della geometria.
-
-Dalla Sessione S028 la pagina utilizza inoltre il modello autoritativo di `plantings` per visualizzare le coltivazioni realmente persistite nell'aiuola.
+`BedPage` mostra il dettaglio di una singola aiuola e le relative coltivazioni.
 
 Le coltivazioni vengono recuperate mediante:
 
@@ -3020,9 +3186,16 @@ Le coltivazioni vengono recuperate mediante:
 PlantingRepository.getPlantingsByBed
 ```
 
-e partecipano alla rappresentazione dello spazio occupato e disponibile.
+La pagina integra:
 
-La geometria dell'aiuola e le coltivazioni persistite sono reciprocamente coerenti anche lato database.
+- dati generali della Bed;
+- geometria;
+- attivazione/disattivazione;
+- modifica;
+- variazione geometrica;
+- correzione storica;
+- coltivazioni persistite;
+- lifecycle delle coltivazioni.
 
 Le operazioni:
 
@@ -3031,31 +3204,160 @@ change_bed_geometry
 correct_bed_geometry
 ```
 
-possono essere bloccate quando la nuova geometria risulterebbe incompatibile con coltivazioni esistenti.
+possono essere bloccate quando la nuova geometria è incompatibile con Planting esistenti.
 
-In tale situazione il server può restituire:
+Un possibile esito autoritativo è:
 
 ```text
 blocked_by_plantings
 ```
 
-Dalla Sessione S029 `BedPage` gestisce inoltre il lifecycle operativo delle coltivazioni utilizzando:
+La pagina non aggira tale vincolo.
+
+## 7.5 Inserimento e modifica delle coltivazioni
+
+### AddPlantingPage
+
+`AddPlantingPage` gestisce creazione e modifica delle coltivazioni realmente effettuate.
+
+Utilizza:
+
+```text
+PlantingRepository
+```
+
+e, per le scritture:
+
+```text
+create_planting
+update_planting
+```
+
+Il normale flusso applicativo non esegue scritture dirette sulla tabella `plantings`.
+
+I metodi agronomici persistiti comprendono:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
+
+Il concetto `manual` non costituisce un metodo agronomico persistito.
+
+La pagina raccoglie, secondo il metodo selezionato, informazioni relative a:
+
+- Crop;
+- data di inizio;
+- posizione;
+- lunghezza;
+- larghezza occupata;
+- file;
+- distanza tra file;
+- piante;
+- distanza tra piante;
+- quantità di seme;
+- note.
+
+Il contratto tecnico corrente di `Planting` supporta inoltre il riferimento opzionale alla cultivar mediante:
+
+```text
+cultivarId
+cultivar_id
+```
+
+e ha rimosso il precedente contratto:
+
+```text
+varietyId
+variety_id
+```
+
+Alla conclusione della S030, tuttavia, `AddPlantingPage` non espone ancora un selettore operativo della cultivar.
+
+Nel flusso di creazione corrente il valore viene inviato come:
+
+```text
+cultivarId: null
+```
+
+mentre nel flusso di modifica la pagina conserva il `cultivarId` eventualmente già presente nella `Planting`.
+
+La selezione esplicita della cultivar nel flusso UI di inserimento rimane quindi un'integrazione successiva.
+
+Nell'interfaccia italiana può continuare a essere utilizzato il termine **Varietà**, mentre il contratto tecnico utilizza `Cultivar`.
+
+Le invarianti definitive rimangono server-side.
+
+### Metodi di avvio
+
+Per:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+```
+
+sono utilizzati i dati relativi alle piante e alle distanze previsti dal contratto.
+
+Per:
+
+```text
+direct_rows
+```
+
+sono gestiti il numero di file e la distanza tra le file.
+
+Per:
+
+```text
+direct_broadcast
+```
+
+il modello rappresenta la semina a spaglio mediante area occupata e quantità di seme, senza introdurre artificialmente file o distanze tra piante.
+
+La geometria applicativa deve rimanere compatibile con le invarianti server-side.
+
+### Stato iniziale
+
+Lo stato iniziale dipende dal metodo di avvio.
+
+In termini generali:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+        ↓
+growing
+```
+
+mentre:
+
+```text
+direct_rows
+direct_broadcast
+        ↓
+sown
+```
+
+Il lifecycle successivo non viene gestito mediante il normale aggiornamento della Planting.
+
+## 7.6 Lifecycle delle coltivazioni
+
+Il lifecycle utilizza:
 
 ```text
 PlantingRepository.setPlantingStatus
 ```
 
-che richiama il Write Path autoritativo:
+che richiama:
 
 ```text
 set_planting_status
 ```
 
-Non vengono quindi eseguite scritture dirette sulla tabella `plantings`.
-
-La precedente gestione specifica di eliminazione della coltivazione è stata rimossa e sostituita da un'unica gestione delle transizioni di stato.
-
-Le transizioni consentite sono quelle definite dal contratto autoritativo:
+Le transizioni previste sono:
 
 ```text
 sown
@@ -3081,15 +3383,9 @@ removed
   → nessuna transizione
 ```
 
-Lo stato:
+`harvested` non libera l'aiuola.
 
-```text
-harvested
-```
-
-non libera l'aiuola.
-
-La coltivazione continua a occupare lo spazio fino al passaggio a:
+La Planting continua a occupare spazio fino a:
 
 ```text
 finished
@@ -3104,330 +3400,22 @@ removed
 Per le transizioni intermedie:
 
 ```text
-sown → growing
-growing → harvest_ready
-harvest_ready → harvested
-```
-
-viene mantenuto:
-
-```text
 end_date = null
 ```
 
-Per gli stati terminali:
+Per gli stati terminali la UI richiede la conferma della data di fine secondo i vincoli previsti dal contratto.
 
-```text
-harvested → finished
-* → removed
-```
+La data proposta può essere quella corrente, ma la validazione definitiva rimane server-side.
 
-`BedPage` richiede invece la conferma esplicita della data di fine.
+La cancellazione fisica ordinaria non viene proposta nel normale lifecycle.
 
-La data proposta inizialmente è quella corrente, ma l'utente può modificarla entro i limiti:
+Un eventuale hard delete rimane FUTURE e dovrà essere riservato a correzioni amministrative o tecniche eccezionali.
 
-```text
-minimo  = planting.startDate
-massimo = oggi
-```
+## 7.7 PlantingCard
 
-La data terminale non viene quindi più assegnata automaticamente senza conferma dell'utente.
+`PlantingCard` rappresenta una Planting persistita.
 
-Le validazioni definitive restano comunque applicate anche lato server.
-
-La Sessione S029 ha inoltre rafforzato la gestione della concorrenza e della sincronizzazione.
-
-In presenza degli esiti:
-
-```text
-version_conflict
-invalid_transition
-```
-
-`BedPage` esegue prima:
-
-```text
-_refreshPlantings()
-```
-
-e successivamente informa l'utente.
-
-In questo modo la schermata viene riallineata allo stato corrente del database prima di mostrare il messaggio relativo al conflitto o alla transizione non più consentita.
-
-Per `version_conflict` viene quindi evitato che rimangano visualizzati dati ormai superati da una modifica concorrente.
-
-Per `invalid_transition` viene invece riletta la coltivazione corrente, evitando che l'interfaccia continui a proporre azioni basate su uno stato non più valido.
-
-Dopo ogni operazione riuscita `BedPage` esegue comunque una nuova lettura autoritativa e visualizza i dati aggiornati restituiti dai Repository.
-
-Gli esiti non confermabili impediscono retry automatici o inconsapevoli.
-
-`BedPage` può ricevere opzionalmente il `ProfileWriteAuthorityController`; quando l'autorità non viene fornita, la pagina rimane utilizzabile in un contesto di sola lettura.
-
-La sezione delle coltivazioni utilizza quindi:
-
-```text
-public.plantings
-+
-PlantingRepository
-+
-set_planting_status
-+
-Profile Write Authority
-```
-
-mantenendo il comportamento fail-closed definito per i Write Path protetti.
-
-### AddPlantingPage
-
-`AddPlantingPage` gestisce l'inserimento e la modifica delle coltivazioni realmente effettuate all'interno di un'aiuola.
-
-A partire dalla Sessione S028 la pagina è stata riallineata al modello autoritativo di `public.plantings`.
-
-Il flusso utilizza:
-
-```text
-PlantingRepository
-```
-
-e non esegue scritture dirette sulla tabella.
-
-Le operazioni di creazione e modifica passano rispettivamente attraverso:
-
-```text
-create_planting
-update_planting
-```
-
-mediante Profile Write Authority in modalità fail-closed.
-
-La pagina supporta i metodi agronomici persistiti:
-
-```text
-purchased_seedlings
-nursery_then_transplant
-direct_rows
-direct_broadcast
-```
-
-Il precedente concetto UI:
-
-```text
-manual
-```
-
-può essere utilizzato esclusivamente come modalità di posizionamento o geometria e non viene persistito come metodo agronomico.
-
-La pagina raccoglie e valida, in funzione del metodo scelto:
-
-- coltura;
-- data di inizio;
-- posizione longitudinale;
-- lunghezza occupata;
-- larghezza occupata;
-- numero di file;
-- distanza tra le file;
-- numero di piante;
-- distanza tra le piante;
-- quantità di seme;
-- note.
-
-Per:
-
-```text
-purchased_seedlings
-nursery_then_transplant
-```
-
-sono richiesti:
-
-```text
-plants_count
-plant_spacing_cm
-```
-
-mentre:
-
-```text
-seed_quantity_g
-```
-
-deve essere nullo.
-
-`rows_count` e `row_spacing_cm` devono essere entrambi valorizzati oppure entrambi assenti.
-
-Per:
-
-```text
-direct_rows
-```
-
-sono richiesti:
-
-```text
-rows_count
-row_spacing_cm
-```
-
-mentre gli altri valori possono essere valorizzati quando disponibili e coerenti.
-
-Per:
-
-```text
-direct_broadcast
-```
-
-devono essere null:
-
-```text
-rows_count
-row_spacing_cm
-plant_spacing_cm
-plants_count
-```
-
-ed è richiesto:
-
-```text
-seed_quantity_g
-```
-
-La geometria viene verificata mediante le stesse invarianti fondamentali utilizzate dal database:
-
-```text
-(rows_count - 1) * row_spacing_cm <= occupied_width_cm
-```
-
-e:
-
-```text
-(plants_count - 1) * plant_spacing_cm <= length_cm
-```
-
-La lunghezza autoritativa viene quindi verificata rispetto al numero totale di piante e non rispetto a un valore derivato di piante per fila.
-
-La voce UI relativa alle piante per fila rimane soltanto informativa.
-
-La pagina supporta anche:
-
-- conteggio esplicito delle file;
-- lunghezza manuale per `direct_rows`;
-- gestione dell'area per `direct_broadcast`;
-- blocco delle date future;
-- verifica della compatibilità con la geometria dell'aiuola;
-- gestione degli overlap;
-- gestione degli esiti tipizzati delle RPC.
-
-`start_date` rappresenta l'inizio della reale occupazione fisica dell'aiuola.
-
-Lo stato iniziale viene determinato dal metodo:
-
-```text
-purchased_seedlings
-nursery_then_transplant
-        ↓
-growing
-
-direct_rows
-direct_broadcast
-        ↓
-sown
-```
-
-Il lifecycle successivo rimane separato dalla normale modifica della coltivazione e viene gestito tramite:
-
-```text
-set_planting_status
-```
-
-La Sessione S029 ha completato l'interfaccia necessaria per eseguire tali transizioni dalla schermata dell'aiuola.
-
-La gestione della data terminale è quindi ora esplicita per:
-
-```text
-finished
-removed
-```
-
-mentre gli stati intermedi continuano a mantenere:
-
-```text
-end_date = null
-```
-
-Per migliorare la testabilità senza modificare il comportamento di produzione, `AddPlantingPage` supporta dependency injection opzionale per:
-
-```text
-CropRepository
-CropAssociationRepository
-SeasonRepository
-```
-
-Quando tali dipendenze non vengono fornite, vengono utilizzate le implementazioni reali.
-
-La pagina è coperta da test dedicati che verificano i principali flussi di creazione e validazione.
-
-Alla conclusione della Sessione S029 risultano quindi disponibili:
-
-- creazione autoritativa delle coltivazioni;
-- modifica autoritativa delle coltivazioni;
-- determinazione dello stato iniziale;
-- lifecycle UI mediante `set_planting_status`;
-- gestione esplicita della data terminale per `finished` e `removed`;
-- mantenimento dell'occupazione dell'aiuola durante lo stato `harvested`;
-- sincronizzazione della UI in presenza di conflitti concorrenti o transizioni non più valide.
-
-Rimane invece un incremento successivo:
-
-- selezione opzionale e gestione della `CropVariety` nel flusso operativo.
-
-### Pagine future
-
-Con l'evoluzione del progetto verranno introdotte nuove pagine dedicate, tra le quali:
-
-- gestione delle attività agricole;
-- irrigazione;
-- raccolti;
-- fertilizzazioni e trattamenti;
-- statistiche;
-- gestione economica;
-- impostazioni avanzate.
-
-L'organizzazione modulare dell'interfaccia consente di aggiungere nuove pagine mantenendo invariata la struttura generale della navigazione e garantendo uniformità nell'esperienza d'uso.
-
-## 7.5 Widget principali
-
-L'interfaccia di Orto Smart è costruita utilizzando widget Flutter, ciascuno dedicato a una specifica funzione dell'applicazione.
-
-L'adozione di componenti riutilizzabili consente di mantenere il codice ordinato, ridurre le duplicazioni e garantire uniformità grafica e funzionale tra le diverse pagine.
-
-I principali widget attualmente utilizzati sono i seguenti.
-
-### Widget di navigazione
-
-Gestiscono lo spostamento tra le diverse sezioni dell'applicazione, consentendo all'utente di accedere rapidamente alle funzionalità disponibili.
-
-### Widget di visualizzazione
-
-Sono utilizzati per mostrare le informazioni relative all'orto, alle aiuole e alle coltivazioni, organizzando i dati in modo chiaro e facilmente consultabile.
-
-### Widget di inserimento dati
-
-Consentono all'utente di registrare nuove informazioni attraverso moduli e campi di input, effettuando controlli preliminari sulla correttezza dei dati inseriti.
-
-### BedLayoutWidget
-
-Rappresenta uno dei principali widget personalizzati dell'applicazione.
-
-Visualizza la disposizione grafica delle colture all'interno dell'aiuola, mostrando la posizione occupata da ciascuna coltivazione e fornendo una rappresentazione immediata dello spazio disponibile.
-
-Questo componente costituisce uno degli elementi distintivi di Orto Smart e rappresenta il collegamento tra i dati gestiti dal Motore Agronomico e la loro visualizzazione grafica.
-
-### PlantingCard
-
-`PlantingCard` rappresenta una singola coltivazione persistita all'interno dell'interfaccia dell'aiuola.
-
-Il widget visualizza le principali informazioni della coltivazione e, dalla Sessione S029, espone azioni lifecycle contestuali coerenti con lo stato corrente.
+Visualizza le informazioni principali e propone le azioni lifecycle compatibili con lo stato corrente.
 
 La precedente azione generica:
 
@@ -3435,834 +3423,648 @@ La precedente azione generica:
 Elimina
 ```
 
-è stata rimossa dal normale flusso operativo.
+non appartiene più al normale flusso operativo.
 
-È stato inoltre eliminato dalla card il supporto allo stato legacy:
+Anche lo stato legacy:
 
 ```text
 planned
 ```
 
-Il widget utilizza ora il callback:
+non viene utilizzato dalla card corrente.
+
+Il widget comunica la transizione richiesta mediante:
 
 ```dart
 onStatusChange
 ```
 
-per comunicare a `BedPage` la transizione richiesta.
-
-La persistenza della transizione non viene quindi effettuata direttamente dal widget.
-
 Il flusso è:
 
 ```text
 PlantingCard
-        ↓
-onStatusChange
-        ↓
+    ↓
 BedPage
-        ↓
+    ↓
 PlantingRepository.setPlantingStatus
-        ↓
+    ↓
 set_planting_status
 ```
 
-Le azioni disponibili dipendono dallo stato corrente.
+La persistenza non viene eseguita direttamente dal widget.
 
-Per:
+Per `harvested`, la UI informa esplicitamente che l'aiuola rimane occupata fino alla conclusione o rimozione della coltivazione.
 
-```text
-sown
-```
+Gli stati terminali non propongono ulteriori transizioni lifecycle.
 
-sono disponibili:
+## 7.8 Catalogo Agronomico nella UI
 
-```text
-Modifica
-Segna in crescita
-Rimuovi
-```
+Il cutover S030 ha modificato il contratto applicativo del Catalogo.
 
-Per:
+La precedente UI basata sul Catalogo personale S026/S027 non rappresenta più l'architettura corrente.
+
+Sono stati rimossi dal contratto Flutter corrente:
 
 ```text
-growing
+BotanicalFamily
+BotanicalFamilyRepository
+CropVariety
+CropVarietyRepository
 ```
 
-sono disponibili:
+insieme ai precedenti Write Path personali del Catalogo.
+
+Le letture correnti utilizzano invece:
 
 ```text
-Modifica
-Segna pronta alla raccolta
-Rimuovi
+Crop
+CropCultivar
+CropRepository
+CropCultivarRepository
 ```
 
-Per:
+sui read model canonici del Catalogo globale.
+
+### Pagina Varietà
+
+Nell'interfaccia italiana rimane utilizzabile il termine **Varietà**, pur essendo `Cultivar` il termine tecnico del modello.
+
+Lo smoke test finale S030 ha verificato che la pagina sia raggiungibile anche con Catalogo vuoto.
+
+In assenza di cultivar viene mostrato correttamente uno stato equivalente a:
 
 ```text
-harvest_ready
+Nessuna varietà presente
 ```
 
-sono disponibili:
+La precedente azione di aggiunta personale della varietà non è più disponibile.
+
+Questo comportamento è coerente con il cutover: il Catalogo non è più un catalogo Profile-owned modificabile mediante il precedente flusso utente.
+
+### Amministrazione del Catalogo
+
+La UI amministrativa/editoriale completa del Catalogo Agronomico non è ancora implementata.
+
+Rimangono FUTURE:
+
+- interfaccia sicura per l'eventuale claim iniziale della Catalog Authority;
+- gestione delle identità;
+- ingestion;
+- revisione;
+- pubblicazione;
+- aggiornamento delle fonti;
+- workflow editoriale completo.
+
+La collocazione approvata per il futuro workflow di aggiornamento delle fonti è:
 
 ```text
-Modifica
-Segna raccolta
-Rimuovi
+Impostazioni
+    ↓
+Catalogo Agronomico
+    ↓
+Aggiornamento fonti
 ```
 
-Per:
+L'importazione deve produrre dati candidati da revisionare.
 
-```text
-harvested
-```
+Nessun dato esterno deve sovrascrivere automaticamente il Catalogo approvato.
 
-sono disponibili:
+## 7.9 Gestione dello stato e sincronizzazione
 
-```text
-Modifica
-Termina coltivazione
-Rimuovi
-```
+La UI deve mantenersi coerente con lo stato autoritativo del backend.
 
-Per gli stati terminali:
-
-```text
-finished
-removed
-```
-
-non vengono proposte ulteriori transizioni lifecycle.
-
-Rimane disponibile la modifica ordinaria dove prevista dal flusso applicativo, mentre il lifecycle resta gestito separatamente mediante il Write Path dedicato.
-
-Lo stato:
-
-```text
-harvested
-```
-
-non rappresenta la fine dell'occupazione fisica dell'aiuola.
-
-Per evitare interpretazioni errate, `PlantingCard` visualizza esplicitamente un messaggio informativo equivalente a:
-
-> L'aiuola resta occupata finché la coltivazione non viene terminata o rimossa.
-
-Soltanto il passaggio a:
-
-```text
-finished
-```
-
-oppure:
-
-```text
-removed
-```
-
-termina l'occupazione.
-
-La Sessione S029 ha aggiunto test dedicati al widget in:
-
-```text
-test/widgets/planting_card_test.dart
-```
-
-La verifica finale dedicata comprende:
-
-```text
-9/9 test passati
-```
-
-con copertura di:
-
-- menu nello stato `sown`;
-- menu nello stato `growing`;
-- menu nello stato `harvest_ready`;
-- menu nello stato `harvested`;
-- assenza di azioni lifecycle per `finished`;
-- assenza di azioni lifecycle per `removed`;
-- callback verso `harvest_ready`;
-- callback verso `removed`;
-- messaggio informativo relativo all'occupazione nello stato `harvested`.
-
-### Widget futuri
-
-Con l'evoluzione del progetto verranno introdotti nuovi widget dedicati alla gestione dell'irrigazione, delle attività agricole, delle statistiche, dei grafici e delle funzionalità avanzate del Motore Agronomico.
-
-L'utilizzo di widget indipendenti e riutilizzabili consente di mantenere l'interfaccia coerente, facilitando la manutenzione e l'estensione dell'applicazione nel tempo.
-
-## 7.6 Gestione dello stato
-
-La gestione dello stato dell'applicazione ha il compito di mantenere sincronizzate le informazioni visualizzate dall'interfaccia utente con i dati presenti nel database.
-
-Ogni pagina recupera i dati necessari tramite i Repository e aggiorna la visualizzazione quando vengono effettuate operazioni quali:
-
-- inserimento;
-- modifica;
-- attivazione o disattivazione;
-- variazione di configurazione;
-- transizione di stato;
-- rilettura conseguente a un conflitto concorrente.
-
-L'obiettivo è garantire che l'utente visualizzi sempre informazioni coerenti e aggiornate, evitando duplicazioni dei dati e mantenendo separata la logica di presentazione dalla logica applicativa.
-
-L'attuale architettura dell'applicazione adotta un approccio semplice e modulare, adeguato alle funzionalità oggi implementate e facilmente estendibile con la crescita del progetto.
-
-Il flusso generale di aggiornamento dello stato può essere rappresentato come segue.
+Il flusso generale è:
 
 ```text
 Utente
-   │
-   ▼
-Interazione con la UI
-   │
-   ▼
+  ↓
+azione UI
+  ↓
 Repository
-   │
-   ▼
-RPC / lettura Supabase
-   │
-   ▼
+  ↓
+RPC / lettura
+  ↓
 PostgreSQL
-   │
-   ▼
-Repository
-   │
-   ▼
-Rilettura autoritativa
-   │
-   ▼
-Aggiornamento della UI
+  ↓
+esito
+  ↓
+eventuale rilettura
+  ↓
+aggiornamento UI
 ```
 
-Per i Write Path protetti, la UI non determina autonomamente l'esito definitivo dell'operazione.
+In presenza di esiti che rendono potenzialmente obsoleta la rappresentazione locale, la UI deve rileggere i dati quando previsto dal flusso.
 
-Il server rimane autoritativo rispetto a:
-
-- validità dell'operazione;
-- autorizzazioni;
-- concorrenza;
-- invarianti di dominio;
-- transizioni di stato consentite.
-
-La Sessione S029 ha applicato questo principio anche al lifecycle delle coltivazioni.
-
-Le transizioni richieste dall'interfaccia vengono inoltrate mediante:
-
-```text
-PlantingCard
-        ↓
-BedPage
-        ↓
-PlantingRepository.setPlantingStatus
-        ↓
-set_planting_status
-```
-
-e la UI viene successivamente riallineata allo stato persistito.
-
-In particolare, in presenza degli esiti:
+Nel lifecycle delle Planting questo principio viene applicato, tra gli altri, agli esiti:
 
 ```text
 version_conflict
 invalid_transition
 ```
 
-`BedPage` esegue una nuova lettura delle coltivazioni prima di informare l'utente.
+`BedPage` riallinea le coltivazioni allo stato persistito prima di presentare il risultato all'utente.
 
-Questo comportamento evita che l'interfaccia continui a rappresentare uno stato non più corrispondente al database.
+Non vengono effettuati retry automatici di scritture dal risultato incerto.
 
-Il principio applicato è quindi:
+Il principio è:
 
 ```text
-operazione richiesta
-        ↓
-validazione autoritativa
-        ↓
-esito server
-        ↓
+richiesta
+   ↓
+decisione autoritativa
+   ↓
 rilettura quando necessaria
-        ↓
-aggiornamento della UI
+   ↓
+rappresentazione aggiornata
 ```
 
-Non vengono effettuati retry automatici di scritture il cui esito non sia confermabile.
-
-Questa organizzazione mantiene il comportamento dell'applicazione prevedibile, riduce il rischio di visualizzare dati obsoleti e costituisce una base solida per l'introduzione futura di tecniche più evolute di gestione dello stato, qualora la complessità del progetto lo renda necessario.
-
-## 7.7 Principi di progettazione dell'interfaccia
-
-L'interfaccia utente di Orto Smart è stata progettata seguendo criteri di semplicità, chiarezza e praticità operativa, con l'obiettivo di supportare l'utente durante tutte le attività di gestione dell'orto.
-
-Le principali scelte progettuali adottate sono le seguenti.
+## 7.10 Principi di progettazione dell'interfaccia
 
 ### Semplicità
 
-Ogni schermata mostra esclusivamente le informazioni necessarie allo svolgimento dell'attività corrente, riducendo gli elementi superflui e favorendo una consultazione immediata.
+Ogni schermata deve mostrare le informazioni necessarie all'attività corrente evitando complessità non utili all'utente.
 
 ### Coerenza
 
-L'organizzazione delle pagine, dei pulsanti e dei componenti grafici mantiene uno stile uniforme in tutta l'applicazione, facilitando l'apprendimento e l'utilizzo delle diverse funzionalità.
+Pagine, comandi, messaggi e componenti devono utilizzare convenzioni uniformi.
 
-### Modularità
+### Autorità esplicita
 
-L'interfaccia è composta da pagine e widget indipendenti, facilmente riutilizzabili e progettati per evolvere senza influire sul resto dell'applicazione.
+La UI non deve presentare come riuscita un'operazione non confermata dal backend.
+
+### Conferma dell'utente
+
+Una proposta agronomica non deve trasformarsi automaticamente in una modifica operativa.
+
+Il flusso previsto è:
+
+```text
+suggerimento
+    ↓
+utente
+    ↓
+conferma
+    ↓
+scrittura
+```
 
 ### Utilizzo sul campo
 
-Orto Smart è stato progettato non solo per l'utilizzo da computer durante la pianificazione, ma anche per l'impiego direttamente nell'orto tramite dispositivi mobili.
+L'interfaccia deve essere utilizzabile anche tramite dispositivi mobili durante il lavoro nell'orto.
 
-Per questo motivo l'interfaccia privilegia operazioni rapide, pulsanti facilmente selezionabili e una navigazione essenziale, consentendo all'utente di registrare informazioni anche durante le attività operative.
+### Stati vuoti
 
-### Evoluzione continua
+L'assenza di dati deve essere rappresentata esplicitamente senza generare eccezioni o simulare contenuti inesistenti.
 
-L'interfaccia è stata progettata per poter accogliere nuove funzionalità mantenendo coerenza grafica e semplicità d'utilizzo, evitando modifiche sostanziali alla struttura generale dell'applicazione.
+Gli smoke test S030 hanno verificato correttamente stati vuoti relativi al Catalogo e all'assenza di Garden.
 
-L'insieme di questi principi costituisce una delle basi progettuali di Orto Smart e guiderà lo sviluppo delle future versioni dell'interfaccia.
+### Evoluzione controllata
 
-## 7.8 Evoluzione futura
+Una funzione FUTURE non deve essere documentata o presentata come già operativa.
 
-L'interfaccia utente di Orto Smart è stata progettata secondo un'architettura modulare che ne consente l'evoluzione progressiva senza richiedere modifiche sostanziali ai componenti già esistenti.
+L'interfaccia deve evolvere insieme ai relativi contratti backend.
 
-Con l'ampliamento delle funzionalità dell'applicazione verranno introdotte nuove pagine, nuovi widget e ulteriori strumenti di supporto alle attività agronomiche, mantenendo invariati i principi di semplicità, coerenza e facilità d'uso.
+## 7.11 Evoluzione futura
 
-Tra le principali evoluzioni previste rientrano:
+Tra gli sviluppi UI successivi rientrano:
 
-- gestione completa delle attività agricole;
-- pianificazione e controllo dell'irrigazione;
-- visualizzazione avanzata dei suggerimenti del Motore Agronomico;
-- statistiche e grafici sull'andamento dell'orto;
-- gestione economica e monitoraggio dei costi;
-- notifiche e promemoria delle attività;
-- ottimizzazione dell'interfaccia per smartphone e tablet.
+- verifica o ripristino del percorso per la creazione del primo Garden;
+- UI amministrativa/editoriale del Catalogo;
+- azione esplicita e sicura per il claim iniziale della Catalog Authority;
+- workflow `Impostazioni → Catalogo Agronomico → Aggiornamento fonti`;
+- ingestion e revisione dei dati candidati;
+- pubblicazione della Knowledge;
+- integrazione completa del Resolver nei flussi di pianificazione e inserimento;
+- backend e UI canonici delle consociazioni;
+- attività agricole;
+- irrigazione;
+- raccolti;
+- fertilizzazioni;
+- trattamenti;
+- costi e ricavi;
+- statistiche;
+- notifiche e promemoria;
+- ulteriori ottimizzazioni per smartphone e tablet.
 
-Ogni nuova funzionalità verrà integrata mantenendo uno stile grafico uniforme e un'esperienza d'uso coerente con le versioni precedenti, garantendo continuità operativa agli utenti dell'applicazione.
+Le nuove funzioni dovranno mantenere la separazione tra:
 
-## 7.9 Considerazioni finali
+```text
+UI
+≠
+dominio
+≠
+Repository
+≠
+autorità server-side
+```
 
-L'Interfaccia Utente costituisce il punto di contatto tra l'utente e tutte le funzionalità offerte da Orto Smart.
+## 7.12 Considerazioni finali
 
-La progettazione basata su Flutter, l'organizzazione modulare delle pagine, l'utilizzo di widget riutilizzabili e la separazione tra presentazione, logica applicativa e accesso ai dati consentono di realizzare un'interfaccia moderna, estendibile e facilmente manutenibile.
+L'interfaccia Flutter costituisce il punto di contatto tra l'utente e i domini applicativi di Orto Smart.
 
-Le scelte progettuali adottate permettono all'applicazione di essere utilizzata efficacemente sia durante la pianificazione delle attività sia direttamente nell'orto, offrendo un'esperienza d'uso semplice, coerente e orientata alle esigenze operative dell'utilizzatore.
+Alla conclusione della S030 risultano consolidati nell'interfaccia:
 
-L'architettura dell'interfaccia rappresenta quindi una base solida per l'evoluzione futura del progetto e si integra pienamente con il Modello Dati, il Database PostgreSQL, il Repository Layer e il Motore Agronomico descritti nei capitoli precedenti.
+- gestione delle Bed;
+- geometria storicizzata;
+- visualizzazione delle Planting;
+- creazione e modifica autoritativa delle coltivazioni;
+- lifecycle delle Planting;
+- gestione dei conflitti e rilettura autoritativa;
+- accesso in lettura al Catalogo globale;
+- terminologia tecnica Crop/Cultivar;
+- gestione corretta degli stati vuoti verificati durante lo smoke test.
 
-Nel Capitolo 8 verrà approfondita l'architettura del Motore Agronomico, descrivendone i principi di funzionamento, i principali componenti e il ruolo svolto nell'elaborazione delle informazioni agronomiche e dei suggerimenti forniti all'utente.
+Rimangono invece distinti come sviluppi successivi i workflow amministrativi ed editoriali del Catalogo e il completamento delle altre aree operative.
+
+La UI deve continuare a rappresentare fedelmente ciò che il backend rende realmente disponibile, senza anticipare funzioni non ancora implementate e senza sostituire le decisioni autoritative del server o le conferme dell'utente.
+
+Nel Capitolo 8 viene approfondito il Motore Agronomico e il modo in cui dati, regole e Knowledge vengono trasformati in suggerimenti applicativi.
 
 # 8. Motore Agronomico
 
 ## 8.1 Obiettivo
 
-Il Motore Agronomico rappresenta il componente dell'applicazione incaricato di elaborare le informazioni relative alle coltivazioni e di supportare l'utente nelle decisioni riguardanti la gestione dell'orto.
+Il Motore Agronomico costituisce il dominio applicativo incaricato di elaborare informazioni relative alle coltivazioni e di produrre valutazioni, pianificazioni e suggerimenti a supporto dell'utente.
 
-A differenza dei componenti dedicati esclusivamente alla memorizzazione o alla visualizzazione dei dati, il Motore Agronomico analizza le informazioni disponibili, applica regole agronomiche e produce risultati utili per la pianificazione delle attività.
+Il motore non rappresenta un'autorità di persistenza e non modifica autonomamente i fatti operativi.
 
-L'obiettivo del motore è trasformare i dati raccolti dall'applicazione in informazioni di supporto decisionale, mantenendo separata la logica agronomica dal resto del sistema.
-
-L'architettura del Motore Agronomico è stata progettata secondo criteri di modularità, estendibilità e riutilizzabilità, consentendo l'introduzione di nuovi algoritmi senza modificare le componenti già esistenti.
-
-Attualmente il Motore Agronomico comprende moduli dedicati alla validazione delle coltivazioni, all'analisi degli spazi disponibili, alla generazione di suggerimenti automatici e alla verifica delle consociazioni tra colture.
-
-Nei paragrafi successivi verranno descritti l'architettura del motore, i principali componenti implementati, il flusso delle elaborazioni e le future evoluzioni previste.
-
-## 8.2 Architettura del Motore Agronomico
-
-Il Motore Agronomico di Orto Smart è costituito da un insieme di componenti indipendenti, ciascuno specializzato nello svolgimento di uno specifico compito.
-
-Ogni modulo implementa una particolare logica agronomica e collabora con gli altri attraverso un'architettura modulare che favorisce il riutilizzo del codice, la semplicità di manutenzione e l'estendibilità del sistema.
-
-Il motore non accede direttamente al database, ma opera esclusivamente sui modelli ricevuti dal Repository Layer, mantenendo separata la logica agronomica dalla persistenza dei dati.
-
-L'architettura attualmente implementata può essere rappresentata dal seguente schema.
+Il principio generale è:
 
 ```text
-Repository Layer
-        │
-        ▼
-Modelli e risultati di analisi
-        │
-        ▼
+dati disponibili
+    ↓
+elaborazione agronomica
+    ↓
+valutazione / suggerimento
+    ↓
+utente
+    ↓
+eventuale conferma
+    ↓
+Write Path autoritativo
+```
+
+La logica agronomica rimane separata da:
+
+- interfaccia utente;
+- Repository Layer;
+- persistenza;
+- autorizzazione;
+- Knowledge agronomica canonica.
+
+Questa separazione consente di evolvere algoritmi e fonti informative senza trasformare automaticamente una conoscenza o una raccomandazione in un fatto operativo.
+
+## 8.2 Architettura
+
+Il Motore Agronomico è composto da moduli specializzati e testabili.
+
+Il flusso principale delle raccomandazioni può essere rappresentato come:
+
+```text
+Repository / modelli
+        ↓
+FreeSpaceAdapter
+        ↓
+SuggestionEngine
+        ↓
+SuggestionCandidate
+        ↓
+ ┌──────────────┬──────────────────┐
+ ↓              ↓                  ↓
+RotationEngine  AssociationEngine  SpaceScoreCalculator
+ └──────────────┴──────────────────┘
+                ↓
+CandidateAgronomicEvaluation
+                ↓
+DecisionEngine
+                ↓
 RecommendationPipeline
-        │
-        ├── SuggestionEngine
-        ├── RotationEngine
-        ├── AssociationEngine
-        ├── SpaceScoreCalculator
-        ├── DecisionEngine
-        │       └── DecisionWeights
-        ├── FamilyNeedsEngine
-        └── RecommendationMapper
-        │
-        ▼
-Risultati e raccomandazioni
-        │
-        ▼
+                ↓
+RecommendationMapper
+                ↓
+risultato applicativo
+                ↓
 Flutter UI
 ```
 
-La `RecommendationPipeline` costituisce il componente di orchestrazione del processo di raccomandazione.
+La `RecommendationPipeline` orchestra il processo senza incorporare tutte le regole agronomiche in un unico componente.
 
-La pipeline coordina i motori e i componenti specializzati, raccoglie le valutazioni agronomiche, demanda al `DecisionEngine` il calcolo del punteggio agronomico, integra la priorità familiare prodotta dal `FamilyNeedsEngine` e utilizza `RecommendationMapper` per produrre il modello destinato all'interfaccia utente.
+Il `DecisionEngine` applica i criteri di valutazione mediante `DecisionWeights`.
 
-Il `DecisionEngine` applica criteri ponderati mediante `DecisionWeights`, mantenendo separata la configurazione dei pesi dalla logica decisionale.
+Il `FamilyNeedsEngine` mantiene separata la priorità familiare dal punteggio agronomico.
 
-Il `FamilyNeedsEngine` rimane separato dal punteggio agronomico e interviene nella `RecommendationPipeline` secondo l'ordinamento gerarchico definito dal sistema di raccomandazione.
+Altri sottosistemi del dominio gestiscono:
 
-A partire dalla Sessione S013 sono presenti le strutture dati e di validazione dedicate alla pianificazione quantitativa e temporale delle coltivazioni.
+- pianificazione temporale delle successioni;
+- fabbisogni familiari quantitativi;
+- finestre agronomiche;
+- valutazione stagionale.
 
-Nella Sessione S014 tali fondamenta sono state integrate mediante la prima versione operativa del `SuccessionPlanningEngine`:
-
-```text
-FamilyConsumptionNeed
-        │
-        ├── FamilyConsumptionNeedValidator
-        │
-        ▼
-fabbisogno quantitativo e periodico
-        │
-        ▼
-SuccessionPlanningEngine
-        │
-        ▼
-sequenza temporale di PlannedPlantingBatch
-        │
-        └── PlannedPlantingBatchValidator
-```
-
-`FamilyConsumptionNeed` rappresenta il fabbisogno quantitativo e periodico della famiglia, mentre `PlannedPlantingBatch` rappresenta il singolo lotto operativo pianificato.
-
-I relativi validator mantengono separate le regole di validità dalla rappresentazione dei dati e dalla logica di pianificazione.
-
-Il `SuccessionPlanningEngine`, implementato nella sua prima versione nella Sessione S014, utilizza tali componenti per generare una sequenza temporale deterministica e validata di lotti pianificati.
-
-La V1 mantiene separata la pianificazione temporale dalla futura verifica della compatibilità agronomica delle date e non introduce conversioni tra fabbisogno familiare e quantità di impianto quando queste richiedono informazioni agronomiche non ancora disponibili.
-
-I singoli componenti rimangono specializzati e indipendenti, consentendo l'evoluzione del Motore Agronomico senza concentrare responsabilità differenti in un unico modulo.
-
-## 8.3 Componenti principali
-
-Il Motore Agronomico di Orto Smart è composto da componenti specializzati che collaborano attraverso la `RecommendationPipeline`.
-
-Ogni componente mantiene una responsabilità specifica, evitando di concentrare nello stesso modulo generazione dei candidati, valutazioni agronomiche, decisione finale e trasformazione dei risultati.
+## 8.3 Componenti della raccomandazione
 
 ### PlantingValidator
 
-Il `PlantingValidator` verifica la validità dei dati relativi alle coltivazioni prima che vengano utilizzati o registrati dall'applicazione.
+`PlantingValidator` verifica la coerenza dei dati di una coltivazione utilizzati dal dominio applicativo.
 
-Il componente contribuisce a impedire l'elaborazione di informazioni incomplete o incoerenti.
+Le validazioni client-side o di dominio non sostituiscono i vincoli autoritativi applicati dal database durante la persistenza.
 
 ### FreeSpaceEngine
 
-Il `FreeSpaceEngine` analizza gli spazi occupati e disponibili all'interno delle aiuole.
+`FreeSpaceEngine` analizza lo spazio occupato e disponibile nelle aiuole.
 
-I risultati prodotti vengono adattati mediante `FreeSpaceAdapter` e utilizzati dal processo di generazione delle raccomandazioni.
+I risultati possono essere adattati mediante `FreeSpaceAdapter` per l'utilizzo nella pipeline delle raccomandazioni.
 
 ### SuggestionEngine
 
-Il `SuggestionEngine` costituisce il componente specializzato nella generazione dei candidati iniziali.
-
-Riceve gli spazi disponibili e le colture analizzabili e produce i `SuggestionCandidate` che verranno successivamente sottoposti alle valutazioni agronomiche.
+`SuggestionEngine` genera i candidati iniziali da sottoporre alle successive valutazioni.
 
 Il componente non determina autonomamente la raccomandazione finale.
 
 ### RotationEngine
 
-Il `RotationEngine` valuta il candidato in relazione alla storia delle coltivazioni presenti nell'aiuola e produce un risultato utilizzato nella valutazione agronomica complessiva.
+`RotationEngine` valuta la compatibilità del candidato rispetto alla storia colturale dell'aiuola.
+
+Dopo il cutover S030, la famiglia botanica deve essere identificata attraverso l'identità canonica del Catalogo.
+
+Il confronto tecnico utilizza l'identificatore stabile della famiglia botanica; il nome della famiglia rimane informazione di presentazione e non deve essere utilizzato come chiave autoritativa.
 
 ### AssociationEngine
 
-L'`AssociationEngine` valuta la compatibilità del candidato con le coltivazioni già presenti, utilizzando le informazioni sulle associazioni e sulle colture coinvolte.
+`AssociationEngine` rappresenta il componente del dominio dedicato alla valutazione delle consociazioni.
+
+Il motore continua a esistere nel dominio applicativo.
+
+Alla conclusione della S030, tuttavia, il backend canonico delle associazioni tra colture non è ancora stato implementato nel nuovo Catalogo globale.
+
+Per questo motivo lo stato applicativo corrente non deve interpretare l'assenza di associazioni restituite dal Repository come conoscenza agronomica negativa.
+
+Il backend canonico delle consociazioni rimane **FUTURE**.
 
 ### SpaceScoreCalculator
 
-Lo `SpaceScoreCalculator` calcola il punteggio relativo all'utilizzo dello spazio confrontando la lunghezza richiesta dal candidato con quella disponibile.
+`SpaceScoreCalculator` valuta l'utilizzo dello spazio confrontando il fabbisogno del candidato con lo spazio disponibile.
 
 ### CandidateAgronomicEvaluation
 
-Il modello `CandidateAgronomicEvaluation` raccoglie in una struttura unica:
+`CandidateAgronomicEvaluation` raccoglie le valutazioni necessarie al processo decisionale, comprendendo:
 
 - candidato;
-- punteggio relativo allo spazio;
+- valutazione dello spazio;
 - risultato della rotazione;
 - risultato delle associazioni.
 
-Questa struttura costituisce l'ingresso del processo decisionale.
-
 ### DecisionEngine
 
-Il `DecisionEngine` interpreta le valutazioni agronomiche già prodotte dai componenti specializzati.
+`DecisionEngine` interpreta le valutazioni già prodotte dagli altri componenti.
 
-Non genera i candidati e non richiama direttamente gli altri motori.
+Non genera autonomamente i candidati e non sostituisce i motori specializzati.
 
-Per ciascun candidato calcola un punteggio finale ponderato utilizzando:
+La configurazione corrente di `DecisionWeights` utilizza:
 
-- punteggio spazio;
-- punteggio rotazione;
-- punteggio associazione.
+```text
+spazio         40%
+rotazione      30%
+consociazione  30%
+```
 
-Le raccomandazioni vengono successivamente ordinate in modo decrescente in base al punteggio ottenuto.
-
-### DecisionWeights
-
-`DecisionWeights` contiene la configurazione dei pesi utilizzati dal `DecisionEngine`.
-
-La configurazione standard attualmente adottata è:
-
-- spazio: 40%;
-- rotazione: 30%;
-- consociazione: 30%.
-
-La classe consente anche l'utilizzo di configurazioni personalizzate e verifica che:
-
-- nessun peso sia negativo;
-- la somma complessiva dei pesi sia pari a `1.0`.
-
-Il `DecisionEngine` rifiuta configurazioni non valide mediante `ArgumentError`.
+La somma dei pesi deve essere pari a `1.0` e i singoli valori non possono essere negativi.
 
 ### FamilyNeedsEngine
 
-Il `FamilyNeedsEngine` è il componente responsabile della valutazione del fabbisogno familiare associato alle diverse colture.
+`FamilyNeedsEngine` rappresenta la priorità familiare associata alle colture.
 
-La sua responsabilità è limitata alla rappresentazione della priorità familiare attribuita a una coltura e rimane separata dal calcolo del punteggio agronomico prodotto dal `DecisionEngine`.
+Utilizza `FamilyCropNeed` e `FamilyNeedPriority`.
 
-Il modello di ingresso utilizza `FamilyCropNeed`, mentre la priorità è rappresentata mediante l'enumerazione `FamilyNeedPriority`.
+I livelli previsti sono:
 
-Sono attualmente previsti quattro livelli:
+```text
+none
+low
+medium
+high
+```
 
-- `none`;
-- `low`;
-- `medium`;
-- `high`.
+convertiti rispettivamente nei valori:
 
-Il motore converte tali priorità nei seguenti valori numerici:
+```text
+0.0
+0.3
+0.6
+1.0
+```
 
-- `none` → `0.0`;
-- `low` → `0.3`;
-- `medium` → `0.6`;
-- `high` → `1.0`.
+La priorità familiare non costituisce un ulteriore peso del `DecisionEngine`.
 
-Il risultato viene restituito mediante `FamilyRecommendation`.
+La `RecommendationPipeline` mantiene la gerarchia:
 
-Il campo `cropId` utilizza il tipo `String`, coerentemente con il modello degli identificativi delle colture utilizzato nel resto dell'architettura.
+```text
+1. fascia agronomica
+2. priorità familiare
+3. punteggio agronomico
+```
 
-Oltre al valore numerico, il motore produce una motivazione testuale comprensibile associata alla valutazione.
+Una priorità familiare maggiore può quindi influenzare l'ordine all'interno della stessa fascia agronomica senza trasformare una valutazione agronomicamente inferiore in una superiore.
 
-Il `FamilyNeedsEngine` mantiene l'ordine degli elementi ricevuti in ingresso.
+### RecommendationMapper
 
-Nella versione attuale il motore non determina:
+`RecommendationMapper` converte i risultati del dominio nel modello destinato all'interfaccia.
 
-- il numero di piante da coltivare;
-- il numero di semine o trapianti;
-- la distribuzione temporale delle colture;
-- la successione dei lotti;
-- la compatibilità agronomica complessiva.
+### RecommendationPipeline
 
-Queste responsabilità restano separate.
+`RecommendationPipeline` coordina i componenti del sistema di raccomandazione.
 
-In particolare, la pianificazione quantitativa e temporale delle colture sarà affidata al futuro `SuccessionPlanningEngine`.
+La pipeline:
 
-A partire dalla Sessione S012, il `FamilyNeedsEngine` è integrato nella `RecommendationPipeline`.
+- genera o riceve i candidati;
+- coordina le valutazioni;
+- costruisce `CandidateAgronomicEvaluation`;
+- utilizza `DecisionEngine`;
+- integra la priorità familiare;
+- applica l'ordinamento;
+- utilizza `RecommendationMapper`;
+- restituisce il risultato applicativo.
 
-Le esigenze familiari non costituiscono un quarto criterio ponderato del `DecisionEngine` e non modificano direttamente il punteggio agronomico.
+## 8.4 Pianificazione quantitativa e temporale
 
-La configurazione `DecisionWeights` rimane pertanto basata esclusivamente su:
+La pianificazione delle successioni è mantenuta separata dal sistema generale di raccomandazione.
 
-- spazio: 40%;
-- rotazione: 30%;
-- consociazione: 30%.
+Il flusso è:
 
-La priorità familiare viene utilizzata dalla `RecommendationPipeline` come criterio gerarchico di ordinamento successivo alla fascia agronomica.
-
-L'ordine applicato è:
-
-    1. Fascia agronomica
-    2. Priorità familiare
-    3. Punteggio agronomico
-
-Questa gerarchia garantisce che una coltura maggiormente richiesta dalla famiglia possa essere favorita rispetto a un'altra soltanto quando entrambe appartengono alla stessa fascia agronomica.
-
-Una priorità familiare elevata non può pertanto rendere preferibile una coltura appartenente a una fascia agronomica inferiore.
-
-La separazione architetturale attuale può essere rappresentata come:
-
-    Motori agronomici
-            ↓
-    DecisionEngine
-            ↓
-    punteggio agronomico
-            ↓
-    RecommendationPipeline
-            ↓
-    classificazione della fascia agronomica
-            ↓
-    FamilyNeedsEngine
-            ↓
-    priorità familiare
-            ↓
-    ordinamento gerarchico finale
-
-Il futuro `SuccessionPlanningEngine` rimane separato da questo processo e sarà responsabile della pianificazione quantitativa e temporale delle coltivazioni, comprese quantità, lotti e distribuzione delle produzioni nel tempo.
+```text
+FamilyConsumptionNeed
+        ↓
+FamilyConsumptionNeedValidator
+        ↓
+SuccessionPlanningEngine
+        ↓
+PlannedPlantingBatch
+        ↓
+PlannedPlantingBatchValidator
+```
 
 ### FamilyConsumptionNeed
 
-`FamilyConsumptionNeed` è il modello destinato a rappresentare quantitativamente il fabbisogno familiare di una coltura nel tempo.
+`FamilyConsumptionNeed` rappresenta il fabbisogno quantitativo di una coltura nel tempo.
 
-È distinto da `FamilyCropNeed`, che continua a rappresentare la priorità qualitativa attribuita dalla famiglia a una coltura.
-
-Il modello comprende:
+Comprende:
 
 - `cropId`;
-- `quantity`;
-- `unit`;
-- `intervalDays`.
+- quantità;
+- unità;
+- intervallo temporale.
 
-`quantity` rappresenta la quantità richiesta dalla famiglia, mentre `intervalDays` esprime l'intervallo temporale con cui tale quantità deve essere resa disponibile.
+È distinto da `FamilyCropNeed`, che rappresenta invece una priorità qualitativa.
 
-Sono inizialmente previste le seguenti unità:
+Le unità previste comprendono:
 
 - pezzi;
 - grammi;
 - chilogrammi.
 
-La separazione tra i due modelli può essere sintetizzata come:
-
-    FamilyCropNeed
-            ↓
-    priorità familiare
-
-    FamilyConsumptionNeed
-            ↓
-    quantità necessaria nel tempo
-
-`FamilyConsumptionNeed` costituisce una delle informazioni di ingresso previste per il futuro `SuccessionPlanningEngine`.
-
-Il modello non determina autonomamente il numero di lotti, le date di coltivazione o la quantità di seme necessaria.
-
 ### FamilyConsumptionNeedValidator
 
-`FamilyConsumptionNeedValidator` è il componente responsabile della validazione dei dati rappresentati da `FamilyConsumptionNeed`.
+`FamilyConsumptionNeedValidator` verifica la validità strutturale del fabbisogno.
 
-La validazione impedisce la definizione di fabbisogni quantitativi non validi, in particolare quando:
+Tra i casi non validi rientrano:
 
-- la coltura non è specificata;
-- la quantità è minore o uguale a zero;
-- l'intervallo temporale è minore o uguale a zero.
-
-La validazione viene mantenuta separata dal modello e dalla futura logica di pianificazione.
+- coltura non specificata;
+- quantità minore o uguale a zero;
+- intervallo temporale minore o uguale a zero.
 
 ### PlannedPlantingBatch
 
-`PlannedPlantingBatch` è il modello destinato a rappresentare un lotto di coltivazione pianificato nel tempo.
+`PlannedPlantingBatch` rappresenta un lotto di coltivazione pianificato nel tempo.
 
-Il modello costituisce l'unità operativa prodotta dal `SuccessionPlanningEngine`.
+Costituisce l'unità prodotta da `SuccessionPlanningEngine`.
 
-La separazione concettuale adottata è:
+Il contratto corrente comprende l'identità della Crop e il riferimento opzionale alla Cultivar mediante:
 
 ```text
-FamilyConsumptionNeed
-        ↓
-quantità necessaria nel tempo
-
-SuccessionPlanningEngine
-        ↓
-distribuzione temporale dei lotti
-
-PlannedPlantingBatch
-        ↓
-lotto operativo pianificato
+cropId
+cultivarId
 ```
 
-Nella Sessione S013 è stato introdotto il modello necessario alla rappresentazione dei lotti.
+Il precedente riferimento `varietyId` non appartiene più al contratto corrente di `PlannedPlantingBatch`.
 
-Nella Sessione S014 è stata implementata la prima versione del `SuccessionPlanningEngine`, che utilizza `PlannedPlantingBatch` per rappresentare i lotti generati dalla pianificazione temporale.
+La pianificazione contempla i principali metodi di avvio:
 
-Ogni lotto prodotto viene validato mediante `PlannedPlantingBatchValidator`.
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
 
-La pianificazione deve contemplare differenti modalità operative:
+Il lotto pianificato rimane distinto da una `Planting` realmente persistita.
 
-1. acquisto di piantine e trapianto;
-2. semina in semenzaio seguita da trapianto;
-3. semina diretta a file nell'aiuola;
-4. semina diretta a spaglio nell'aiuola.
-
-Per la semina diretta a file, la pianificazione deve utilizzare come riferimento il numero di piante finali previste e non considerare la quantità di seme come equivalente alla produzione finale.
-
-Per la semina diretta a spaglio, il sistema deve invece poter utilizzare come riferimento l'area coltivata prevista.
-
-La quantità di seme rimane un'informazione operativa distinta dalla produzione finale attesa.
+Una pianificazione non diventa automaticamente una coltivazione operativa.
 
 ### PlannedPlantingBatchValidator
 
-`PlannedPlantingBatchValidator` è il componente responsabile della validazione dei dati necessari alla rappresentazione di un `PlannedPlantingBatch`.
-
-La presenza di un validatore dedicato mantiene separate:
-
-- la rappresentazione del lotto pianificato;
-- le regole che ne determinano la validità;
-- la futura logica che genererà e distribuirà temporalmente i lotti.
-
-Il validatore costituisce quindi una delle fondamenta necessarie alla futura implementazione del `SuccessionPlanningEngine`.
+`PlannedPlantingBatchValidator` mantiene separate le regole di validità del lotto dalla logica che lo genera.
 
 ### SuccessionPlanningEngine
 
-Il `SuccessionPlanningEngine` è il componente responsabile della pianificazione temporale dei lotti di coltivazione a partire da un fabbisogno familiare quantitativo e periodico.
-
-La prima versione del motore è stata implementata nella Sessione S014.
-
-Il componente opera su `FamilyConsumptionNeed` e produce una sequenza temporale di `PlannedPlantingBatch`.
-
-Il flusso attualmente implementato è:
-
-```text
-FamilyConsumptionNeed
-        +
-intervallo startDate – endDate
-        +
-metodo di avvio
-        +
-tipo di quantità
-        ↓
-SuccessionPlanningEngine
-        ↓
-sequenza di PlannedPlantingBatch
-```
-
-La V1 applica una pianificazione deterministica basata su `intervalDays`.
-
-Il primo lotto viene generato alla data iniziale indicata e i lotti successivi vengono distribuiti nel tempo secondo l'intervallo definito dal fabbisogno familiare.
-
-La generazione prosegue esclusivamente finché la data del lotto rimane compresa entro `endDate`.
-
-Prima della pianificazione il motore valida il `FamilyConsumptionNeed` mediante `FamilyConsumptionNeedValidator`.
-
-Ogni `PlannedPlantingBatch` prodotto viene inoltre verificato mediante `PlannedPlantingBatchValidator`.
+`SuccessionPlanningEngine` genera una successione temporale deterministica di `PlannedPlantingBatch` a partire da un fabbisogno familiare e da un intervallo temporale.
 
 Il motore:
 
-- rifiuta un intervallo nel quale `startDate > endDate`;
-- rifiuta fabbisogni non validi;
+- valida il fabbisogno;
+- verifica l'intervallo;
 - genera il primo lotto alla data iniziale;
-- genera i lotti successivi secondo `intervalDays`;
-- non genera lotti oltre `endDate`;
-- propaga il `cropId`;
-- supporta il `varietyId` opzionale;
-- verifica la validità di ogni lotto prodotto;
+- applica `intervalDays`;
+- non genera lotti oltre la data finale;
+- propaga `cropId`;
+- propaga l'eventuale `cultivarId`;
+- verifica ogni lotto prodotto;
 - impedisce combinazioni incoerenti tra metodo di avvio e tipo di quantità.
 
-La validazione di `intervalDays` impedisce valori minori o uguali a zero e previene quindi anche la possibilità di una generazione temporale senza termine.
+Il contratto corrente utilizza quindi:
 
-#### Regola sulle conversioni
+```text
+SuccessionPlanningEngine
+        ↓
+cropId
++
+cultivarId opzionale
+        ↓
+PlannedPlantingBatch
+```
 
-Il `SuccessionPlanningEngine` non deve introdurre automaticamente conversioni tra fabbisogno familiare e quantità di impianto quando non dispone delle informazioni agronomiche necessarie per determinarle correttamente.
+La migrazione terminologica e tecnica S030 da `varietyId` a `cultivarId` risulta applicata anche a questo sottosistema del dominio agronomico.
 
-Nella V1 è ammessa esclusivamente la conversione:
+Questo allineamento riguarda il contratto tecnico dei componenti e non implica che l'interfaccia utente disponga già di tutti i flussi necessari per selezionare una Cultivar: come descritto nel Capitolo 7, `AddPlantingPage` non espone ancora un selettore operativo della cultivar nel flusso di creazione corrente.
+
+### Conversioni
+
+Il pianificatore non introduce conversioni agronomiche prive dei dati necessari.
+
+La conversione supportata dalla V1 è:
 
 ```text
 pieces → plants
 ```
 
-Sono invece rifiutate conversioni quali:
+Non vengono invece assunte automaticamente conversioni come:
 
 ```text
-pieces → areaSquareCm
+pieces → area
 kilograms → plants
 ```
 
-e, più in generale, tutte le conversioni che richiederebbero informazioni produttive o agronomiche non ancora disponibili.
+quando richiederebbero dati di resa o altre informazioni agronomiche non disponibili.
 
-Un fabbisogno espresso, ad esempio, come 5 kg di pomodori non può quindi essere interpretato automaticamente come 5 piante di pomodoro.
-
-Analogamente, un fabbisogno espresso in pezzi non può essere trasformato arbitrariamente in una superficie da seminare.
-
-Questa scelta impedisce al motore di introdurre assunzioni non supportate dai dati e mantiene esplicita la distinzione tra:
+Il principio è:
 
 ```text
-quantità richiesta dalla famiglia
+fabbisogno familiare
         ↓
-conversione agronomicamente supportata
+conversione supportata da dati
         ↓
 quantità di impianto
 ```
 
-#### Limiti della V1
-
-La prima versione del `SuccessionPlanningEngine` produce una successione temporale teorica e non determina direttamente se le date generate siano agronomicamente compatibili con il ciclo della coltura.
-
-Il sistema distingue quindi:
+e non:
 
 ```text
-quando la famiglia desidera il prodotto
+fabbisogno
         ↓
-quando dovrebbe essere disponibile il raccolto
+assunzione arbitraria
         ↓
-quando occorre seminare o trapiantare
-        ↓
-verifica separata della compatibilità agronomica
+quantità di impianto
 ```
 
-A partire dalla Sessione S015 è stata introdotta la prima infrastruttura dedicata alla verifica delle finestre agronomiche mediante `AgronomicWindow`, `AgronomicWindowValidator` e `AgronomicWindowEngine`.
+La pianificazione temporale rimane inoltre distinta dalla verifica della compatibilità stagionale, affidata ai componenti dedicati alle finestre agronomiche.
 
-Il `SuccessionPlanningEngine` è rimasto deliberatamente invariato e continua a essere responsabile esclusivamente della generazione temporale teorica dei lotti.
+## 8.5 Finestre agronomiche
 
-La separazione attuale è:
+La verifica della stagionalità è separata dalla pianificazione temporale.
+
+I componenti principali sono:
 
 ```text
-FamilyConsumptionNeed
-        ↓
-SuccessionPlanningEngine
-        ↓
-PlannedPlantingBatch
-        ↓
-verifica agronomica separata
-        ↓
+AgronomicWindow
+AgronomicWindowValidator
 AgronomicWindowEngine
+CropAgronomicWindowRule
+AgronomicWindowResolver
+AgronomicWindowEvaluation
+AgronomicWindowService
 ```
-
-La V1 delle finestre agronomiche non associa ancora dati stagionali reali alle singole colture o varietà.
-
-Le evoluzioni successive potranno considerare progressivamente:
-
-- associazione delle finestre a colture e varietà;
-- finestre reali di semina in semenzaio;
-- finestre reali di semina diretta;
-- finestre reali di trapianto;
-- periodo di raccolta;
-- giorni necessari al raccolto;
-- resa prevista della coltura o varietà;
-- temperature minime;
-- rischio di gelo;
-- localizzazione reale dell'orto;
-- dati meteorologici locali.
-
-L'architettura non dovrà dipendere esclusivamente da classificazioni climatiche rigide, ma dovrà rimanere predisposta all'utilizzo delle caratteristiche effettive dell'orto e delle informazioni meteorologiche locali.
 
 ### AgronomicWindow
 
-`AgronomicWindow` è il modello introdotto nella Sessione S015 per rappresentare una finestra agronomica annuale associata a uno specifico metodo di avvio della coltivazione.
+`AgronomicWindow` rappresenta una finestra stagionale annuale relativa a un metodo di avvio.
 
-Il modello è definito in:
+Comprende:
 
-```text
-lib/core/agronomy/models/agronomic_window.dart
-```
+- metodo;
+- mese/giorno iniziale;
+- mese/giorno finale.
 
-La finestra è rappresentata mediante:
+Non contiene un anno specifico.
 
-- `startMethod`;
-- `startMonth`;
-- `startDay`;
-- `endMonth`;
-- `endDay`.
-
-`startMethod` identifica il `PlannedPlantingStartMethod` al quale la finestra si riferisce.
-
-La finestra non contiene un anno specifico.
-
-Questa scelta consente di rappresentare un periodo stagionale ricorrente annualmente e di confrontare le date utilizzando mese e giorno.
-
-Sono supportate sia finestre comprese nello stesso anno solare:
+Può rappresentare sia finestre comprese nello stesso anno:
 
 ```text
 15 marzo → 30 settembre
@@ -4274,923 +4076,464 @@ sia finestre che attraversano il cambio dell'anno:
 1 ottobre → 28 febbraio
 ```
 
-Gli estremi della finestra sono inclusivi.
-
-Una data coincidente con `startMonth`/`startDay` oppure con `endMonth`/`endDay` appartiene quindi alla finestra.
-
-La prima versione del modello non contiene ancora:
-
-- associazione diretta a `Crop`;
-- associazione diretta a `CropVariety`;
-- informazioni climatiche;
-- informazioni meteorologiche;
-- temperature;
-- rischio di gelo.
-
-Tali responsabilità rimangono separate e potranno essere integrate nelle evoluzioni successive.
+Gli estremi sono inclusivi.
 
 ### AgronomicWindowValidator
 
-`AgronomicWindowValidator` è il componente responsabile della validazione strutturale di `AgronomicWindow`.
+`AgronomicWindowValidator` verifica la validità delle combinazioni mese/giorno.
 
-Il validatore è definito in:
-
-```text
-lib/core/agronomy/agronomic_window_validator.dart
-```
-
-La validazione verifica:
-
-- mese iniziale;
-- giorno iniziale;
-- mese finale;
-- giorno finale;
-- validità delle combinazioni mese/giorno.
-
-Sono pertanto rifiutate combinazioni impossibili, ad esempio:
-
-```text
-31 aprile
-```
-
-mentre viene accettata:
-
-```text
-29 febbraio
-```
-
-Per verificare tecnicamente la validità delle combinazioni mese/giorno viene utilizzato l'anno `2000`, scelto in quanto anno bisestile.
-
-Il validatore non impone la condizione:
-
-```text
-inizio <= fine
-```
-
-Una finestra come:
-
-```text
-1 ottobre → 28 febbraio
-```
-
-è infatti deliberatamente valida perché rappresenta un intervallo stagionale che attraversa il cambio dell'anno.
-
-`AgronomicWindowValidator` mantiene quindi separata la validità strutturale dei dati dalla successiva verifica temporale effettuata da `AgronomicWindowEngine`.
+Una finestra che attraversa il cambio dell'anno non è considerata invalida soltanto perché l'estremo iniziale, nell'ordinamento del calendario, è successivo a quello finale.
 
 ### AgronomicWindowEngine
 
-`AgronomicWindowEngine` è il componente introdotto nella Sessione S015 per verificare la compatibilità temporale delle date e dei lotti pianificati rispetto alle finestre agronomiche.
+`AgronomicWindowEngine` verifica se una data appartiene a una finestra e se un `PlannedPlantingBatch` è compatibile con essa.
 
-Il motore è definito in:
-
-```text
-lib/core/agronomy/engines/agronomic_window_engine.dart
-```
-
-La prima versione espone due responsabilità principali:
-
-- `contains()`;
-- `isBatchCompatible()`.
-
-#### contains()
-
-`contains()` determina se una `DateTime` appartiene a una determinata `AgronomicWindow`.
-
-Poiché la finestra rappresenta una stagionalità annuale e non un intervallo riferito a uno specifico anno, il confronto considera mese e giorno.
-
-Il metodo gestisce:
-
-- finestre standard;
-- finestre che attraversano il cambio dell'anno;
-- estremo iniziale incluso;
-- estremo finale incluso.
-
-Per una finestra:
+La compatibilità richiede:
 
 ```text
-15 marzo → 30 settembre
+metodo compatibile
++
+data appartenente alla finestra
 ```
 
-sono considerate appartenenti alla finestra tutte le date comprese tra i due estremi inclusi.
+Il motore non genera i lotti e non seleziona autonomamente le regole applicabili.
 
-Per una finestra:
-
-```text
-1 ottobre → 28 febbraio
-```
-
-sono considerate appartenenti alla finestra le date comprese tra ottobre e dicembre e quelle comprese tra gennaio e febbraio.
-
-#### isBatchCompatible()
-
-`isBatchCompatible()` verifica direttamente la compatibilità tra un `PlannedPlantingBatch` e una `AgronomicWindow`.
-
-La compatibilità richiede contemporaneamente:
-
-```text
-batch.startMethod == window.startMethod
-```
-
-e:
-
-```text
-batch.plannedDate ∈ AgronomicWindow
-```
-
-Il comportamento può essere sintetizzato come:
-
-```text
-metodo corretto + data nella finestra
-        ↓
-compatibile
-
-metodo diverso + data nella finestra
-        ↓
-non compatibile
-
-metodo corretto + data fuori finestra
-        ↓
-non compatibile
-```
-
-Il solo fatto che una data appartenga temporalmente alla finestra non è quindi sufficiente.
-
-La finestra deve essere riferita anche allo stesso metodo di avvio utilizzato dal lotto pianificato.
-
-### Separazione tra pianificazione temporale e compatibilità agronomica
-
-La Sessione S015 consolida la separazione tra generazione temporale dei lotti e verifica della loro compatibilità agronomica.
-
-L'architettura risultante è:
-
-```text
-FamilyConsumptionNeed
-        ↓
-SuccessionPlanningEngine
-        ↓
-PlannedPlantingBatch
-        ↓
-AgronomicWindowEngine
-        ↓
-verifica di metodo + data
-```
-
-Il `SuccessionPlanningEngine` non contiene regole relative alle finestre agronomiche.
-
-`AgronomicWindowEngine` non genera lotti e non modifica la pianificazione temporale.
-
-I due componenti mantengono quindi responsabilità distinte:
-
-```text
-SuccessionPlanningEngine
-        ↓
-quando pianificare teoricamente i lotti
-
-AgronomicWindowEngine
-        ↓
-se metodo e data del lotto sono compatibili
-```
-
-Questa separazione consente di evolvere progressivamente la verifica agronomica senza trasformare il pianificatore temporale in un componente monolitico.
-
-### Limiti attuali delle finestre agronomiche
-
-La prima versione introdotta nella Sessione S015 costituisce l'infrastruttura di base per la verifica della stagionalità, ma non contiene ancora i calendari reali delle colture.
-
-Non sono ancora implementati:
-
-- associazione delle finestre a `Crop`;
-- associazione delle finestre a `CropVariety`;
-- dati stagionali reali delle singole colture o varietà;
-- persistenza delle finestre in Supabase;
-- utilizzo dinamico delle temperature;
-- rischio di gelo;
-- correzione in base alla posizione geografica;
-- utilizzo dei dati meteorologici locali;
-- integrazione diretta nella `RecommendationPipeline`.
-
-La successiva evoluzione dovrà associare le finestre agronomiche alle colture e alle varietà, consentendo di iniziare a verificare la stagionalità reale dei `PlannedPlantingBatch`.
-
-Le future correzioni climatiche e meteorologiche dovranno rimanere separate dalla stagionalità agronomica di base.
-
-Il flusso evolutivo previsto è:
-
-```text
-finestra agronomica di base
-        +
-coltura o varietà
-        ↓
-compatibilità stagionale del lotto
-        ↓
-future correzioni
-        +
-localizzazione reale dell'orto
-        +
-temperature
-        +
-rischio di gelo
-        +
-dati meteorologici locali
-```
-
-L'architettura rimane pertanto predisposta a utilizzare in futuro le caratteristiche reali dell'orto e le informazioni meteorologiche locali senza dipendere rigidamente da classificazioni generiche Nord/Centro/Sud.
+## 8.6 Regole e valutazione stagionale
 
 ### CropAgronomicWindowRule
 
-`CropAgronomicWindowRule` è il modello introdotto nella Sessione S016 per associare una finestra agronomica a una coltura e, opzionalmente, a una specifica varietà.
+`CropAgronomicWindowRule` rappresenta nel dominio l'associazione tra una coltura e una finestra agronomica, con possibilità di specializzazione per una specifica cultivar.
 
-Il modello è definito in:
+Dopo il cutover S030, il contratto corrente utilizza:
 
 ```text
-lib/core/agronomy/models/crop_agronomic_window_rule.dart
+cropId
+cultivarId
+AgronomicWindow
 ```
 
-La regola contiene l'associazione tra:
-
-- `cropId`;
-- `varietyId` opzionale;
-- `AgronomicWindow`.
-
-La semantica adottata è:
+La semantica è:
 
 ```text
-varietyId == null
+cultivarId == null
         ↓
-regola generale della coltura
+regola generale della Crop
 
-varietyId != null
+cultivarId != null
         ↓
-regola specifica della varietà
+regola specifica della Cultivar
 ```
 
-Questa struttura consente di mantenere una regola generale per la coltura e introdurre override specifici per le varietà soltanto quando necessari.
+Questa struttura consente di mantenere una regola generale per la coltura e introdurre una specializzazione per la cultivar soltanto quando necessaria.
 
-Il principio adottato riduce la duplicazione dei dati:
+Il principio è:
 
 ```text
-dato generale della coltura
+dato generale della Crop
         +
-override specifico della varietà solo quando necessario
+specializzazione della Cultivar quando disponibile
 ```
 
-Nel dominio agronomico gli identificativi `cropId` e `varietyId` sono rappresentati come `String`.
+Gli identificativi rimangono rappresentati nel dominio Dart mediante `String`, coerentemente con gli UUID utilizzati dal Database V1 e dal Catalogo globale.
 
-La differenza storica presente nelle versioni precedenti del progetto, nelle quali alcuni componenti legacy utilizzavano identificativi numerici, è stata risolta sul lato Database V1 con la Sessione S026.
+La S030 ha completato anche l'allineamento terminologico di questo sottosistema dal precedente contratto `variety` al contratto corrente `cultivar`.
 
-Il nuovo Catalogo DB V1 utilizza identificativi UUID per:
-
-```text
-botanical_families.id
-crops.id
-crop_varieties.id
-crop_varieties.crop_id
-```
-
-La rappresentazione Dart mediante `String` è quindi coerente con gli UUID PostgreSQL/Supabase utilizzati dal nuovo catalogo.
-
-La Sessione S026 ha inoltre separato esplicitamente il concetto di varietà dalla precedente rappresentazione legacy incorporata nella coltura.
-
-La struttura persistente approvata è:
+Nel codice corrente:
 
 ```text
-botanical_families
-        ↓
-crops
-        ↓
-crop_varieties
-```
-
-`crop_varieties` costituisce quindi una entità autonoma collegata a `crops` mediante `crop_id`.
-
-La relazione gerarchica persistente è:
-
-```text
-Crop
-        ↓
-CropVariety
-```
-
-mentre `CropAgronomicWindowRule` mantiene nel dominio la possibilità di associare una regola:
-
-```text
-alla Crop
-        oppure
-alla CropVariety specifica
-```
-
-Il principio di fallback rimane coerente con l'architettura agronomica:
-
-```text
-regola varietale disponibile
-        ↓
-utilizzo della specializzazione della varietà
-
-regola varietale assente
-        ↓
-fallback alla regola generale della coltura
-```
-
-La persistenza definitiva di `agronomic_window_rules` non è ancora stata implementata alla conclusione della Sessione S026.
-
-Di conseguenza, il modello `CropAgronomicWindowRule` continua a rappresentare il contratto del dominio agronomico e costituisce il riferimento per la futura integrazione della relativa struttura persistente.
-
-La futura implementazione dovrà mantenere coerenti:
-
-```text
-UUID del Catalogo DB V1
-        ↓
-Repository
-        ↓
-String nel dominio Dart
-        ↓
 CropAgronomicWindowRule
+    → cultivarId
+
+PlannedPlantingBatch
+    → cultivarId
+
+SuccessionPlanningEngine
+    → cultivarId
+
+AgronomicWindowResolver
+    → cultivarId
 ```
 
-senza reintrodurre identificativi `int` o `bigint` come contratto del nuovo Database V1.
+Il precedente `varietyId` non appartiene più al contratto corrente di questi componenti.
 
 ### AgronomicWindowResolver
 
-`AgronomicWindowResolver` è il componente responsabile della selezione delle finestre agronomiche applicabili a una determinata coltura, varietà e metodo di avvio.
+`AgronomicWindowResolver` seleziona le finestre agronomiche applicabili a una determinata Crop, eventuale Cultivar e metodo di avvio.
 
-Il resolver è definito in:
+Il resolver utilizza:
 
 ```text
-lib/core/agronomy/engines/agronomic_window_resolver.dart
+cropId
+cultivarId
+PlannedPlantingStartMethod
 ```
 
-La selezione utilizza:
+e supporta più finestre agronomiche applicabili.
 
-- `cropId`;
-- `varietyId`;
-- `PlannedPlantingStartMethod`.
-
-A partire dalla Sessione S018 il resolver supporta esplicitamente **più finestre agronomiche applicabili**.
-
-La gerarchia adottata rimane:
+La gerarchia corrente è:
 
 ```text
-finestre specifiche della varietà
+finestre specifiche della Cultivar
         ↓
-se presenti, vengono utilizzate tutte
+se presenti, utilizza l'insieme specifico
 
 altrimenti
         ↓
-finestre generali della coltura
+finestre generali della Crop
 
 nessuna finestra applicabile
         ↓
-nessuna conoscenza agronomica disponibile
+conoscenza agronomica non disponibile
 ```
 
-Il comportamento è quindi:
+Il fallback opera quindi tra livelli di specificità e non tra singole finestre.
 
-1. vengono ricercate tutte le regole specifiche della varietà per il metodo richiesto;
-2. se esiste almeno una regola varietale, vengono restituite le relative finestre;
-3. soltanto in assenza di regole varietali vengono utilizzate tutte le finestre generali della coltura per il metodo richiesto;
-4. in assenza di entrambe non viene restituita alcuna finestra applicabile.
+Quando esistono regole specifiche per la Cultivar, viene utilizzato il relativo insieme senza combinarlo con le regole generali della Crop.
 
-Il fallback opera quindi **tra livelli di specificità**, non tra singole finestre.
+In assenza di regole specifiche vengono utilizzate le regole generali della Crop.
 
-Una varietà che dispone di proprie regole agronomiche utilizza il proprio insieme di finestre senza combinarlo con le finestre generali della coltura.
+Il resolver può inoltre operare a partire da un `PlannedPlantingBatch`, utilizzandone:
 
-Il resolver non verifica se la data del lotto appartenga alle finestre selezionate.
+```text
+cropId
+cultivarId
+startMethod
+```
+
+Il resolver non verifica direttamente se la data del lotto appartenga alle finestre selezionate.
 
 Questa responsabilità rimane separata e appartiene ad `AgronomicWindowEngine`.
 
-È inoltre disponibile la risoluzione a partire direttamente da un `PlannedPlantingBatch`, utilizzando automaticamente:
+### Distinzione dal Resolver S030
 
-- `cropId`;
-- `varietyId`;
-- `startMethod`.
+`AgronomicWindowResolver` **non deve essere confuso** con il Resolver della Knowledge introdotto nel Catalogo Agronomico S030.
 
-La separazione adottata è:
+Sono componenti differenti.
 
 ```text
 AgronomicWindowResolver
-        ↓
-quali finestre sono applicabili?
+    → componente del dominio agronomico
+    → seleziona le finestre agronomiche applicabili
 
-AgronomicWindowEngine
-        ↓
-la data appartiene a ciascuna finestra?
+Resolver della Knowledge S030
+    → componente del Catalogo globale
+    → risolve la Knowledge canonica applicabile
 ```
+
+Il primo opera sulle regole delle finestre agronomiche utilizzate dal dominio applicativo.
+
+Il secondo appartiene alla nuova architettura globale, multisorgente, tracciabile, versionabile e contestualizzabile della Knowledge agronomica.
+
+L'evoluzione futura potrà integrare progressivamente i due livelli, ma essi mantengono responsabilità distinte.
 
 ### AgronomicWindowEvaluation
 
-`AgronomicWindowEvaluation` rappresenta il risultato strutturato della valutazione agronomica di un lotto rispetto all'insieme delle finestre applicabili.
+`AgronomicWindowEvaluation` rappresenta il risultato strutturato della verifica stagionale.
 
-Il modello è definito in:
+Gli stati sono:
 
 ```text
-lib/core/agronomy/models/agronomic_window_evaluation.dart
+compatible
+incompatible
+unknown
 ```
 
-Gli stati rimangono:
-
-- `compatible`;
-- `incompatible`;
-- `unknown`.
-
-La distinzione fondamentale rimane:
+La distinzione fondamentale è:
 
 ```text
 unknown != incompatible
 ```
 
-Con il supporto multi-finestra introdotto nella S018, la semantica è:
-
-`compatible` indica che:
+`compatible` significa che:
 
 - esiste almeno una finestra applicabile;
 - almeno una delle finestre valutate contiene la data del lotto.
 
-`incompatible` indica che:
+`incompatible` significa che:
 
 - esiste almeno una finestra applicabile;
 - tutte le finestre applicabili sono state valutate;
 - nessuna contiene la data del lotto.
 
-`unknown` indica invece che:
+`unknown` significa invece che:
 
 - non esiste alcuna finestra agronomica applicabile;
-- il sistema non dispone quindi di informazioni sufficienti per esprimere un giudizio.
+- il sistema non dispone quindi di informazioni sufficienti per esprimere una valutazione.
 
-L'assenza di dati continua a non essere interpretata come incompatibilità.
+L'assenza di conoscenza non deve pertanto essere interpretata come incompatibilità.
 
-Il modello distingue inoltre:
+Il modello conserva inoltre:
 
-- `matchedWindow`, cioè la finestra compatibile individuata quando il risultato è `compatible`;
-- `evaluatedWindows`, cioè l'insieme delle finestre effettivamente considerate nella valutazione;
-- `reasons`, utilizzato per rappresentare le motivazioni associate al risultato;
-- getter dedicati ai diversi stati.
-
-La distinzione tra `matchedWindow` ed `evaluatedWindows` permette di conservare sia la finestra che ha prodotto un esito positivo sia il contesto completo della valutazione multi-finestra.
-
-Sono disponibili factory constructor dedicati:
-
-```text
-AgronomicWindowEvaluation.compatible(...)
-AgronomicWindowEvaluation.incompatible(...)
-AgronomicWindowEvaluation.unknown(...)
-```
-
-La struttura continua a seguire il pattern adottato negli altri risultati del dominio agronomico.
+- `matchedWindow`, quando viene individuata una finestra compatibile;
+- `evaluatedWindows`, con l'insieme delle finestre considerate;
+- `reasons`, con le motivazioni associate alla valutazione.
 
 ### AgronomicWindowService
 
-`AgronomicWindowService` è il servizio applicativo responsabile del coordinamento della selezione e della valutazione delle finestre agronomiche.
-
-Il servizio è definito in:
-
-```text
-lib/services/agronomic_window_service.dart
-```
-
-Il componente continua a seguire il principio già adottato da servizi come `BedAnalysisService`:
-
-> il servizio coordina componenti specializzati senza incorporare direttamente logica agronomica propria.
-
 `AgronomicWindowService` coordina:
 
-- `AgronomicWindowResolver`;
-- `AgronomicWindowEngine`.
-
-Il metodo principale è:
-
 ```text
-evaluateBatch(...)
-```
-
-e riceve:
-
-- un insieme di `CropAgronomicWindowRule`;
-- un `PlannedPlantingBatch`.
-
-A partire dalla Sessione S018 il flusso applicativo supporta esplicitamente la valutazione di **più finestre agronomiche applicabili**:
-
-```text
-PlannedPlantingBatch
-        ↓
 AgronomicWindowResolver
-        ↓
-insieme delle finestre applicabili
-        ↓
+        +
 AgronomicWindowEngine
-        ↓
-valutazione di tutte le finestre
         ↓
 AgronomicWindowEvaluation
 ```
 
-La semantica del risultato è:
+Il servizio mantiene separate le responsabilità:
 
-```text
-almeno una finestra compatibile
-        ↓
-compatible
-
-finestre presenti
-+
-nessuna finestra compatibile
-        ↓
-incompatible
-
-nessuna finestra applicabile
-        ↓
-unknown
-```
-
-Il servizio conserva il fallback deterministico:
-
-```text
-finestre specifiche della varietà
-        ↓
-se assenti
-        ↓
-finestre generali della coltura
-        ↓
-se assenti
-        ↓
-unknown
-```
-
-La valutazione multi-finestra non modifica la separazione delle responsabilità:
-
-- il resolver determina **quali finestre** devono essere considerate;
-- l'engine verifica la compatibilità temporale;
-- il service coordina il processo;
-- `AgronomicWindowEvaluation` rappresenta il risultato e conserva le finestre valutate.
-
-### Architettura della valutazione stagionale
-
-Con la Sessione S018 l'architettura introdotta nella S016 viene estesa per supportare esplicitamente **più finestre agronomiche applicabili** alla stessa coltura, varietà e metodo di avvio.
-
-Il flusso risultante è:
-
-```text
-PlannedPlantingBatch
-        ↓
-AgronomicWindowResolver
-        ↓
-insieme delle CropAgronomicWindowRule applicabili
-        ↓
-insieme delle AgronomicWindow
-        ↓
-AgronomicWindowEngine
-        ↓
-valutazione delle finestre applicabili
-        ↓
-AgronomicWindowEvaluation
-```
-
-A livello applicativo:
-
-```text
-AgronomicWindowService
-        ↓
-coordina Resolver + Engine
-```
-
-Le responsabilità rimangono separate:
-
-- `SuccessionPlanningEngine` genera temporalmente i lotti;
-- `CropAgronomicWindowRule` associa le finestre a colture e varietà;
-- `AgronomicWindowResolver` determina l'insieme delle finestre applicabili rispettando la priorità varietà → coltura;
+- `AgronomicWindowResolver` determina quali finestre sono applicabili;
 - `AgronomicWindowEngine` verifica la compatibilità temporale;
-- `AgronomicWindowEvaluation` rappresenta il risultato e conserva `matchedWindow` ed `evaluatedWindows`;
-- `AgronomicWindowService` coordina l'intero flusso applicativo.
+- `AgronomicWindowEvaluation` rappresenta il risultato;
+- `AgronomicWindowService` coordina il processo.
 
-La compatibilità complessiva segue la regola:
+Il servizio non incorpora direttamente tutte le regole agronomiche e non modifica la pianificazione prodotta da `SuccessionPlanningEngine`.
+
+## 8.7 Catalogo S030 e Knowledge agronomica
+
+La S030 introduce un cambiamento architetturale importante per l'evoluzione del Motore Agronomico.
+
+Il Catalogo non è più una semplice raccolta Profile-owned di parametri utilizzabili direttamente dal client.
+
+Il flusso concettuale corrente è:
 
 ```text
-almeno una finestra compatibile
-        ↓
-compatible
+fonti
+  ↓
+acquisizioni / osservazioni
+  ↓
+candidati
+  ↓
+workflow editoriale
+  ↓
+Knowledge canonica pubblicata
+  ↓
+Resolver S030
+  ↓
+dato applicabile al contesto
+  ↓
+Motore Agronomico
+  ↓
+suggerimento
+```
 
-finestre applicabili presenti
+Il Resolver S030 può determinare quale Knowledge sia applicabile, ma non decide automaticamente un fatto operativo.
+
+Il Motore Agronomico può utilizzare tale Knowledge per produrre una valutazione o una proposta.
+
+La trasformazione in fatto operativo segue invece:
+
+```text
+Knowledge
+    ↓
+Resolver
+    ↓
+Motore Agronomico
+    ↓
+proposta
+    ↓
+utente
+    ↓
+conferma
+    ↓
+Write Path
+    ↓
+fatto operativo
+```
+
+Questo principio impedisce che un aggiornamento del Catalogo modifichi retroattivamente e automaticamente una Planting reale.
+
+I dati agronomici eventualmente copiati in una Planting come snapshot operativo rimangono parte del fatto storico della coltivazione.
+
+## 8.8 Consociazioni dopo S030
+
+Il dominio dispone già di `AssociationEngine`.
+
+La nuova architettura del Catalogo S030 non dispone però ancora del backend canonico definitivo per le associazioni tra colture.
+
+Lo stato corrente deve quindi essere interpretato come:
+
+```text
+AssociationEngine
+    → disponibile
+
+backend canonico associazioni S030
+    → FUTURE
+```
+
+`CropAssociationRepository` evita di interrogare una relazione canonica inesistente e restituisce attualmente insiemi vuoti.
+
+Questo comportamento non significa:
+
+```text
+nessuna consociazione esiste
+```
+
+ma:
+
+```text
+backend canonico non ancora disponibile
+```
+
+Il futuro backend dovrà preservare:
+
+- tracciabilità;
+- provenienza;
+- eventuale contestualizzazione;
+- integrazione con il Catalogo globale;
+- distinzione tra assenza di conoscenza e associazione negativa.
+
+## 8.9 Flusso delle elaborazioni
+
+Il flusso applicativo generale può essere rappresentato come:
+
+```text
+dati operativi
 +
-nessuna compatibile
+Catalogo / Knowledge applicabile
         ↓
-incompatible
-
-nessuna finestra applicabile
+Repository / Resolver
         ↓
-unknown
-```
-
-Questa separazione evita che il `SuccessionPlanningEngine` acquisisca responsabilità relative a:
-
-- selezione delle regole;
-- stagionalità;
-- interpretazione del risultato;
-- persistenza.
-
-### Persistenza delle regole agronomiche
-
-La situazione descritta nella S016, nella quale la progettazione della persistenza era ancora rinviata, è stata superata dalla Sessione S017.
-
-La S017 ha completato e congelato la baseline logica e architetturale del **Database V1**.
-
-Per le regole agronomiche la struttura persistente prevista è:
-
-```text
-agronomic_window_rules
-```
-
-mentre `AgronomicWindow` rimane un risultato del dominio applicativo e **non corrisponde a una tabella persistente `agronomic_windows`**.
-
-La baseline Database V1 costituisce ora il riferimento da rispettare durante l'implementazione SQL/Supabase.
-
-La gestione deve supportare:
-
-- regole associate alla coltura;
-- eventuale specializzazione per varietà;
-- metodo di avvio;
-- estremi temporali della finestra;
-- più finestre agronomiche applicabili per la stessa combinazione prevista dal dominio;
-- fallback deterministico varietà → coltura;
-- estensioni future senza duplicazioni non necessarie.
-
-Il flusso architetturale previsto rimane:
-
-```text
-Supabase
+modelli del dominio
         ↓
-Repository
+Motore Agronomico
         ↓
-dominio
+valutazioni
         ↓
-AgronomicWindowResolver
+RecommendationPipeline
         ↓
-AgronomicWindowEngine
+suggerimento
         ↓
-AgronomicWindowService
-        ↓
-AgronomicWindowEvaluation
-```
-
-La Sessione S018 ha inoltre verificato e consolidato a livello applicativo il requisito delle **finestre agronomiche multiple**, eliminando il precedente punto ancora aperto sulla necessità di supportare più finestre per coltura e metodo.
-
-### Preparazione dell'implementazione Supabase
-
-La Sessione S018 non ha ancora implementato la baseline Database V1 nel database.
-
-È stata invece predisposta l'infrastruttura locale necessaria per sviluppare e verificare le future migration prima di applicarle al progetto remoto.
-
-L'ambiente verificato comprende:
-
-- WSL 2 `2.7.11.0`;
-- Ubuntu `24.04.4 LTS`;
-- Docker Desktop con backend WSL 2;
-- Docker Engine/CLI `29.7.2`;
-- Supabase CLI `2.114.0`.
-
-È stato eseguito:
-
-```text
-supabase init
-```
-
-creando la struttura locale:
-
-```text
-supabase/
-├── .gitignore
-├── config.toml
-└── seed.sql
-```
-
-`supabase/seed.sql` è intenzionalmente vuoto in questa fase.
-
-Il file SQL sperimentale precedente:
-
-```text
-database/database_v1.sql
-```
-
-è stato conservato come riferimento storico con il nuovo nome:
-
-```text
-database/database_legacy_initial.sql
-```
-
-Il file legacy **non rappresenta la baseline Database V1 congelata nella S017** e non deve essere utilizzato come nuova sorgente autorevole dello schema.
-
-La versione PostgreSQL del progetto Supabase remoto è stata verificata mediante la sola query di lettura:
-
-```sql
-select version();
-```
-
-ottenendo:
-
-```text
-PostgreSQL 17.6
-```
-
-Questo conferma la coerenza della configurazione locale:
-
-```text
-major_version = 17
-```
-
-Durante la Sessione S018 **non è stata eseguita alcuna modifica al database remoto**.
-
-La prima migration della nuova baseline non è stata ancora creata.
-
-L'implementazione SQL inizierà nella futura Sessione S019 dallo:
-
-```text
-STEP 35.3 – Costruzione baseline SQL Database V1
-```
-
-con la creazione prevista della migration:
-
-```text
-supabase migration new database_v1_baseline
-```
-
-La traduzione della baseline congelata dovrà procedere incrementalmente per gruppi coerenti di tabelle e dipendenze, mantenendo verifiche e test prima dell'applicazione al database remoto.
-
-### RecommendationMapper
-
-Il `RecommendationMapper` converte la valutazione agronomica e la relativa raccomandazione nel modello utilizzato dall'interfaccia utente.
-
-### RecommendationPipeline
-
-La `RecommendationPipeline` orchestra l'intero processo di generazione delle raccomandazioni.
-
-La pipeline non contiene regole agronomiche proprie, ma coordina i componenti specializzati, costruisce le valutazioni agronomiche, invoca il `DecisionEngine` e utilizza il `RecommendationMapper` per produrre il risultato destinato all'interfaccia.
-
-A partire dalla Sessione S012, la pipeline integra anche le informazioni prodotte dal `FamilyNeedsEngine`.
-
-Le esigenze familiari vengono fornite mediante il parametro opzionale `familyNeeds`.
-
-Il `FamilyNeedsEngine` valuta tali esigenze e la pipeline associa la priorità familiare risultante alla relativa coltura mediante `cropId`.
-
-La priorità familiare non modifica direttamente il punteggio calcolato dal `DecisionEngine`.
-
-La `RecommendationPipeline` applica invece un ordinamento gerarchico basato su:
-
-1. fascia agronomica;
-2. priorità familiare;
-3. punteggio agronomico.
-
-La classificazione delle raccomandazioni nelle rispettive fasce agronomiche viene gestita internamente mediante `_ratingBand()`.
-
-La fascia agronomica costituisce il criterio prioritario dell'ordinamento. La priorità familiare può quindi modificare l'ordine delle raccomandazioni soltanto all'interno della stessa fascia agronomica.
-
-Il punteggio agronomico viene utilizzato come criterio successivo quando i criteri precedenti non determinano un ordine differente.
-
-Questa struttura mantiene separati il giudizio agronomico e le esigenze familiari e impedisce che una priorità familiare elevata renda preferibile una raccomandazione appartenente a una fascia agronomica inferiore.
-
-Il processo di ordinamento può essere sintetizzato come:
-
-    Fascia agronomica
-            ↓
-    Priorità familiare
-            ↓
-    Punteggio agronomico
-            ↓
-    Raccomandazione finale
-
-## 8.4 Flusso delle elaborazioni
-
-Il Motore Agronomico elabora le informazioni seguendo un flusso logico nel quale ciascun componente interviene nel momento appropriato, utilizzando i risultati prodotti dai moduli precedenti.
-
-L'elaborazione ha inizio quando l'utente inserisce una nuova coltivazione oppure richiede un'analisi dell'aiuola.
-
-I dati vengono recuperati dal Repository Layer, convertiti nei modelli dell'applicazione e successivamente analizzati dai diversi componenti del Motore Agronomico.
-
-Il seguente schema rappresenta un flusso logico di riferimento. In funzione dell'operazione richiesta, i singoli moduli possono essere utilizzati anche indipendentemente oppure in combinazioni differenti.
-
-Il flusso generale delle elaborazioni può essere rappresentato come segue.
-
-```text
-Utente
-   │
-   ▼
 Flutter UI
-   │
-   ▼
-Repository Layer
-   │
-   ▼
-BedAnalysisResult
-   │
-   ▼
-FreeSpaceAdapter
-   │
-   ▼
-SuggestionEngine
-   │
-   ▼
-SuggestionCandidate
-   │
-   ├──────────────┬────────────────┐
-   ▼              ▼                ▼
-RotationEngine  AssociationEngine  SpaceScoreCalculator
-   │              │                │
-   └──────────────┴────────────────┘
-                  │
-                  ▼
-      CandidateAgronomicEvaluation
-                  │
-                  ▼
-            DecisionEngine
-                  │
-                  ▼
-      PlantingRecommendation
-                  │
-                  ▼
-       RecommendationMapper
-                  │
-                  ▼
-          SuggestionResult
-                  │
-                  ▼
-              Flutter UI
 ```
 
-La `RecommendationPipeline` coordina questo flusso senza incorporare direttamente le regole agronomiche dei singoli componenti.
+Il suggerimento non costituisce una scrittura.
 
-Gli spazi disponibili vengono convertiti tramite `FreeSpaceAdapter` nel formato utilizzato dal nucleo agronomico. Il `SuggestionEngine` genera quindi i candidati iniziali.
+Quando l'utente decide di applicarlo:
 
-Per ogni candidato vengono prodotte separatamente la valutazione della rotazione, la valutazione delle associazioni e il punteggio relativo allo spazio. I risultati vengono raccolti in una `CandidateAgronomicEvaluation`.
+```text
+suggerimento
+    ↓
+conferma utente
+    ↓
+Repository
+    ↓
+Write Path autoritativo
+    ↓
+PostgreSQL
+```
 
-Il `DecisionEngine` utilizza queste valutazioni per calcolare il punteggio finale ponderato secondo la configurazione definita da `DecisionWeights` e ordina le raccomandazioni in base al punteggio ottenuto.
+Questo mantiene separate:
 
-Infine, `RecommendationMapper` converte ogni risultato nel formato utilizzato dall'applicazione e la pipeline restituisce il `SuggestionResult` destinato all'interfaccia utente.
+- conoscenza;
+- elaborazione;
+- proposta;
+- decisione dell'utente;
+- fatto persistito.
 
-La separazione tra generazione dei candidati, valutazioni agronomiche, decisione e mapping mantiene il sistema modulare e permette l'introduzione futura di ulteriori criteri senza concentrare responsabilità differenti nello stesso componente.
+## 8.10 Validazione e affidabilità
 
-## 8.5 Validazione e controlli
+La validazione è distribuita su più livelli.
 
-Per garantire l'affidabilità delle elaborazioni, il Motore Agronomico esegue una serie di controlli prima di applicare le proprie regole.
+Il dominio utilizza validator specifici, tra cui:
 
-La validazione dei dati rappresenta un passaggio fondamentale per evitare l'elaborazione di informazioni incomplete, incoerenti o non compatibili con il modello dell'applicazione.
+```text
+PlantingValidator
+FamilyConsumptionNeedValidator
+PlannedPlantingBatchValidator
+AgronomicWindowValidator
+```
 
-Il principale componente dedicato a questa attività è il **PlantingValidator**, che verifica la correttezza dei dati relativi alle nuove coltivazioni prima che vengano utilizzati dagli altri moduli del motore.
+Tali componenti impediscono che dati strutturalmente incoerenti vengano utilizzati dagli algoritmi.
 
-Tra i controlli effettuati rientrano, ad esempio:
+Le validazioni del dominio non sostituiscono:
 
-- la presenza delle informazioni obbligatorie;
-- la coerenza dei valori numerici;
-- la validità delle dimensioni e delle posizioni delle coltivazioni;
-- il rispetto dei vincoli previsti dal modello dati.
+- constraint PostgreSQL;
+- RLS;
+- RPC autoritative;
+- controlli di concorrenza;
+- invarianti server-side.
 
-L'esecuzione preventiva di questi controlli consente di ridurre la possibilità di errori durante le elaborazioni successive e garantisce che tutti i moduli del Motore Agronomico operino su dati consistenti.
+Il principio è:
 
-L'approccio adottato favorisce inoltre una maggiore robustezza dell'applicazione, semplifica la manutenzione del codice e rende più agevole l'introduzione di nuove funzionalità senza compromettere l'affidabilità del sistema.
+```text
+validazione applicativa
+        +
+validazione di dominio
+        +
+integrità server-side
+```
 
-## 8.6 Vantaggi dell'architettura
+con il backend come autorità definitiva per la persistenza.
 
-L'architettura del Motore Agronomico è stata progettata per garantire modularità, affidabilità e facilità di evoluzione nel tempo.
+## 8.11 Dati meteorologici e contestualizzazione
 
-La suddivisione della logica in componenti indipendenti consente a ciascun modulo di svolgere uno specifico compito senza introdurre dipendenze non necessarie con gli altri elementi del sistema.
+L'evoluzione del Motore Agronomico dovrà considerare progressivamente il contesto reale dell'orto.
 
-Tra i principali vantaggi dell'architettura adottata si evidenziano:
+Tra i fattori FUTURE rientrano:
 
-- separazione tra logica agronomica, interfaccia utente e accesso ai dati;
-- elevata modularità dei componenti;
-- semplicità di manutenzione del codice;
-- possibilità di riutilizzare gli stessi moduli in contesti differenti;
-- facilità nell'introduzione di nuovi algoritmi agronomici;
-- maggiore robustezza grazie alla validazione preventiva dei dati;
-- architettura facilmente testabile mediante test automatici.
+- localizzazione;
+- temperature;
+- rischio di gelo;
+- precipitazioni;
+- fabbisogno idrico;
+- dati meteorologici locali.
 
-Queste caratteristiche consentono al progetto di evolvere progressivamente senza richiedere modifiche sostanziali ai componenti già sviluppati.
+L'architettura non deve dipendere rigidamente da classificazioni geografiche generiche quando sono disponibili informazioni locali più rappresentative.
 
-L'approccio modulare adottato permette inoltre di ampliare il Motore Agronomico con nuove funzionalità mantenendo elevata la qualità del codice e favorendo la manutenzione nel lungo periodo.
+Lo storico meteorologico grezzo non deve essere duplicato inutilmente nel database applicativo.
 
-## 8.7 Evoluzione futura
+Orto Smart dovrà conservare soltanto i dati, riepiloghi, decisioni o riferimenti meteorologici realmente necessari al dominio agronomico.
 
-L'architettura modulare del Motore Agronomico è stata progettata per consentire un'evoluzione progressiva delle funzionalità senza richiedere modifiche sostanziali ai componenti già implementati.
+## 8.12 Evoluzione futura
 
-Le versioni future di Orto Smart prevedono l'introduzione di nuovi moduli dedicati all'analisi e al supporto delle decisioni agronomiche, ampliando progressivamente le capacità del sistema.
+Le principali evoluzioni del Motore Agronomico comprendono:
 
-Tra le principali evoluzioni previste rientrano:
+- integrazione progressiva della Knowledge S030;
+- utilizzo del Resolver S030 nei flussi applicativi;
+- associazione della Knowledge ai corretti contesti agronomici;
+- estensione del contratto `cultivarId` alle eventuali componenti applicative future che richiedano una specializzazione della Crop;
+- backend canonico delle consociazioni;
+- calendari agronomici reali verificati;
+- pianificazione delle successioni basata sui dati canonici;
+- utilizzo di resa e produttività verificate;
+- miglioramento delle rotazioni;
+- integrazione meteorologica;
+- supporto all'irrigazione;
+- analisi dello storico reale dell'orto;
+- ulteriori criteri agronomici verificabili.
 
-- evoluzione dell'analisi delle rotazioni colturali mediante criteri agronomici progressivamente più avanzati;
-- pianificazione delle successioni delle colture;
-- suggerimenti automatici basati sul calendario agronomico;
-- supporto alla gestione dell'irrigazione, integrando le informazioni meteorologiche e lo stato delle coltivazioni;
-- analisi dello storico delle colture per migliorare la pianificazione delle stagioni successive;
-- integrazione di ulteriori regole agronomiche e nuove tipologie di controlli.
+La popolazione del Catalogo con dati reali dovrà avvenire soltanto dopo la definizione di fonti verificabili e del relativo processo editoriale.
 
-L'organizzazione adottata consente di aggiungere nuovi moduli mantenendo inalterata l'architettura generale del Motore Agronomico, favorendo la crescita del progetto e la qualità del software nel lungo periodo.
+Non devono essere introdotti dati agronomici provvisori o seed dimostrativi nel database operativo per simulare funzionalità non ancora pronte.
 
-## 8.8 Considerazioni finali
+## 8.13 Considerazioni finali
 
-Il Motore Agronomico rappresenta il nucleo logico di Orto Smart e costituisce l'elemento che distingue l'applicazione da un semplice sistema di registrazione delle informazioni.
+Il Motore Agronomico rappresenta il livello che trasforma dati e conoscenza in supporto decisionale.
 
-Attraverso un'architettura modulare e indipendente, il motore trasforma i dati raccolti durante la gestione dell'orto in elaborazioni e suggerimenti utili a supportare le decisioni dell'utente.
+La S030 non sostituisce i motori agronomici esistenti: introduce l'infrastruttura necessaria affinché essi possano progressivamente lavorare su Knowledge globale, tracciabile, versionata, contestualizzabile e sottoposta a controllo editoriale.
 
-La separazione tra logica agronomica, accesso ai dati e interfaccia utente garantisce un'elevata manutenibilità del software e consente l'introduzione di nuove funzionalità senza compromettere i componenti esistenti.
+La separazione fondamentale diventa quindi:
 
-L'architettura adottata rappresenta una base solida per lo sviluppo futuro del progetto, permettendo di integrare progressivamente nuovi algoritmi e nuovi strumenti di supporto alla gestione dell'orto.
+```text
+Catalogo / Knowledge
+        ↓
+Resolver
+        ↓
+Motore Agronomico
+        ↓
+proposta
+        ↓
+utente
+        ↓
+fatto operativo
+```
 
-Nel Capitolo 9 verranno approfonditi gli aspetti relativi ai test del software e alle strategie adottate per garantire la qualità, l'affidabilità e la stabilità dell'applicazione.
+Il Motore Agronomico non deve inventare informazioni mancanti, interpretare l'assenza di conoscenza come incompatibilità né modificare automaticamente i fatti persistiti.
+
+Questa architettura consente di evolvere progressivamente gli algoritmi mantenendo separati conoscenza agronomica, logica decisionale, interazione dell'utente e persistenza autoritativa.
+
+Nel Capitolo 9 vengono descritti i test e le verifiche utilizzati per garantire qualità e stabilità dell'applicazione.
 
 # 9. Test e Qualità del Software
 
@@ -5202,46 +4545,67 @@ Per garantire affidabilità, stabilità e facilità di manutenzione, il progetto
 
 L'obiettivo non è solamente individuare eventuali errori, ma prevenire l'introduzione di regressioni, mantenere elevata la qualità del codice e assicurare che ogni nuova funzionalità si integri correttamente con quelle già esistenti.
 
-Le attività di verifica comprendono l'analisi statica del codice, l'esecuzione di test automatici e il controllo del corretto funzionamento delle principali componenti dell'applicazione.
+Le attività di verifica comprendono:
 
-Nei paragrafi successivi verranno illustrati il metodo di verifica adottato, gli strumenti utilizzati e le strategie impiegate per mantenere nel tempo la qualità del progetto.
+- analisi statica del codice;
+- test automatici;
+- verifiche funzionali;
+- verifiche del database;
+- verifiche dei Write Path;
+- controlli di sicurezza e integrità;
+- acceptance test delle tranche implementative.
 
 ## 9.2 Strategia di test
 
 Orto Smart adotta una strategia di verifica continua durante l'intero ciclo di sviluppo, con l'obiettivo di individuare tempestivamente eventuali anomalie e garantire la stabilità dell'applicazione.
 
-Ogni nuova funzionalità viene sviluppata seguendo un processo che prevede la progettazione, l'implementazione, la verifica del codice e l'esecuzione dei test prima della sua integrazione nell'applicazione.
+Ogni nuova funzionalità viene sviluppata seguendo un processo che prevede:
 
-La strategia adottata si basa su tre principi fondamentali:
+```text
+progettazione
+        ↓
+implementazione
+        ↓
+verifica del codice
+        ↓
+test
+        ↓
+integrazione
+        ↓
+verifica finale
+```
+
+La strategia adottata si basa sui seguenti principi:
 
 - verificare il corretto funzionamento delle nuove funzionalità;
-- assicurare che le modifiche non introducano regressioni nelle componenti già esistenti;
-- mantenere elevata la qualità complessiva del codice durante l'evoluzione del progetto.
+- assicurare che le modifiche non introducano regressioni;
+- mantenere elevata la qualità complessiva del codice;
+- verificare separatamente i livelli applicativo e persistente;
+- mantenere il database riproducibile tramite migration;
+- verificare le autorità server-side e i relativi Write Path;
+- documentare i risultati effettivamente ottenuti.
 
-Per raggiungere questi obiettivi vengono utilizzati strumenti di analisi statica del codice, test automatici e verifiche funzionali eseguite durante lo sviluppo.
-
-Questo approccio consente di individuare gli errori nelle fasi iniziali, riducendo i costi di correzione e migliorando l'affidabilità complessiva del software.
-
-Le verifiche vengono eseguite in modo sistematico prima del completamento delle attività di sviluppo e rappresentano parte integrante del processo di realizzazione di Orto Smart.
+Le verifiche vengono pertanto considerate parte integrante del processo di sviluppo e non soltanto un'attività conclusiva.
 
 ## 9.3 Flutter Analyze
 
-Durante lo sviluppo di Orto Smart viene utilizzato il comando `flutter analyze` per eseguire l'analisi statica del codice sorgente.
+Durante lo sviluppo di Orto Smart viene utilizzato:
 
-Questo strumento verifica automaticamente il rispetto delle regole del linguaggio Dart e delle buone pratiche di sviluppo, individuando errori sintattici, problemi di tipizzazione, codice non utilizzato e altre possibili anomalie prima dell'esecuzione dell'applicazione.
+```text
+flutter analyze
+```
 
-L'analisi statica rappresenta una delle prime verifiche effettuate dopo l'implementazione di una nuova funzionalità e prima dell'esecuzione dei test automatici.
+per eseguire l'analisi statica del codice sorgente.
 
-L'utilizzo sistematico di `flutter analyze` consente di:
+Lo strumento consente di individuare errori sintattici, problemi di tipizzazione, codice non utilizzato e altre anomalie rilevabili dall'analizzatore Dart/Flutter.
 
-- individuare tempestivamente errori di compilazione;
-- rilevare potenziali problemi di qualità del codice;
-- mantenere uniforme lo stile di sviluppo del progetto;
-- ridurre la probabilità di introdurre difetti nelle versioni successive.
+L'analisi statica rappresenta una delle verifiche preliminari effettuate dopo l'implementazione di una nuova funzionalità e prima della conclusione della sessione.
 
-L'assenza di errori segnalati dall'analizzatore costituisce un requisito preliminare per considerare completata una sessione di sviluppo e procedere con le successive attività di verifica.
+L'assenza di errori segnalati dall'analizzatore costituisce un requisito per considerare verificata la qualità statica del codice interessato.
 
-Nella Sessione S029, dopo l'integrazione UI del lifecycle delle coltivazioni e dopo l'ultima modifica informativa a `PlantingCard`, è stato eseguito nuovamente:
+### Verifica S029
+
+Nella Sessione S029, dopo l'integrazione UI del lifecycle delle coltivazioni e dopo l'ultima modifica informativa a `PlantingCard`, è stato eseguito:
 
 ```text
 flutter analyze
@@ -5253,29 +4617,47 @@ con risultato:
 No issues found!
 ```
 
-La verifica finale conferma quindi che le modifiche introdotte nella S029 non hanno generato errori rilevati dall'analisi statica.
+La verifica ha confermato che le modifiche introdotte nella S029 non hanno generato errori rilevati dall'analisi statica.
+
+### Verifica S030
+
+Anche la Sessione S030 ha completato la verifica statica dell'applicazione.
+
+Il risultato finale documentato è:
+
+```text
+flutter analyze
+No issues found
+```
+
+Il risultato S030 costituisce il riferimento più recente per lo stato corrente del codice Flutter.
 
 ## 9.4 Test automatici
 
-Oltre all'analisi statica del codice, Orto Smart utilizza test automatici per verificare il corretto funzionamento delle componenti implementate.
+Orto Smart utilizza test automatici per verificare il corretto funzionamento delle componenti implementate.
 
-I test consentono di controllare che gli algoritmi e i flussi applicativi producano i risultati attesi e che le modifiche introdotte non alterino il comportamento delle funzionalità già sviluppate.
+I test riguardano, in funzione della componente interessata:
 
-Particolare attenzione viene dedicata sia ai componenti del Motore Agronomico sia ai flussi applicativi che coinvolgono persistenza, Repository, concorrenza, Profile Write Authority e interfaccia utente.
+- logica di dominio;
+- Motore Agronomico;
+- Repository;
+- mapping dei dati;
+- Write Path;
+- concorrenza;
+- Profile Write Authority;
+- Catalog Authority;
+- interfaccia utente;
+- integrazione tra i diversi livelli applicativi.
 
-I test automatici permettono di:
-
-- verificare il comportamento delle singole componenti;
-- controllare la correttezza degli algoritmi implementati;
-- validare i flussi applicativi;
-- individuare rapidamente eventuali regressioni;
-- facilitare l'evoluzione del software mantenendo elevata l'affidabilità del progetto.
-
-L'esecuzione della suite completa viene effettuata mediante:
+La suite completa viene eseguita mediante:
 
 ```text
 flutter test
 ```
+
+I risultati delle diverse sessioni devono essere mantenuti distinti, evitando di sostituire retroattivamente un risultato storico con quello di una sessione successiva.
+
+### Verifica S029
 
 La Sessione S029 ha aggiunto verifiche dedicate al lifecycle delle coltivazioni.
 
@@ -5316,126 +4698,273 @@ test/widgets/planting_card_test.dart
 
 per verificare le azioni contestuali di `PlantingCard`, gli stati terminali e il messaggio che segnala il mantenimento dell'occupazione nello stato `harvested`.
 
-La verifica finale dedicata di `PlantingCard` ha prodotto:
+La verifica dedicata di `PlantingCard` ha prodotto:
 
 ```text
 9/9 test passati
 ```
 
-Dopo l'aggiunta dell'ultimo test dedicato a `PlantingCard` è stata nuovamente eseguita l'intera suite automatica.
-
-La verifica finale ha prodotto:
+Dopo l'aggiunta dell'ultimo test dedicato a `PlantingCard` è stata nuovamente eseguita l'intera suite:
 
 ```text
 flutter test
+
 1011/1011 test passati
 ```
 
-È stata inoltre nuovamente eseguita l'analisi statica:
+Il risultato di 1011 test costituisce quindi il risultato finale verificato della Sessione S029.
+
+### Verifica S030
+
+La Sessione S030 ha introdotto e verificato il nuovo Catalogo Agronomico globale e i relativi livelli di authority, identità, provenienza, workflow editoriale, Knowledge e Resolver.
+
+La verifica applicativa finale documentata per S030 è:
 
 ```text
-flutter analyze
-No issues found! (ran in 12.8s)
+flutter test
+
+953 test passati
 ```
 
-Il quadro finale della verifica S029 è quindi:
+Il risultato S030 è distinto dal risultato storico S029 e rappresenta il riferimento più recente documentato per la suite Flutter al termine della S030.
+
+## 9.5 Verifiche del database
+
+A partire dalla progressiva implementazione del Database V1, la qualità del sistema non viene verificata esclusivamente tramite Flutter.
+
+Le migration vengono sottoposte a verifica mediante ambiente Supabase locale e, quando previsto dal workflow, mediante verifica dell'ambiente remoto.
+
+I controlli comprendono:
 
 ```text
-suite completa:               1011/1011 test passati
-BedPage:                        30/30 test passati
-PlantingCard finale:             9/9 test passati
-flutter analyze finale:          No issues found!
+supabase db reset
+supabase db lint --local
 ```
 
-I test automatici continuano a costituire uno degli strumenti principali per prevenire regressioni e mantenere affidabile l'evoluzione di Orto Smart.
+oltre alle verifiche specifiche delle migration, delle RPC, delle policy RLS e dei Write Path.
 
-## 9.5 Qualità del codice
+### Verifica S030
 
-La qualità del codice rappresenta un elemento fondamentale nello sviluppo di Orto Smart e costituisce uno degli obiettivi perseguiti durante tutte le fasi del progetto.
+La Sessione S030 ha confermato:
 
-Per mantenere il software facilmente comprensibile, manutenibile ed estendibile, vengono adottati criteri di progettazione orientati alla semplicità, alla modularità e alla separazione delle responsabilità tra i diversi componenti dell'applicazione.
+```text
+supabase db reset
+completato con successo
+```
 
-Tra i principi adottati durante lo sviluppo si evidenziano:
+e:
 
-- organizzazione del codice in componenti con responsabilità ben definite;
-- separazione tra interfaccia utente, logica applicativa, logica agronomica e accesso ai dati;
-- utilizzo di modelli e repository per isolare la gestione delle informazioni;
-- riduzione delle dipendenze tra i moduli;
-- progettazione orientata al riutilizzo del codice.
+```text
+DB lint locale
+No schema errors found
+```
 
-Il rispetto di questi principi facilita la manutenzione del progetto, semplifica l'introduzione di nuove funzionalità e contribuisce a ridurre il rischio di errori durante l'evoluzione dell'applicazione.
+È stato inoltre verificato l'ambiente remoto:
 
-La qualità del codice viene inoltre verificata attraverso revisioni durante lo sviluppo, analisi statica e test automatici, così da mantenere nel tempo un'architettura coerente e affidabile.
+```text
+DB lint remoto
+No schema errors found
+```
 
-## 9.6 Gestione delle regressioni
+La migration finale verificata nella S030 è:
 
-Durante l'evoluzione di Orto Smart viene prestata particolare attenzione alla prevenzione delle regressioni, ovvero all'introduzione involontaria di errori in funzionalità già sviluppate a seguito dell'implementazione di nuove caratteristiche.
+```text
+20260923154831
+```
 
-Per ridurre questo rischio, ogni modifica viene verificata seguendo un processo strutturato che comprende l'analisi statica del codice, l'esecuzione dei test automatici e il controllo del corretto funzionamento delle principali funzionalità dell'applicazione.
+sia localmente sia sul database remoto.
 
-L'approccio adottato prevede che le nuove implementazioni siano integrate progressivamente, mantenendo la compatibilità con l'architettura esistente e limitando l'impatto sulle componenti già consolidate.
+## 9.6 Acceptance test
 
-La progettazione modulare del software contribuisce inoltre a contenere gli effetti delle modifiche, poiché ogni componente opera in modo indipendente e con responsabilità ben definite.
+Le tranche significative dell'implementazione vengono sottoposte ad acceptance test specifici.
 
-La prevenzione delle regressioni rappresenta un elemento essenziale per garantire la continuità dello sviluppo e mantenere elevata l'affidabilità dell'applicazione nel corso delle successive versioni.
+Nella Sessione S030 sono state completate e superate:
 
-## 9.7 Evoluzione futura
+```text
+Acceptance Tranche 10
+superata
 
-La strategia di verifica adottata in Orto Smart è destinata ad evolvere parallelamente alla crescita del progetto, accompagnando l'introduzione di nuove funzionalità e l'espansione del Motore Agronomico.
+Acceptance Tranche 11
+superata
+```
 
-Con l'aumento della complessità dell'applicazione, verranno progressivamente ampliate le attività di test e di controllo della qualità, mantenendo come obiettivo principale l'affidabilità del software e la prevenzione delle regressioni.
+Gli acceptance test verificano il comportamento complessivo del contratto introdotto dalla relativa tranche e non sostituiscono i test automatici ordinari.
+
+Il principio è:
+
+```text
+test automatici
+        +
+verifiche database
+        +
+acceptance test
+        ↓
+verifica complessiva della tranche
+```
+
+## 9.7 Qualità del codice
+
+La qualità del codice rappresenta un elemento fondamentale nello sviluppo di Orto Smart.
+
+Per mantenere il software comprensibile, manutenibile ed estendibile vengono adottati criteri orientati a:
+
+- semplicità;
+- modularità;
+- separazione delle responsabilità;
+- riutilizzo del codice;
+- riduzione delle dipendenze;
+- testabilità;
+- autorità esplicita dei livelli server-side.
+
+La qualità viene verificata attraverso:
+
+- analisi statica;
+- test automatici;
+- verifiche funzionali;
+- revisione delle modifiche;
+- controlli del database;
+- verifica dei contratti tra Repository e backend.
+
+L'obiettivo non è soltanto ottenere codice funzionante, ma mantenere coerenti i diversi livelli dell'architettura.
+
+## 9.8 Gestione delle regressioni
+
+Durante l'evoluzione di Orto Smart viene prestata particolare attenzione alla prevenzione delle regressioni.
+
+Ogni modifica deve essere verificata rispetto alle componenti già consolidate, evitando di considerare sufficiente il solo funzionamento della nuova funzionalità.
+
+L'approccio adottato prevede:
+
+```text
+modifica circoscritta
+        ↓
+analisi statica
+        ↓
+test mirati
+        ↓
+suite completa
+        ↓
+verifica funzionale
+        ↓
+eventuale verifica DB
+```
+
+La distinzione tra risultati storici e correnti è parte della gestione delle regressioni.
+
+Un risultato ottenuto in una sessione precedente non deve essere presentato come risultato della sessione corrente.
+
+## 9.9 Risultati di verifica consolidati
+
+I risultati principali documentati nelle sessioni recenti sono:
+
+| Sessione | Flutter test | Flutter analyze | Verifiche DB / acceptance |
+|---|---:|---|---|
+| S029 | 1011/1011 | No issues found | Verifiche applicative lifecycle |
+| S030 | 953 test passati | No issues found | DB reset OK; DB lint locale OK; DB lint remoto OK; Acceptance Tranche 10 e 11 superate |
+
+I due risultati della suite Flutter non devono essere sommati.
+
+Rappresentano due stati verificati del progetto in momenti differenti:
+
+```text
+S029
+1011 test
+    ↓
+S030
+953 test
+```
+
+Il numero dei test può diminuire tra sessioni senza implicare automaticamente una regressione: modifiche architetturali, rimozione di componenti legacy, sostituzione di test non più pertinenti o riallineamento dei contratti possono modificare la composizione della suite.
+
+La documentazione deve pertanto riportare il risultato effettivamente eseguito nella sessione a cui si riferisce.
+
+## 9.10 Evoluzione futura
+
+La strategia di verifica continuerà ad evolvere parallelamente alla crescita del progetto.
 
 Tra gli sviluppi previsti rientrano:
 
 - incremento della copertura dei test automatici;
-- introduzione di test dedicati ai nuovi moduli del Motore Agronomico;
-- ampliamento delle verifiche sulle funzionalità di irrigazione e pianificazione delle attività;
-- consolidamento delle procedure di controllo qualità prima del rilascio di nuove versioni;
-- continuo miglioramento dell'organizzazione del codice e della documentazione tecnica.
+- test dedicati ai nuovi moduli del Motore Agronomico;
+- ampliamento delle verifiche sul Catalogo Agronomico e sulla Knowledge;
+- test del Resolver nei diversi contesti applicativi;
+- ampliamento delle verifiche sulle funzionalità di irrigazione;
+- test della pianificazione delle attività;
+- verifiche di integrazione tra Knowledge e Motore Agronomico;
+- consolidamento delle procedure di acceptance;
+- continuo miglioramento delle verifiche di sicurezza e concorrenza;
+- controllo sistematico delle migration locale/remoto.
 
-L'approccio adottato consentirà di accompagnare l'evoluzione di Orto Smart mantenendo elevati standard di qualità e garantendo la stabilità dell'applicazione nel lungo periodo.
+Ogni nuova funzionalità dovrà mantenere la separazione tra:
 
-## 9.8 Considerazioni finali
+```text
+test applicativi
+test di dominio
+test database
+test di sicurezza
+acceptance test
+```
+
+quando la natura della modifica lo richiede.
+
+## 9.11 Considerazioni finali
 
 La qualità del software rappresenta uno dei principi fondamentali dello sviluppo di Orto Smart e accompagna ogni fase del ciclo di vita del progetto.
 
-L'integrazione tra analisi statica del codice, test automatici, progettazione modulare e verifiche continue consente di realizzare un'applicazione affidabile, facilmente manutenibile e pronta ad evolvere nel tempo.
-
-L'approccio adottato permette di introdurre nuove funzionalità mantenendo la stabilità delle componenti già sviluppate, riducendo il rischio di regressioni e favorendo una crescita progressiva del sistema.
-
-La Sessione S029 ha confermato questo metodo anche nell'integrazione UI del lifecycle delle coltivazioni.
-
-Le modifiche a `BedPage` e `PlantingCard` sono state accompagnate dalla verifica finale:
+L'integrazione tra:
 
 ```text
-flutter analyze
-No issues found! (ran in 12.8s)
+analisi statica
++
+test automatici
++
+verifiche funzionali
++
+verifiche database
++
+acceptance test
++
+documentazione dei risultati
 ```
 
-e dall'esecuzione completa della suite automatica:
+consente di mantenere sotto controllo l'evoluzione dell'applicazione.
+
+La Sessione S029 ha confermato questo metodo nell'integrazione UI del lifecycle delle coltivazioni, raggiungendo:
 
 ```text
-flutter test
 1011/1011 test passati
 ```
 
-Restano inoltre confermate le verifiche dedicate:
+La Sessione S030 ha successivamente verificato il nuovo stato architetturale del Catalogo Agronomico globale, raggiungendo:
 
 ```text
-bed_page_test.dart
-30/30 test passati
-
-planting_card_test.dart
-9/9 test passati
+953 test passati
 ```
 
-Il dato di 1011 test rappresenta la suite completa finale effettivamente eseguita dopo l'aggiunta dell'ultimo test a `PlantingCard`.
+e confermando:
 
-Il risultato complessivo della Sessione S029 è pertanto direttamente verificato e non deriva dalla somma manuale di esecuzioni parziali.
+```text
+flutter analyze
+No issues found
 
-La strategia di qualità documentata in questo capitolo costituisce una base metodologica destinata ad accompagnare l'intero sviluppo di Orto Smart, contribuendo a garantire robustezza, tracciabilità e affidabilità dell'applicazione.
+DB lint locale
+No schema errors found
 
-Nel Capitolo 10 vengono illustrate le prospettive di evoluzione del progetto, con particolare riferimento alle funzionalità previste nelle future versioni e alla roadmap di sviluppo.
+DB lint remoto
+No schema errors found
+
+Acceptance Tranche 10
+superata
+
+Acceptance Tranche 11
+superata
+```
+
+Le fixture utilizzate per le verifiche S030 sono state sottoposte a rollback e non costituiscono dati operativi permanenti.
+
+Il database deve continuare a rimanere privo di dati demo o provvisori fino all'avvio della gestione reale dell'orto.
+
+La strategia di qualità documentata in questo capitolo costituisce quindi il riferimento metodologico per le successive sessioni di sviluppo, mantenendo separati il risultato storico delle singole sessioni, lo stato corrente verificato e le future attività di collaudo.
 
 # 10. Evoluzione del Progetto
 
@@ -5443,106 +4972,313 @@ Nel Capitolo 10 vengono illustrate le prospettive di evoluzione del progetto, co
 
 Orto Smart è un progetto concepito per evolvere progressivamente, accompagnando le esigenze dell'utente e l'introduzione di nuove funzionalità senza compromettere la stabilità dell'architettura esistente.
 
-Fin dalle prime fasi di sviluppo, particolare attenzione è stata dedicata alla progettazione di una struttura modulare, nella quale ogni componente possa essere esteso o sostituito mantenendo inalterata la coerenza complessiva del sistema.
+Fin dalle prime fasi di sviluppo, particolare attenzione è stata dedicata alla progettazione di una struttura modulare nella quale ogni componente possa essere esteso o sostituito mantenendo la coerenza complessiva del sistema.
 
-La visione del progetto non si limita alla gestione delle coltivazioni, ma mira a realizzare una piattaforma capace di supportare l'intera gestione dell'orto attraverso strumenti di pianificazione, analisi e supporto alle decisioni.
+L'evoluzione del progetto non riguarda soltanto l'ampliamento delle funzionalità operative, ma anche il progressivo consolidamento delle fondamenta tecniche sulle quali tali funzionalità vengono costruite.
 
-L'evoluzione di Orto Smart sarà guidata da criteri di qualità del software, semplicità di utilizzo e solidità architetturale, privilegiando soluzioni facilmente manutenibili e orientate alla crescita nel lungo periodo.
+In particolare, l'architettura corrente distingue esplicitamente:
 
-Nei paragrafi successivi vengono illustrati i principi che guideranno l'evoluzione dell'applicazione e le principali direttrici di sviluppo previste.
+```text
+dati operativi
+        +
+Catalogo Agronomico
+        +
+Knowledge agronomica
+        +
+Motore Agronomico
+        +
+interazione utente
+```
+
+Il Catalogo Agronomico introdotto nella Sessione S030 rappresenta un'evoluzione significativa rispetto al precedente modello Profile-owned.
+
+Il nuovo modello è globale, multisorgente, tracciabile, versionabile, contestualizzabile ed editorialmente controllato.
+
+La visione del progetto non si limita quindi alla gestione delle coltivazioni, ma mira a realizzare una piattaforma capace di supportare l'intera gestione dell'orto attraverso:
+
+- registrazione dei fatti operativi;
+- pianificazione;
+- conoscenza agronomica strutturata;
+- valutazioni e suggerimenti;
+- analisi storiche;
+- gestione delle risorse;
+- supporto alle decisioni;
+- integrazione progressiva con dati meteorologici e sistemi hardware.
+
+L'evoluzione di Orto Smart sarà guidata da criteri di qualità del software, semplicità di utilizzo, tracciabilità dei dati e solidità architetturale, privilegiando soluzioni verificabili e facilmente manutenibili.
 
 ## 10.2 Principi evolutivi
 
-L'evoluzione di Orto Smart sarà guidata da un insieme di principi progettuali definiti fin dalle prime fasi di sviluppo e destinati a rimanere validi durante l'intero ciclo di vita del progetto.
+L'evoluzione di Orto Smart sarà guidata da principi progettuali destinati a rimanere validi durante l'intero ciclo di vita del progetto.
 
-Ogni nuova funzionalità dovrà integrarsi con l'architettura esistente rispettando la modularità del sistema, la separazione delle responsabilità tra i componenti e la semplicità di manutenzione del codice.
+Ogni nuova funzionalità dovrà integrarsi con l'architettura esistente rispettando:
 
-In particolare, lo sviluppo del progetto seguirà i seguenti principi:
+- modularità;
+- separazione delle responsabilità;
+- autorità server-side;
+- integrità dei dati;
+- tracciabilità;
+- testabilità;
+- documentazione coerente.
 
-- evoluzione incrementale attraverso piccoli miglioramenti progressivi;
-- mantenimento della compatibilità con l'architettura esistente;
-- separazione tra interfaccia utente, logica applicativa, logica agronomica e accesso ai dati;
-- riutilizzo dei componenti software già sviluppati;
-- estensione del Motore Agronomico mediante moduli indipendenti;
-- attenzione alla qualità del codice, ai test automatici e alla documentazione tecnica.
+Lo sviluppo seguirà in particolare questi principi:
 
-L'obiettivo è garantire una crescita ordinata del progetto, evitando un aumento eccessivo della complessità e preservando nel tempo la leggibilità e la manutenibilità del software.
+- evoluzione incrementale attraverso incrementi verificabili;
+- mantenimento della storia delle decisioni architetturali;
+- utilizzo di migration riproducibili per l'evoluzione persistente;
+- separazione tra fatti operativi e Knowledge agronomica;
+- separazione tra acquisizione della Knowledge e sua approvazione;
+- utilizzo di Write Path autoritativi per le scritture sensibili;
+- mantenimento della sicurezza server-side;
+- utilizzo di test automatici e acceptance test;
+- aggiornamento coerente della documentazione.
 
-Questi principi costituiscono il riferimento per tutte le future attività di sviluppo e rappresentano la base metodologica sulla quale continuerà ad evolvere Orto Smart.
+Una modifica architetturale non dovrà quindi essere ottenuta riscrivendo retroattivamente la storia del progetto.
+
+Quando emerge una necessità concreta, l'evoluzione dovrà seguire il percorso:
+
+```text
+necessità
+        ↓
+analisi
+        ↓
+decisione architetturale
+        ↓
+implementazione versionata
+        ↓
+verifica
+        ↓
+documentazione
+```
+
+La baseline storica rimane parte della storia del progetto, mentre il contratto corrente viene aggiornato attraverso evoluzioni esplicite e verificabili.
 
 ## 10.3 Aree di sviluppo
 
-L'evoluzione di Orto Smart interesserà progressivamente tutte le principali aree funzionali dell'applicazione, con l'obiettivo di realizzare un sistema sempre più completo per la gestione dell'orto.
+L'evoluzione di Orto Smart interesserà progressivamente tutte le principali aree funzionali dell'applicazione.
 
-Lo sviluppo seguirà un approccio incrementale, privilegiando l'introduzione di nuove funzionalità attraverso componenti modulari e facilmente integrabili nell'architettura esistente.
+Le principali direttrici comprendono:
 
-Le principali aree di sviluppo previste comprendono:
-
-- ampliamento delle funzionalità del Motore Agronomico;
+- completamento progressivo del Database V1;
+- evoluzione del Catalogo Agronomico globale;
+- ampliamento della Knowledge agronomica canonica;
+- miglioramento del Resolver e della contestualizzazione;
+- integrazione progressiva della Knowledge con il Motore Agronomico;
 - gestione avanzata delle coltivazioni e delle stagioni;
 - pianificazione delle attività agricole;
-- evoluzione della gestione dell'irrigazione;
-- analisi statistiche e supporto alle decisioni;
-- miglioramento continuo dell'interfaccia utente e dell'esperienza d'uso;
-- ottimizzazione delle prestazioni e dell'organizzazione dei dati.
+- gestione dell'irrigazione;
+- gestione dei raccolti;
+- gestione di costi e ricavi;
+- analisi statistiche e storiche;
+- integrazione dei dati meteorologici;
+- miglioramento dell'interfaccia utente;
+- integrazione progressiva con dispositivi hardware.
 
-L'evoluzione delle diverse aree avverrà in modo coordinato, mantenendo la coerenza con l'architettura generale del progetto e con i principi progettuali definiti nei capitoli precedenti.
+Il Catalogo Agronomico costituisce in particolare una nuova infrastruttura di conoscenza sulla quale potranno essere costruite funzionalità successive.
 
-La pianificazione dettagliata delle singole funzionalità non costituisce oggetto del presente Manuale Tecnico ed è demandata alla documentazione dedicata alla roadmap di sviluppo, che viene aggiornata durante l'evoluzione del progetto.
+Il principio architetturale è:
+
+```text
+fonti
+        ↓
+ingestion
+        ↓
+revisione
+        ↓
+Knowledge canonica
+        ↓
+pubblicazione
+        ↓
+Resolver
+        ↓
+utilizzo applicativo
+```
+
+La conoscenza non deve quindi essere confusa con un fatto operativo registrato dall'utente.
 
 ## 10.4 Scalabilità dell'architettura
 
-L'architettura di Orto Smart è stata progettata con l'obiettivo di supportare la crescita del progetto nel lungo periodo, consentendo l'introduzione di nuove funzionalità senza richiedere modifiche sostanziali alle componenti già esistenti.
+L'architettura di Orto Smart è stata progettata con l'obiettivo di supportare la crescita del progetto nel lungo periodo, consentendo l'introduzione di nuove funzionalità senza richiedere modifiche sostanziali alle componenti già consolidate.
 
-La separazione tra interfaccia utente, logica applicativa, Motore Agronomico e livello di accesso ai dati permette di sviluppare ogni area in modo indipendente, riducendo le dipendenze tra i moduli e facilitando la manutenzione del software.
+La separazione tra:
 
-L'organizzazione del codice in componenti specializzati favorisce inoltre il riutilizzo delle funzionalità esistenti e rende possibile l'integrazione di nuovi moduli mantenendo la coerenza dell'architettura generale.
+```text
+Flutter UI
+        ↓
+Repository
+        ↓
+servizi e dominio
+        ↓
+Supabase
+        ↓
+PostgreSQL
+```
 
-La scalabilità del progetto riguarda non solo gli aspetti tecnici, ma anche l'organizzazione dello sviluppo e della documentazione. La suddivisione delle responsabilità tra codice, manuali tecnici, roadmap e documentazione storica consente infatti di accompagnare l'evoluzione del progetto mantenendo ordine, tracciabilità e facilità di aggiornamento.
+consente di sviluppare i diversi livelli mantenendo responsabilità distinte.
 
-Questa impostazione permette a Orto Smart di evolvere progressivamente, preservando la qualità del software e garantendo la sostenibilità dello sviluppo nel tempo.
+La stessa separazione è stata estesa con S030 al dominio della conoscenza agronomica:
+
+```text
+Catalog Authority
+        ↓
+Catalogo Agronomico
+        ↓
+Knowledge canonica
+        ↓
+Resolver
+        ↓
+Motore Agronomico
+        ↓
+applicazione
+```
+
+Questa organizzazione consente di evolvere il Catalogo senza trasformare il Catalogo stesso in una parte inseparabile della logica applicativa.
+
+La scalabilità riguarda inoltre il modello dati.
+
+Le nuove entità dovranno essere introdotte mantenendo:
+
+- ownership coerente;
+- integrità referenziale;
+- controllo delle cancellazioni;
+- storicizzazione quando necessaria;
+- compatibilità con i dati operativi esistenti;
+- Write Path appropriati;
+- RLS e controlli server-side.
+
+L'architettura dovrà continuare a privilegiare strutture compatte e ridurre duplicazioni non necessarie, soprattutto per i dati che possono essere recuperati da fonti esterne o da sistemi già autorevoli.
 
 ## 10.5 Integrazioni future
 
-L'architettura di Orto Smart è stata progettata per favorire l'integrazione con servizi, dispositivi e componenti esterni, mantenendo un basso livello di accoppiamento tra i diversi moduli del sistema.
-
-Questa impostazione consentirà di ampliare progressivamente le funzionalità dell'applicazione senza richiedere modifiche sostanziali all'architettura esistente.
+L'architettura di Orto Smart è stata progettata per favorire l'integrazione con servizi, dispositivi e componenti esterni mantenendo un basso livello di accoppiamento.
 
 Tra le principali aree di integrazione previste rientrano:
 
-- servizi meteorologici e utilizzo dei dati climatici;
+- servizi meteorologici e dati climatici;
+- archivio meteorologico personale;
 - sistemi di irrigazione automatizzata;
 - dispositivi hardware dedicati al monitoraggio dell'orto;
-- sistemi di notifica e pianificazione delle attività;
-- strumenti di analisi statistica e supporto alle decisioni;
-- eventuali servizi esterni che potranno essere introdotti nel corso dell'evoluzione del progetto.
+- sistemi di notifica;
+- pianificazione delle attività;
+- strumenti di analisi statistica;
+- supporto alle decisioni;
+- eventuali servizi esterni utili al Catalogo Agronomico.
 
-Ogni nuova integrazione dovrà rispettare i principi architetturali descritti nel presente Manuale Tecnico, privilegiando componenti modulari, facilmente sostituibili e indipendenti dalle specifiche tecnologie utilizzate.
+L'integrazione meteorologica dovrà rispettare il principio secondo cui la fonte storica autorevole non deve essere duplicata inutilmente nel database operativo.
 
-Questo approccio consentirà al progetto di adattarsi all'evoluzione delle tecnologie nel tempo, preservando la stabilità e la manutenibilità dell'applicazione.
+Il sistema dovrà invece conservare, quando necessario, i dati agronomicamente utili derivati dall'elaborazione delle informazioni meteorologiche.
+
+Le future integrazioni hardware dovranno inoltre mantenere separati:
+
+```text
+dispositivo
+        ↓
+acquisizione dati
+        ↓
+normalizzazione
+        ↓
+servizio applicativo
+        ↓
+funzionalità Orto Smart
+```
+
+Ogni nuova integrazione dovrà rispettare i principi di sicurezza, modularità, testabilità e sostituibilità.
 
 ## 10.6 Roadmap di alto livello
 
-L'evoluzione di Orto Smart seguirà una pianificazione progressiva, orientata all'introduzione graduale di nuove funzionalità e al consolidamento dell'architettura esistente.
+L'evoluzione di Orto Smart seguirà una pianificazione progressiva orientata al consolidamento dell'architettura e all'introduzione graduale delle nuove funzionalità.
 
-Il presente Manuale Tecnico descrive la direzione architetturale del progetto e i principi che ne guidano lo sviluppo, mentre la pianificazione operativa delle attività è documentata nel documento **DOC-008 – Roadmap di Sviluppo**, aggiornato durante l'avanzamento del progetto.
+Il presente Manuale Tecnico descrive la direzione architetturale del progetto e i principi che ne guidano l'evoluzione.
 
-Questa separazione consente di mantenere stabile la documentazione architetturale e di gestire in modo indipendente la pianificazione delle singole attività, delle priorità e delle future implementazioni.
+La pianificazione operativa delle attività, delle priorità e delle milestone è invece documentata nel:
 
-La roadmap costituisce pertanto uno strumento dinamico di gestione dello sviluppo, mentre il Manuale Tecnico rappresenta il riferimento architetturale stabile per le scelte progettuali e per l'evoluzione del sistema.
+**DOC-008 — Roadmap di Sviluppo**
 
-L'adozione di questa organizzazione documentale garantisce maggiore chiarezza, tracciabilità e semplicità di manutenzione, favorendo una crescita ordinata del progetto nel tempo.
+e nella documentazione storica delle sessioni.
+
+Questa separazione consente di mantenere stabile il riferimento architetturale e di modificare la pianificazione senza dover riscrivere il Manuale Tecnico.
+
+Le evoluzioni future dovranno comunque rispettare il principio:
+
+```text
+architettura stabile
+        +
+evoluzione versionata
+        +
+implementazione incrementale
+        +
+verifica
+        +
+documentazione
+```
+
+Il fatto che una funzionalità sia prevista nella roadmap non significa che sia già implementata.
+
+La documentazione dovrà sempre distinguere:
+
+```text
+IMPLEMENTATO
+VERIFICATO
+IN SVILUPPO
+PIANIFICATO
+FUTURE
+```
 
 ## 10.7 Considerazioni finali
 
-Il presente Manuale Tecnico raccoglie e documenta l'architettura software, i principi progettuali e le principali scelte tecniche che costituiscono il fondamento del progetto Orto Smart.
+Il presente Manuale Tecnico raccoglie e documenta l'architettura software, i principi progettuali e le principali scelte tecniche che costituiscono il fondamento di Orto Smart.
 
-La struttura modulare dell'applicazione, la separazione delle responsabilità tra i diversi componenti e l'adozione di criteri di qualità, manutenibilità ed estendibilità costituiscono gli elementi guida per lo sviluppo presente e futuro del sistema.
+L'architettura corrente riflette l'evoluzione progressiva del progetto e comprende, oltre ai livelli applicativi originari, il nuovo Catalogo Agronomico globale e la relativa infrastruttura di Knowledge.
 
-Il Manuale Tecnico rappresenta il documento di riferimento architetturale del progetto e fornisce il quadro entro il quale dovranno essere progettate e realizzate le successive evoluzioni dell'applicazione, garantendo continuità e coerenza con le scelte progettuali adottate.
+La distinzione tra:
 
-La pianificazione delle attività di sviluppo, la cronologia delle modifiche e la gestione delle versioni sono documentate in documenti dedicati, mantenendo una chiara distinzione tra architettura, processo di sviluppo e gestione del progetto.
+```text
+fatto operativo
+        ≠
+Knowledge approvata
+```
 
-L'insieme della documentazione di Orto Smart costituisce un patrimonio tecnico del progetto e contribuisce a renderne più semplice la manutenzione, la collaborazione e l'evoluzione nel tempo.
+e:
 
-Con il completamento del presente Manuale Tecnico viene definita l'architettura di riferimento della versione corrente di Orto Smart, destinata a costituire la base per le future evoluzioni del software.
+```text
+Knowledge risolta
+        ≠
+decisione operativa automatica
+```
+
+costituisce uno dei principi fondamentali dell'evoluzione futura.
+
+Analogamente, schema, sicurezza, authority, integrazione applicativa, interazione utente e documentazione devono continuare a evolvere come livelli distinti ma coerenti.
+
+Il Database V1 complessivo rimane parzialmente implementato.
+
+Le funzionalità future dovranno pertanto essere introdotte senza confondere ciò che è già implementato con ciò che appartiene alla roadmap.
+
+L'evoluzione di Orto Smart continuerà secondo il principio:
+
+```text
+baseline storica
+        +
+decisioni architetturali versionate
+        +
+migration riproducibili
+        +
+sicurezza server-side
+        +
+integrazione applicativa controllata
+        +
+test
+        +
+documentazione coerente
+```
+
+In questo modo il progetto potrà crescere mantenendo contemporaneamente:
+
+- stabilità;
+- tracciabilità;
+- sicurezza;
+- manutenibilità;
+- coerenza architetturale;
+- possibilità di evoluzione.
+
+Il Manuale Tecnico costituisce quindi il riferimento architetturale generale del progetto, mentre gli altri documenti ufficiali ne descrivono gli aspetti specialistici, la cronologia, la roadmap, le decisioni e le procedure operative.
