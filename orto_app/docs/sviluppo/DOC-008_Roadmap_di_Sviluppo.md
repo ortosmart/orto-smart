@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 2.2
+**Versione:** 2.3
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 18/09/2026
+**Ultimo aggiornamento:** 27/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 2.2 |
+| Versione | 2.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 18/09/2026 |
+| Ultimo aggiornamento | 27/09/2026 |
 
 ---
 
@@ -55,6 +55,7 @@
 | 2.0 | 14/09/2026 | Aggiornamento dopo la Sessione S027: completamento dell'integrazione Flutter del Catalogo V1, introduzione di `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy controllata e verifica con 914/914 test; prossimo incremento tecnico non ancora approvato |
 | 2.1 | 17/09/2026 | Aggiornamento dopo la Sessione S028: implementazione del modello e Write Path autoritativo di `plantings`, lifecycle server-side, geometria e overlap spaziale/temporale, protezione delle geometrie delle aiuole mediante `blocked_by_plantings`, integrazione Flutter e verifica con 997/997 test; definizione preliminare della S029 come lifecycle e varietà delle coltivazioni, non ancora iniziata |
 | 2.2 | 18/09/2026 | Aggiornamento dopo la Sessione S029: completamento della UI del lifecycle di `plantings`, gestione esplicita di `end_date` per gli stati terminali, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`; nessuna modifica al contratto persistente S028; consolidamento preparatorio del futuro Catalogo Agronomico V1 e della possibile S030, non ancora iniziata |
+| 2.3 | 27/09/2026 | Aggiornamento dopo la Sessione S030: completamento dell'architettura e del cutover del Catalogo Agronomico V1 globale, introduzione di identità botaniche canoniche, Catalog Authority, fonti e acquisizioni, workflow editoriale, Knowledge agronomica canonica, pubblicazione e Resolver; migrazione finale a `botanical_taxa` → `crops` → `crop_cultivars`, integrazione Flutter, deploy remoto e verifica finale con 953 test superati; riallineamento delle attività future alla fase successiva alla S030 |
 
 ---
 
@@ -112,6 +113,24 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | Modelli | ✅ Completato |
 | Progettazione Database V1 | ✅ Completato |
 | Implementazione Database V1 in Supabase | 🚧 In sviluppo |
+| Architettura Catalogo Agronomico V1 globale | ✅ Completato |
+| Identità botaniche canoniche globali | ✅ Completato |
+| Catalog Authority e capability autoritative | ✅ Completato |
+| Fonti, acquisizioni e osservazioni agronomiche | ✅ Completato |
+| Workflow editoriale agronomico | ✅ Completato |
+| Knowledge agronomica canonica | ✅ Completato |
+| Pubblicazione e versionamento della Knowledge | ✅ Completato |
+| Resolver del Catalogo Agronomico | ✅ Completato |
+| Cutover canonico `botanical_taxa` → `crops` → `crop_cultivars` | ✅ Completato |
+| UI editoriale/amministrativa completa del Catalogo Agronomico | 📋 Pianificato |
+| Workflow operativo di aggiornamento/importazione delle fonti | 📋 Pianificato |
+| Popolamento verificato del Catalogo Agronomico | 📋 Pianificato |
+
+Il completamento del Catalogo Agronomico V1 nella S030 riguarda l'architettura, il modello persistente, i Write Path autoritativi, il workflow editoriale, la pubblicazione, il Resolver, il cutover finale e la relativa integrazione tecnica.
+
+Il Catalogo non è ancora popolato con una baseline agronomica destinata all'uso reale dell'orto. I dati esterni dovranno essere acquisiti come dati candidati, revisionati e approvati prima dell'utilizzo operativo.
+
+Il completamento del Catalogo Agronomico V1 non coincide inoltre con il completamento dell'intero Database V1, la cui implementazione rimane incrementale.
 
 ---
 
@@ -132,12 +151,19 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | Modello persistente autoritativo `plantings` | ✅ Completato |
 | Write Path autoritativo `plantings` | ✅ Completato |
 | Lifecycle server-side delle coltivazioni | ✅ Completato |
-| UI lifecycle delle coltivazioni | ✅ Completato |
+| UI lifecycle delle coltivazioni | ✅ Implementata e testata |
 | Gestione `end_date` terminale | ✅ Completato |
 | Refresh autoritativo su conflitti/transizioni non valide | ✅ Completato |
-| Selezione varietà nelle coltivazioni | 📋 Pianificato |
-| Verifica flusso UI di creazione del primo Garden | 📋 Da verificare |
+| Migrazione `plantings` da varietà legacy a cultivar canonica | ✅ Completato |
+| Selezione operativa della cultivar nelle coltivazioni | 📋 Pianificato |
+| Verifica/ripristino del flusso UI di creazione del primo Garden | 📋 Da verificare |
 | Hard delete ordinario delle coltivazioni | 💡 Escluso dal normale flusso / FUTURE amministrativo |
+
+La UI del lifecycle delle coltivazioni è stata implementata e verificata mediante test automatici nella S029. Questo non equivale al completamento dell'intero flusso operativo dell'interfaccia dell'orto.
+
+Nel test manuale conclusivo della S030 il profilo utilizzato non disponeva di un Garden; di conseguenza non è stato possibile raggiungere e verificare manualmente il percorso completo Garden → aiuole → coltivazioni. Rimane quindi aperta la verifica o il ripristino della raggiungibilità UI della creazione del primo Garden.
+
+Dopo il cutover S030, `plantings` utilizza `crop_id` e l'eventuale `cultivar_id`. L'interfaccia di creazione non espone ancora la selezione operativa della cultivar: una nuova coltivazione viene attualmente creata senza cultivar esplicita, mentre in modifica viene preservato l'eventuale `cultivar_id` già presente.
 
 ---
 
@@ -164,12 +190,18 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | AgronomicWindow                    | ✅ Completato    | Modello annuale introdotto nella S015 per rappresentare finestre agronomiche associate a uno specifico metodo di avvio, con supporto degli intervalli che attraversano il cambio dell'anno. |
 | AgronomicWindowValidator           | ✅ Completato    | Validazione strutturale delle finestre agronomiche introdotta nella S015, comprese le combinazioni mese/giorno e il supporto del 29 febbraio. |
 | AgronomicWindowEngine              | ✅ V1 completata | Prima versione implementata nella S015 per verificare l'appartenenza temporale alle finestre e la compatibilità dei `PlannedPlantingBatch` in base a metodo di avvio e data. |
-| Stagionalità di colture e varietà | ✅ V1 completata | Obiettivo S016 completato: le finestre agronomiche sono ora associabili a colture e varietà e i lotti pianificati possono essere valutati distinguendo `compatible`, `incompatible` e `unknown`. |
-| CropAgronomicWindowRule | ✅ Completato | Modello introdotto nella S016 per associare una `AgronomicWindow` a una coltura e, opzionalmente, a una specifica varietà, privilegiando il dato generale della coltura e gli override varietali solo quando necessari. |
-| AgronomicWindowResolver | ✅ V1 completata | Resolver introdotto nella S016 per selezionare la finestra applicabile secondo il fallback varietà specifica → coltura generale → nessuna regola. |
+| Stagionalità di colture e varietà | ✅ V1 completata | Obiettivo storico S016: le finestre agronomiche sono associabili a colture e varietà secondo il modello applicativo allora vigente. Il riallineamento completo al Catalogo Agronomico S030 resta evolutivo. |
+| CropAgronomicWindowRule | ✅ Completato | Modello storico S016 per associare una `AgronomicWindow` a una coltura e, opzionalmente, a una specifica varietà. Il modello precede il cutover canonico S030. |
+| AgronomicWindowResolver | ✅ V1 completata | Resolver storico S016 basato sul fallback varietà specifica → coltura generale → nessuna regola. È distinto dal Resolver del Catalogo Agronomico introdotto nella S030. |
 | AgronomicWindowEvaluation | ✅ Completato | Risultato strutturato introdotto nella S016 per distinguere gli stati `compatible`, `incompatible` e `unknown`, evitando di interpretare l'assenza di dati come incompatibilità. |
 | AgronomicWindowService | ✅ V1 completata | Servizio introdotto nella S016 per coordinare `AgronomicWindowResolver` e `AgronomicWindowEngine` nella valutazione stagionale dei `PlannedPlantingBatch`. |
-| Progettazione della persistenza delle regole agronomiche | ✅ Completato | Obiettivo iniziale S017 completato ed esteso alla progettazione dell'intero Database V1. Le regole saranno persistite mediante `agronomic_window_rules`; `AgronomicWindow` rimane un risultato calcolato e non viene introdotta una tabella persistente `agronomic_windows`. L'implementazione SQL/Supabase resta da eseguire incrementalmente. |
+| Progettazione della persistenza delle regole agronomiche | ✅ Completato | Obiettivo S017 completato nell'ambito della progettazione Database V1. L'implementazione e il riallineamento delle regole persistenti al Catalogo Agronomico corrente restano incrementali. |
+| Integrazione completa del Resolver S030 nei flussi di pianificazione e inserimento | 📋 Pianificato | Il Resolver canonico è disponibile a livello di Catalogo; la sua integrazione completa nei flussi operativi rimane FUTURE. |
+| Backend canonico delle consociazioni | 📋 Pianificato | Il motore applicativo esiste, ma il backend canonico del Catalogo per le associazioni tra colture non è ancora implementato. |
+
+I componenti agronomici realizzati nelle sessioni precedenti alla S030 restano risultati tecnici validi delle rispettive fasi di sviluppo. La loro terminologia storica non viene riscritta retroattivamente.
+
+Il Catalogo Agronomico S030 introduce tuttavia un nuovo contratto canonico globale. L'integrazione progressiva dei motori agronomici con `botanical_taxa`, `crops`, `crop_cultivars`, Knowledge pubblicata e Resolver costituisce quindi un'evoluzione successiva e deve evitare nuove dipendenze dal modello legacy.
 
 ---
 
@@ -905,54 +937,93 @@ Non dovrà essere disponibile nel normale flusso operativo dell'orto.
 
 ## Catalogo Agronomico
 
-La UI amministrativa del Catalogo V1 rimane un blocco distinto.
+La Sessione S030 ha completato l'architettura tecnica e il cutover del **Catalogo Agronomico V1 globale**.
 
-Prima dell'utilizzo operativo dei dati agronomici dovrà essere definito e verificato un **Catalogo Agronomico V1 strutturato, tracciabile e versionabile**.
+Il Catalogo è separato dai dati operativi del singolo orto e utilizza identità canoniche globali.
 
-Non devono essere introdotti popolamenti manuali ad hoc o dati provvisori destinati a essere utilizzati come baseline operativa.
+Il modello canonico corrente è basato sulla catena:
 
-Il database deve rimanere privo di dati di prova o provvisori fino all'avvio della gestione reale dell'orto.
+```text
+botanical_taxa
+        ↓
+crops
+        ↓
+crop_cultivars
+```
 
-La preparazione successiva alla S029 ha consolidato il principio:
+La S030 ha inoltre introdotto e verificato:
+
+- identità botaniche globali;
+- normalizzazione canonica dei testi del Catalogo;
+- Catalog Authority globale con capability distinte;
+- registro dei parametri agronomici;
+- vocabolari e contesti agronomici;
+- fonti, acquisizioni e osservazioni;
+- alias e riconciliazione delle identità;
+- workflow editoriale;
+- Knowledge agronomica canonica;
+- integrità e sicurezza del Catalogo;
+- pubblicazione e versionamento;
+- Resolver canonico;
+- Write Path autoritativi;
+- read model canonici;
+- cutover finale dal modello legacy;
+- integrazione tecnica Flutter necessaria al nuovo contratto.
+
+Il perimetro del Catalogo Agronomico introdotto nella S030 comprende complessivamente **26 tabelle**.
+
+Le precedenti strutture:
+
+```text
+botanical_families
+catalog_crops_s030
+crop_varieties
+```
+
+sono state eliminate nel cutover finale.
+
+I `plantings` utilizzano ora:
+
+```text
+crop_id
+cultivar_id opzionale
+```
+
+con riferimento alle identità canoniche del Catalogo.
+
+### Separazione tra fonti esterne e Catalogo approvato
+
+Rimane valido e viene consolidato il principio secondo cui i dati provenienti da fonti esterne non possono diventare automaticamente dati canonici utilizzabili dall'applicazione.
+
+Il flusso previsto è:
 
 ```text
 Fonte esterna
         ↓
-AgronomicImport
+acquisizione / ingestion
         ↓
-dato candidato
+osservazione / dato candidato
         ↓
-AgronomicReview
+revisione editoriale
         ↓
-AgronomicCatalog
+Knowledge canonica
+        ↓
+pubblicazione
+        ↓
+Catalogo utilizzabile
 ```
 
-L'acquisizione da fonti esterne e il Catalogo approvato devono quindi essere livelli distinti.
-
-Lo scraping o l'importazione:
+L'importazione o lo scraping:
 
 ```text
 NON
 ```
 
-devono scrivere direttamente nel Catalogo Agronomico approvato.
+devono scrivere direttamente o sovrascrivere automaticamente il Catalogo Agronomico approvato.
 
-I dati acquisiti devono essere prima memorizzati come dati candidati e sottoposti a revisione.
+Le informazioni acquisite devono rimanere tracciabili rispetto alla fonte e attraversare il workflow editoriale previsto prima della pubblicazione.
 
-Gli stati preliminarmente previsti sono:
-
-```text
-DRAFT
-REVIEW
-APPROVED
-ARCHIVED
-```
-
-Soltanto dati nello stato appropriato di approvazione potranno essere utilizzati operativamente.
-
-Nessun dato esterno deve sovrascrivere automaticamente il Catalogo Agronomico approvato.
-
-La funzione prevista per l'aggiornamento delle fonti sarà collocata in:
+La funzione operativa di aggiornamento delle fonti rimane prevista in:
 
 ```text
 Impostazioni
@@ -962,88 +1033,104 @@ Catalogo Agronomico
 Aggiornamento fonti
 ```
 
-La struttura dovrà distinguere chiaramente:
+La relativa UI e il flusso operativo completo di acquisizione, revisione e pubblicazione restano da implementare.
+
+### Popolamento del Catalogo
+
+Il completamento tecnico della S030 non costituisce popolamento agronomico del Catalogo.
+
+Il database deve continuare a rimanere privo di dati dimostrativi, provvisori o inseriti esclusivamente per simulare il funzionamento dell'applicazione.
+
+Prima dell'avvio della gestione reale dell'orto dovrà essere predisposta una baseline del Catalogo Agronomico composta esclusivamente da dati:
+
+- reali;
+- verificabili;
+- tracciabili rispetto alle fonti;
+- revisionati secondo il workflow previsto;
+- approvati per l'utilizzo operativo.
+
+La **carota** rimane un possibile primo caso pilota per verificare il processo completo di acquisizione, revisione, pubblicazione e utilizzo dei dati agronomici.
+
+Gli eventuali dati precedentemente raccolti a titolo preparatorio non costituiscono automaticamente dati approvati del Catalogo.
+
+---
+
+## Consolidamento post-S030
+
+Il cutover S030 ha eliminato le principali dipendenze persistenti dal precedente modello personale del Catalogo.
+
+Nel contratto canonico corrente non devono essere reintrodotte nuove dipendenze da:
 
 ```text
-coltura / specie
-varietà / cultivar
-origine commerciale
-```
-
-È inoltre previsto il principio di ereditarietà agronomica:
-
-```text
-Crop
-        ↓
-valore generale
-
+botanical_families
+crop_varieties
 CropVariety
-        ↓
-override specifico quando necessario
+variety_id
 ```
 
-Ogni singolo valore agronomico dovrà mantenere informazioni sulla propria provenienza e sulla fonte utilizzata.
-
-La gestione delle fonti dovrà quindi permettere di distinguere almeno:
+La terminologia tecnica corrente utilizza:
 
 ```text
-fonte
-dato acquisito
-dato candidato
-revisione
-dato approvato
-versione
+botanical_taxa
+crops
+crop_cultivars
+CropCultivar
+cultivar_id
 ```
 
-La **carota** è stata individuata come possibile primo caso pilota per validare il modello completo.
+La parola italiana **“Varietà”** può continuare a essere utilizzata nell'interfaccia utente quando è la formulazione più naturale per l'utilizzatore.
 
-Gli eventuali valori agronomici già raccolti per tale coltura devono però essere considerati:
+Rimane da completare il riallineamento progressivo dei componenti agronomici e dei consumer applicativi storici che precedono il nuovo contratto S030.
 
-```text
-CANDIDATI
-NON APPROVATI
-```
+In particolare, i motori agronomici sviluppati nelle sessioni precedenti devono essere integrati progressivamente con:
 
-fino alla definizione e verifica del Catalogo Agronomico V1.
+- identità canoniche globali;
+- Knowledge agronomica pubblicata;
+- Resolver del Catalogo;
+- eventuali snapshot operativi necessari alla conservazione storica delle decisioni.
 
-Questa progettazione preliminare è stata svolta fuori dal perimetro tecnico e dal timing della Sessione S029.
+Le nuove evoluzioni non devono introdurre ulteriori dipendenze dal modello legacy.
 
-Non costituisce ancora implementazione del Catalogo e non costituisce avvio della Sessione S030.
-
-## Consolidamento legacy
-
-Rimane da completare la progressiva eliminazione delle dipendenze dal modello applicativo precedente.
-
-Tra gli elementi ancora da affrontare figurano:
-
-```text
-Crop.sowingMethod
-Crop.botanicalFamily
-heavyFeeder
-CropVariety.defaultPlantingMethod
-```
-
-Gli alias legacy:
-
-- non rappresentano il nuovo contratto persistente;
-- non devono essere utilizzati per introdurre nuove dipendenze;
-- devono essere rimossi progressivamente dopo la migrazione dei relativi consumer.
+---
 
 ## Altri blocchi futuri
 
-Restano inoltre pianificati:
+Restano pianificati o aperti dopo la S030:
+
+- backend canonico per le consociazioni tra colture;
+
+- UI editoriale e amministrativa completa del Catalogo Agronomico;
+
+- azione UI esplicita e protetta per l'inizializzazione della Catalog Authority mediante `claim_initial_catalog_authority()`;
+
+- workflow operativo di acquisizione/importazione delle fonti in:
+  `Impostazioni → Catalogo Agronomico → Aggiornamento fonti`;
+
+- schermate del workflow editoriale;
+
+- integrazione completa del Resolver del Catalogo nei flussi di pianificazione e inserimento delle coltivazioni;
+
+- selezione operativa della cultivar durante la creazione delle coltivazioni;
+
+- popolamento editoriale del Catalogo con dati agronomici reali, verificabili e tracciabili;
+
+- smoke test con dati operativi reali dopo l'avvio della gestione effettiva dell'orto;
+
+- manutenzione periodica controllata dei dati ISO 3166-1 alpha-2 mediante migration e test verificati, senza aggiornamenti automatici non revisionati;
+
+- verifica o ripristino della raggiungibilità UI della creazione del primo Garden;
+
+- creazione delle 15 aiuole reali dopo l'avvio operativo;
+
+- apertura della stagione reale;
+
+- registrazione delle coltivazioni reali;
 
 - operazioni amministrative protette su `profile_memberships`;
 
-- persistenza di `agronomic_window_rules`;
+- prosecuzione dell'implementazione incrementale delle restanti entità del Database V1;
 
-- prosecuzione dell'implementazione incrementale delle restanti entità Database V1;
-
-- integrazione progressiva del principio **catalogo corrente + snapshot storico** nei dati decisionali;
-
-- UI amministrativa del Catalogo V1;
-
-- Catalogo Agronomico strutturato e verificato;
+- riallineamento progressivo dei motori agronomici storici al Catalogo canonico S030;
 
 - evoluzione successiva delle aree:
   - irrigazione;
@@ -1051,100 +1138,94 @@ Restano inoltre pianificati:
   - dashboard;
   - statistiche.
 
+L'hard delete dei `plantings` rimane escluso dal normale flusso applicativo. Potrà essere valutato esclusivamente come futura funzione amministrativa o tecnica protetta per la correzione di record inseriti per errore.
+
+---
+
+## Avvio della fase operativa reale
+
+Il completamento tecnico del Catalogo Agronomico S030 non autorizza l'introduzione di dati dimostrativi o provvisori nel database.
+
+La sequenza prevista per il passaggio all'utilizzo reale rimane:
+
+1. verificare che il database locale sia nello stato atteso e privo di dati provvisori;
+
+2. verificare separatamente lo stato del database remoto;
+
+3. predisporre e pubblicare una baseline verificata del Catalogo Agronomico;
+
+4. creare il Garden reale;
+
+5. creare le 15 aiuole reali;
+
+6. aprire la stagione reale;
+
+7. registrare le coltivazioni reali.
+
+Il popolamento operativo deve quindi iniziare soltanto quando il Catalogo dispone di una baseline sufficientemente verificata e approvata.
+
+---
+
 ## Prossimo incremento
 
-La Sessione S029 è stata completata nella fase di sviluppo.
+La **Sessione S030 è completata nella fase di sviluppo**.
 
-Il prossimo incremento tecnico non viene considerato automaticamente avviato né assegnato esclusivamente sulla base della roadmap.
+Sono stati completati:
 
-Come preparazione preliminare è stata individuata come possibile Sessione successiva:
+- architettura del Catalogo Agronomico V1 globale;
+- implementazione SQL/Supabase;
+- Write Path autoritativi;
+- workflow editoriale;
+- Knowledge agronomica canonica;
+- pubblicazione e Resolver;
+- cutover finale;
+- integrazione Flutter necessaria;
+- deploy remoto;
+- verifiche database;
+- analisi Flutter;
+- suite automatica finale con **953 test superati**;
+- smoke test applicativo conclusivo compatibile con lo stato privo di dati reali.
+
+Il commit tecnico conclusivo della S030 è:
 
 ```text
-S030 — Catalogo Agronomico V1
+f9f5830796ecc16a14ef1b3fb4ce26bd081846b5
 ```
 
-Lo stato è:
+La migration conclusiva è:
 
 ```text
-PREPARAZIONE PRELIMINARE
-NON INIZIATO
+20260923154831_finalize_global_catalog_cutover.sql
 ```
 
-La possibile S030 dovrà iniziare con un checkpoint di ricezione e una ricognizione delle strutture già disponibili:
+Lo schema locale e quello remoto risultavano allineati alla migration conclusiva al termine della sessione di sviluppo.
+
+Il prossimo incremento tecnico **non viene assegnato automaticamente** dalla Roadmap.
+
+Prima dell'avvio di una nuova sessione di sviluppo dovranno essere definiti e approvati il relativo perimetro e il prossimo passo tecnico, scegliendo tra le attività FUTURE e APERTE documentate.
+
+Rimane prioritario preservare i principi consolidati:
 
 ```text
-crops
-crop_varieties
-regole e strutture agronomiche esistenti
-```
-
-Il percorso preliminare comprende:
-
-1. verifica della baseline Database V1 esistente;
-
-2. ricognizione delle strutture agronomiche attuali;
-
-3. definizione dei requisiti del Catalogo Agronomico V1;
-
-4. distinzione tra:
-   - fonte;
-   - dato importato;
-   - dato candidato;
-   - revisione;
-   - valore approvato;
-
-5. progettazione della tracciabilità:
-
-```text
-source
+nessun dato demo o provvisorio
         ↓
-candidate
+Catalogo verificato
         ↓
-review
-        ↓
-catalog
+dati reali dell'orto
 ```
 
-6. stati:
+e:
 
 ```text
-DRAFT
-REVIEW
-APPROVED
-ARCHIVED
+fonte esterna
+        ↓
+dato candidato
+        ↓
+revisione
+        ↓
+pubblicazione
+        ↓
+dato canonico utilizzabile
 ```
 
-7. versionamento dei valori;
-
-8. contestualizzazione geografica e produttiva;
-
-9. relazione e compatibilità con `plantings`;
-
-10. eventuale migration e relativi Write Path soltanto dopo approvazione della struttura;
-
-11. futura UI amministrativa;
-
-12. popolamento controllato esclusivamente con dati reali e verificati;
-
-13. utilizzo della carota come possibile primo caso completo di verifica.
-
-Rimane separato un altro punto aperto emerso durante la verifica applicativa:
-
-```text
-verifica della raggiungibilità UI
-della creazione del primo Garden
-```
-
-Il Write Path di `gardens` esiste già dalla S022, ma deve essere verificato se la relativa pagina:
-
-- esiste ed è raggiungibile;
-- esiste ma il comando è nascosto;
-- non è ancora integrata nel flusso corrente.
-
-Questo punto non viene assegnato automaticamente alla S030.
-
-La Sessione S030:
-
-> **NON È ANCORA INIZIATA**
-
-e dovrà essere avviata esplicitamente prima di qualsiasi modifica tecnica appartenente al suo eventuale perimetro.
+Nessuna nuova sessione di sviluppo viene considerata iniziata fino alla sua apertura esplicita.
