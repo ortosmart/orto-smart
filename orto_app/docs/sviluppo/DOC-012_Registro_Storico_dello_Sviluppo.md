@@ -4,7 +4,7 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 3.8
+**Versione:** 3.9
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 29/07/2026
 
-**Ultimo aggiornamento:** 18/09/2026
+**Ultimo aggiornamento:** 28/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 3.8 |
+| Versione | 3.9 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 18/09/2026 |
+| Ultimo aggiornamento | 28/09/2026 |
 
 ---
 
@@ -54,11 +54,12 @@
 | 3.1 | 28/08/2026 | Aggiornamento del Registro Storico con la Sessione S023, consolidamento dei Write Path autoritativi di `gardens` e `seasons`, integrazione Flutter della Profile Write Authority e riallineamento definitivo dei tempi S020–S023 |
 | 3.2 | 01/09/2026 | Aggiornamento del Registro Storico con la Sessione S024: Write Path autoritativo di `beds`, geometria storicizzata, integrazione Flutter, versione 0.1.15-alpha e riallineamento degli indicatori evolutivi |
 | 3.3 | 03/09/2026 | Manutenzione straordinaria del Registro Storico: consolidamento dei tempi complessivi delle Sessioni S001–S024, classificazione documentale della S007, riallineamento dei progressivi e aggiornamento del totale progetto a 167 h 51 min |
-| 3.4 | 06/09/2026 | Aggiornamento del Registro Storico con la Sessione S025: completamento dell’integrazione Flutter dei Write Path autoritativi di `beds`, introduzione delle interfacce operative, gestione italiana delle date, verifica con 841/841 test superati e riallineamento degli indicatori al totale progetto di 174 h 47 min |
+| 3.4 | 06/09/2026 | Aggiornamento del Registro Storico con la Sessione S025: completamento dell'integrazione Flutter dei Write Path autoritativi di `beds`, introduzione delle interfacce operative, gestione italiana delle date, verifica con 841/841 test superati e riallineamento degli indicatori al totale progetto di 174 h 47 min |
 | 3.5 | 12/09/2026 | Aggiornamento con la Sessione S026: implementazione del Catalogo DB V1 `botanical_families` → `crops` → `crop_varieties`, nove RPC autoritative, sicurezza e concorrenza server-side, versione 0.1.17-alpha, definizione della S027 come integrazione Flutter del Catalogo V1 e consolidamento finale della S026 a 8 h 55 min |
 | 3.6 | 14/09/2026 | Aggiornamento con la Sessione S027: completamento dell'integrazione Flutter del Catalogo V1, introduzione di `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, 914/914 test superati, versione 0.1.18-alpha e chiusura definitiva della Sessione S027 a 2 h 33 min con totale progetto di 186 h 15 min |
 | 3.7 | 17/09/2026 | Aggiornamento con la Sessione S028: implementazione del modello persistente e Write Path autoritativo di `plantings`, lifecycle server-side, geometria e overlap spazio-temporale, protezione delle geometrie delle aiuole mediante `blocked_by_plantings`, integrazione Flutter, 997/997 test superati, versione `0.1.19-alpha` / `0.1.19-alpha+4`; Sessione S028 conclusa in 11 h 20 min complessivi, di cui 9 h 04 min di sviluppo e 2 h 16 min di documentazione, con totale progetto pari a 197 h 35 min |
 | 3.8 | 18/09/2026 | Aggiornamento e chiusura della Sessione S029: completamento della UI del lifecycle di `plantings`, gestione esplicita di `end_date` per gli stati terminali, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`, suite completa finale verificata con 1011/1011 test superati; Sessione S029 conclusa in 4 h 09 min complessivi, di cui 1 h 19 min di sviluppo e 2 h 50 min di documentazione, con totale progetto pari a 201 h 44 min |
+| 3.9 | 28/09/2026 | Aggiornamento e chiusura della Sessione S030: completamento del Catalogo Agronomico globale attraverso 11 tranche tecniche, introduzione delle identità botaniche globali, Catalog Authority, fonti e osservazioni, workflow editoriale, Knowledge agronomica canonica, pubblicazione e Resolver, cutover finale Database + Flutter, 26 tabelle nel perimetro Catalogo e 953 test Flutter superati; Sessione S030 conclusa in 27 h 19 min complessivi, di cui 21 h 06 min di sviluppo e 6 h 13 min di documentazione, con totale progetto pari a 229 h 03 min |
 
 ---
 
@@ -108,82 +109,121 @@ Le informazioni riportate nel presente capitolo vengono aggiornate al termine de
 
 ## 2.1 Stato attuale del progetto
 
-Alla data dell'ultimo aggiornamento del presente documento, la Sessione S029 è completamente conclusa sia nella fase di sviluppo sia nella fase documentale.
+Alla data dell'ultimo aggiornamento del presente documento, la Sessione S030 è completamente conclusa sia nella fase di sviluppo sia nella fase documentale.
 
-La fase sviluppo S029 si è svolta il:
+La fase sviluppo S030 si è svolta dal:
 
 ```text
-17/09/2026
-12:34 → 13:53
+18/09/2026
 ```
 
-senza pause dichiarate.
-
-Il tempo di sviluppo consolidato della Sessione S029 è:
+al:
 
 ```text
-1 h 19 min
+23/09/2026 alle 22:23
 ```
 
-La fase Manuali S029 è iniziata il:
+attraverso più intervalli di lavoro e sospensione registrati nel Quaderno di Sviluppo (DOC-005).
+
+Il tempo di sviluppo consolidato della Sessione S030 è:
 
 ```text
-18/09/2026 alle 09:03
+21 h 06 min
 ```
 
-è stata sospesa il:
+La fase Manuali S030 è iniziata il:
 
 ```text
-18/09/2026 alle 10:41
+23/09/2026 alle 22:48
 ```
 
-è ripresa il:
+ed è stata articolata nei seguenti intervalli netti di lavoro:
 
 ```text
-18/09/2026 alle 11:31
+23/09/2026   22:48 → 23:14   0 h 26 min
+24/09/2026   09:02 → 12:54   3 h 52 min
+27/09/2026   21:00 → 22:32   1 h 32 min
+28/09/2026   11:22 → 11:45   0 h 23 min
+---------------------------------------
+Totale                         6 h 13 min
 ```
 
-ed è stata chiusa il:
+Gli intervalli intercorsi tra una sospensione e la successiva ripresa sono esclusi dal conteggio.
+
+Il tempo documentale netto della Sessione S030 è pertanto:
 
 ```text
-18/09/2026 alle 12:43
-```
-
-L'intervallo di sospensione dalle 10:41 alle 11:31 è escluso dal conteggio.
-
-Il tempo documentale netto della Sessione S029 è:
-
-```text
-2 h 50 min
+6 h 13 min
 ```
 
 Lo stato corrente è:
 
 | Indicatore | Valore |
 |------------|--------|
-| Ultima sessione completamente conclusa | S029 |
-| Ultima fase sviluppo completata | S029 |
+| Ultima sessione completamente conclusa | S030 |
+| Ultima fase sviluppo completata | S030 |
 | Sessione in corso | Nessuna |
-| Stato della documentazione | Aggiornamento S029 concluso |
-| Versione pubblica corrente | 0.1.20-alpha |
-| Versione Flutter corrente | 0.1.20-alpha+5 |
+| Stato della documentazione | Aggiornamento S030 concluso |
+| Versione pubblica corrente | 0.1.21-alpha |
+| Versione Flutter corrente | 0.1.21-alpha+6 |
 
-Il tempo complessivo della Sessione S029 è:
+Il tempo complessivo della Sessione S030 è:
 
 | Attività | Durata |
 |----------|-------:|
-| Sviluppo | 1 h 19 min |
-| Documentazione | 2 h 50 min |
-| **Totale S029** | **4 h 09 min** |
+| Sviluppo | 21 h 06 min |
+| Documentazione | 6 h 13 min |
+| **Totale S030** | **27 h 19 min** |
 
-I progressivi definitivi del progetto alla chiusura della S029 sono:
+I progressivi definitivi del progetto alla chiusura della S030 sono:
 
 ```text
-Sviluppo complessivo        147 h 33 min
-Documentazione complessiva   54 h 11 min
+Sviluppo complessivo        168 h 39 min
+Documentazione complessiva   60 h 24 min
 ----------------------------------------
-Totale progetto             201 h 44 min
+Totale progetto             229 h 03 min
 ```
+
+La Sessione S030 ha completato l'implementazione tecnica del nuovo Catalogo Agronomico globale attraverso 11 tranche, culminate nel cutover finale Database + Flutter.
+
+Il perimetro Catalogo risultante comprende **26 tabelle** e separa le identità botaniche globali dalla Knowledge agronomica canonica, dalle fonti e osservazioni, dal workflow editoriale e dai dati operativi del singolo orto.
+
+La migration conclusiva della S030 è:
+
+```text
+20260923154831_finalize_global_catalog_cutover.sql
+```
+
+La verifica tecnica finale ha confermato:
+
+```text
+supabase db reset
+    completato con successo
+
+DB lint locale e remoto
+    No schema errors found
+
+Acceptance test Tranche 10
+    superati
+
+Acceptance test Tranche 11
+    superati
+
+flutter analyze
+    No issues found
+
+flutter test
+    953 test superati
+```
+
+Il commit tecnico conclusivo della S030 è:
+
+```text
+f9f5830796ecc16a14ef1b3fb4ce26bd081846b5
+Completa il cutover del catalogo agronomico globale
+```
+
+La migration finale risulta applicata sia al database locale sia al database remoto.
 
 # 3. Cronologia sintetica dello sviluppo
 
@@ -222,6 +262,7 @@ Per ciascuna sessione vengono indicati l'evento principale e il tempo complessiv
 | **S027** | Integrazione Flutter del Catalogo V1 | **2 h 33 min** | **186 h 15 min** |
 | **S028** | Implementazione del modello e Write Path autoritativo di `plantings` | **11 h 20 min** | **197 h 35 min** |
 | **S029** | Completamento della UI del lifecycle di `plantings` | **4 h 09 min** | **201 h 44 min** |
+| **S030** | Implementazione del Catalogo Agronomico globale e cutover finale Database + Flutter | **27 h 19 min** | **229 h 03 min** |
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -253,6 +294,7 @@ Documentazione  2 h 16 min
 -------------------------
 Totale         11 h 20 min
 ```
+
 Per la Sessione S029 il tempo complessivo di **4 h 09 min** è composto da:
 
 ```text
@@ -273,10 +315,34 @@ Totale          2 h 50 min
 
 La pausa dichiarata dalle 10:41 alle 11:31 è esclusa dal conteggio.
 
-Il totale progressivo definitivo del progetto alla chiusura della S029 è:
+Per la Sessione S030 il tempo complessivo di **27 h 19 min** è composto da:
 
 ```text
-201 h 44 min
+Sviluppo        21 h 06 min
+Documentazione   6 h 13 min
+--------------------------
+Totale          27 h 19 min
+```
+
+La fase sviluppo S030 si è svolta dal 18/09/2026 al 23/09/2026 ed è stata chiusa alle 22:23 del 23/09/2026.
+
+La fase Manuali S030 si è svolta secondo gli intervalli:
+
+```text
+23/09/2026   22:48 → 23:14   0 h 26 min
+24/09/2026   09:02 → 12:54   3 h 52 min
+27/09/2026   21:00 → 22:32   1 h 32 min
+28/09/2026   11:22 → 11:45   0 h 23 min
+---------------------------------------
+Totale                         6 h 13 min
+```
+
+Gli intervalli tra le sospensioni e le successive riprese sono esclusi dal conteggio.
+
+Il totale progressivo definitivo del progetto alla chiusura della S030 è:
+
+```text
+229 h 03 min
 ```
 
 ---
@@ -333,6 +399,7 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S027** | Integrazione Flutter del Catalogo V1 | Integrato nel client Flutter il Catalogo V1 mediante `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, `BotanicalFamilyRepository`, `CropRepository` e `CropVarietyRepository`, result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version` e compatibilità legacy controllata; verificati 124 test mirati e 914/914 test complessivi. |
 | **S028** | Write Path autoritativo di `plantings` | Implementato il modello persistente autoritativo delle coltivazioni reali, introdotte le RPC `create_planting`, `update_planting` e `set_planting_status`, lifecycle server-side, geometria half-open, controllo congiunto degli overlap temporali e longitudinali, compatibilità con la geometria storicizzata delle aiuole, esito `blocked_by_plantings`, Profile Write Authority, concorrenza ottimistica mediante `row_version`, integrazione Flutter e verifica finale con 997/997 test. |
 | **S029** | Lifecycle operativo delle coltivazioni | Completata la UI del lifecycle di `plantings`, introdotte azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per `finished` e `removed`, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`; nessuna modifica al contratto persistente S028. |
+| **S030** | Catalogo Agronomico globale | Completata attraverso 11 tranche tecniche la nuova architettura globale del Catalogo Agronomico: identità botaniche globali, registro dei parametri agronomici, vocabolari e contesti, fonti/acquisizioni/osservazioni, alias e riconciliazione, workflow editoriale, Knowledge agronomica canonica, Catalog Authority e sicurezza, pubblicazione/versionamento, Resolver e read model, fino al cutover finale Database + Flutter. Il perimetro Catalogo comprende 26 tabelle; le vecchie strutture `botanical_families`, `catalog_crops_s030` e `crop_varieties` sono state rimosse e il contratto operativo è stato riallineato a `botanical_taxa`, `crops`, `crop_cultivars` e `cultivar_id`. |
 
 ---
 
@@ -344,9 +411,11 @@ Esse costituiscono i principali punti di riferimento per ricostruire la storia t
 
 La registrazione di una milestone tecnica non implica necessariamente che la relativa sessione sia già completamente chiusa sotto il profilo documentale.
 
-La milestone tecnica della Sessione S029 risulta completata.
+La milestone tecnica della Sessione S030 risulta completata.
 
-La relativa fase documentale S029 è anch'essa conclusa.
+La relativa fase documentale S030 è anch'essa conclusa.
+
+La S030 costituisce il passaggio dal precedente Catalogo V1 Profile-owned a un Catalogo Agronomico globale, multisource, tracciabile, versionabile, contestualizzabile ed editorialmente controllato, mantenuto separato dai dati operativi del singolo orto.
 
 # 5. Indicatori evolutivi
 
@@ -354,28 +423,30 @@ Il presente capitolo raccoglie gli indicatori che consentono di monitorare l'evo
 
 A differenza degli indicatori storici riportati nel capitolo 2, che rappresentano una fotografia dello stato attuale del progetto, gli indicatori evolutivi consentono di osservare la crescita di Orto Smart sotto il profilo organizzativo, tecnico e documentale.
 
-Alla data del presente aggiornamento le Sessioni S001–S029 sono completamente concluse.
+Alla data del presente aggiornamento le Sessioni S001–S030 sono completamente concluse.
 
 | Indicatore | Valore attuale |
 |------------|----------------|
-| Sessioni completamente concluse | 29 |
-| Fasi sviluppo completate | 29 |
-| Ore di sviluppo consolidate | 147 h 33 min |
-| Ore di documentazione consolidate | 54 h 11 min |
-| Totale ore progetto | 201 h 44 min |
+| Sessioni completamente concluse | 30 |
+| Fasi sviluppo completate | 30 |
+| Ore di sviluppo consolidate | 168 h 39 min |
+| Ore di documentazione consolidate | 60 h 24 min |
+| Totale ore progetto | 229 h 03 min |
 | Motori agronomici completati | 5 |
 | Documenti ufficiali approvati | 10 |
-| Ultima sessione completamente conclusa | S029 |
-| Ultima fase sviluppo completata | S029 |
+| Ultima sessione completamente conclusa | S030 |
+| Ultima fase sviluppo completata | S030 |
 | Sessione in corso | Nessuna |
-| Versione pubblica corrente | 0.1.20-alpha |
-| Versione Flutter corrente | 0.1.20-alpha+5 |
+| Versione pubblica corrente | 0.1.21-alpha |
+| Versione Flutter corrente | 0.1.21-alpha+6 |
 
 La S028 ha completato il modello persistente e il Write Path autoritativo di `plantings`.
 
-La S029 ha completato il livello applicativo del lifecycle.
+La S029 ha completato il livello applicativo del lifecycle delle coltivazioni.
 
-Lo stato raggiunto è:
+La S030 ha completato una revisione architetturale del Catalogo Agronomico, sostituendo il precedente modello Profile-owned introdotto nelle S026–S027 con un modello globale separato dai dati operativi del singolo orto.
+
+Lo stato evolutivo raggiunto è:
 
 ```text
 public.plantings
@@ -399,7 +470,37 @@ Gestione end_date terminale
 Refresh autoritativo su conflitti/transizioni non valide
         ✅
 
-Selezione opzionale della varietà nella UI operativa
+Catalogo Agronomico globale
+        ✅
+
+Identità botaniche globali
+        ✅
+
+Fonti, acquisizioni e osservazioni
+        ✅
+
+Workflow editoriale
+        ✅
+
+Knowledge agronomica canonica
+        ✅
+
+Catalog Authority
+        ✅
+
+Pubblicazione e Resolver
+        ✅
+
+Cutover finale Database + Flutter
+        ✅
+
+Selezione esplicita del cultivar nella UI di creazione planting
+        ⏳
+
+Backend canonico delle consociazioni
+        ⏳
+
+UI amministrativa/editoriale completa del Catalogo
         ⏳
 ```
 
@@ -409,9 +510,293 @@ La baseline complessiva Database V1 rimane:
 IN CORSO
 ```
 
-poiché non tutte le 52 entità progettate nella S017 sono ancora fisicamente implementate.
+poiché non tutte le 52 entità di dominio progettate nella S017 sono ancora fisicamente implementate.
 
-Il Repository Layer Flutter relativo alle coltivazioni comprende:
+La S030 non modifica questo principio: completa il nuovo perimetro del Catalogo Agronomico, ma non equivale al completamento dell'intera baseline Database V1.
+
+## Catalogo Agronomico globale
+
+Il Catalogo Agronomico risultante dalla S030 è:
+
+- globale;
+- multisource;
+- tracciabile;
+- versionabile;
+- contestualizzabile;
+- editorialmente controllato;
+- separato dai dati operativi del singolo orto.
+
+Il perimetro Catalogo realizzato nella S030 comprende:
+
+```text
+26 tabelle
+```
+
+Le identità botaniche globali sono rappresentate mediante:
+
+```text
+botanical_taxa
+```
+
+con ranghi canonici:
+
+```text
+FAMILY
+GENUS
+SPECIES
+VARIETY
+CULTIVAR
+```
+
+La normalizzazione testuale del Catalogo è centralizzata mediante:
+
+```text
+private.normalize_catalog_text(text)
+```
+
+e applica normalizzazione Unicode, trim, spazi singoli e forma normalizzata per il confronto.
+
+Le identità agronomiche operative canoniche sono rappresentate da:
+
+```text
+crops
+crop_cultivars
+```
+
+Il precedente modello Profile-owned:
+
+```text
+botanical_families
+crops
+crop_varieties
+```
+
+appartiene allo storico delle S026–S027 e non rappresenta più il contratto corrente del Catalogo.
+
+Al cutover finale S030 sono state rimosse le strutture legacy:
+
+```text
+botanical_families
+catalog_crops_s030
+crop_varieties
+```
+
+Il contratto corrente di `plantings` utilizza:
+
+```text
+crop_id
+cultivar_id
+```
+
+con:
+
+```text
+crop_id → crops(id)
+```
+
+e vincolo composto:
+
+```text
+(cultivar_id, crop_id)
+        →
+crop_cultivars(id, crop_id)
+```
+
+Il precedente:
+
+```text
+variety_id
+```
+
+è stato rimosso dal contratto persistente corrente.
+
+## Catalog Authority e sicurezza
+
+La S030 ha introdotto una Catalog Authority globale con capability distinte per:
+
+```text
+identity management
+ingestion
+review
+publishing
+```
+
+Le capability dell'utente autenticato possono essere lette mediante:
+
+```text
+get_my_catalog_capabilities()
+```
+
+L'inizializzazione esplicita dell'authority è disponibile mediante:
+
+```text
+claim_initial_catalog_authority()
+```
+
+La claim:
+
+- non viene eseguita automaticamente dal client;
+- è consentita soltanto all'owner idoneo quando l'authority non è ancora inizializzata;
+- è idempotente;
+- non consente una nuova acquisizione dell'authority già inizializzata.
+
+Le RPC sensibili seguono il modello:
+
+```text
+SECURITY DEFINER
+search_path vuoto
+nessun EXECUTE ad anon
+EXECUTE esplicito ad authenticated dove previsto
+autorizzazione server-side
+```
+
+RLS, privilegi espliciti e Write Path controllati rimangono principi fondamentali dell'architettura.
+
+## Fonti, ingestion e workflow editoriale
+
+La S030 ha implementato il perimetro necessario a mantenere separati:
+
+```text
+fonte esterna
+        ↓
+acquisizione / ingestion
+        ↓
+osservazione / dato candidato
+        ↓
+revisione editoriale
+        ↓
+Knowledge agronomica canonica
+        ↓
+pubblicazione
+        ↓
+Resolver / read model
+```
+
+I dati provenienti da fonti esterne non possono sovrascrivere automaticamente il Catalogo approvato.
+
+L'importazione produce dati candidati da sottoporre al processo editoriale.
+
+Il principio rimane:
+
+```text
+dato esterno ≠ dato automaticamente approvato
+```
+
+Il workflow consente di mantenere tracciabilità tra fonti, osservazioni, revisioni e contenuto canonico.
+
+La catena delle revisioni utilizza:
+
+```text
+previous_revision_id
+```
+
+per mantenere una relazione esplicita con la revisione precedente.
+
+Il modello editoriale consolidato prevede inoltre che:
+
+- CREATE possa reintrodurre in modo controllato contenuto precedentemente ritirato;
+- il semantic freeze inizi dal primo artefatto immutabile;
+- `NOT_MAPPABLE` sia ammesso soltanto per `CONFLICTING` e `CONTEXTUAL`;
+- WITHDRAW conservi il contenuto canonico necessario alla tracciabilità.
+
+## Knowledge, pubblicazione e Resolver
+
+La Knowledge agronomica canonica è separata dalle identità botaniche e dalle osservazioni provenienti dalle fonti.
+
+La S030 ha completato il percorso tecnico fino alla pubblicazione e al Resolver.
+
+I read model canonici esposti al client sono:
+
+```text
+crop_catalog_read
+crop_cultivar_catalog_read
+```
+
+entrambi configurati con:
+
+```text
+security_invoker = true
+```
+
+Il Resolver può fornire dati agronomici utilizzabili dai flussi applicativi, ma non deve modificare automaticamente i dati operativi già persistiti.
+
+I valori agronomici registrati su un planting rimangono snapshot operativi.
+
+Il principio applicativo è:
+
+```text
+Resolver propone
+utente conferma
+dato operativo viene registrato
+```
+
+e non:
+
+```text
+Resolver modifica automaticamente planting esistenti
+```
+
+## Integrazione Flutter S030
+
+Il client Flutter è stato riallineato al nuovo Catalogo globale.
+
+Sono stati introdotti:
+
+```text
+CatalogCapabilities
+CropCultivar
+CatalogAuthorityRepository
+CropCultivarRepository
+```
+
+`CropRepository` legge dal read model:
+
+```text
+crop_catalog_read
+```
+
+`CropCultivarRepository` legge dal read model:
+
+```text
+crop_cultivar_catalog_read
+```
+
+`CatalogAuthorityRepository` espone la lettura delle capability e la claim esplicita dell'authority.
+
+Sono stati rimossi dal contratto corrente i componenti legacy relativi al Catalogo Profile-owned, compresi:
+
+```text
+BotanicalFamily
+CropVariety
+CropVarietyRepository
+varietyId
+variety_id
+```
+
+quando utilizzati come elementi del contratto applicativo corrente.
+
+La terminologia tecnica corrente utilizza:
+
+```text
+cultivar
+cultivarId
+cultivar_id
+CropCultivar
+```
+
+L'interfaccia italiana può continuare a utilizzare il termine:
+
+```text
+Varietà
+```
+
+come etichetta comprensibile all'utente.
+
+Il motore delle rotazioni confronta l'UUID canonico della famiglia botanica; il nome della famiglia rimane informazione di visualizzazione.
+
+## Plantings dopo il cutover S030
+
+Il Repository Layer Flutter relativo alle coltivazioni continua a comprendere:
 
 ```text
 PlantingRepository
@@ -426,72 +811,27 @@ updatePlanting
 setPlantingStatus
 ```
 
-Le scritture applicative ordinarie di `plantings` utilizzano esclusivamente RPC autoritative.
+Le scritture applicative ordinarie di `plantings` continuano a utilizzare esclusivamente RPC autoritative.
 
-La S028 ha consolidato:
+Restano validi i principi consolidati nelle S028–S029:
 
 - Profile Write Authority fail-closed;
 - concorrenza ottimistica mediante `row_version`;
-- result type dedicato;
+- result type dedicati;
 - mapping esplicito degli status RPC;
-- gestione autoritativa del lifecycle;
+- lifecycle autoritativo;
 - geometria longitudinale half-open;
 - controllo congiunto degli overlap temporali e longitudinali;
 - compatibilità con la geometria storicizzata delle aiuole;
 - protezione delle modifiche geometriche mediante `blocked_by_plantings`;
-- assenza di hard delete nel normale flusso operativo.
-
-La S029 ha consolidato:
-
-- azioni lifecycle contestuali in `PlantingCard`;
-- utilizzo di `onStatusChange`;
-- rimozione del normale flusso UI di eliminazione;
-- utilizzo di `PlantingRepository.setPlantingStatus`;
-- utilizzo della RPC autoritativa `set_planting_status`;
+- assenza di hard delete nel normale flusso operativo;
 - `end_date = null` durante le transizioni intermedie;
 - conferma esplicita di `end_date` per `finished` e `removed`;
 - mantenimento dell'occupazione nello stato `harvested`;
 - rilascio dello spazio soltanto negli stati `finished` e `removed`;
-- refresh autoritativo su `version_conflict`;
-- refresh autoritativo su `invalid_transition`;
-- assenza di nuove migration, nuove RPC e modifiche RLS.
+- refresh autoritativo su `version_conflict` e `invalid_transition`.
 
-La verifica tecnica finale S029 ha prodotto:
-
-```text
-flutter test finale:
-1011/1011 test passati
-
-bed_page_test.dart:
-30/30 test passati
-
-planting_card_test.dart finale:
-9/9 test passati
-
-flutter analyze finale:
-No issues found! (ran in 12.8s)
-```
-
-Il dato di 1011 test rappresenta la suite completa finale effettivamente eseguita dopo l'aggiunta dell'ultimo test dedicato a `PlantingCard`.
-
-Le verifiche dedicate di `BedPage` e `PlantingCard` restano confermate come controlli specifici aggiuntivi rispetto alla suite completa.
-
-Le migration più recenti relative a `plantings` rimangono quelle introdotte nella S028:
-
-```text
-20260915080700_add_plantings_authoritative_model.sql
-20260915081444_add_plantings_write_rpcs.sql
-```
-
-L'ultima migration del Database V1 rimane:
-
-```text
-20260915081444_add_plantings_write_rpcs.sql
-```
-
-`public.plantings` è implementata come modello persistente autoritativo.
-
-I quattro metodi di avvio canonici sono:
+I quattro metodi di avvio canonici rimangono:
 
 ```text
 purchased_seedlings
@@ -500,7 +840,7 @@ direct_rows
 direct_broadcast
 ```
 
-Il lifecycle autoritativo comprende:
+Il lifecycle autoritativo rimane:
 
 ```text
 sown
@@ -560,117 +900,183 @@ FUTURE
 
 e dovrà essere limitato a correzioni amministrative o tecniche eccezionali.
 
-La fase sviluppo S029 è conclusa.
+`AddPlantingPage` non espone ancora un selettore operativo esplicito del cultivar.
 
-La fase Manuali S029 è iniziata il:
+Nel flusso di creazione corrente:
 
 ```text
-18/09/2026 alle 09:03
+cultivarId = null
 ```
 
-è stata sospesa il:
+mentre nel flusso di modifica viene preservato l'eventuale:
 
 ```text
-18/09/2026 alle 10:41
+planting.cultivarId
 ```
 
-è ripresa il:
+La selezione esplicita del cultivar nella UI di creazione rimane quindi FUTURE.
+
+## Consociazioni
+
+Il motore applicativo delle consociazioni rimane disponibile.
+
+Non esiste ancora un backend canonico S030 equivalente alla precedente relazione di catalogo per le consociazioni.
+
+Nello stato corrente:
 
 ```text
-18/09/2026 alle 11:31
+CropAssociationRepository
 ```
 
-ed è stata chiusa il:
+restituisce insiemi vuoti anziché interrogare una relazione canonica non ancora esistente.
+
+La realizzazione del backend canonico delle consociazioni rimane:
 
 ```text
-18/09/2026 alle 12:43
+FUTURE
 ```
 
-La pausa dalle 10:41 alle 11:31 è esclusa dal conteggio.
+## Verifiche tecniche S030
 
-Il tempo complessivo della Sessione S029 è:
+La migration conclusiva della S030 è:
 
 ```text
-Sviluppo        1 h 19 min
-Documentazione  2 h 50 min
--------------------------
-Totale          4 h 09 min
+20260923154831_finalize_global_catalog_cutover.sql
 ```
 
-I progressivi definitivi alla chiusura della S029 sono:
+Il reset completo del database locale mediante:
 
 ```text
-Sviluppo complessivo        147 h 33 min
-Documentazione complessiva   54 h 11 min
+supabase db reset
+```
+
+è stato completato con successo applicando da zero l'intera catena delle migration.
+
+Il lint del database ha restituito, sia sul perimetro verificato localmente sia sul remoto:
+
+```text
+No schema errors found
+```
+
+Gli acceptance test delle Tranche 10 e 11 sono stati superati e le relative fixture sono state sottoposte a rollback.
+
+La verifica Flutter finale ha prodotto:
+
+```text
+dart format lib test
+Formatted 174 files
+
+flutter analyze
+No issues found
+
+flutter test
+953 test superati
+```
+
+Il valore:
+
+```text
+Formatted 174 files
+```
+
+rappresenta l'output del comando di formattazione e non implica che tutti i 174 file siano stati modificati.
+
+Lo smoke test Edge ha verificato:
+
+- Dashboard raggiungibile;
+- assenza di eccezioni;
+- assenza di errori rossi;
+- pagina Varietà raggiungibile;
+- stato vuoto “Nessuna varietà presente” corretto;
+- assenza del precedente pulsante di aggiunta varietà;
+- gestione corretta del profilo senza Garden;
+- impossibilità di eseguire il test manuale di aiuole e planting esclusivamente per assenza di un Garden nel profilo utilizzato.
+
+La migration finale è stata applicata anche al database remoto.
+
+Alla verifica conclusiva della fase sviluppo:
+
+```text
+local  = 20260923154831
+remote = 20260923154831
+```
+
+Il commit tecnico conclusivo è:
+
+```text
+f9f5830796ecc16a14ef1b3fb4ce26bd081846b5
+Completa il cutover del catalogo agronomico globale
+```
+
+## Timing e progressivi S030
+
+La fase sviluppo S030 è conclusa con:
+
+```text
+21 h 06 min
+```
+
+La fase Manuali S030 è conclusa con:
+
+```text
+6 h 13 min
+```
+
+Il tempo complessivo della Sessione S030 è:
+
+```text
+Sviluppo        21 h 06 min
+Documentazione   6 h 13 min
+--------------------------
+Totale          27 h 19 min
+```
+
+I progressivi definitivi alla chiusura della S030 sono:
+
+```text
+Sviluppo complessivo        168 h 39 min
+Documentazione complessiva   60 h 24 min
 ----------------------------------------
-Totale progetto             201 h 44 min
+Totale progetto             229 h 03 min
 ```
 
-La Sessione S029 è quindi conclusa sia nella fase di sviluppo sia nella fase documentale.
+La Sessione S030 è quindi conclusa sia nella fase di sviluppo sia nella fase documentale.
 
-La Sessione S029 è definitivamente conclusa, con un tempo complessivo di **4 h 09 min** e un totale progetto aggiornato a **201 h 44 min**.
+## Elementi FUTURE post-S030
 
-Rimangono aperti:
+La chiusura della S030 non implica il completamento dell'intero progetto.
 
-- selezione facoltativa della varietà nel flusso operativo di `plantings`;
-- progressiva eliminazione delle dipendenze legacy residue;
-- UI amministrativa completa del Catalogo V1;
-- completamento delle restanti entità del Database V1;
-- verifica della raggiungibilità UI per la creazione del primo Garden;
-- hard delete amministrativo o tecnico eccezionale di `plantings`, escluso dal normale flusso operativo.
+Rimangono aperti, tra gli altri:
 
-Come preparazione futura, esterna alla Sessione S029, è stata inoltre consolidata la direzione progettuale del futuro:
+- backend canonico delle consociazioni;
+- UI amministrativa/editoriale completa del Catalogo Agronomico;
+- azione UI esplicita e sicura per `claim_initial_catalog_authority()`;
+- workflow operativo di ingestion/import/review in `Impostazioni → Catalogo Agronomico → Aggiornamento fonti`;
+- schermate del workflow editoriale;
+- integrazione completa del Resolver nella creazione e pianificazione dei planting;
+- selezione esplicita del cultivar nel flusso di creazione dei planting;
+- popolamento editoriale del Catalogo con dati agronomici verificabili;
+- smoke test con dati operativi reali;
+- manutenzione periodica ISO 3166-1 alpha-2 mediante migration e test verificati, mai automatica;
+- verifica o ripristino del percorso UI per la creazione del primo Garden;
+- completamento delle ulteriori entità previste dalla baseline Database V1;
+- hard delete amministrativo o tecnico eccezionale dei planting, escluso dal normale flusso operativo.
+
+Il database deve rimanere privo di dati demo, provvisori o di prova fino all'avvio della gestione reale dell'orto.
+
+La sequenza operativa prevista per l'avvio reale rimane:
 
 ```text
-Catalogo Agronomico V1
+1. verifica database locale pulito
+2. verifica separata dello stato del database remoto
+3. caricamento del Catalogo Agronomico verificato
+4. creazione del Garden reale
+5. creazione delle 15 aiuole reali
+6. apertura della stagione reale
+7. registrazione dei planting reali
 ```
 
-secondo il flusso preliminare:
-
-```text
-Fonte esterna
-        ↓
-AgronomicImport
-        ↓
-dato candidato
-        ↓
-AgronomicReview
-        ↓
-AgronomicCatalog
-```
-
-Nessun dato proveniente da fonti esterne dovrà sovrascrivere automaticamente dati agronomici già approvati.
-
-Gli stati preliminarmente previsti sono:
-
-```text
-DRAFT
-REVIEW
-APPROVED
-ARCHIVED
-```
-
-La carota è stata individuata come possibile primo caso pilota, ma gli eventuali dati già raccolti devono essere considerati soltanto candidati e non ancora approvati.
-
-Questa preparazione:
-
-```text
-non appartiene al timing S029
-non costituisce implementazione
-non costituisce avvio della S030
-```
-
-La possibile Sessione:
-
-```text
-S030 — Catalogo Agronomico V1
-```
-
-rimane:
-
-```text
-NON INIZIATA
-```
+Il popolamento reale del Catalogo dovrà avvenire soltanto su una baseline agronomica verificata e approvata.
 
 # 6. Regole di aggiornamento
 

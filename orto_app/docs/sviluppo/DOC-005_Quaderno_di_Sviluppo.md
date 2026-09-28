@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 24/09/2026
+**Ultimo aggiornamento:** 28/09/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.17 |
+| Versione | 0.18 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 18/09/2026 |
+| Ultimo aggiornamento | 28/09/2026 |
 
 ---
 
@@ -56,7 +56,7 @@
 | 0.15 | 14/09/2026 | Aggiornamento e chiusura documentale della Sessione S027: integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository e result type dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version`, compatibilità legacy controllata, 914/914 test superati e riallineamento della versione Flutter a `0.1.18-alpha+3` |
 | 0.16 | 17/09/2026 | Aggiornamento del Quaderno con la Sessione S028: implementazione del modello e Write Path autoritativo di `plantings`, lifecycle server-side, validazioni metodo-dipendenti, geometria e overlap spaziale/temporale, protezione delle geometrie delle aiuole mediante `blocked_by_plantings`, integrazione Flutter, 997/997 test superati e aggiornamento della versione a `0.1.19-alpha` / `0.1.19-alpha+4`; Sessione S028 conclusa con 9 h 04 min di sviluppo, 2 h 16 min di documentazione e 11 h 20 min complessivi |
 | 0.17 | 18/09/2026 | Aggiornamento e chiusura documentale della Sessione S029: completamento della UI del lifecycle di `plantings`, azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per gli stati terminali, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`, suite completa finale 1011/1011, commit tecnico `6b3fa92`; Sessione S029 conclusa con 1 h 19 min di sviluppo, 2 h 50 min di documentazione e 4 h 09 min complessivi |
-| 0.18 | 24/09/2026 | Aggiornamento del Quaderno con la Sessione S030: realizzazione del Catalogo Agronomico V1 globale, separazione tra identità botaniche e Knowledge agronomica, Catalog Authority, ingestion e workflow editoriale, Knowledge canonica, pubblicazione e Resolver, Write Path autoritativi, cutover finale a `botanical_taxa` → `crops` → `crop_cultivars`, riallineamento di `plantings` a `crop_id` + `cultivar_id`, integrazione Flutter, deployment remoto e verifiche finali; sviluppo S030 concluso con 21 h 06 min, fase documentale S030 ancora in corso |
+| 0.18 | 28/09/2026 | Aggiornamento e chiusura documentale della Sessione S030: realizzazione del Catalogo Agronomico V1 globale, separazione tra identità botaniche e Knowledge agronomica, Catalog Authority, ingestion e workflow editoriale, Knowledge canonica, pubblicazione e Resolver, Write Path autoritativi, cutover finale a `botanical_taxa` → `crops` → `crop_cultivars`, riallineamento di `plantings` a `crop_id` + `cultivar_id`, integrazione Flutter, deployment remoto e verifiche finali; Sessione S030 conclusa con 21 h 06 min di sviluppo, 6 h 13 min di documentazione e 27 h 19 min complessivi; totale progetto 229 h 03 min |
 
 ---
 
@@ -97,6 +97,7 @@ Per una sessione ancora in corso viene riportato soltanto il tempo già consolid
 | S027 | 13–14/09/2026 | 2 h 33 min | 186 h 15 min | Integrazione Flutter del Catalogo V1 | ✅ |
 | S028 | 15–17/09/2026 | 11 h 20 min | 197 h 35 min | Write Path autoritativo di `plantings` | ✅ |
 | S029 | 17–18/09/2026 | 4 h 09 min | 201 h 44 min | Lifecycle operativo delle coltivazioni | ✅ |
+| S030 | 18–28/09/2026 | 27 h 19 min | 229 h 03 min | Catalogo Agronomico V1 globale e cutover finale Database + Flutter | ✅ |
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -190,6 +191,42 @@ Il totale progressivo definitivo del progetto alla chiusura della S029 è:
 
 ```text
 201 h 44 min
+```
+
+Per la Sessione S030 il tempo complessivo è composto da:
+
+```text
+Sviluppo        21 h 06 min
+Documentazione   6 h 13 min
+--------------------------
+Totale          27 h 19 min
+```
+
+La fase sviluppo S030 è conclusa.
+
+La fase Manuali S030 è iniziata il:
+
+> **23/09/2026 alle 22:48**
+
+Gli intervalli documentali consolidati sono:
+
+```text
+23/09/2026   22:48 → 23:14    0 h 26 min
+24/09/2026   09:02 → 12:54    3 h 52 min
+27/09/2026   21:00 → 22:32    1 h 32 min
+28/09/2026   11:22 → 11:45    0 h 23 min
+-----------------------------------------
+Totale                         6 h 13 min
+```
+
+La fase Manuali S030 è stata chiusa il:
+
+> **28/09/2026 alle 11:45**
+
+Il totale progressivo definitivo del progetto alla chiusura della S030 è:
+
+```text
+229 h 03 min
 ```
 
 ---
@@ -10504,46 +10541,110 @@ Lo scopo sarà garantire che nessun documento presenti come contratto corrente i
 
 # Timing della documentazione S030
 
-La fase Manuali S030 è iniziata il:
+La fase Manuali S030 è iniziata ufficialmente il:
 
 > **23/09/2026 alle 22:48**
 
-È stata sospesa il:
+ed è stata chiusa definitivamente il:
 
-> **23/09/2026 alle 23:14**
+> **28/09/2026 alle 11:45**
 
-Tempo netto del primo intervallo:
+Il lavoro documentale si è svolto attraverso quattro intervalli netti.
 
-```text
-22:48 → 23:14 = 26 min
-```
+### 23/09/2026
 
-La fase documentale è ripresa il:
+Avvio:
 
-> **24/09/2026 alle 09:02**
+> **22:48**
 
-Il periodo compreso tra le 23:14 del 23/09 e le 09:02 del 24/09 non viene conteggiato.
+Sospensione:
 
-Al momento della ripresa risultano quindi:
+> **23:14**
 
-```text
-Documentazione S030:
-26 min
-```
-
-Dalle **09:02 del 24/09/2026** è in corso un nuovo intervallo di lavoro documentale, che verrà conteggiato soltanto alla successiva sospensione o chiusura esplicitamente dichiarata.
-
-La fase Manuali S030 è:
+Tempo netto:
 
 ```text
-IN CORSO
+22:48 → 23:14 = 0 h 26 min
 ```
 
-Il tempo documentale definitivo verrà consolidato soltanto alla chiusura esplicita della fase Manuali S030.
+### 24/09/2026
 
-## Progressivi provvisori durante Manuali S030
+Ripresa:
 
-Alla chiusura dello sviluppo S030 e prima dell'aggiunta del tempo documentale S030:
+> **09:02**
+
+Sospensione:
+
+> **12:54**
+
+Tempo netto:
+
+```text
+09:02 → 12:54 = 3 h 52 min
+```
+
+### 27/09/2026
+
+Ripresa:
+
+> **21:00**
+
+Sospensione:
+
+> **22:32**
+
+Tempo netto:
+
+```text
+21:00 → 22:32 = 1 h 32 min
+```
+
+### 28/09/2026
+
+Ripresa:
+
+> **11:22**
+
+Chiusura documentale:
+
+> **11:45**
+
+Tempo netto:
+
+```text
+11:22 → 11:45 = 0 h 23 min
+```
+
+Gli intervalli intercorsi tra una sospensione e la successiva ripresa non vengono conteggiati.
+
+Il riepilogo definitivo della fase Manuali S030 è:
+
+```text
+23/09/2026   22:48 → 23:14   0 h 26 min
+24/09/2026   09:02 → 12:54   3 h 52 min
+27/09/2026   21:00 → 22:32   1 h 32 min
+28/09/2026   11:22 → 11:45   0 h 23 min
+---------------------------------------
+Totale                         6 h 13 min
+```
+
+La fase Manuali S030 è quindi:
+
+```text
+CONCLUSA
+```
+
+Tempo documentale definitivo S030:
+
+```text
+6 h 13 min
+```
+
+---
+
+## Progressivi definitivi S030
+
+Alla chiusura dello sviluppo S030 i progressivi precedenti all'aggiunta del tempo documentale della sessione erano:
 
 | Indicatore | Totale |
 |------------|-------:|
@@ -10551,16 +10652,60 @@ Alla chiusura dello sviluppo S030 e prima dell'aggiunta del tempo documentale S0
 | Documentazione complessiva | 54 h 11 min |
 | Totale progetto | 222 h 50 min |
 
-Con i primi 26 minuti di documentazione S030 già consolidati al momento della ripresa delle 09:02:
+La documentazione della Sessione S030 aggiunge:
 
-| Indicatore | Progressivo provvisorio |
-|------------|------------------------:|
-| Sviluppo complessivo | 168 h 39 min |
-| Documentazione complessiva | 54 h 37 min |
-| Totale progetto | 223 h 16 min |
+```text
+6 h 13 min
+```
 
-Questi ultimi valori rappresentano il progressivo **al momento della ripresa delle 09:02 del 24/09/2026** e sono **provvisori**.
+Il tempo complessivo della Sessione S030 risulta pertanto:
 
-Non comprendono ancora l'intervallo documentale iniziato alle 09:02 e tuttora in corso.
+| Attività | Durata |
+|----------|-------:|
+| Sviluppo S030 | 21 h 06 min |
+| Documentazione S030 | 6 h 13 min |
+| **Totale S030** | **27 h 19 min** |
 
-I progressivi definitivi saranno aggiornati alla chiusura esplicita della fase Manuali S030.
+I progressivi definitivi del progetto alla chiusura completa della Sessione S030 sono:
+
+| Indicatore | Totale definitivo |
+|------------|------------------:|
+| Sviluppo complessivo | **168 h 39 min** |
+| Documentazione complessiva | **60 h 24 min** |
+| **Totale progetto** | **229 h 03 min** |
+
+Verifica aritmetica:
+
+```text
+147 h 33 min   sviluppo consolidato alla chiusura S029
++21 h 06 min   sviluppo S030
+--------------------------------
+168 h 39 min   sviluppo complessivo
+
+54 h 11 min    documentazione consolidata alla chiusura S029
++6 h 13 min    documentazione S030
+--------------------------------
+60 h 24 min    documentazione complessiva
+
+168 h 39 min   sviluppo complessivo
++60 h 24 min   documentazione complessiva
+--------------------------------
+229 h 03 min   totale progetto
+```
+
+La Sessione S030 è definitivamente conclusa sia sotto il profilo tecnico sia sotto il profilo documentale.
+
+Stato finale:
+
+```text
+S030 sviluppo        CONCLUSO
+S030 documentazione  CONCLUSA
+S030 totale          27 h 19 min
+
+Progetto:
+Sviluppo complessivo        168 h 39 min
+Documentazione complessiva   60 h 24 min
+Totale complessivo          229 h 03 min
+```
+
+La chiusura documentale ufficiale della S030 è registrata al:
