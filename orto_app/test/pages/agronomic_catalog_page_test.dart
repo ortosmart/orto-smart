@@ -513,4 +513,124 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+  testWidgets('shows crops returned by the global catalog', (tester) async {
+    var cropLoads = 0;
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final cropRepository = CropRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      cropLoads += 1;
+      expect(activeOnly, isTrue);
+
+      return [
+        {
+          'crop_id': '33333333-3333-4333-8333-333333333333',
+          'canonical_name': 'Pomodoro',
+          'description': 'Coltura di prova',
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-09-29T08:00:00+00:00',
+          'updated_at': '2026-09-29T08:00:00+00:00',
+          'taxon_id': '22222222-2222-4222-8222-222222222223',
+          'taxon_rank': 'SPECIES',
+          'taxon_scientific_name': 'Solanum lycopersicum',
+          'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+          'family_scientific_name': 'Solanaceae',
+        },
+      ];
+    });
+
+    await tester.pumpWidget(
+      _testApp(repository: authorityRepository, cropRepository: cropRepository),
+    );
+    await tester.pumpAndSettle();
+
+    expect(cropLoads, 1);
+    expect(find.text('Colture'), findsOneWidget);
+    expect(find.text('Pomodoro'), findsOneWidget);
+    expect(find.text('Solanum lycopersicum'), findsOneWidget);
+    expect(find.text('Solanaceae'), findsOneWidget);
+    expect(
+      find.text('Nessuna coltura presente nel Catalogo Agronomico.'),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('shows crop when scientific name and family are missing', (
+    tester,
+  ) async {
+    var cropLoads = 0;
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final cropRepository = CropRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      cropLoads += 1;
+      expect(activeOnly, isTrue);
+
+      return [
+        {
+          'crop_id': '44444444-4444-4444-8444-444444444444',
+          'canonical_name': 'Coltura senza tassonomia',
+          'description': null,
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-09-29T08:00:00+00:00',
+          'updated_at': '2026-09-29T08:00:00+00:00',
+          'taxon_id': null,
+          'taxon_rank': null,
+          'taxon_scientific_name': null,
+          'family_taxon_id': null,
+          'family_scientific_name': null,
+        },
+      ];
+    });
+
+    await tester.pumpWidget(
+      _testApp(repository: authorityRepository, cropRepository: cropRepository),
+    );
+    await tester.pumpAndSettle();
+
+    expect(cropLoads, 1);
+    expect(find.text('Colture'), findsOneWidget);
+    expect(find.text('Coltura senza tassonomia'), findsOneWidget);
+    expect(
+      find.text('Nessuna coltura presente nel Catalogo Agronomico.'),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

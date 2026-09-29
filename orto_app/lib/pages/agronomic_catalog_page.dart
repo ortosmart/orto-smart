@@ -231,8 +231,25 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                     'Nessuna coltura presente nel Catalogo Agronomico.',
                   ),
                 );
+              } else {
+                for (final crop in cropsSnapshot.data!) {
+                  children.add(
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(crop.name),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (crop.scientificName != null)
+                            Text(crop.scientificName!),
+                          if (crop.botanicalFamilyName != null)
+                            Text(crop.botanicalFamilyName!),
+                        ],
+                      ),
+                    ),
+                  );
+                }
               }
-
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: children,
