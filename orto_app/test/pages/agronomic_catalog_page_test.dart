@@ -3,10 +3,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orto_app/data/repositories/catalog_authority_repository.dart';
+import 'package:orto_app/data/repositories/crop_repository.dart';
 import 'package:orto_app/pages/agronomic_catalog_page.dart';
 
-Widget _testApp({required CatalogAuthorityRepository repository}) {
-  return MaterialApp(home: AgronomicCatalogPage(repository: repository));
+Widget _testApp({
+  required CatalogAuthorityRepository repository,
+  CropRepository? cropRepository,
+}) {
+  final effectiveCropRepository =
+      cropRepository ??
+      CropRepository.withLoader(({bool activeOnly = true}) async => []);
+
+  return MaterialApp(
+    home: AgronomicCatalogPage(
+      repository: repository,
+      cropRepository: effectiveCropRepository,
+    ),
+  );
 }
 
 void main() {
@@ -454,6 +467,50 @@ void main() {
     );
 
     expect(find.text('Authority attiva'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('shows empty crop catalog when authority is initialized', (
+    tester,
+  ) async {
+    var cropLoads = 0;
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final cropRepository = CropRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      cropLoads += 1;
+      expect(activeOnly, isTrue);
+      return [];
+    });
+
+    await tester.pumpWidget(
+      _testApp(repository: authorityRepository, cropRepository: cropRepository),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Authority attiva'), findsOneWidget);
+    expect(cropLoads, 1);
+    expect(find.text('Colture'), findsOneWidget);
+    expect(
+      find.text('Nessuna coltura presente nel Catalogo Agronomico.'),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 }

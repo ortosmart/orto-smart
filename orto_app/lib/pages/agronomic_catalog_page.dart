@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../data/models/catalog_capabilities.dart';
 import '../data/repositories/catalog_authority_repository.dart';
+import '../data/repositories/crop_repository.dart';
+import '../data/models/crop.dart';
 
 class AgronomicCatalogPage extends StatefulWidget {
   final CatalogAuthorityRepository? repository;
+  final CropRepository? cropRepository;
 
-  const AgronomicCatalogPage({super.key, this.repository});
+  const AgronomicCatalogPage({super.key, this.repository, this.cropRepository});
 
   @override
   State<AgronomicCatalogPage> createState() => _AgronomicCatalogPageState();
@@ -14,7 +17,10 @@ class AgronomicCatalogPage extends StatefulWidget {
 
 class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
   late CatalogAuthorityRepository _repository;
+  CropRepository? _cropRepository;
   late Future<CatalogCapabilities> _capabilitiesFuture;
+  Future<List<Crop>>? _cropsFuture;
+
   bool _authorityAlreadyClaimed = false;
   bool _authorityInitializationForbidden = false;
   bool _authorityInitializationError = false;
@@ -177,31 +183,61 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
               ],
             );
           }
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              const Text(
-                'Authority attiva',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              _CapabilityTile(
-                label: 'Gestione identità',
-                enabled: capabilities.canManageIdentity,
-              ),
-              _CapabilityTile(
-                label: 'Acquisizione dati',
-                enabled: capabilities.canIngest,
-              ),
-              _CapabilityTile(
-                label: 'Revisione',
-                enabled: capabilities.canReview,
-              ),
-              _CapabilityTile(
-                label: 'Pubblicazione',
-                enabled: capabilities.canPublish,
-              ),
-            ],
+          _cropRepository ??= widget.cropRepository ?? CropRepository();
+          _cropsFuture ??= _cropRepository!.getCrops();
+
+          return FutureBuilder<List<Crop>>(
+            future: _cropsFuture,
+            builder: (context, cropsSnapshot) {
+              final children = <Widget>[
+                const Text(
+                  'Authority attiva',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                _CapabilityTile(
+                  label: 'Gestione identità',
+                  enabled: capabilities.canManageIdentity,
+                ),
+                _CapabilityTile(
+                  label: 'Acquisizione dati',
+                  enabled: capabilities.canIngest,
+                ),
+                _CapabilityTile(
+                  label: 'Revisione',
+                  enabled: capabilities.canReview,
+                ),
+                _CapabilityTile(
+                  label: 'Pubblicazione',
+                  enabled: capabilities.canPublish,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Colture',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+              ];
+
+              if (cropsSnapshot.connectionState != ConnectionState.done) {
+                children.add(const Center(child: CircularProgressIndicator()));
+              } else if (cropsSnapshot.hasError) {
+                children.add(
+                  const Text('Errore durante il caricamento delle colture.'),
+                );
+              } else if (cropsSnapshot.data!.isEmpty) {
+                children.add(
+                  const Text(
+                    'Nessuna coltura presente nel Catalogo Agronomico.',
+                  ),
+                );
+              }
+
+              return ListView(
+                padding: const EdgeInsets.all(16),
+                children: children,
+              );
+            },
           );
         },
       ),

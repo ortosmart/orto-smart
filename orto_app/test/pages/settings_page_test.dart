@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orto_app/data/repositories/catalog_authority_repository.dart';
+import 'package:orto_app/data/repositories/crop_repository.dart';
 import 'package:orto_app/pages/agronomic_catalog_page.dart';
 import 'package:orto_app/pages/settings_page.dart';
 
@@ -22,11 +23,16 @@ void main() {
         'row_version': 1,
       };
     });
-
+    final cropRepository = CropRepository.withLoader(
+      ({bool activeOnly = true}) async => [],
+    );
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: SettingsPage(catalogAuthorityRepository: repository),
+          body: SettingsPage(
+            catalogAuthorityRepository: repository,
+            cropRepository: cropRepository,
+          ),
         ),
       ),
     );

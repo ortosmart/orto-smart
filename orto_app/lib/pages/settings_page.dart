@@ -4,11 +4,17 @@ import 'agronomic_catalog_page.dart';
 import 'documentation_page.dart';
 import 'cultivars_page.dart';
 import '../data/repositories/catalog_authority_repository.dart';
+import '../data/repositories/crop_repository.dart';
 
 class SettingsPage extends StatelessWidget {
   final CatalogAuthorityRepository? catalogAuthorityRepository;
+  final CropRepository? cropRepository;
 
-  const SettingsPage({super.key, this.catalogAuthorityRepository});
+  const SettingsPage({
+    super.key,
+    this.catalogAuthorityRepository,
+    this.cropRepository,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +38,7 @@ class SettingsPage extends StatelessWidget {
                 MaterialPageRoute<void>(
                   builder: (_) => AgronomicCatalogPage(
                     repository: catalogAuthorityRepository,
+                    cropRepository: cropRepository,
                   ),
                 ),
               );
