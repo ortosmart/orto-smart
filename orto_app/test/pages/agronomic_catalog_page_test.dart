@@ -840,7 +840,7 @@ void main() {
           'crop_id': cropId,
           'crop_canonical_name': 'Pomodoro',
           'canonical_name': 'San Marzano',
-          'verification_status': 'VERIFIED',
+          'verification_status': 'REVIEW',
           'description': 'Cultivar di prova',
           'is_active': true,
           'row_version': 1,
@@ -866,7 +866,187 @@ void main() {
 
     expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
     expect(find.text('San Marzano'), findsOneWidget);
+    expect(find.text('REVIEW · Cultivar di prova'), findsOneWidget);
     expect(find.text('Nessuna cultivar presente.'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('shows error when loading cultivars fails', (tester) async {
+    const cropId = '33333333-3333-4333-8333-333333333333';
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final cropRepository = CropRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      expect(activeOnly, isTrue);
+
+      return [
+        {
+          'crop_id': cropId,
+          'canonical_name': 'Pomodoro',
+          'description': 'Coltura di prova',
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-09-29T08:00:00+00:00',
+          'updated_at': '2026-09-29T08:00:00+00:00',
+          'taxon_id': '22222222-2222-4222-8222-222222222223',
+          'taxon_rank': 'SPECIES',
+          'taxon_scientific_name': 'Solanum lycopersicum',
+          'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+          'family_scientific_name': 'Solanaceae',
+        },
+      ];
+    });
+
+    final cultivarRepository = CropCultivarRepository.withLoader(({
+      String? cropId,
+      bool activeOnly = true,
+    }) async {
+      expect(cropId, '33333333-3333-4333-8333-333333333333');
+      expect(activeOnly, isTrue);
+
+      throw Exception('Errore caricamento cultivar');
+    });
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        cropRepository: cropRepository,
+        cultivarRepository: cultivarRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pomodoro'), findsOneWidget);
+
+    await tester.tap(find.text('Pomodoro'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Errore durante il caricamento delle cultivar.'),
+      findsOneWidget,
+    );
+    expect(find.text('Riprova'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('retries cultivar loading after an error', (tester) async {
+    const cropId = '33333333-3333-4333-8333-333333333333';
+    var cultivarLoads = 0;
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final cropRepository = CropRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      expect(activeOnly, isTrue);
+
+      return [
+        {
+          'crop_id': cropId,
+          'canonical_name': 'Pomodoro',
+          'description': 'Coltura di prova',
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-09-29T08:00:00+00:00',
+          'updated_at': '2026-09-29T08:00:00+00:00',
+          'taxon_id': '22222222-2222-4222-8222-222222222223',
+          'taxon_rank': 'SPECIES',
+          'taxon_scientific_name': 'Solanum lycopersicum',
+          'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+          'family_scientific_name': 'Solanaceae',
+        },
+      ];
+    });
+
+    final cultivarRepository = CropCultivarRepository.withLoader(({
+      String? cropId,
+      bool activeOnly = true,
+    }) async {
+      cultivarLoads += 1;
+
+      expect(cropId, '33333333-3333-4333-8333-333333333333');
+      expect(activeOnly, isTrue);
+
+      if (cultivarLoads == 1) {
+        throw Exception('Errore caricamento cultivar');
+      }
+
+      return [
+        {
+          'cultivar_id': '44444444-4444-4444-8444-444444444444',
+          'crop_id': cropId,
+          'crop_canonical_name': 'Pomodoro',
+          'canonical_name': 'San Marzano',
+          'verification_status': 'VERIFIED',
+          'description': 'Cultivar di prova',
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-09-29T08:00:00+00:00',
+          'updated_at': '2026-09-29T08:00:00+00:00',
+        },
+      ];
+    });
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        cropRepository: cropRepository,
+        cultivarRepository: cultivarRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Pomodoro'));
+    await tester.pumpAndSettle();
+
+    expect(cultivarLoads, 1);
+    expect(
+      find.text('Errore durante il caricamento delle cultivar.'),
+      findsOneWidget,
+    );
+    expect(find.text('Riprova'), findsOneWidget);
+
+    await tester.tap(find.text('Riprova'));
+    await tester.pumpAndSettle();
+
+    expect(cultivarLoads, 2);
+    expect(
+      find.text('Errore durante il caricamento delle cultivar.'),
+      findsNothing,
+    );
+    expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
+    expect(find.text('San Marzano'), findsOneWidget);
+    expect(find.text('Cultivar di prova'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

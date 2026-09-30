@@ -108,39 +108,89 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
   Future<void> _openCropCultivars(Crop crop) async {
     final repository = widget.cultivarRepository ?? CropCultivarRepository();
 
-    final cultivars = await repository.getCultivarsByCrop(crop.id);
+    try {
+      final cultivars = await repository.getCultivarsByCrop(crop.id);
 
-    if (!mounted) {
-      return;
+      if (!mounted) {
+        return;
+      }
+
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: Text('Cultivar di ${crop.name}'),
+            content: cultivars.isEmpty
+                ? const Text('Nessuna cultivar presente.')
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final CropCultivar cultivar in cultivars)
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(cultivar.name),
+                          subtitle: _buildCultivarSubtitle(cultivar),
+                        ),
+                    ],
+                  ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Chiudi'),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Errore'),
+            content: const Text(
+              'Errore durante il caricamento delle cultivar.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  _openCropCultivars(crop);
+                },
+                child: const Text('Riprova'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Chiudi'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Widget? _buildCultivarSubtitle(CropCultivar cultivar) {
+    final details = <String>[];
+
+    if (cultivar.verificationStatus != 'VERIFIED') {
+      details.add(cultivar.verificationStatus);
     }
 
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text('Cultivar di ${crop.name}'),
-          content: cultivars.isEmpty
-              ? const Text('Nessuna cultivar presente.')
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final CropCultivar cultivar in cultivars)
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(cultivar.name),
-                      ),
-                  ],
-                ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Chiudi'),
-            ),
-          ],
-        );
-      },
-    );
+    if (cultivar.description != null) {
+      details.add(cultivar.description!);
+    }
+
+    if (details.isEmpty) {
+      return null;
+    }
+
+    return Text(details.join(' · '));
   }
 
   @override
