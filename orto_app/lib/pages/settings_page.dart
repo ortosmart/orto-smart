@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'agronomic_catalog_page.dart';
 import 'documentation_page.dart';
-import 'cultivars_page.dart';
 import '../data/repositories/catalog_authority_repository.dart';
 import '../data/repositories/crop_repository.dart';
 
@@ -41,21 +40,6 @@ class SettingsPage extends StatelessWidget {
                     cropRepository: cropRepository,
                   ),
                 ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.eco),
-            title: const Text('Varietà'),
-            subtitle: const Text('Gestisci le varietà delle colture'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(builder: (_) => const CultivarsPage()),
               );
             },
           ),
