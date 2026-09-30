@@ -3,13 +3,21 @@ import 'package:flutter/material.dart';
 import '../data/models/catalog_capabilities.dart';
 import '../data/repositories/catalog_authority_repository.dart';
 import '../data/repositories/crop_repository.dart';
+import '../data/repositories/crop_cultivar_repository.dart';
 import '../data/models/crop.dart';
+import '../data/models/crop_cultivar.dart';
 
 class AgronomicCatalogPage extends StatefulWidget {
   final CatalogAuthorityRepository? repository;
   final CropRepository? cropRepository;
+  final CropCultivarRepository? cultivarRepository;
 
-  const AgronomicCatalogPage({super.key, this.repository, this.cropRepository});
+  const AgronomicCatalogPage({
+    super.key,
+    this.repository,
+    this.cropRepository,
+    this.cultivarRepository,
+  });
 
   @override
   State<AgronomicCatalogPage> createState() => _AgronomicCatalogPageState();
@@ -95,6 +103,44 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
         _authorityInitializationForbidden = true;
       });
     }
+  }
+
+  Future<void> _openCropCultivars(Crop crop) async {
+    final repository = widget.cultivarRepository ?? CropCultivarRepository();
+
+    final cultivars = await repository.getCultivarsByCrop(crop.id);
+
+    if (!mounted) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Cultivar di ${crop.name}'),
+          content: cultivars.isEmpty
+              ? const Text('Nessuna cultivar presente.')
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final CropCultivar cultivar in cultivars)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(cultivar.name),
+                      ),
+                  ],
+                ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Chiudi'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -236,6 +282,7 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                   children.add(
                     ListTile(
                       contentPadding: EdgeInsets.zero,
+                      onTap: () => _openCropCultivars(crop),
                       title: Text(crop.name),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

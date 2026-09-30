@@ -4,20 +4,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orto_app/data/repositories/catalog_authority_repository.dart';
 import 'package:orto_app/data/repositories/crop_repository.dart';
+import 'package:orto_app/data/repositories/crop_cultivar_repository.dart';
 import 'package:orto_app/pages/agronomic_catalog_page.dart';
 
 Widget _testApp({
   required CatalogAuthorityRepository repository,
   CropRepository? cropRepository,
+  CropCultivarRepository? cultivarRepository,
 }) {
   final effectiveCropRepository =
       cropRepository ??
       CropRepository.withLoader(({bool activeOnly = true}) async => []);
 
+  final effectiveCultivarRepository =
+      cultivarRepository ??
+      CropCultivarRepository.withLoader(
+        ({String? cropId, bool activeOnly = true}) async => [],
+      );
+
   return MaterialApp(
     home: AgronomicCatalogPage(
       repository: repository,
       cropRepository: effectiveCropRepository,
+      cultivarRepository: effectiveCultivarRepository,
     ),
   );
 }
@@ -631,6 +640,233 @@ void main() {
       find.text('Nessuna coltura presente nel Catalogo Agronomico.'),
       findsNothing,
     );
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('loads cultivars for the selected crop', (tester) async {
+    const cropId = '33333333-3333-4333-8333-333333333333';
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final cropRepository = CropRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      return [
+        {
+          'crop_id': cropId,
+          'canonical_name': 'Pomodoro',
+          'description': 'Coltura di prova',
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-09-29T08:00:00+00:00',
+          'updated_at': '2026-09-29T08:00:00+00:00',
+          'taxon_id': '22222222-2222-4222-8222-222222222223',
+          'taxon_rank': 'SPECIES',
+          'taxon_scientific_name': 'Solanum lycopersicum',
+          'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+          'family_scientific_name': 'Solanaceae',
+        },
+      ];
+    });
+
+    var cultivarLoads = 0;
+    String? requestedCropId;
+
+    final cultivarRepository = CropCultivarRepository.withLoader(({
+      String? cropId,
+      bool activeOnly = true,
+    }) async {
+      cultivarLoads += 1;
+      requestedCropId = cropId;
+
+      expect(activeOnly, isTrue);
+
+      return [];
+    });
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        cropRepository: cropRepository,
+        cultivarRepository: cultivarRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pomodoro'), findsOneWidget);
+    expect(cultivarLoads, 0);
+
+    await tester.tap(find.text('Pomodoro'));
+    await tester.pumpAndSettle();
+
+    expect(cultivarLoads, 1);
+    expect(requestedCropId, cropId);
+  });
+  testWidgets('shows empty cultivars state for the selected crop', (
+    tester,
+  ) async {
+    const cropId = '33333333-3333-4333-8333-333333333333';
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final cropRepository = CropRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      return [
+        {
+          'crop_id': cropId,
+          'canonical_name': 'Pomodoro',
+          'description': 'Coltura di prova',
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-09-29T08:00:00+00:00',
+          'updated_at': '2026-09-29T08:00:00+00:00',
+          'taxon_id': '22222222-2222-4222-8222-222222222223',
+          'taxon_rank': 'SPECIES',
+          'taxon_scientific_name': 'Solanum lycopersicum',
+          'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+          'family_scientific_name': 'Solanaceae',
+        },
+      ];
+    });
+
+    final cultivarRepository = CropCultivarRepository.withLoader(({
+      String? cropId,
+      bool activeOnly = true,
+    }) async {
+      expect(cropId, '33333333-3333-4333-8333-333333333333');
+      expect(activeOnly, isTrue);
+      return [];
+    });
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        cropRepository: cropRepository,
+        cultivarRepository: cultivarRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Pomodoro'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
+    expect(find.text('Nessuna cultivar presente.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('shows cultivars for the selected crop', (tester) async {
+    const cropId = '33333333-3333-4333-8333-333333333333';
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final cropRepository = CropRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      expect(activeOnly, isTrue);
+
+      return [
+        {
+          'crop_id': cropId,
+          'canonical_name': 'Pomodoro',
+          'description': 'Coltura di prova',
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-09-29T08:00:00+00:00',
+          'updated_at': '2026-09-29T08:00:00+00:00',
+          'taxon_id': '22222222-2222-4222-8222-222222222223',
+          'taxon_rank': 'SPECIES',
+          'taxon_scientific_name': 'Solanum lycopersicum',
+          'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+          'family_scientific_name': 'Solanaceae',
+        },
+      ];
+    });
+
+    final cultivarRepository = CropCultivarRepository.withLoader(({
+      String? cropId,
+      bool activeOnly = true,
+    }) async {
+      expect(cropId, '33333333-3333-4333-8333-333333333333');
+      expect(activeOnly, isTrue);
+
+      return [
+        {
+          'cultivar_id': '44444444-4444-4444-8444-444444444444',
+          'crop_id': cropId,
+          'crop_canonical_name': 'Pomodoro',
+          'canonical_name': 'San Marzano',
+          'verification_status': 'VERIFIED',
+          'description': 'Cultivar di prova',
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-09-29T08:00:00+00:00',
+          'updated_at': '2026-09-29T08:00:00+00:00',
+        },
+      ];
+    });
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        cropRepository: cropRepository,
+        cultivarRepository: cultivarRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pomodoro'), findsOneWidget);
+
+    await tester.tap(find.text('Pomodoro'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
+    expect(find.text('San Marzano'), findsOneWidget);
+    expect(find.text('Nessuna cultivar presente.'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }
