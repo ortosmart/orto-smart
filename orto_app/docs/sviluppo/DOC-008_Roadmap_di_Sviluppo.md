@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 2.3
+**Versione:** 2.4
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 27/09/2026
+**Ultimo aggiornamento:** 01/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 2.3 |
+| Versione | 2.4 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 27/09/2026 |
+| Ultimo aggiornamento | 01/10/2026 |
 
 ---
 
@@ -56,6 +56,7 @@
 | 2.1 | 17/09/2026 | Aggiornamento dopo la Sessione S028: implementazione del modello e Write Path autoritativo di `plantings`, lifecycle server-side, geometria e overlap spaziale/temporale, protezione delle geometrie delle aiuole mediante `blocked_by_plantings`, integrazione Flutter e verifica con 997/997 test; definizione preliminare della S029 come lifecycle e varietà delle coltivazioni, non ancora iniziata |
 | 2.2 | 18/09/2026 | Aggiornamento dopo la Sessione S029: completamento della UI del lifecycle di `plantings`, gestione esplicita di `end_date` per gli stati terminali, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`; nessuna modifica al contratto persistente S028; consolidamento preparatorio del futuro Catalogo Agronomico V1 e della possibile S030, non ancora iniziata |
 | 2.3 | 27/09/2026 | Aggiornamento dopo la Sessione S030: completamento dell'architettura e del cutover del Catalogo Agronomico V1 globale, introduzione di identità botaniche canoniche, Catalog Authority, fonti e acquisizioni, workflow editoriale, Knowledge agronomica canonica, pubblicazione e Resolver; migrazione finale a `botanical_taxa` → `crops` → `crop_cultivars`, integrazione Flutter, deploy remoto e verifica finale con 953 test superati; riallineamento delle attività future alla fase successiva alla S030 |
+| 2.4 | 01/10/2026 | Aggiornamento dopo la Sessione S031: integrazione operativa Flutter del Catalogo Agronomico nelle Impostazioni, gestione dello stato e dell'inizializzazione controllata della Catalog Authority, esposizione delle capability autoritative, consultazione delle colture globali, navigazione gerarchica `Coltura → Cultivar`, caricamento on demand delle cultivar, gestione degli stati di caricamento/assenza dati/errore/retry ed eliminazione del precedente percorso autonomo `Impostazioni → Varietà`; verifica finale con 971 test superati e definizione della ricognizione tecnica delle funzioni, RPC e capability del Catalogo come primo passo della S032 |
 
 ---
 
@@ -122,13 +123,62 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | Pubblicazione e versionamento della Knowledge | ✅ Completato |
 | Resolver del Catalogo Agronomico | ✅ Completato |
 | Cutover canonico `botanical_taxa` → `crops` → `crop_cultivars` | ✅ Completato |
-| UI editoriale/amministrativa completa del Catalogo Agronomico | 📋 Pianificato |
+| Integrazione Flutter del Catalogo nelle Impostazioni | ✅ Completato |
+| Consultazione delle colture globali | ✅ Completato |
+| Navigazione gerarchica `Coltura → Cultivar` | ✅ Completato |
+| Caricamento on demand delle cultivar | ✅ Completato |
+| Gestione UI di loading, empty state, errore e retry del Catalogo | ✅ Completato |
+| UI editoriale/amministrativa completa del Catalogo Agronomico | 🚧 In sviluppo |
+| Write Path operativo per la gestione delle identità del Catalogo | 📋 Pianificato |
 | Workflow operativo di aggiornamento/importazione delle fonti | 📋 Pianificato |
 | Popolamento verificato del Catalogo Agronomico | 📋 Pianificato |
 
-Il completamento del Catalogo Agronomico V1 nella S030 riguarda l'architettura, il modello persistente, i Write Path autoritativi, il workflow editoriale, la pubblicazione, il Resolver, il cutover finale e la relativa integrazione tecnica.
+La S030 ha completato l'architettura del **Catalogo Agronomico V1 globale**, il modello persistente, i Write Path autoritativi già previsti dal relativo workflow, la Catalog Authority, il workflow editoriale, la Knowledge canonica, la pubblicazione, il Resolver e il cutover finale al modello:
 
-Il Catalogo non è ancora popolato con una baseline agronomica destinata all'uso reale dell'orto. I dati esterni dovranno essere acquisiti come dati candidati, revisionati e approvati prima dell'utilizzo operativo.
+```text
+botanical_taxa
+→ crops
+→ crop_cultivars
+```
+
+La S031 ha completato il primo incremento operativo Flutter successivo al cutover, introducendo il percorso:
+
+```text
+Impostazioni
+→ Catalogo Agronomico
+→ Colture
+→ Cultivar
+```
+
+L'integrazione S031 comprende:
+
+- lettura dello stato della Catalog Authority;
+- inizializzazione controllata dell'authority quando consentita dal backend;
+- visualizzazione delle capability autoritative;
+- consultazione delle colture globali;
+- caricamento delle cultivar soltanto dopo la selezione della coltura;
+- gestione degli stati di caricamento, assenza dati, errore e retry;
+- eliminazione del precedente percorso autonomo `Impostazioni → Varietà`.
+
+Il backend rimane autoritativo per identità, capability e autorizzazioni.
+
+La S031 non completa ancora la UI editoriale e amministrativa del Catalogo. Prima di scegliere il successivo Write Path operativo dovrà essere eseguita nella S032 una ricognizione delle funzioni, RPC e capability già disponibili per la gestione delle identità.
+
+La pianificazione non predetermina se il primo incremento S032 riguarderà la creazione di una coltura oppure di una cultivar: la scelta dovrà derivare dalla verifica della baseline tecnica effettiva.
+
+Il Catalogo non è ancora popolato con una baseline agronomica destinata all'uso reale dell'orto.
+
+Rimane valido il principio secondo cui:
+
+```text
+fonti esterne
+→ dati candidati
+→ revisione
+→ approvazione/pubblicazione
+→ Catalogo Agronomico
+```
+
+I dati esterni non possono sovrascrivere automaticamente il Catalogo approvato e non devono essere introdotti dati dimostrativi o provvisori nel database operativo.
 
 Il completamento del Catalogo Agronomico V1 non coincide inoltre con il completamento dell'intero Database V1, la cui implementazione rimane incrementale.
 
@@ -1078,7 +1128,24 @@ CropCultivar
 cultivar_id
 ```
 
-La parola italiana **“Varietà”** può continuare a essere utilizzata nell'interfaccia utente quando è la formulazione più naturale per l'utilizzatore.
+La S031 ha completato un ulteriore consolidamento lato Flutter eliminando il precedente percorso autonomo:
+
+```text
+Impostazioni → Varietà
+```
+
+e adottando la navigazione gerarchica coerente con il modello canonico:
+
+```text
+Impostazioni
+→ Catalogo Agronomico
+→ Colture
+→ Cultivar
+```
+
+La consultazione delle cultivar avviene quindi nel contesto della coltura selezionata e il relativo caricamento viene eseguito on demand.
+
+La parola italiana **“Varietà”** può continuare a essere utilizzata nell'interfaccia utente quando è la formulazione più naturale per l'utilizzatore, ma non deve determinare la reintroduzione nel modello applicativo o persistente delle precedenti identità `CropVariety` o `variety_id`.
 
 Rimane da completare il riallineamento progressivo dei componenti agronomici e dei consumer applicativi storici che precedono il nuovo contratto S030.
 
@@ -1095,18 +1162,20 @@ Le nuove evoluzioni non devono introdurre ulteriori dipendenze dal modello legac
 
 ## Altri blocchi futuri
 
-Restano pianificati o aperti dopo la S030:
+Dopo il completamento della S031 restano pianificati o aperti:
 
 - backend canonico per le consociazioni tra colture;
 
-- UI editoriale e amministrativa completa del Catalogo Agronomico;
+- completamento della UI editoriale e amministrativa del Catalogo Agronomico;
 
-- azione UI esplicita e protetta per l'inizializzazione della Catalog Authority mediante `claim_initial_catalog_authority()`;
+- ricognizione tecnica iniziale S032 delle funzioni, RPC e capability disponibili per la gestione delle identità del Catalogo, prima di scegliere il successivo Write Path operativo;
+
+- implementazione progressiva dei Write Path operativi nella UI del Catalogo, mantenendo il backend come autorità per autorizzazioni, capability, normalizzazione, unicità, tassonomia e tracciabilità;
 
 - workflow operativo di acquisizione/importazione delle fonti in:
   `Impostazioni → Catalogo Agronomico → Aggiornamento fonti`;
 
-- schermate del workflow editoriale;
+- completamento delle schermate necessarie al workflow editoriale e alla revisione dei dati candidati;
 
 - integrazione completa del Resolver del Catalogo nei flussi di pianificazione e inserimento delle coltivazioni;
 
@@ -1138,6 +1207,18 @@ Restano pianificati o aperti dopo la S030:
   - dashboard;
   - statistiche.
 
+La S031 ha invece completato e quindi rimosso dal perimetro delle attività future:
+
+- integrazione del Catalogo Agronomico nelle Impostazioni;
+- lettura dello stato della Catalog Authority;
+- inizializzazione controllata dell'authority attraverso il backend quando consentita;
+- esposizione delle capability autoritative;
+- consultazione delle colture globali;
+- navigazione gerarchica `Coltura → Cultivar`;
+- caricamento on demand delle cultivar;
+- gestione degli stati di caricamento, assenza dati, errore e retry;
+- eliminazione del precedente percorso autonomo `Impostazioni → Varietà`.
+
 L'hard delete dei `plantings` rimane escluso dal normale flusso applicativo. Potrà essere valutato esclusivamente come futura funzione amministrativa o tecnica protetta per la correzione di record inseriti per errore.
 
 ---
@@ -1168,43 +1249,77 @@ Il popolamento operativo deve quindi iniziare soltanto quando il Catalogo dispon
 
 ## Prossimo incremento
 
-La **Sessione S030 è completata nella fase di sviluppo**.
+La **Sessione S031 è completata nella fase di sviluppo**.
+
+La S031 ha consolidato l'integrazione operativa Flutter del Catalogo Agronomico globale introdotto nella S030.
 
 Sono stati completati:
 
-- architettura del Catalogo Agronomico V1 globale;
-- implementazione SQL/Supabase;
-- Write Path autoritativi;
-- workflow editoriale;
-- Knowledge agronomica canonica;
-- pubblicazione e Resolver;
-- cutover finale;
-- integrazione Flutter necessaria;
-- deploy remoto;
-- verifiche database;
-- analisi Flutter;
-- suite automatica finale con **953 test superati**;
-- smoke test applicativo conclusivo compatibile con lo stato privo di dati reali.
+- integrazione del Catalogo Agronomico nelle Impostazioni;
+- integrazione di `CatalogAuthorityRepository`;
+- lettura dello stato della Catalog Authority;
+- inizializzazione controllata dell'authority quando consentita dal backend;
+- esposizione delle capability autoritative;
+- consultazione delle colture globali;
+- integrazione delle cultivar;
+- navigazione gerarchica `Coltura → Cultivar`;
+- caricamento on demand delle cultivar dopo la selezione della coltura;
+- gestione degli stati di caricamento, assenza dati, errore e retry;
+- eliminazione del precedente percorso autonomo `Impostazioni → Varietà`;
+- mantenimento del backend come autorità per identità, capability e autorizzazioni;
+- analisi Flutter conclusiva senza errori;
+- suite automatica finale con **971 test superati**.
 
-Il commit tecnico conclusivo della S030 è:
+La S031 non ha introdotto nuove migration Supabase e non ha popolato il database con dati dimostrativi o provvisori.
 
-```text
-f9f5830796ecc16a14ef1b3fb4ce26bd081846b5
-```
-
-La migration conclusiva è:
+Il commit tecnico conclusivo dello sviluppo S031 è:
 
 ```text
-20260923154831_finalize_global_catalog_cutover.sql
+b436d663e46149202e081a3079eb162567fb0909
 ```
 
-Lo schema locale e quello remoto risultavano allineati alla migration conclusiva al termine della sessione di sviluppo.
+Al termine dello sviluppo S031:
 
-Il prossimo incremento tecnico **non viene assegnato automaticamente** dalla Roadmap.
+```text
+branch: main
+HEAD = origin/main
+working tree: clean
+test Flutter: 971 superati
+flutter analyze: OK
+nuove migration S031: nessuna
+```
 
-Prima dell'avvio di una nuova sessione di sviluppo dovranno essere definiti e approvati il relativo perimetro e il prossimo passo tecnico, scegliendo tra le attività FUTURE e APERTE documentate.
+La **Sessione S032** dovrà partire dalla baseline tecnica stabile lasciata dalla S031.
 
-Rimane prioritario preservare i principi consolidati:
+Il primo passo della S032 sarà una ricognizione tecnica delle funzioni, RPC e capability già disponibili per la gestione delle identità del Catalogo Agronomico.
+
+La ricognizione dovrà precedere la scelta del successivo Write Path operativo.
+
+Non viene quindi predeterminato dalla Roadmap se il primo incremento riguarderà:
+
+```text
+creazione di una coltura
+```
+
+oppure:
+
+```text
+creazione di una cultivar
+```
+
+La scelta dovrà essere effettuata soltanto dopo avere verificato il contratto backend realmente disponibile e dovrà preservare:
+
+- Catalog Authority;
+- capability `can_manage_identity`;
+- backend autoritativo;
+- normalizzazione delle identità;
+- vincoli di unicità;
+- tassonomia botanica;
+- tracciabilità;
+- gerarchia `Coltura → Cultivar`;
+- separazione tra dati candidati e dati approvati.
+
+Rimane inoltre valido il principio:
 
 ```text
 nessun dato demo o provvisorio
@@ -1214,18 +1329,22 @@ Catalogo verificato
 dati reali dell'orto
 ```
 
-e:
+e il workflow previsto per le fonti esterne:
 
 ```text
-fonte esterna
+Aggiornamento fonti
         ↓
-dato candidato
+acquisizione dati candidati
         ↓
 revisione
         ↓
-pubblicazione
+approvazione / pubblicazione
         ↓
-dato canonico utilizzabile
+Catalogo Agronomico
 ```
+
+Il popolamento con dati agronomici reali dovrà avvenire soltanto quando il relativo workflow sarà sufficientemente sicuro, verificato e tracciabile.
+
+La S032 dovrà inoltre prevedere test specifici per il nuovo incremento e una regressione completa Flutter prima della chiusura tecnica.
 
 Nessuna nuova sessione di sviluppo viene considerata iniziata fino alla sua apertura esplicita.

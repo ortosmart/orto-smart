@@ -769,7 +769,6 @@ No issues found!
 flutter test
 997/997 test superati
 ```
-
 Con la versione `0.1.20-alpha`, corrispondente alla Sessione S029, è stato completato il livello applicativo del lifecycle delle coltivazioni reali senza modificare il contratto persistente introdotto nella S028.
 
 La S029 ha completato:
@@ -804,7 +803,7 @@ No issues found! (ran in 12.8s)
 
 La Sessione S029 non ha introdotto nuove migration Supabase né modificato il contratto persistente S028.
 
-Con la versione `0.1.21-alpha`, corrispondente alla Sessione S030, è stata completata l'architettura del **Catalogo Agronomico V1 globale**.
+Con la versione `0.1.21-alpha`, corrispondente inizialmente alla Sessione S030, è stata completata l'architettura del **Catalogo Agronomico V1 globale**.
 
 La S030 supera il precedente modello Profile-owned delle S026–S027 e separa in modo esplicito:
 
@@ -831,6 +830,62 @@ Il Catalogo Agronomico corrente è progettato per essere:
 - contestualizzabile;
 - editorialmente controllato;
 - separato dai dati operativi del singolo orto.
+
+La Sessione S031 ha successivamente esteso la stessa versione corrente `0.1.21-alpha`, senza introdurre una nuova versione pubblica e senza modificare il contratto persistente definito nella S030.
+
+Sul lato Flutter è stato reso operativo il percorso:
+
+```text
+Impostazioni
+        ↓
+Catalogo Agronomico
+        ↓
+Colture
+        ↓
+Cultivar
+```
+
+La S031 ha completato:
+
+- integrazione di `CatalogAuthorityRepository` nella UI del Catalogo Agronomico;
+- lettura e visualizzazione delle capability della Catalog Authority;
+- distinzione tra Catalog Authority inizializzata e non inizializzata;
+- inizializzazione della Catalog Authority esclusivamente mediante azione esplicita dell'utente;
+- richiesta di conferma prima della claim iniziale;
+- assenza di claim automatica all'apertura della pagina;
+- consultazione delle colture globali mediante `CropRepository`;
+- navigazione gerarchica `Coltura → Cultivar`;
+- caricamento delle cultivar mediante `CropCultivarRepository`;
+- caricamento delle cultivar on demand dopo la selezione della coltura;
+- gestione degli stati di caricamento, assenza di dati ed errore;
+- possibilità di ripetere il caricamento dopo un errore;
+- rimozione del precedente percorso autonomo `Impostazioni → Varietà`.
+
+La S031 non ha introdotto nuove migration Supabase e non ha modificato il contratto persistente del Catalogo Agronomico.
+
+La baseline database rimane quindi quella consolidata nella S030, mentre la S031 ne completa il primo livello di consultazione operativa nel client Flutter.
+
+La verifica finale dello sviluppo S031 ha prodotto:
+
+```text
+flutter analyze
+No issues found!
+
+flutter test
+971 test passati
+```
+
+Il commit finale dello sviluppo S031 è:
+
+```text
+b436d663e46149202e081a3079eb162567fb0909
+```
+
+con branch `main`, `HEAD = origin/main` e working tree pulito al momento della chiusura dello sviluppo.
+
+Il database rimane intenzionalmente privo di dati demo, di prova o provvisori.
+
+Il prossimo incremento previsto è la Sessione S032, che dovrà iniziare con la ricognizione tecnica delle funzioni, RPC e capability disponibili per la gestione delle identità del Catalogo Agronomico, senza predeterminare il primo Write Path operativo da implementare.
 
 ## Identità botaniche globali
 
@@ -999,7 +1054,7 @@ Il precedente `variety_id` è stato rimosso.
 
 ## Flutter
 
-Il client Flutter è stato riallineato al nuovo contratto globale.
+Il client Flutter è stato riallineato al nuovo contratto globale nella Sessione S030 e la relativa integrazione operativa del Catalogo Agronomico è stata completata nella Sessione S031.
 
 La terminologia tecnica corrente utilizza:
 
@@ -1018,7 +1073,7 @@ variety_id
 crop_variety
 ```
 
-La UI italiana può continuare a utilizzare il termine **Varietà** come etichetta destinata all'utente.
+La UI italiana può continuare a utilizzare il termine **Varietà** come etichetta destinata all'utente, mentre il contratto tecnico corrente utilizza **Cultivar**.
 
 Sono stati introdotti:
 
@@ -1047,6 +1102,77 @@ crop_cultivar_catalog_read
 
 La claim dell'autorità non viene eseguita automaticamente.
 
+Con la Sessione S031 il Catalogo Agronomico è stato integrato operativamente nel percorso:
+
+```text
+Impostazioni
+    ↓
+Catalogo Agronomico
+    ↓
+Colture
+    ↓
+Cultivar
+```
+
+La pagina del Catalogo legge e visualizza le capability dell'utente corrente relative a:
+
+- gestione delle identità;
+- acquisizione dati;
+- revisione;
+- pubblicazione.
+
+Quando la Catalog Authority globale non risulta ancora inizializzata, la UI espone un'azione esplicita **Inizializza Catalogo**.
+
+L'inizializzazione:
+
+- non viene avviata automaticamente all'apertura della pagina;
+- richiede un'azione esplicita dell'utente;
+- richiede una successiva conferma;
+- delega al backend la verifica dell'idoneità e dell'autorizzazione;
+- aggiorna le capability dopo un'inizializzazione conclusa correttamente;
+- gestisce esplicitamente gli stati di Authority già assegnata, inizializzazione non autorizzata ed errore.
+
+Con Authority attiva, la UI carica le colture globali mediante `CropRepository`.
+
+Per ogni coltura vengono visualizzate, quando disponibili:
+
+- denominazione;
+- nome scientifico;
+- famiglia botanica.
+
+La selezione di una coltura carica le relative cultivar mediante:
+
+```text
+CropCultivarRepository.getCultivarsByCrop(...)
+```
+
+Il caricamento delle cultivar avviene **on demand**, soltanto dopo la selezione della coltura.
+
+La UI gestisce esplicitamente:
+
+- assenza di cultivar;
+- errore durante il caricamento;
+- possibilità di riprovare il caricamento;
+- chiusura della consultazione delle cultivar.
+
+La Sessione S031 ha inoltre rimosso il precedente percorso autonomo:
+
+```text
+Impostazioni
+    ↓
+Varietà
+```
+
+La consultazione delle cultivar avviene quindi esclusivamente nel contesto gerarchico della relativa coltura:
+
+```text
+Catalogo Agronomico
+    ↓
+Coltura
+    ↓
+Cultivar
+```
+
 Sono stati rimossi dal contratto Flutter corrente:
 
 - modello e Repository personali delle famiglie botaniche;
@@ -1055,7 +1181,8 @@ Sono stati rimossi dal contratto Flutter corrente:
 - result type delle precedenti scritture personali delle varietà;
 - result type delle precedenti scritture personali delle colture;
 - pagina personale di aggiunta della varietà;
-- relativi test legacy.
+- precedente percorso autonomo `Impostazioni → Varietà`;
+- relativi test legacy non più coerenti con il contratto corrente.
 
 `RotationEngine` confronta la famiglia botanica mediante UUID canonico; il nome della famiglia rimane un dato di presentazione.
 
@@ -1084,6 +1211,10 @@ planting.cultivarId
 ```
 
 La selezione esplicita della cultivar nella UI di creazione rimane FUTURE.
+
+La Sessione S031 non ha introdotto nuove migration Supabase e non ha modificato il contratto persistente del Catalogo Agronomico definito nella S030.
+
+Il database continua inoltre a rimanere intenzionalmente privo di dati demo, di prova o provvisori.
 
 ## Verifica tecnica S030
 
@@ -1216,12 +1347,34 @@ registrazione delle coltivazioni reali
 - Mantenimento dell'occupazione dell'aiuola nello stato `harvested`
 - Rilascio dello spazio soltanto con `finished` o `removed`
 - Refresh autoritativo su `version_conflict` e `invalid_transition`
-- Pagina Varietà collegata al Catalogo globale in sola lettura
-- Stato vuoto “Nessuna varietà presente”
-- Rimozione del precedente pulsante di aggiunta della varietà personale
+- Accesso al Catalogo Agronomico da `Impostazioni → Catalogo Agronomico`
+- Visualizzazione dello stato e delle capability della Catalog Authority
+- Azione esplicita e confermata per l'inizializzazione della Catalog Authority
+- Consultazione delle colture globali del Catalogo Agronomico
+- Navigazione gerarchica `Coltura → Cultivar`
+- Caricamento delle cultivar on demand dopo la selezione della coltura
+- Gestione degli stati di caricamento, assenza di cultivar ed errore
+- Possibilità di riprovare il caricamento delle cultivar dopo un errore
+- Rimozione del precedente percorso autonomo `Impostazioni → Varietà`
 - Gestione corretta di un Profile privo di Garden
 
 La UI amministrativa/editoriale completa del Catalogo Agronomico non è ancora implementata.
+
+La Sessione S031 ha completato il percorso di consultazione:
+
+```text
+Impostazioni
+    ↓
+Catalogo Agronomico
+    ↓
+Colture
+    ↓
+Cultivar
+```
+
+La consultazione delle cultivar è quindi contestuale alla coltura selezionata e non costituisce più una funzione autonoma delle Impostazioni.
+
+L'inizializzazione della Catalog Authority rimane un'operazione esplicita: la UI non esegue automaticamente la claim all'apertura della pagina e richiede conferma dell'utente prima di invocare il relativo percorso autoritativo.
 
 `AddPlantingPage` non espone ancora un selettore operativo della cultivar.
 
@@ -1405,6 +1558,8 @@ Il precedente `variety_id` è stato rimosso.
 
 ### Flutter — Catalogo Agronomico
 
+Il client Flutter utilizza il contratto canonico del Catalogo Agronomico globale mediante:
+
 - `CatalogCapabilities`
 - `Crop`
 - `CropCultivar`
@@ -1425,9 +1580,51 @@ Il precedente `variety_id` è stato rimosso.
 - rimozione della precedente pagina personale di aggiunta della varietà
 - migrazione della catena `Planting` da Variety a Cultivar
 
-La terminologia italiana della UI può continuare a utilizzare **Varietà**, mentre il contratto tecnico utilizza **Cultivar**.
+Con la Sessione S031 l'integrazione Flutter è stata estesa al percorso operativo:
+
+```text
+Impostazioni
+    ↓
+Catalogo Agronomico
+    ↓
+Colture
+    ↓
+Cultivar
+```
+
+La pagina del Catalogo Agronomico:
+
+- legge le capability mediante `CatalogAuthorityRepository`;
+- distingue lo stato di Catalog Authority non inizializzata da quello inizializzato;
+- espone l'azione **Inizializza Catalogo** quando applicabile;
+- richiede una conferma esplicita prima della claim iniziale;
+- non esegue automaticamente la claim all'apertura della pagina;
+- carica le colture globali mediante `CropRepository`;
+- consente la selezione di una coltura;
+- carica le relative cultivar mediante `CropCultivarRepository`;
+- esegue il caricamento delle cultivar on demand;
+- gestisce gli stati di caricamento, assenza di cultivar ed errore;
+- consente di riprovare il caricamento dopo un errore.
+
+La Sessione S031 ha inoltre eliminato il precedente percorso autonomo:
+
+```text
+Impostazioni
+    ↓
+Varietà
+```
+
+Le cultivar vengono ora consultate esclusivamente nel contesto della coltura selezionata.
+
+La terminologia italiana della UI può continuare a utilizzare **Varietà** quando appropriato per l'utente, mentre il contratto tecnico utilizza **Cultivar**.
+
+La S031 non introduce nuovi Write Path del Catalogo, non introduce nuove migration Supabase e non modifica il contratto persistente definito nella S030.
+
+Il database rimane intenzionalmente privo di dati demo, di prova o provvisori.
 
 ## Verifica tecnica corrente
+
+La baseline persistente corrente del Catalogo Agronomico rimane quella completata nella Sessione S030.
 
 La migration finale del Catalogo Agronomico S030 è:
 
@@ -1435,7 +1632,7 @@ La migration finale del Catalogo Agronomico S030 è:
 20260923154831_finalize_global_catalog_cutover.sql
 ```
 
-Lo stato finale verificato comprende:
+Le verifiche database consolidate nella S030 rimangono valide:
 
 ```text
 supabase db reset
@@ -1452,23 +1649,45 @@ superata
 
 Acceptance Tranche 11
 superata
-
-dart format lib test
-Formatted 174 files
-
-flutter analyze
-No issues found!
-
-flutter test
-953 test passati
-
-git diff --check
-nessuna anomalia
 ```
 
 La migration finale S030 risulta allineata tra database locale e remoto.
 
+La Sessione S031 non ha introdotto nuove migration Supabase e non ha modificato il contratto persistente del Catalogo Agronomico.
+
+La verifica tecnica finale del client Flutter dopo l'integrazione operativa S031 ha prodotto:
+
+```text
+flutter analyze
+No issues found!
+
+flutter test
+971 test passati
+```
+
+Il commit finale dello sviluppo S031 è:
+
+```text
+b436d663e46149202e081a3079eb162567fb0909
+```
+
+Al termine dello sviluppo S031:
+
+```text
+branch
+main
+
+HEAD = origin/main
+
+working tree
+clean
+```
+
+La S031 è stata quindi chiusa su una baseline Git allineata e verificata.
+
 Il database rimane intenzionalmente privo di dati demo, di prova o provvisori.
+
+Il popolamento del Catalogo Agronomico dovrà iniziare soltanto con dati reali, verificabili e tracciabili, dopo la disponibilità di un workflow operativo sufficientemente sicuro e validato.
 
 ## Documentazione
 
@@ -1485,6 +1704,8 @@ Il database rimane intenzionalmente privo di dati demo, di prova o provvisori.
 # Obiettivi della prossima versione
 
 La Sessione S030 ha completato l'architettura e il cutover tecnico del **Catalogo Agronomico V1 globale**.
+
+La Sessione S031 ha successivamente completato il primo livello di integrazione operativa Flutter del Catalogo Agronomico, mantenendo invariato il contratto persistente definito nella S030.
 
 Il Catalogo dispone ora delle fondazioni necessarie per gestire:
 
@@ -1503,26 +1724,86 @@ Il Catalogo dispone ora delle fondazioni necessarie per gestire:
 - integrazione Flutter con `Crop` e `CropCultivar`;
 - collegamento opzionale di `Planting` a una cultivar.
 
-La S030 è quindi **tecnicamente completata**.
+Sul lato Flutter, la S031 ha inoltre reso operativo:
 
-Non viene assegnato automaticamente un numero di sessione al prossimo incremento: la relativa sessione sarà definita soltanto al momento della sua effettiva apertura.
+```text
+Impostazioni
+    ↓
+Catalogo Agronomico
+    ↓
+Colture
+    ↓
+Cultivar
+```
 
-## Attività post-S030
+con:
+
+- lettura e visualizzazione delle capability della Catalog Authority;
+- inizializzazione esplicita e confermata della Catalog Authority;
+- nessuna claim automatica;
+- consultazione delle colture globali;
+- navigazione gerarchica `Coltura → Cultivar`;
+- caricamento delle cultivar on demand;
+- gestione degli stati di caricamento, assenza di dati ed errore;
+- possibilità di riprovare il caricamento;
+- eliminazione del precedente percorso autonomo `Impostazioni → Varietà`.
+
+Le Sessioni S030 e S031 risultano quindi tecnicamente completate nei rispettivi perimetri.
+
+La versione pubblica corrente rimane:
+
+```text
+0.1.21-alpha
+```
+
+e la versione Flutter corrente rimane:
+
+```text
+0.1.21-alpha+6
+```
+
+La S031 costituisce un incremento funzionale della versione corrente e non determina automaticamente l'assegnazione di una nuova versione pubblica.
+
+Il prossimo incremento di sviluppo è previsto nella **Sessione S032**.
+
+La S032 dovrà iniziare con una ricognizione tecnica delle funzioni, delle RPC e delle capability già disponibili per la gestione delle identità del Catalogo Agronomico.
+
+La ricognizione dovrà precedere la scelta del primo Write Path operativo da integrare.
+
+Non viene quindi predeterminato in questa fase se il primo incremento riguarderà la creazione o gestione di una coltura, di una cultivar o un diverso elemento dell'identity management.
+
+## Attività post-S031
 
 Restano da sviluppare o completare:
 
 - backend canonico delle associazioni tra colture;
 - UI amministrativa/editoriale completa del Catalogo Agronomico;
-- azione UI esplicita e sicura per `claim_initial_catalog_authority()`;
+- ricognizione tecnica S032 delle funzioni, RPC e capability disponibili per la gestione delle identità del Catalogo;
+- integrazione progressiva dei Write Path operativi del Catalogo, sulla base dell'esito della ricognizione tecnica;
 - workflow operativo di importazione, ingestion, revisione e approvazione delle fonti;
 - schermate del workflow editoriale;
 - integrazione completa del Resolver nella creazione e pianificazione dei `Planting`;
 - selezione esplicita della cultivar nel flusso di creazione di un `Planting`;
-- popolamento editoriale del Catalogo con dati agronomici verificabili;
+- popolamento editoriale del Catalogo con dati agronomici reali, verificabili e tracciabili;
 - smoke test con dati operativi reali;
 - manutenzione periodica dei codici ISO 3166-1 alpha-2 mediante migration e test verificati;
 - verifica e, se necessario, ripristino del percorso UI per la creazione del primo Garden;
 - ulteriori incrementi del Database V1 non ancora implementati.
+
+La gestione delle identità del Catalogo dovrà continuare a rispettare:
+
+- autorità del backend;
+- capability `can_manage_identity`;
+- normalizzazione canonica;
+- vincoli di unicità;
+- tassonomia botanica;
+- tracciabilità;
+- gerarchia `Coltura → Cultivar`;
+- separazione tra dati candidati e dati approvati.
+
+Il popolamento del Catalogo non dovrà utilizzare dati dimostrativi o provvisori.
+
+I dati agronomici reali dovranno essere introdotti soltanto dopo che il relativo workflow sarà sufficientemente sicuro, verificato e tracciabile.
 
 La manutenzione dei codici ISO 3166-1 alpha-2 non dovrà essere automatica: gli aggiornamenti dovranno essere verificati e introdotti mediante migration e test controllati.
 
@@ -1628,7 +1909,7 @@ Non dovrà costituire un'azione ordinaria disponibile durante la normale gestion
 
 ## Ulteriori sviluppi FUTURE
 
-Rimangono inoltre fuori dal perimetro completato della S030:
+Rimangono inoltre fuori dal perimetro completato delle Sessioni S030 e S031:
 
 - correzioni amministrative avanzate;
 - statistiche di raccolto e rese effettive;
@@ -1638,6 +1919,10 @@ Rimangono inoltre fuori dal perimetro completato della S030:
 - ulteriori sviluppi architetturali del Database V1.
 
 L'ordine e l'assegnazione di questi sviluppi alle future sessioni saranno definiti progressivamente secondo il workflow del progetto.
+
+La Sessione S032 costituisce il prossimo incremento già pianificato, ma il suo primo passo rimane la ricognizione tecnica delle funzioni, RPC e capability disponibili per la gestione delle identità del Catalogo Agronomico.
+
+Gli sviluppi successivi saranno definiti sulla base dell'esito di tale ricognizione, senza predeterminare in anticipo il primo Write Path da implementare.
 
 # Cronologia versioni
 
@@ -1664,7 +1949,7 @@ L'ordine e l'assegnazione di questi sviluppi alle future sessioni saranno defini
 | 0.1.18-alpha | 13/09/2026 | Archiviata | Completata nella S027 l'integrazione Flutter del Catalogo V1 mediante `BotanicalFamily`, riallineamento di `Crop` e `CropVariety`, Repository dedicati, letture RLS, scritture RPC-only, Profile Write Authority fail-closed, gestione `row_version` e verifica completa con 914/914 test; `pubspec.yaml` riallineato a `0.1.18-alpha+3`. |
 | 0.1.19-alpha | 17/09/2026 | Archiviata | Implementato nella S028 il modello e Write Path autoritativo di `plantings`, introdotto il lifecycle server-side, consolidati geometria, temporalità e overlap, protette le variazioni geometriche delle aiuole, riallineato il client Flutter e verificati 997/997 test; `pubspec.yaml` aggiornato a `0.1.19-alpha+4`. |
 | 0.1.20-alpha | 18/09/2026 | Archiviata | Completata nella S029 la UI del lifecycle di `plantings`, introdotte azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per `finished` e `removed`, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`; nessuna modifica al contratto persistente S028; suite completa finale verificata con 1011/1011 test passati, verifiche dedicate `BedPage` 30/30 e `PlantingCard` 9/9, `flutter analyze` finale pulito; `pubspec.yaml` aggiornato a `0.1.20-alpha+5`. |
-| 0.1.21-alpha | 27/09/2026 | Corrente | Completata nella S030 l'architettura globale del Catalogo Agronomico V1: tassonomia botanica globale, identità agronomiche globali, registro parametri, contesti, fonti, acquisizioni, osservazioni, alias, workflow editoriale, Knowledge canonica, pubblicazione e Resolver; completato il cutover a `botanical_taxa`, `crops` e `crop_cultivars`, migrato `plantings` da `variety_id` a `cultivar_id`, riallineato il client Flutter al contratto Cultivar e consolidato un perimetro di 26 tabelle; migration finale `20260923154831_finalize_global_catalog_cutover.sql`; `supabase db reset` riuscito, lint locale e remoto senza errori, acceptance Tranche 10 e 11 superate, `flutter analyze` pulito e 953 test Flutter passati; versione Flutter prevista `0.1.21-alpha+6`. |
+| 0.1.21-alpha | 27/09/2026 | Corrente | Completata nella S030 l'architettura globale del Catalogo Agronomico V1: tassonomia botanica globale, identità agronomiche globali, registro parametri, contesti, fonti, acquisizioni, osservazioni, alias, workflow editoriale, Knowledge canonica, pubblicazione e Resolver; completato il cutover a `botanical_taxa`, `crops` e `crop_cultivars`, migrato `plantings` da `variety_id` a `cultivar_id`, riallineato il client Flutter al contratto Cultivar e consolidato un perimetro di 26 tabelle; migration finale `20260923154831_finalize_global_catalog_cutover.sql`; `supabase db reset` riuscito, lint locale e remoto senza errori, acceptance Tranche 10 e 11 superate. Nella S031 la stessa versione corrente è stata estesa con l'integrazione operativa Flutter del Catalogo Agronomico in `Impostazioni → Catalogo Agronomico → Colture → Cultivar`, lettura delle capability, inizializzazione esplicita e confermata della Catalog Authority, consultazione delle colture globali, caricamento on demand delle cultivar, gestione degli stati UI e rimozione del precedente percorso autonomo `Impostazioni → Varietà`; nessuna nuova migration Supabase e nessuna modifica al contratto persistente; verifica finale S031 con `flutter analyze` pulito e 971 test passati; versione Flutter corrente `0.1.21-alpha+6`. |
 
 ---
 

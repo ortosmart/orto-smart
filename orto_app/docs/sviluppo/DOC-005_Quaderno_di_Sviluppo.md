@@ -4,7 +4,7 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.18
+**Versione:** 0.19
 
 **Stato:** In sviluppo
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 28/09/2026
+**Ultimo aggiornamento:** 01/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.18 |
+| Versione | 0.19 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 28/09/2026 |
+| Ultimo aggiornamento | 01/10/2026 |
 
 ---
 
@@ -57,6 +57,7 @@
 | 0.16 | 17/09/2026 | Aggiornamento del Quaderno con la Sessione S028: implementazione del modello e Write Path autoritativo di `plantings`, lifecycle server-side, validazioni metodo-dipendenti, geometria e overlap spaziale/temporale, protezione delle geometrie delle aiuole mediante `blocked_by_plantings`, integrazione Flutter, 997/997 test superati e aggiornamento della versione a `0.1.19-alpha` / `0.1.19-alpha+4`; Sessione S028 conclusa con 9 h 04 min di sviluppo, 2 h 16 min di documentazione e 11 h 20 min complessivi |
 | 0.17 | 18/09/2026 | Aggiornamento e chiusura documentale della Sessione S029: completamento della UI del lifecycle di `plantings`, azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per gli stati terminali, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`, suite completa finale 1011/1011, commit tecnico `6b3fa92`; Sessione S029 conclusa con 1 h 19 min di sviluppo, 2 h 50 min di documentazione e 4 h 09 min complessivi |
 | 0.18 | 28/09/2026 | Aggiornamento e chiusura documentale della Sessione S030: realizzazione del Catalogo Agronomico V1 globale, separazione tra identità botaniche e Knowledge agronomica, Catalog Authority, ingestion e workflow editoriale, Knowledge canonica, pubblicazione e Resolver, Write Path autoritativi, cutover finale a `botanical_taxa` → `crops` → `crop_cultivars`, riallineamento di `plantings` a `crop_id` + `cultivar_id`, integrazione Flutter, deployment remoto e verifiche finali; Sessione S030 conclusa con 21 h 06 min di sviluppo, 6 h 13 min di documentazione e 27 h 19 min complessivi; totale progetto 229 h 03 min |
+| 0.19 | 01/10/2026 | Aggiornamento e chiusura documentale della Sessione S031: integrazione operativa Flutter del Catalogo Agronomico globale nelle Impostazioni, gestione dello stato e dell'inizializzazione controllata della Catalog Authority, esposizione delle capability server-side, consultazione delle colture globali, navigazione gerarchica Coltura → Cultivar, caricamento on demand delle cultivar, gestione degli stati vuoto/errore/retry, eliminazione del precedente percorso autonomo `Impostazioni → Varietà`, 971 test superati e definizione della pianificazione FUTURE della S032; Sessione S031 conclusa con 4 h 03 min di sviluppo, 2 h 03 min di documentazione e 6 h 06 min complessivi; chiusura documentale il 01/10/2026 alle 12:07; totale progetto 235 h 09 min |
 
 ---
 
@@ -98,6 +99,7 @@ Per una sessione ancora in corso viene riportato soltanto il tempo già consolid
 | S028 | 15–17/09/2026 | 11 h 20 min | 197 h 35 min | Write Path autoritativo di `plantings` | ✅ |
 | S029 | 17–18/09/2026 | 4 h 09 min | 201 h 44 min | Lifecycle operativo delle coltivazioni | ✅ |
 | S030 | 18–28/09/2026 | 27 h 19 min | 229 h 03 min | Catalogo Agronomico V1 globale e cutover finale Database + Flutter | ✅ |
+| S031 | 28/09–01/10/2026 | 6 h 06 min | 235 h 09 min | Integrazione operativa Flutter del Catalogo Agronomico globale e navigazione Coltura → Cultivar | ✅ |
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -229,6 +231,95 @@ Il totale progressivo definitivo del progetto alla chiusura della S030 è:
 229 h 03 min
 ```
 
+Per la Sessione S031 il tempo definitivo è composto da:
+
+```text
+Sviluppo         4 h 03 min
+Documentazione   2 h 03 min
+--------------------------
+Totale S031      6 h 06 min
+```
+
+La fase sviluppo S031 è conclusa.
+
+Gli intervalli di sviluppo consolidati sono:
+
+```text
+28/09/2026   12:01 → 12:18    0 h 17 min
+28/09/2026   22:44 → 23:40    0 h 56 min
+29/09/2026   10:24 → 12:16    1 h 52 min
+30/09/2026   10:35 → 11:33    0 h 58 min
+-----------------------------------------
+Totale                         4 h 03 min
+```
+
+La fase sviluppo S031 è stata chiusa il:
+
+> **30/09/2026 alle 11:33**
+
+La fase Manuali S031 è iniziata il:
+
+> **30/09/2026 alle 11:37**
+
+È stata sospesa il:
+
+> **30/09/2026 alle 12:00**
+
+ed è ripresa il:
+
+> **01/10/2026 alle 09:16**
+
+È stata nuovamente sospesa il:
+
+> **01/10/2026 alle 09:58**
+
+ed è ripresa il:
+
+> **01/10/2026 alle 11:09**
+
+La fase Manuali S031 è stata conclusa il:
+
+> **01/10/2026 alle 12:07**
+
+Gli intervalli documentali definitivi sono:
+
+```text
+30/09/2026   11:37 → 12:00    0 h 23 min
+01/10/2026   09:16 → 09:58    0 h 42 min
+01/10/2026   11:09 → 12:07    0 h 58 min
+-----------------------------------------
+Totale                         2 h 03 min
+```
+
+Il totale definitivo della Sessione S031 è:
+
+```text
+Sviluppo         4 h 03 min
+Documentazione   2 h 03 min
+--------------------------
+Totale S031      6 h 06 min
+```
+
+Il progressivo definitivo del progetto alla chiusura della S031 è:
+
+```text
+229 h 03 min   totale progetto alla chiusura S030
++ 6 h 06 min   totale Sessione S031
+-----------------------------------------------
+235 h 09 min   totale progetto alla chiusura S031
+```
+
+La ripartizione complessiva del progetto alla chiusura della S031 è:
+
+```text
+Sviluppo complessivo        172 h 42 min
+Documentazione complessiva   62 h 27 min
+----------------------------------------
+Totale progetto             235 h 09 min
+```
+
+La Sessione S031 risulta pertanto conclusa sia nella fase di sviluppo sia nella fase documentale.
+
 ---
 
 # Indice
@@ -274,6 +365,7 @@ Il totale progressivo definitivo del progetto alla chiusura della S030 è:
 3.28 S028
 3.29 S029
 3.30 S030
+3.31 S031
 
 ## 4. Considerazioni finali
 
@@ -10709,3 +10801,523 @@ Totale complessivo          229 h 03 min
 ```
 
 La chiusura documentale ufficiale della S030 è registrata al:
+**28/09/2026 alle 11:45**
+
+---
+
+# Sessione S031 — Integrazione operativa Flutter del Catalogo Agronomico
+
+## Obiettivo della sessione
+
+La Sessione S031 ha avuto come obiettivo l'avvio dell'integrazione operativa nella UI Flutter del **Catalogo Agronomico V1 globale** realizzato e consolidato nella S030.
+
+La sessione è partita dalla baseline stabile risultante dalla chiusura completa della S030 e ha concentrato il lavoro sul percorso applicativo di consultazione del Catalogo, senza introdurre modifiche strutturali al database.
+
+L'obiettivo principale è stato rendere disponibile nell'applicazione un percorso unico e coerente:
+
+```text
+Impostazioni
+→ Catalogo Agronomico
+→ Colture
+→ Cultivar
+```
+
+mantenendo il backend del Catalogo come fonte autoritativa per identità, capability e autorizzazioni.
+
+La S031 non ha avuto come obiettivo il popolamento del database con colture o cultivar di esempio e non ha introdotto dati operativi provvisori.
+
+---
+
+## Stato iniziale
+
+La S031 è stata avviata sulla baseline consolidata della S030.
+
+Lo stato iniziale comprendeva:
+
+```text
+Branch                     main
+Working tree               clean
+Baseline documentale S030  fcf7701
+Migrazioni Supabase        33
+Stato migrazioni           Local = Remote
+Tabelle database           26
+Test Flutter               953
+flutter analyze            OK
+```
+
+Il Catalogo Agronomico V1 globale risultava già implementato lato database attraverso le strutture e i contratti autoritativi introdotti nella S030.
+
+La S031 non ha ridisegnato tale architettura e non ha introdotto nuove migration.
+
+---
+
+## Integrazione del Catalogo Agronomico nelle Impostazioni
+
+È stato introdotto nelle Impostazioni il punto di accesso:
+
+```text
+Catalogo Agronomico
+Gestisci il catalogo agronomico globale
+```
+
+Il percorso utilizza `CatalogAuthorityRepository` per interrogare lo stato dell'authority e le capability rese disponibili dal backend.
+
+Sono stati gestiti gli stati applicativi relativi a:
+
+- caricamento;
+- authority disponibile;
+- Catalogo non inizializzato;
+- inizializzazione controllata dell'authority;
+- authority già assegnata;
+- inizializzazione non autorizzata;
+- errore controllato.
+
+La UI rende inoltre visibili le capability relative a:
+
+- gestione delle identità;
+- ingestion;
+- review;
+- publication.
+
+La visualizzazione delle capability non attribuisce autonomamente alcuna autorizzazione al client.
+
+Il backend rimane autoritativo e determina se l'utente può eseguire le relative operazioni.
+
+---
+
+## Consultazione delle colture globali
+
+La pagina del Catalogo Agronomico è stata collegata alla lettura delle colture globali.
+
+Sono stati gestiti gli stati:
+
+- caricamento;
+- elenco disponibile;
+- Catalogo vuoto;
+- errore.
+
+Per ogni coltura possono essere visualizzati, quando disponibili:
+
+- nome canonico;
+- nome scientifico;
+- famiglia botanica.
+
+Gli eventuali valori utilizzati nei test automatici costituiscono esclusivamente fixture di test e non sono stati inseriti come dati operativi nel database.
+
+---
+
+## Integrazione delle cultivar
+
+Per la gestione applicativa delle cultivar sono stati riutilizzati i componenti già coerenti con il modello S030:
+
+```text
+lib/data/models/crop_cultivar.dart
+lib/data/repositories/crop_cultivar_repository.dart
+```
+
+Il repository espone le operazioni di lettura previste, tra cui:
+
+```text
+getCultivarsByCrop(...)
+getAllCultivars(...)
+```
+
+con supporto al filtro:
+
+```text
+activeOnly
+```
+
+Non è stato introdotto un secondo modello concorrente per rappresentare le cultivar.
+
+---
+
+## Navigazione gerarchica Coltura → Cultivar
+
+La S031 ha consolidato la relazione gerarchica applicativa:
+
+```text
+Catalogo Agronomico
+→ Coltura
+→ Cultivar
+```
+
+La selezione di una coltura determina il caricamento delle sole cultivar associate alla coltura selezionata.
+
+Le cultivar vengono caricate **on demand** e non durante il caricamento iniziale dell'intero Catalogo.
+
+I test automatici verificano che:
+
+- nessun caricamento delle cultivar avvenga prima della selezione di una coltura;
+- dopo la selezione venga utilizzato il `cropId` corretto;
+- venga applicato `activeOnly=true`.
+
+---
+
+## Stati UI delle cultivar
+
+La UI delle cultivar gestisce:
+
+- elenco disponibile;
+- stato vuoto;
+- errore;
+- retry.
+
+Per ogni cultivar possono essere visualizzati:
+
+- nome;
+- `verificationStatus`, quando diverso da `VERIFIED`;
+- descrizione, quando disponibile.
+
+Lo stato vuoto viene gestito mediante:
+
+```text
+Nessuna cultivar presente.
+```
+
+Lo stato di errore viene gestito mediante:
+
+```text
+Errore durante il caricamento delle cultivar.
+```
+
+con azione:
+
+```text
+Riprova
+```
+
+Il comportamento di retry è stato verificato mediante test automatico, includendo il caso di primo caricamento fallito e successivo caricamento riuscito.
+
+---
+
+## Eliminazione del precedente percorso autonomo Varietà
+
+Durante la ricognizione applicativa è stato rilevato che il precedente percorso:
+
+```text
+Impostazioni
+→ Varietà
+```
+
+avrebbe costituito un accesso concorrente rispetto al nuovo percorso gerarchico del Catalogo Agronomico.
+
+Dopo la verifica delle dipendenze mediante ricerca nel codice, sono stati:
+
+- rimosso l'elemento autonomo `Varietà` da `SettingsPage`;
+- rimosso il relativo import;
+- eliminato `lib/pages/cultivars_page.dart`.
+
+La rimozione ha eliminato 216 righe del precedente percorso applicativo.
+
+La verifica finale:
+
+```text
+git grep -n -E "CultivarsPage|cultivars_page" -- lib test
+```
+
+non ha restituito riferimenti residui.
+
+Il percorso applicativo consolidato dalla S031 è pertanto:
+
+```text
+Impostazioni
+→ Catalogo Agronomico
+→ Colture
+→ Cultivar
+```
+
+---
+
+## Decisioni consolidate nella S031
+
+La S031 ha consolidato i seguenti punti:
+
+1. il punto di accesso applicativo al Catalogo è unico:
+
+   ```text
+   Impostazioni → Catalogo Agronomico
+   ```
+
+2. le cultivar sono subordinate alla coltura:
+
+   ```text
+   Catalogo Agronomico → Coltura → Cultivar
+   ```
+
+3. il precedente percorso autonomo:
+
+   ```text
+   Impostazioni → Varietà
+   ```
+
+   è stato eliminato;
+
+4. le cultivar vengono caricate on demand dopo la selezione della coltura;
+
+5. gli errori di caricamento delle cultivar sono gestiti mediante stato controllato e retry;
+
+6. non vengono introdotti dati di prova o dati operativi provvisori nel database;
+
+7. il backend continua a rappresentare l'authority effettiva per capability e autorizzazioni.
+
+Rimane inoltre valida la decisione già approvata relativa al futuro percorso:
+
+```text
+Impostazioni
+→ Catalogo Agronomico
+→ Aggiornamento fonti
+```
+
+L'acquisizione da fonti esterne dovrà produrre dati candidati separati dai dati approvati e non potrà sovrascrivere automaticamente il Catalogo Agronomico.
+
+---
+
+## Database e Supabase
+
+La S031 non ha introdotto nuove migration e non ha modificato strutturalmente il database.
+
+Lo stato finale rimane:
+
+```text
+Migrazioni Supabase  33
+Local                allineato
+Remote               allineato
+Tabelle database     26
+```
+
+L'integrazione Flutter utilizza le strutture, i read model e i contratti autoritativi risultanti dalla S030.
+
+Non è stato effettuato alcun nuovo cutover strutturale nella S031.
+
+---
+
+## Verifiche tecniche finali
+
+La regressione finale della S031 ha prodotto:
+
+```text
+Formatted 176 files (0 changed)
+01:04 +971: All tests passed!
+Analyzing orto_app...
+No issues found!
+```
+
+La suite automatica è quindi passata da:
+
+```text
+953 test
+```
+
+a:
+
+```text
+971 test
+```
+
+con un incremento di 18 test.
+
+Le verifiche finali hanno inoltre confermato:
+
+- assenza di riferimenti residui a `CultivarsPage`;
+- assenza di riferimenti residui a `cultivars_page`;
+- caricamento on demand delle cultivar;
+- utilizzo del `cropId` selezionato;
+- applicazione di `activeOnly=true`;
+- gestione degli stati vuoto, errore e retry;
+- assenza di modifiche non previste al database.
+
+---
+
+## Git finale dello sviluppo S031
+
+Durante la S031 sono stati registrati i seguenti commit tecnici:
+
+```text
+02e39cf  Integra Catalogo Agronomico nelle impostazioni
+bc9f511  Integra lettura colture nel Catalogo Agronomico
+a5e4ed7  Visualizza colture nel Catalogo Agronomico
+ad686e9  Integra cultivar nel Catalogo Agronomico
+483bb2d  Completa navigazione cultivar nel Catalogo Agronomico
+b436d66  Rimuove gestione separata delle cultivar
+```
+
+Il commit finale dello sviluppo S031 è:
+
+```text
+b436d663e46149202e081a3079eb162567fb0909
+```
+
+Alla chiusura dello sviluppo:
+
+```text
+Branch       main
+HEAD         b436d663e46149202e081a3079eb162567fb0909
+origin/main  b436d663e46149202e081a3079eb162567fb0909
+Working tree clean
+```
+
+Non risultavano file non committati né commit locali non pubblicati.
+
+---
+
+## Timing dello sviluppo S031
+
+Gli intervalli consolidati dello sviluppo S031 sono:
+
+```text
+28/09/2026   12:01 → 12:18   0 h 17 min
+28/09/2026   22:44 → 23:40   0 h 56 min
+29/09/2026   10:24 → 12:16   1 h 52 min
+30/09/2026   10:35 → 11:33   0 h 58 min
+----------------------------------------
+Totale sviluppo S031         4 h 03 min
+```
+
+Lo sviluppo S031 è stato dichiarato concluso il:
+
+> **30/09/2026 alle 11:33**
+
+Il progressivo dello sviluppo del progetto diventa pertanto:
+
+```text
+168 h 39 min   sviluppo consolidato alla chiusura S030
++ 4 h 03 min   sviluppo S031
+--------------------------------
+172 h 42 min   sviluppo complessivo
+```
+
+---
+
+## APERTO / FUTURE dopo lo sviluppo S031
+
+La S031 non completa l'intero percorso operativo del Catalogo Agronomico V1.
+
+Restano FUTURE:
+
+1. gestione operativa controllata delle identità agronomiche;
+2. popolamento iniziale del Catalogo con dati reali, verificati e tracciabili;
+3. acquisizione e aggiornamento delle fonti;
+4. mantenimento separato dei dati candidati rispetto ai dati approvati;
+5. workflow di revisione;
+6. pubblicazione;
+7. ampliamento dei dati agronomici di colture e cultivar;
+8. backend canonico e gestione delle consociazioni;
+9. rotazioni;
+10. finestre e regole agronomiche;
+11. integrazione completa del Catalogo nel flusso operativo di creazione dei `plantings`.
+
+Rimane valido il principio:
+
+```text
+nessun seed operativo di esempio
+nessun dato provvisorio nel Catalogo reale
+nessuna fonte esterna modifica automaticamente il Catalogo approvato
+```
+
+---
+
+## Sviluppo futuro previsto — Sessione S032
+
+La futura S032 dovrà partire dalla baseline stabile risultante dalla S031.
+
+Il primo passo previsto è un **CHECKPOINT DI RICEZIONE** della baseline S031 comprendente:
+
+- verifica Git;
+- verifica `HEAD = origin/main`;
+- verifica del working tree;
+- verifica Supabase e delle migration;
+- conferma della suite finale di 971 test;
+- ricognizione tecnica dei componenti esistenti del Catalogo.
+
+Successivamente dovranno essere esaminate le funzioni, le RPC, le capability e i componenti già disponibili per la gestione delle identità del Catalogo prima di scegliere quale Write Path implementare per primo.
+
+La pianificazione S032 **non predetermina** che il primo Write Path debba essere necessariamente la creazione di una coltura oppure la creazione di una cultivar.
+
+La scelta dovrà essere effettuata soltanto dopo la ricognizione tecnica della baseline reale.
+
+Dovranno essere mantenuti i seguenti principi:
+
+- backend autoritativo;
+- utilizzo dei Write Path autoritativi previsti dall'architettura;
+- gerarchia `Coltura → Cultivar`;
+- applicazione delle capability, con particolare attenzione a `can_manage_identity`;
+- normalizzazione delle identità;
+- vincoli di unicità;
+- tassonomia botanica;
+- tracciabilità;
+- separazione tra dati candidati e dati approvati.
+
+Il futuro workflow delle fonti rimane:
+
+```text
+Aggiornamento fonti
+→ acquisizione dati candidati
+→ revisione
+→ approvazione/pubblicazione
+→ Catalogo Agronomico
+```
+
+La S032 non dovrà iniziare popolando il database con ortaggi di esempio.
+
+Il popolamento reale dovrà iniziare soltanto quando il workflow autoritativo necessario sarà sufficientemente definito, implementato e verificato, utilizzando dati reali, verificati e tracciabili.
+
+Ogni modifica dovrà essere accompagnata da test specifici e dalla regressione completa Flutter prima del commit finale.
+
+---
+
+# Timing della documentazione S031
+
+La fase Manuali S031 è iniziata ufficialmente il:
+
+> **30/09/2026 alle 11:37**
+
+La fase è stata svolta nei seguenti intervalli documentali:
+
+```text
+30/09/2026   11:37 → 12:00   0 h 23 min
+01/10/2026   09:16 → 09:58   0 h 42 min
+01/10/2026   11:09 → 12:07   0 h 58 min
+```
+
+Il tempo documentale complessivo della S031 è quindi:
+
+```text
+0 h 23 min
+0 h 42 min
+0 h 58 min
+-----------
+2 h 03 min
+```
+
+Il timing definitivo della Sessione S031 è:
+
+```text
+S031 sviluppo         4 h 03 min
+S031 documentazione   2 h 03 min
+--------------------------------
+S031 totale           6 h 06 min
+```
+
+I progressivi del progetto dopo la conclusione della S031 sono:
+
+```text
+Sviluppo complessivo        172 h 42 min
+Documentazione complessiva   62 h 27 min
+----------------------------------------
+Totale progetto             235 h 09 min
+```
+
+La compilazione dei Manuali S031 è stata conclusa ufficialmente il:
+
+> **01/10/2026 alle 12:07**
+
+Stato finale:
+
+```text
+S031 sviluppo        CONCLUSO
+S031 documentazione  CONCLUSA
+S031 totale          6 h 06 min
+
+Progetto complessivo 235 h 09 min
+```
