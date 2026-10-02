@@ -2,6 +2,8 @@ class Crop {
   final String id;
   final String? profileId;
   final String? botanicalFamilyId;
+  final String? taxonId;
+  final String? taxonRank;
   final String name;
   final String? scientificName;
   final String? description;
@@ -39,6 +41,8 @@ class Crop {
     required this.name,
     this.profileId,
     this.botanicalFamilyId,
+    this.taxonId,
+    this.taxonRank,
     this.scientificName,
     this.description,
     this.defaultStartMethod,
@@ -79,6 +83,8 @@ class Crop {
     return Crop(
       id: _requiredString(map, 'crop_id'),
       botanicalFamilyId: _optionalString(map, 'family_taxon_id'),
+      taxonId: _optionalString(map, 'taxon_id'),
+      taxonRank: _optionalString(map, 'taxon_rank'),
       name: _requiredString(map, 'canonical_name'),
       scientificName: _optionalString(map, 'taxon_scientific_name'),
       description: _optionalString(map, 'description'),
