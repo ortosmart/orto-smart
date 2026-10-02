@@ -4,17 +4,21 @@ import '../data/models/catalog_capabilities.dart';
 import '../data/repositories/catalog_authority_repository.dart';
 import '../data/repositories/crop_repository.dart';
 import '../data/repositories/crop_cultivar_repository.dart';
+import '../data/repositories/botanical_taxon_repository.dart';
 import '../data/models/crop.dart';
 import '../data/models/crop_cultivar.dart';
+import '../data/models/botanical_taxon.dart';
 
 class AgronomicCatalogPage extends StatefulWidget {
   final CatalogAuthorityRepository? repository;
+  final BotanicalTaxonRepository? taxonRepository;
   final CropRepository? cropRepository;
   final CropCultivarRepository? cultivarRepository;
 
   const AgronomicCatalogPage({
     super.key,
     this.repository,
+    this.taxonRepository,
     this.cropRepository,
     this.cultivarRepository,
   });
@@ -25,8 +29,10 @@ class AgronomicCatalogPage extends StatefulWidget {
 
 class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
   late CatalogAuthorityRepository _repository;
+  BotanicalTaxonRepository? _taxonRepository;
   CropRepository? _cropRepository;
   late Future<CatalogCapabilities> _capabilitiesFuture;
+  Future<List<BotanicalTaxon>>? _taxaFuture;
   Future<List<Crop>>? _cropsFuture;
 
   bool _authorityAlreadyClaimed = false;
@@ -279,6 +285,9 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
               ],
             );
           }
+          _taxonRepository ??=
+              widget.taxonRepository ?? BotanicalTaxonRepository();
+          _taxaFuture ??= _taxonRepository!.getTaxa();
           _cropRepository ??= widget.cropRepository ?? CropRepository();
           _cropsFuture ??= _cropRepository!.getCrops();
 
@@ -306,6 +315,49 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                 _CapabilityTile(
                   label: 'Pubblicazione',
                   enabled: capabilities.canPublish,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Tassonomia botanica',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                FutureBuilder<List<BotanicalTaxon>>(
+                  future: _taxaFuture,
+                  builder: (context, taxaSnapshot) {
+                    if (taxaSnapshot.connectionState != ConnectionState.done) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (taxaSnapshot.hasError) {
+                      return const Text(
+                        'Errore durante il caricamento della tassonomia botanica.',
+                      );
+                    }
+
+                    final taxa = taxaSnapshot.data!;
+
+                    if (taxa.isEmpty) {
+                      return const Text(
+                        'Nessun taxon presente nella tassonomia botanica.',
+                      );
+                    }
+
+                    return Column(
+                      children: [
+                        for (final taxon in taxa)
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(taxon.scientificName),
+                            subtitle: Text(
+                              taxon.authorship == null
+                                  ? taxon.rank
+                                  : '${taxon.rank} · ${taxon.authorship}',
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
                 const Text(

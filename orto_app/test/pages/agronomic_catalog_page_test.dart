@@ -3,15 +3,24 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orto_app/data/repositories/catalog_authority_repository.dart';
+import 'package:orto_app/data/repositories/botanical_taxon_repository.dart';
 import 'package:orto_app/data/repositories/crop_repository.dart';
 import 'package:orto_app/data/repositories/crop_cultivar_repository.dart';
 import 'package:orto_app/pages/agronomic_catalog_page.dart';
 
 Widget _testApp({
   required CatalogAuthorityRepository repository,
+  BotanicalTaxonRepository? taxonRepository,
   CropRepository? cropRepository,
   CropCultivarRepository? cultivarRepository,
 }) {
+  final effectiveTaxonRepository =
+      taxonRepository ??
+      BotanicalTaxonRepository.withProviders(
+        ({bool activeOnly = true}) async => [],
+        (functionName, parameters) =>
+            throw UnsupportedError('Taxon write not expected in UI test'),
+      );
   final effectiveCropRepository =
       cropRepository ??
       CropRepository.withLoader(({bool activeOnly = true}) async => []);
@@ -25,6 +34,7 @@ Widget _testApp({
   return MaterialApp(
     home: AgronomicCatalogPage(
       repository: repository,
+      taxonRepository: effectiveTaxonRepository,
       cropRepository: effectiveCropRepository,
       cultivarRepository: effectiveCultivarRepository,
     ),
@@ -518,6 +528,185 @@ void main() {
     expect(find.text('Colture'), findsOneWidget);
     expect(
       find.text('Nessuna coltura presente nel Catalogo Agronomico.'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('shows empty botanical taxonomy when authority is initialized', (
+    tester,
+  ) async {
+    var taxonLoads = 0;
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        taxonLoads += 1;
+        expect(activeOnly, isTrue);
+        return [];
+      },
+      (functionName, parameters) =>
+          throw UnsupportedError('Taxon write not expected in UI test'),
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(taxonLoads, 1);
+    expect(find.text('Tassonomia botanica'), findsOneWidget);
+    expect(
+      find.text('Nessun taxon presente nella tassonomia botanica.'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('shows botanical taxa returned by the global taxonomy', (
+    tester,
+  ) async {
+    var taxonLoads = 0;
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        taxonLoads += 1;
+        expect(activeOnly, isTrue);
+
+        return [
+          {
+            'id': '11111111-1111-4111-8111-111111111111',
+            'parent_taxon_id': null,
+            'rank': 'FAMILY',
+            'scientific_name': 'Solanaceae',
+            'authorship': null,
+            'is_hybrid': false,
+            'description': null,
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-02T08:00:00+00:00',
+            'updated_at': '2026-10-02T08:00:00+00:00',
+          },
+          {
+            'id': '22222222-2222-4222-8222-222222222222',
+            'parent_taxon_id': '11111111-1111-4111-8111-111111111111',
+            'rank': 'SPECIES',
+            'scientific_name': 'Solanum lycopersicum',
+            'authorship': 'L.',
+            'is_hybrid': false,
+            'description': 'Pomodoro',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-02T08:00:00+00:00',
+            'updated_at': '2026-10-02T08:00:00+00:00',
+          },
+        ];
+      },
+      (functionName, parameters) =>
+          throw UnsupportedError('Taxon write not expected in UI test'),
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(taxonLoads, 1);
+    expect(find.text('Tassonomia botanica'), findsOneWidget);
+
+    expect(find.text('Solanaceae'), findsOneWidget);
+    expect(find.text('FAMILY'), findsOneWidget);
+
+    expect(find.text('Solanum lycopersicum'), findsOneWidget);
+    expect(find.text('SPECIES · L.'), findsOneWidget);
+
+    expect(
+      find.text('Nessun taxon presente nella tassonomia botanica.'),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('shows error when loading botanical taxonomy fails', (
+    tester,
+  ) async {
+    var taxonLoads = 0;
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        taxonLoads += 1;
+        expect(activeOnly, isTrue);
+        throw Exception('Errore caricamento tassonomia');
+      },
+      (functionName, parameters) =>
+          throw UnsupportedError('Taxon write not expected in UI test'),
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(taxonLoads, 1);
+    expect(find.text('Tassonomia botanica'), findsOneWidget);
+    expect(
+      find.text('Errore durante il caricamento della tassonomia botanica.'),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
