@@ -187,7 +187,7 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                     setDialogState(() {
                       isSubmitting = false;
                       errorMessage =
-                          'Non sei autorizzato a creare taxon nel Catalogo.';
+                          'Non sei autorizzato a creare voci nella classificazione botanica.';
                     });
 
                   case CreateBotanicalTaxonInvalidInput():
@@ -201,19 +201,21 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                     setDialogState(() {
                       isSubmitting = false;
                       errorMessage =
-                          'Il taxon padre selezionato non è più disponibile.';
+                          'La classificazione superiore selezionata non è più disponibile.';
                     });
 
                   case CreateBotanicalTaxonDependencyInactive():
                     setDialogState(() {
                       isSubmitting = false;
-                      errorMessage = 'Il taxon padre selezionato non è attivo.';
+                      errorMessage =
+                          'La classificazione superiore selezionata non è attiva.';
                     });
 
                   case CreateBotanicalTaxonDuplicateIdentity():
                     setDialogState(() {
                       isSubmitting = false;
-                      errorMessage = 'Esiste già un taxon con questa identità.';
+                      errorMessage =
+                          'Esiste già una voce con questa classificazione botanica.';
                     });
                 }
               } catch (_) {
@@ -224,13 +226,13 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                 setDialogState(() {
                   isSubmitting = false;
                   errorMessage =
-                      'Errore durante la creazione del taxon. Riprova.';
+                      'Errore durante la creazione della voce botanica. Riprova.';
                 });
               }
             }
 
             return AlertDialog(
-              title: const Text('Nuovo taxon'),
+              title: const Text('Nuova voce botanica'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -274,7 +276,7 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                     DropdownButtonFormField<String?>(
                       initialValue: selectedParentTaxonId,
                       decoration: const InputDecoration(
-                        labelText: 'Taxon padre',
+                        labelText: 'Classificazione superiore',
                       ),
                       items: [
                         const DropdownMenuItem<String?>(
@@ -351,6 +353,280 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
         );
       },
     );
+  }
+
+  Future<void> _openEditTaxonDialog(
+    BotanicalTaxon taxon,
+    List<BotanicalTaxon> availableTaxa,
+  ) async {
+    const ranks = [
+      'ORDER',
+      'FAMILY',
+      'GENUS',
+      'SPECIES',
+      'SUBSPECIES',
+      'VARIETY',
+      'FORMA',
+      'UNRANKED',
+    ];
+
+    var scientificName = taxon.scientificName;
+    var authorship = taxon.authorship ?? '';
+    var description = taxon.description ?? '';
+
+    var selectedRank = taxon.rank;
+    var selectedParentTaxonId = taxon.parentTaxonId;
+    var isHybrid = taxon.isHybrid;
+    var isSubmitting = false;
+    String? errorMessage;
+    var requiresAuthoritativeReload = false;
+
+    final possibleParents = availableTaxa
+        .where((candidate) => candidate.id != taxon.id)
+        .toList();
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Future<void> submit() async {
+              final normalizedScientificName = scientificName.trim();
+
+              if (normalizedScientificName.isEmpty) {
+                setDialogState(() {
+                  errorMessage = 'Il nome scientifico è obbligatorio.';
+                });
+                return;
+              }
+
+              setDialogState(() {
+                isSubmitting = true;
+                errorMessage = null;
+              });
+
+              try {
+                final result = await _taxonRepository!.updateTaxon(
+                  botanicalTaxonId: taxon.id,
+                  expectedRowVersion: taxon.rowVersion,
+                  parentTaxonId: selectedParentTaxonId,
+                  rank: selectedRank,
+                  scientificName: normalizedScientificName,
+                  authorship: _optionalText(authorship),
+                  isHybrid: isHybrid,
+                  description: _optionalText(description),
+                );
+
+                if (!dialogContext.mounted) {
+                  return;
+                }
+
+                switch (result) {
+                  case BotanicalTaxonUpdated():
+                  case UpdateBotanicalTaxonUnchanged():
+                    Navigator.of(dialogContext).pop();
+
+                    if (!mounted) {
+                      return;
+                    }
+
+                    setState(() {
+                      _taxaFuture = _taxonRepository!.getTaxa();
+                    });
+                  case UpdateBotanicalTaxonVersionConflict():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      requiresAuthoritativeReload = true;
+                      errorMessage =
+                          'La classificazione botanica è stata modificata nel frattempo. '
+                          'Ricarica i dati prima di effettuare una nuova modifica.';
+                    });
+                  case UpdateBotanicalTaxonForbidden():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'Non sei autorizzato a modificare la classificazione botanica.';
+                    });
+                  case UpdateBotanicalTaxonInvalidInput():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'I dati inseriti non sono validi. Controlla i campi.';
+                    });
+                  case UpdateBotanicalTaxonNotFound():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'La voce botanica da modificare non è più disponibile.';
+                    });
+                  case UpdateBotanicalTaxonParentNotFound():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'La classificazione superiore selezionata non è più disponibile.';
+                    });
+                  case UpdateBotanicalTaxonDependencyInactive():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'La classificazione superiore selezionata non è attiva.';
+                    });
+                  case UpdateBotanicalTaxonDuplicateIdentity():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'Esiste già una voce con questa classificazione botanica.';
+                    });
+                }
+              } catch (_) {
+                if (!dialogContext.mounted) {
+                  return;
+                }
+
+                setDialogState(() {
+                  isSubmitting = false;
+                  requiresAuthoritativeReload = true;
+                  errorMessage =
+                      'Non è stato possibile verificare l\'esito del salvataggio. '
+                      'Ricarica i dati prima di effettuare una nuova modifica.';
+                });
+              }
+            }
+
+            return AlertDialog(
+              title: const Text('Modifica classificazione botanica'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedRank,
+                      decoration: const InputDecoration(labelText: 'Rango'),
+                      items: [
+                        for (final rank in ranks)
+                          DropdownMenuItem(value: rank, child: Text(rank)),
+                      ],
+                      onChanged: isSubmitting
+                          ? null
+                          : (value) {
+                              if (value != null) {
+                                setDialogState(() {
+                                  selectedRank = value;
+                                });
+                              }
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      initialValue: scientificName,
+                      enabled: !isSubmitting,
+                      onChanged: (value) {
+                        scientificName = value;
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Nome scientifico',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      initialValue: authorship,
+                      enabled: !isSubmitting,
+                      onChanged: (value) {
+                        authorship = value;
+                      },
+                      decoration: const InputDecoration(labelText: 'Autore'),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String?>(
+                      initialValue: selectedParentTaxonId,
+                      decoration: const InputDecoration(
+                        labelText: 'Classificazione superiore',
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('Nessuno'),
+                        ),
+                        for (final parent in possibleParents)
+                          DropdownMenuItem<String?>(
+                            value: parent.id,
+                            child: Text(
+                              '${parent.rank} · ${parent.scientificName}',
+                            ),
+                          ),
+                      ],
+                      onChanged: isSubmitting
+                          ? null
+                          : (value) {
+                              setDialogState(() {
+                                selectedParentTaxonId = value;
+                              });
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Ibrido'),
+                      value: isHybrid,
+                      onChanged: isSubmitting
+                          ? null
+                          : (value) {
+                              setDialogState(() {
+                                isHybrid = value ?? false;
+                              });
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      initialValue: description,
+                      enabled: !isSubmitting,
+                      maxLines: 3,
+                      onChanged: (value) {
+                        description = value;
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Descrizione',
+                      ),
+                    ),
+                    if (errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Text(errorMessage!),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Annulla'),
+                ),
+                FilledButton(
+                  onPressed: isSubmitting || requiresAuthoritativeReload
+                      ? null
+                      : submit,
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Salva'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (requiresAuthoritativeReload && mounted) {
+      setState(() {
+        _taxaFuture = _taxonRepository!.getTaxa();
+      });
+    }
   }
 
   String? _optionalText(String value) {
@@ -593,7 +869,7 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                           });
                         },
                         icon: const Icon(Icons.add),
-                        label: const Text('Nuovo taxon'),
+                        label: const Text('Nuova voce botanica'),
                       ),
                   ],
                 ),
@@ -615,7 +891,7 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
 
                     if (taxa.isEmpty) {
                       return const Text(
-                        'Nessun taxon presente nella tassonomia botanica.',
+                        'Nessuna voce presente nella tassonomia botanica.',
                       );
                     }
 
@@ -630,6 +906,14 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                                   ? taxon.rank
                                   : '${taxon.rank} · ${taxon.authorship}',
                             ),
+                            trailing: capabilities.canManageIdentity
+                                ? TextButton(
+                                    onPressed: () {
+                                      _openEditTaxonDialog(taxon, taxa);
+                                    },
+                                    child: const Text('Modifica'),
+                                  )
+                                : null,
                           ),
                       ],
                     );
