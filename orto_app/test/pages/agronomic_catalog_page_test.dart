@@ -1238,4 +1238,594 @@ void main() {
     expect(find.text('Cultivar di prova'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+  testWidgets(
+    'hides create taxon action without identity management capability',
+    (tester) async {
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': false,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      await tester.pumpWidget(_testApp(repository: authorityRepository));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tassonomia botanica'), findsOneWidget);
+      expect(find.text('Nuovo taxon'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'shows create taxon action and opens dialog with identity capability',
+    (tester) async {
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      await tester.pumpWidget(_testApp(repository: authorityRepository));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nuovo taxon'), findsOneWidget);
+
+      await tester.tap(find.text('Nuovo taxon'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nuovo taxon'), findsNWidgets(2));
+      expect(find.text('Rango'), findsOneWidget);
+      expect(find.text('Nome scientifico'), findsOneWidget);
+      expect(find.text('Autore'), findsOneWidget);
+      expect(find.text('Taxon padre'), findsOneWidget);
+      expect(find.text('Ibrido'), findsOneWidget);
+      expect(find.text('Descrizione'), findsOneWidget);
+      expect(find.text('Annulla'), findsOneWidget);
+      expect(find.text('Crea'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets('requires scientific name before creating a taxon', (
+    tester,
+  ) async {
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    var writeCalls = 0;
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        expect(activeOnly, isTrue);
+        return [];
+      },
+      (functionName, parameters) async {
+        writeCalls += 1;
+        throw StateError('RPC non prevista');
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Nuovo taxon'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Crea'));
+    await tester.pumpAndSettle();
+
+    expect(writeCalls, 0);
+    expect(find.text('Il nome scientifico è obbligatorio.'), findsOneWidget);
+    expect(find.text('Crea'), findsOneWidget);
+    expect(find.text('Annulla'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('creates a taxon with expected parameters and reloads taxonomy', (
+    tester,
+  ) async {
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    var taxonLoads = 0;
+    var writeCalls = 0;
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        taxonLoads += 1;
+        expect(activeOnly, isTrue);
+
+        if (taxonLoads == 1) {
+          return [];
+        }
+
+        return [
+          {
+            'id': '22222222-2222-4222-8222-222222222222',
+            'parent_taxon_id': null,
+            'rank': 'FAMILY',
+            'scientific_name': 'Solanaceae',
+            'authorship': null,
+            'is_hybrid': false,
+            'description': null,
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-03T07:00:00+00:00',
+            'updated_at': '2026-10-03T07:00:00+00:00',
+          },
+        ];
+      },
+      (functionName, parameters) async {
+        writeCalls += 1;
+
+        expect(functionName, 'create_botanical_taxon');
+        expect(parameters, {
+          'target_parent_taxon_id': null,
+          'taxon_rank': 'FAMILY',
+          'taxon_scientific_name': 'Solanaceae',
+          'taxon_authorship': null,
+          'taxon_is_hybrid': false,
+          'taxon_description': null,
+        });
+
+        return {
+          'status': 'created',
+          'botanical_taxon_id': '22222222-2222-4222-8222-222222222222',
+          'row_version': 1,
+          'created_at': '2026-10-03T07:00:00+00:00',
+          'updated_at': '2026-10-03T07:00:00+00:00',
+        };
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(taxonLoads, 1);
+    expect(
+      find.text('Nessun taxon presente nella tassonomia botanica.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Nuovo taxon'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('SPECIES'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('FAMILY').last);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Nome scientifico'),
+      'Solanaceae',
+    );
+
+    await tester.tap(find.text('Crea'));
+    await tester.pumpAndSettle();
+
+    expect(writeCalls, 1);
+    expect(taxonLoads, 2);
+
+    expect(find.text('Nuovo taxon'), findsOneWidget);
+    expect(find.text('Solanaceae'), findsOneWidget);
+    expect(find.text('FAMILY'), findsOneWidget);
+    expect(
+      find.text('Nessun taxon presente nella tassonomia botanica.'),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('keeps create taxon dialog open on duplicate identity', (
+    tester,
+  ) async {
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    var taxonLoads = 0;
+    var writeCalls = 0;
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        taxonLoads += 1;
+        expect(activeOnly, isTrue);
+        return [];
+      },
+      (functionName, parameters) async {
+        writeCalls += 1;
+
+        expect(functionName, 'create_botanical_taxon');
+        expect(parameters, {
+          'target_parent_taxon_id': null,
+          'taxon_rank': 'SPECIES',
+          'taxon_scientific_name': 'Solanum lycopersicum',
+          'taxon_authorship': null,
+          'taxon_is_hybrid': false,
+          'taxon_description': null,
+        });
+
+        return {'status': 'duplicate_identity'};
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Nuovo taxon'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Nome scientifico'),
+      'Solanum lycopersicum',
+    );
+
+    await tester.tap(find.text('Crea'));
+    await tester.pumpAndSettle();
+
+    expect(writeCalls, 1);
+    expect(taxonLoads, 1);
+
+    expect(
+      find.text('Esiste già un taxon con questa identità.'),
+      findsOneWidget,
+    );
+    expect(find.text('Crea'), findsOneWidget);
+    expect(find.text('Annulla'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets(
+    'shows dependency inactive when selected parent taxon is inactive',
+    (tester) async {
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      var taxonLoads = 0;
+      var writeCalls = 0;
+
+      final taxonRepository = BotanicalTaxonRepository.withProviders(
+        ({bool activeOnly = true}) async {
+          taxonLoads += 1;
+          expect(activeOnly, isTrue);
+
+          return [
+            {
+              'id': '11111111-1111-4111-8111-111111111111',
+              'parent_taxon_id': null,
+              'rank': 'GENUS',
+              'scientific_name': 'Solanum',
+              'authorship': null,
+              'is_hybrid': false,
+              'description': null,
+              'is_active': true,
+              'row_version': 1,
+              'created_at': '2026-10-03T07:00:00+00:00',
+              'updated_at': '2026-10-03T07:00:00+00:00',
+            },
+          ];
+        },
+        (functionName, parameters) async {
+          writeCalls += 1;
+
+          expect(functionName, 'create_botanical_taxon');
+          expect(parameters, {
+            'target_parent_taxon_id': '11111111-1111-4111-8111-111111111111',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'taxon_authorship': null,
+            'taxon_is_hybrid': false,
+            'taxon_description': null,
+          });
+
+          return {'status': 'dependency_inactive'};
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          taxonRepository: taxonRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Nuovo taxon'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Nessuno'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('GENUS · Solanum').last);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Nome scientifico'),
+        'Solanum lycopersicum',
+      );
+
+      await tester.tap(find.text('Crea'));
+      await tester.pumpAndSettle();
+
+      expect(writeCalls, 1);
+      expect(taxonLoads, 1);
+
+      expect(
+        find.text('Il taxon padre selezionato non è attivo.'),
+        findsOneWidget,
+      );
+      expect(find.text('Crea'), findsOneWidget);
+      expect(find.text('Annulla'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets('cancels create taxon without calling write path', (
+    tester,
+  ) async {
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    var writeCalls = 0;
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        expect(activeOnly, isTrue);
+        return [];
+      },
+      (functionName, parameters) async {
+        writeCalls += 1;
+        throw StateError('RPC non prevista');
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Nuovo taxon'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Nome scientifico'),
+      'Solanum lycopersicum',
+    );
+
+    await tester.tap(find.text('Annulla'));
+    await tester.pumpAndSettle();
+
+    expect(writeCalls, 0);
+
+    // Rimane solo il pulsante della pagina: il dialog è chiuso.
+    expect(find.text('Nuovo taxon'), findsOneWidget);
+    expect(find.text('Crea'), findsNothing);
+    expect(find.text('Annulla'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets(
+    'prevents duplicate create taxon submission while rpc is pending',
+    (tester) async {
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      var taxonLoads = 0;
+      var writeCalls = 0;
+
+      final rpcCompleter = Completer<Map<String, dynamic>>();
+
+      final taxonRepository = BotanicalTaxonRepository.withProviders(
+        ({bool activeOnly = true}) async {
+          taxonLoads += 1;
+          expect(activeOnly, isTrue);
+
+          if (taxonLoads == 1) {
+            return [];
+          }
+
+          return [
+            {
+              'id': '33333333-3333-4333-8333-333333333333',
+              'parent_taxon_id': null,
+              'rank': 'SPECIES',
+              'scientific_name': 'Solanum lycopersicum',
+              'authorship': null,
+              'is_hybrid': false,
+              'description': null,
+              'is_active': true,
+              'row_version': 1,
+              'created_at': '2026-10-03T07:00:00+00:00',
+              'updated_at': '2026-10-03T07:00:00+00:00',
+            },
+          ];
+        },
+        (functionName, parameters) {
+          writeCalls += 1;
+
+          expect(functionName, 'create_botanical_taxon');
+          expect(parameters, {
+            'target_parent_taxon_id': null,
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'taxon_authorship': null,
+            'taxon_is_hybrid': false,
+            'taxon_description': null,
+          });
+
+          return rpcCompleter.future;
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          taxonRepository: taxonRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Nuovo taxon'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Nome scientifico'),
+        'Solanum lycopersicum',
+      );
+
+      // Primo invio: la RPC rimane intenzionalmente in attesa.
+      await tester.tap(find.text('Crea'));
+      await tester.pump();
+
+      expect(writeCalls, 1);
+
+      // Durante la RPC il pulsante Crea deve essere disabilitato.
+      final createButton = tester.widget<FilledButton>(
+        find.byType(FilledButton).last,
+      );
+
+      expect(createButton.onPressed, isNull);
+
+      // Un ulteriore tentativo sul pulsante disabilitato non deve
+      // generare una seconda chiamata RPC.
+      await tester.tap(find.byType(FilledButton).last);
+      await tester.pump();
+
+      expect(writeCalls, 1);
+
+      // Completiamo la RPC simulando una creazione riuscita.
+      rpcCompleter.complete({
+        'status': 'created',
+        'botanical_taxon_id': '33333333-3333-4333-8333-333333333333',
+        'row_version': 1,
+        'created_at': '2026-10-03T07:00:00+00:00',
+        'updated_at': '2026-10-03T07:00:00+00:00',
+      });
+
+      await tester.pumpAndSettle();
+
+      // Una sola scrittura e una seconda lettura dopo la creazione.
+      expect(writeCalls, 1);
+      expect(taxonLoads, 2);
+
+      expect(find.text('Solanum lycopersicum'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

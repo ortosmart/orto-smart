@@ -8,6 +8,7 @@ import '../data/repositories/botanical_taxon_repository.dart';
 import '../data/models/crop.dart';
 import '../data/models/crop_cultivar.dart';
 import '../data/models/botanical_taxon.dart';
+import '../core/write_authority/botanical_taxon_write_result.dart';
 
 class AgronomicCatalogPage extends StatefulWidget {
   final CatalogAuthorityRepository? repository;
@@ -109,6 +110,252 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
         _authorityInitializationForbidden = true;
       });
     }
+  }
+
+  Future<void> _openCreateTaxonDialog(
+    List<BotanicalTaxon> availableTaxa,
+  ) async {
+    const ranks = [
+      'ORDER',
+      'FAMILY',
+      'GENUS',
+      'SPECIES',
+      'SUBSPECIES',
+      'VARIETY',
+      'FORMA',
+      'UNRANKED',
+    ];
+
+    var scientificName = '';
+    var authorship = '';
+    var description = '';
+
+    var selectedRank = 'SPECIES';
+    String? selectedParentTaxonId;
+    var isHybrid = false;
+    var isSubmitting = false;
+    String? errorMessage;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Future<void> submit() async {
+              final normalizedScientificName = scientificName.trim();
+
+              if (normalizedScientificName.isEmpty) {
+                setDialogState(() {
+                  errorMessage = 'Il nome scientifico è obbligatorio.';
+                });
+                return;
+              }
+
+              setDialogState(() {
+                isSubmitting = true;
+                errorMessage = null;
+              });
+
+              try {
+                final result = await _taxonRepository!.createTaxon(
+                  parentTaxonId: selectedParentTaxonId,
+                  rank: selectedRank,
+                  scientificName: normalizedScientificName,
+                  authorship: _optionalText(authorship),
+                  isHybrid: isHybrid,
+                  description: _optionalText(description),
+                );
+
+                if (!dialogContext.mounted) {
+                  return;
+                }
+
+                switch (result) {
+                  case BotanicalTaxonCreated():
+                    Navigator.of(dialogContext).pop();
+
+                    if (!mounted) {
+                      return;
+                    }
+
+                    setState(() {
+                      _taxaFuture = _taxonRepository!.getTaxa();
+                    });
+
+                  case CreateBotanicalTaxonForbidden():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'Non sei autorizzato a creare taxon nel Catalogo.';
+                    });
+
+                  case CreateBotanicalTaxonInvalidInput():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'I dati inseriti non sono validi. Controlla i campi.';
+                    });
+
+                  case CreateBotanicalTaxonParentNotFound():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'Il taxon padre selezionato non è più disponibile.';
+                    });
+
+                  case CreateBotanicalTaxonDependencyInactive():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage = 'Il taxon padre selezionato non è attivo.';
+                    });
+
+                  case CreateBotanicalTaxonDuplicateIdentity():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage = 'Esiste già un taxon con questa identità.';
+                    });
+                }
+              } catch (_) {
+                if (!dialogContext.mounted) {
+                  return;
+                }
+
+                setDialogState(() {
+                  isSubmitting = false;
+                  errorMessage =
+                      'Errore durante la creazione del taxon. Riprova.';
+                });
+              }
+            }
+
+            return AlertDialog(
+              title: const Text('Nuovo taxon'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedRank,
+                      decoration: const InputDecoration(labelText: 'Rango'),
+                      items: [
+                        for (final rank in ranks)
+                          DropdownMenuItem(value: rank, child: Text(rank)),
+                      ],
+                      onChanged: isSubmitting
+                          ? null
+                          : (value) {
+                              if (value != null) {
+                                setDialogState(() {
+                                  selectedRank = value;
+                                });
+                              }
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      enabled: !isSubmitting,
+                      onChanged: (value) {
+                        scientificName = value;
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Nome scientifico',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      enabled: !isSubmitting,
+                      onChanged: (value) {
+                        authorship = value;
+                      },
+                      decoration: const InputDecoration(labelText: 'Autore'),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String?>(
+                      initialValue: selectedParentTaxonId,
+                      decoration: const InputDecoration(
+                        labelText: 'Taxon padre',
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('Nessuno'),
+                        ),
+                        for (final taxon in availableTaxa)
+                          DropdownMenuItem<String?>(
+                            value: taxon.id,
+                            child: Text(
+                              '${taxon.rank} · ${taxon.scientificName}',
+                            ),
+                          ),
+                      ],
+                      onChanged: isSubmitting
+                          ? null
+                          : (value) {
+                              setDialogState(() {
+                                selectedParentTaxonId = value;
+                              });
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Ibrido'),
+                      value: isHybrid,
+                      onChanged: isSubmitting
+                          ? null
+                          : (value) {
+                              setDialogState(() {
+                                isHybrid = value ?? false;
+                              });
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      enabled: !isSubmitting,
+                      maxLines: 3,
+                      onChanged: (value) {
+                        description = value;
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Descrizione',
+                      ),
+                    ),
+                    if (errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Text(errorMessage!),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Annulla'),
+                ),
+                FilledButton(
+                  onPressed: isSubmitting ? null : submit,
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Crea'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String? _optionalText(String value) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
   Future<void> _openCropCultivars(Crop crop) async {
@@ -317,9 +564,38 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                   enabled: capabilities.canPublish,
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Tassonomia botanica',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Tassonomia botanica',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (capabilities.canManageIdentity)
+                      FilledButton.icon(
+                        onPressed: () {
+                          final taxa = _taxaFuture;
+
+                          if (taxa == null) {
+                            return;
+                          }
+
+                          taxa.then((availableTaxa) {
+                            if (!mounted) {
+                              return;
+                            }
+
+                            _openCreateTaxonDialog(availableTaxa);
+                          });
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Nuovo taxon'),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 FutureBuilder<List<BotanicalTaxon>>(
