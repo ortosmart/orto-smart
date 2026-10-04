@@ -35,6 +35,7 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
   late Future<CatalogCapabilities> _capabilitiesFuture;
   Future<List<BotanicalTaxon>>? _taxaFuture;
   Future<List<Crop>>? _cropsFuture;
+  final Set<String> _taxaWithPendingActiveChange = <String>{};
 
   bool _authorityAlreadyClaimed = false;
   bool _authorityInitializationForbidden = false;
@@ -180,7 +181,9 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                     }
 
                     setState(() {
-                      _taxaFuture = _taxonRepository!.getTaxa();
+                      _taxaFuture = _taxonRepository!.getTaxa(
+                        activeOnly: false,
+                      );
                     });
 
                   case CreateBotanicalTaxonForbidden():
@@ -355,6 +358,218 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
     );
   }
 
+  Future<void> _showTaxonActiveChangeError(String message) async {
+    if (!mounted) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Operazione non completata'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showActiveTaxonDependents(
+    SetBotanicalTaxonActiveDependents result,
+  ) async {
+    final dependencies = <String>[];
+
+    if (result.activeChildTaxaCount > 0) {
+      dependencies.add(
+        '${result.activeChildTaxaCount} classificazioni botaniche attive',
+      );
+    }
+
+    if (result.activeCropsCount > 0) {
+      dependencies.add('${result.activeCropsCount} colture attive');
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            'Impossibile disattivare la classificazione botanica',
+          ),
+          content: Text(
+            'Prima di disattivare questa voce devi gestire le dipendenze attive: '
+            '${dependencies.join(', ')}.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _setTaxonActive(BotanicalTaxon taxon, bool isActive) async {
+    if (_taxaWithPendingActiveChange.contains(taxon.id)) {
+      return;
+    }
+
+    setState(() {
+      _taxaWithPendingActiveChange.add(taxon.id);
+    });
+
+    try {
+      final result = await _taxonRepository!.setTaxonActive(
+        botanicalTaxonId: taxon.id,
+        expectedRowVersion: taxon.rowVersion,
+        isActive: isActive,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (result is BotanicalTaxonActiveChanged ||
+          result is SetBotanicalTaxonActiveUnchanged) {
+        setState(() {
+          _taxaFuture = _taxonRepository!.getTaxa(activeOnly: false);
+        });
+      }
+      if (result is SetBotanicalTaxonActiveDependents) {
+        await _showActiveTaxonDependents(result);
+      }
+      if (result is SetBotanicalTaxonActiveDependencyInactive) {
+        if (!mounted) {
+          return;
+        }
+
+        await showDialog<void>(
+          context: context,
+
+          builder: (dialogContext) {
+            return AlertDialog(
+              title: const Text(
+                'Impossibile riattivare la classificazione botanica',
+              ),
+              content: const Text(
+                'La classificazione superiore deve essere riattivata prima '
+                'di poter riattivare questa voce.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+      if (result is SetBotanicalTaxonActiveForbidden) {
+        await _showTaxonActiveChangeError(
+          'Non sei autorizzato a modificare lo stato della classificazione botanica.',
+        );
+      }
+
+      if (result is SetBotanicalTaxonActiveInvalidInput) {
+        await _showTaxonActiveChangeError(
+          'La richiesta di modifica dello stato della classificazione botanica non è valida.',
+        );
+      }
+
+      if (result is SetBotanicalTaxonActiveNotFound) {
+        await _showTaxonActiveChangeError(
+          'La classificazione botanica non è più disponibile.',
+        );
+      }
+      if (result is SetBotanicalTaxonActiveVersionConflict) {
+        setState(() {
+          _taxaFuture = _taxonRepository!.getTaxa(activeOnly: false);
+        });
+
+        await _showTaxonActiveChangeError(
+          'La classificazione botanica è stata modificata. '
+          'I dati sono stati ricaricati prima di effettuare una nuova operazione.',
+        );
+      }
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _taxaFuture = _taxonRepository!.getTaxa(activeOnly: false);
+      });
+
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Stato da verificare'),
+            content: const Text(
+              'Non è stato possibile verificare l\'esito dell\'operazione. '
+              'I dati sono stati ricaricati prima di consentire una nuova modifica.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _taxaWithPendingActiveChange.remove(taxon.id);
+        });
+      }
+    }
+  }
+
+  Future<void> _confirmDeactivateTaxon(BotanicalTaxon taxon) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Disattivare la classificazione botanica?'),
+          content: const Text(
+            'La voce botanica rimarrà nel catalogo ma non sarà più attiva.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Annulla'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Conferma'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    await _setTaxonActive(taxon, false);
+  }
+
   Future<void> _openEditTaxonDialog(
     BotanicalTaxon taxon,
     List<BotanicalTaxon> availableTaxa,
@@ -432,7 +647,9 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                     }
 
                     setState(() {
-                      _taxaFuture = _taxonRepository!.getTaxa();
+                      _taxaFuture = _taxonRepository!.getTaxa(
+                        activeOnly: false,
+                      );
                     });
                   case UpdateBotanicalTaxonVersionConflict():
                     setDialogState(() {
@@ -624,7 +841,7 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
 
     if (requiresAuthoritativeReload && mounted) {
       setState(() {
-        _taxaFuture = _taxonRepository!.getTaxa();
+        _taxaFuture = _taxonRepository!.getTaxa(activeOnly: false);
       });
     }
   }
@@ -810,7 +1027,7 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
           }
           _taxonRepository ??=
               widget.taxonRepository ?? BotanicalTaxonRepository();
-          _taxaFuture ??= _taxonRepository!.getTaxa();
+          _taxaFuture ??= _taxonRepository!.getTaxa(activeOnly: false);
           _cropRepository ??= widget.cropRepository ?? CropRepository();
           _cropsFuture ??= _cropRepository!.getCrops();
 
@@ -901,17 +1118,44 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             title: Text(taxon.scientificName),
-                            subtitle: Text(
-                              taxon.authorship == null
-                                  ? taxon.rank
-                                  : '${taxon.rank} · ${taxon.authorship}',
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  taxon.authorship == null
+                                      ? taxon.rank
+                                      : '${taxon.rank} · ${taxon.authorship}',
+                                ),
+                                if (!taxon.isActive) const Text('Inattiva'),
+                              ],
                             ),
                             trailing: capabilities.canManageIdentity
-                                ? TextButton(
-                                    onPressed: () {
-                                      _openEditTaxonDialog(taxon, taxa);
-                                    },
-                                    child: const Text('Modifica'),
+                                ? Wrap(
+                                    spacing: 4,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          _openEditTaxonDialog(taxon, taxa);
+                                        },
+                                        child: const Text('Modifica'),
+                                      ),
+                                      TextButton(
+                                        onPressed:
+                                            _taxaWithPendingActiveChange
+                                                .contains(taxon.id)
+                                            ? null
+                                            : taxon.isActive
+                                            ? () =>
+                                                  _confirmDeactivateTaxon(taxon)
+                                            : () =>
+                                                  _setTaxonActive(taxon, true),
+                                        child: Text(
+                                          taxon.isActive
+                                              ? 'Disattiva'
+                                              : 'Riattiva',
+                                        ),
+                                      ),
+                                    ],
                                   )
                                 : null,
                           ),

@@ -557,7 +557,7 @@ void main() {
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
         taxonLoads += 1;
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         return [];
       },
       (functionName, parameters) =>
@@ -605,7 +605,7 @@ void main() {
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
         taxonLoads += 1;
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
 
         return [
           {
@@ -688,7 +688,7 @@ void main() {
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
         taxonLoads += 1;
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         throw Exception('Errore caricamento tassonomia');
       },
       (functionName, parameters) =>
@@ -1330,7 +1330,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         return [];
       },
       (functionName, parameters) async {
@@ -1385,7 +1385,7 @@ void main() {
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
         taxonLoads += 1;
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
 
         if (taxonLoads == 1) {
           return [];
@@ -1498,7 +1498,7 @@ void main() {
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
         taxonLoads += 1;
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         return [];
       },
       (functionName, parameters) async {
@@ -1574,7 +1574,7 @@ void main() {
       final taxonRepository = BotanicalTaxonRepository.withProviders(
         ({bool activeOnly = true}) async {
           taxonLoads += 1;
-          expect(activeOnly, isTrue);
+          expect(activeOnly, isFalse);
 
           return [
             {
@@ -1671,7 +1671,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         return [];
       },
       (functionName, parameters) async {
@@ -1735,7 +1735,7 @@ void main() {
       final taxonRepository = BotanicalTaxonRepository.withProviders(
         ({bool activeOnly = true}) async {
           taxonLoads += 1;
-          expect(activeOnly, isTrue);
+          expect(activeOnly, isFalse);
 
           if (taxonLoads == 1) {
             return [];
@@ -1851,7 +1851,7 @@ void main() {
 
       final taxonRepository = BotanicalTaxonRepository.withProviders(
         ({bool activeOnly = true}) async {
-          expect(activeOnly, isTrue);
+          expect(activeOnly, isFalse);
 
           return [
             {
@@ -1884,6 +1884,8 @@ void main() {
 
       expect(find.text('Solanum'), findsOneWidget);
       expect(find.text('Modifica'), findsNothing);
+      expect(find.text('Disattiva'), findsNothing);
+      expect(find.text('Riattiva'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );
@@ -1909,7 +1911,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
 
         return [
           {
@@ -1942,8 +1944,973 @@ void main() {
 
     expect(find.text('Solanum'), findsOneWidget);
     expect(find.text('Modifica'), findsOneWidget);
+    expect(find.text('Disattiva'), findsOneWidget);
+    expect(find.text('Riattiva'), findsNothing);
     expect(tester.takeException(), isNull);
   });
+  testWidgets('shows inactive taxon with reactivate action', (tester) async {
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'id': '11111111-1111-4111-8111-111111111111',
+            'parent_taxon_id': null,
+            'rank': 'GENUS',
+            'scientific_name': 'Solanum',
+            'authorship': null,
+            'is_hybrid': false,
+            'description': null,
+            'is_active': false,
+            'row_version': 2,
+            'created_at': '2026-10-03T07:00:00+00:00',
+            'updated_at': '2026-10-04T07:00:00+00:00',
+          },
+        ];
+      },
+      (functionName, parameters) async {
+        throw StateError('RPC non prevista');
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Solanum'), findsOneWidget);
+    expect(find.text('Inattiva'), findsOneWidget);
+    expect(find.text('Modifica'), findsOneWidget);
+    expect(find.text('Riattiva'), findsOneWidget);
+    expect(find.text('Disattiva'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('reactivates taxon without confirmation and reloads taxonomy', (
+    tester,
+  ) async {
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    var loadCalls = 0;
+    var writeCalls = 0;
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        expect(activeOnly, isFalse);
+        loadCalls++;
+
+        return [
+          {
+            'id': '11111111-1111-4111-8111-111111111111',
+            'parent_taxon_id': null,
+            'rank': 'GENUS',
+            'scientific_name': 'Solanum',
+            'authorship': null,
+            'is_hybrid': false,
+            'description': null,
+            'is_active': loadCalls > 1,
+            'row_version': loadCalls == 1 ? 2 : 3,
+            'created_at': '2026-10-03T07:00:00+00:00',
+            'updated_at': loadCalls == 1
+                ? '2026-10-04T07:00:00+00:00'
+                : '2026-10-04T08:00:00+00:00',
+          },
+        ];
+      },
+      (functionName, parameters) async {
+        writeCalls++;
+
+        expect(functionName, 'set_botanical_taxon_active');
+        expect(parameters, {
+          'target_botanical_taxon_id': '11111111-1111-4111-8111-111111111111',
+          'expected_row_version': 2,
+          'taxon_is_active': true,
+        });
+
+        return {
+          'status': 'active_changed',
+          'botanical_taxon_id': '11111111-1111-4111-8111-111111111111',
+          'is_active': true,
+          'row_version': 3,
+          'updated_at': '2026-10-04T08:00:00+00:00',
+        };
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(loadCalls, 1);
+    expect(writeCalls, 0);
+    expect(find.text('Inattiva'), findsOneWidget);
+    expect(find.text('Riattiva'), findsOneWidget);
+
+    await tester.tap(find.text('Riattiva'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Disattivare la classificazione botanica?'), findsNothing);
+    expect(writeCalls, 1);
+    expect(loadCalls, 2);
+
+    expect(find.text('Inattiva'), findsNothing);
+    expect(find.text('Riattiva'), findsNothing);
+    expect(find.text('Disattiva'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets(
+    'blocks duplicate taxon activation writes while request is pending',
+    (tester) async {
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      var writeCalls = 0;
+      final writeCompleter = Completer<Map<String, dynamic>>();
+
+      final taxonRepository = BotanicalTaxonRepository.withProviders(
+        ({bool activeOnly = true}) async {
+          expect(activeOnly, isFalse);
+
+          return [
+            {
+              'id': '11111111-1111-4111-8111-111111111111',
+              'parent_taxon_id': null,
+              'rank': 'GENUS',
+              'scientific_name': 'Solanum',
+              'authorship': null,
+              'is_hybrid': false,
+              'description': null,
+              'is_active': false,
+              'row_version': 2,
+              'created_at': '2026-10-03T07:00:00+00:00',
+              'updated_at': '2026-10-04T07:00:00+00:00',
+            },
+          ];
+        },
+        (functionName, parameters) async {
+          writeCalls++;
+
+          expect(functionName, 'set_botanical_taxon_active');
+          expect(parameters, {
+            'target_botanical_taxon_id': '11111111-1111-4111-8111-111111111111',
+            'expected_row_version': 2,
+            'taxon_is_active': true,
+          });
+
+          return writeCompleter.future;
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          taxonRepository: taxonRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Riattiva'));
+      await tester.pump();
+
+      expect(writeCalls, 1);
+
+      await tester.tap(find.text('Riattiva'));
+      await tester.pump();
+
+      expect(writeCalls, 1);
+
+      writeCompleter.complete({
+        'status': 'active_changed',
+        'botanical_taxon_id': '11111111-1111-4111-8111-111111111111',
+        'is_active': true,
+        'row_version': 3,
+        'updated_at': '2026-10-04T08:00:00+00:00',
+      });
+
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets('asks confirmation before deactivating a taxon', (tester) async {
+    var writeCalls = 0;
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'id': '11111111-1111-4111-8111-111111111111',
+            'parent_taxon_id': null,
+            'rank': 'GENUS',
+            'scientific_name': 'Solanum',
+            'authorship': null,
+            'is_hybrid': false,
+            'description': null,
+            'is_active': true,
+            'row_version': 3,
+            'created_at': '2026-10-03T07:00:00+00:00',
+            'updated_at': '2026-10-04T07:00:00+00:00',
+          },
+        ];
+      },
+      (functionName, parameters) async {
+        writeCalls++;
+        throw StateError('RPC non prevista prima della conferma');
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Disattiva'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Disattivare la classificazione botanica?'),
+      findsOneWidget,
+    );
+    expect(find.text('Annulla'), findsOneWidget);
+    expect(find.text('Conferma'), findsOneWidget);
+    expect(writeCalls, 0);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('cancels taxon deactivation without calling write path', (
+    tester,
+  ) async {
+    var writeCalls = 0;
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'id': '11111111-1111-4111-8111-111111111111',
+            'parent_taxon_id': null,
+            'rank': 'GENUS',
+            'scientific_name': 'Solanum',
+            'authorship': null,
+            'is_hybrid': false,
+            'description': null,
+            'is_active': true,
+            'row_version': 3,
+            'created_at': '2026-10-03T07:00:00+00:00',
+            'updated_at': '2026-10-04T07:00:00+00:00',
+          },
+        ];
+      },
+      (functionName, parameters) async {
+        writeCalls++;
+        throw StateError('RPC non prevista');
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Disattiva'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Disattivare la classificazione botanica?'),
+      findsOneWidget,
+    );
+    expect(writeCalls, 0);
+
+    await tester.tap(find.text('Annulla'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Disattivare la classificazione botanica?'), findsNothing);
+    expect(writeCalls, 0);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets(
+    'deactivates taxon with original row version and reloads taxonomy',
+    (tester) async {
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      var loadCalls = 0;
+      var writeCalls = 0;
+
+      final taxonRepository = BotanicalTaxonRepository.withProviders(
+        ({bool activeOnly = true}) async {
+          expect(activeOnly, isFalse);
+          loadCalls++;
+
+          return [
+            {
+              'id': '11111111-1111-4111-8111-111111111111',
+              'parent_taxon_id': null,
+              'rank': 'GENUS',
+              'scientific_name': 'Solanum',
+              'authorship': null,
+              'is_hybrid': false,
+              'description': null,
+              'is_active': loadCalls == 1,
+              'row_version': loadCalls == 1 ? 3 : 4,
+              'created_at': '2026-10-03T07:00:00+00:00',
+              'updated_at': loadCalls == 1
+                  ? '2026-10-04T07:00:00+00:00'
+                  : '2026-10-04T08:00:00+00:00',
+            },
+          ];
+        },
+        (functionName, parameters) async {
+          writeCalls++;
+
+          expect(functionName, 'set_botanical_taxon_active');
+          expect(parameters, {
+            'target_botanical_taxon_id': '11111111-1111-4111-8111-111111111111',
+            'expected_row_version': 3,
+            'taxon_is_active': false,
+          });
+
+          return {
+            'status': 'active_changed',
+            'botanical_taxon_id': '11111111-1111-4111-8111-111111111111',
+            'is_active': false,
+            'row_version': 4,
+            'updated_at': '2026-10-04T08:00:00+00:00',
+          };
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          taxonRepository: taxonRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(loadCalls, 1);
+      expect(writeCalls, 0);
+
+      await tester.tap(find.text('Disattiva'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Disattivare la classificazione botanica?'),
+        findsOneWidget,
+      );
+      expect(writeCalls, 0);
+
+      await tester.tap(find.text('Conferma'));
+      await tester.pumpAndSettle();
+
+      expect(writeCalls, 1);
+      expect(loadCalls, 2);
+
+      expect(find.text('Inattiva'), findsOneWidget);
+      expect(find.text('Riattiva'), findsOneWidget);
+      expect(find.text('Disattiva'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets('reloads taxonomy when taxon deactivation is unchanged', (
+    tester,
+  ) async {
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    var loadCalls = 0;
+    var writeCalls = 0;
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        expect(activeOnly, isFalse);
+        loadCalls++;
+
+        return [
+          {
+            'id': '11111111-1111-4111-8111-111111111111',
+            'parent_taxon_id': null,
+            'rank': 'GENUS',
+            'scientific_name': 'Solanum',
+            'authorship': null,
+            'is_hybrid': false,
+            'description': null,
+            'is_active': true,
+            'row_version': 3,
+            'created_at': '2026-10-03T07:00:00+00:00',
+            'updated_at': '2026-10-04T07:00:00+00:00',
+          },
+        ];
+      },
+      (functionName, parameters) async {
+        writeCalls++;
+
+        expect(functionName, 'set_botanical_taxon_active');
+        expect(parameters, {
+          'target_botanical_taxon_id': '11111111-1111-4111-8111-111111111111',
+          'expected_row_version': 3,
+          'taxon_is_active': false,
+        });
+
+        return {
+          'status': 'unchanged',
+          'botanical_taxon_id': '11111111-1111-4111-8111-111111111111',
+          'is_active': true,
+          'row_version': 3,
+          'updated_at': '2026-10-04T07:00:00+00:00',
+        };
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(loadCalls, 1);
+
+    await tester.tap(find.text('Disattiva'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Conferma'));
+    await tester.pumpAndSettle();
+
+    expect(writeCalls, 1);
+    expect(loadCalls, 2);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('shows active taxon dependents and omits zero categories', (
+    tester,
+  ) async {
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'id': '11111111-1111-4111-8111-111111111111',
+            'parent_taxon_id': null,
+            'rank': 'GENUS',
+            'scientific_name': 'Solanum',
+            'authorship': null,
+            'is_hybrid': false,
+            'description': null,
+            'is_active': true,
+            'row_version': 3,
+            'created_at': '2026-10-03T07:00:00+00:00',
+            'updated_at': '2026-10-04T07:00:00+00:00',
+          },
+        ];
+      },
+      (functionName, parameters) async {
+        expect(functionName, 'set_botanical_taxon_active');
+
+        return {
+          'status': 'active_dependents',
+          'active_child_taxa_count': 2,
+          'active_crops_count': 0,
+        };
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Disattiva'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Conferma'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Impossibile disattivare la classificazione botanica'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('2 classificazioni botaniche attive'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('colture'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('explains inactive parent when taxon reactivation is blocked', (
+    tester,
+  ) async {
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final taxonRepository = BotanicalTaxonRepository.withProviders(
+      ({bool activeOnly = true}) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'id': '11111111-1111-4111-8111-111111111111',
+            'parent_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'rank': 'SPECIES',
+            'scientific_name': 'Solanum lycopersicum',
+            'authorship': null,
+            'is_hybrid': false,
+            'description': null,
+            'is_active': false,
+            'row_version': 3,
+            'created_at': '2026-10-03T07:00:00+00:00',
+            'updated_at': '2026-10-04T07:00:00+00:00',
+          },
+        ];
+      },
+      (functionName, parameters) async {
+        expect(functionName, 'set_botanical_taxon_active');
+        expect(parameters, {
+          'target_botanical_taxon_id': '11111111-1111-4111-8111-111111111111',
+          'expected_row_version': 3,
+          'taxon_is_active': true,
+        });
+
+        return {'status': 'dependency_inactive'};
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        taxonRepository: taxonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Riattiva'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Impossibile riattivare la classificazione botanica'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(
+        'classificazione superiore deve essere riattivata prima',
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+  for (final testCase in [
+    (
+      status: 'forbidden',
+      expectedMessage:
+          'Non sei autorizzato a modificare lo stato della classificazione botanica.',
+    ),
+    (
+      status: 'invalid_input',
+      expectedMessage:
+          'La richiesta di modifica dello stato della classificazione botanica non è valida.',
+    ),
+    (
+      status: 'not_found',
+      expectedMessage: 'La classificazione botanica non è più disponibile.',
+    ),
+  ]) {
+    testWidgets('shows ${testCase.status} taxon activation error', (
+      tester,
+    ) async {
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final taxonRepository = BotanicalTaxonRepository.withProviders(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'id': '11111111-1111-4111-8111-111111111111',
+            'parent_taxon_id': null,
+            'rank': 'GENUS',
+            'scientific_name': 'Solanum',
+            'authorship': null,
+            'is_hybrid': false,
+            'description': null,
+            'is_active': false,
+            'row_version': 3,
+            'created_at': '2026-10-03T07:00:00+00:00',
+            'updated_at': '2026-10-04T07:00:00+00:00',
+          },
+        ];
+      }, (functionName, parameters) async => {'status': testCase.status});
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          taxonRepository: taxonRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Riattiva'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Operazione non completata'), findsOneWidget);
+      expect(find.text(testCase.expectedMessage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
+  testWidgets(
+    'reloads authoritative taxonomy after activation version conflict',
+    (tester) async {
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      var loadCalls = 0;
+      var writeCalls = 0;
+
+      final taxonRepository = BotanicalTaxonRepository.withProviders(
+        ({bool activeOnly = true}) async {
+          expect(activeOnly, isFalse);
+          loadCalls++;
+
+          if (loadCalls == 1) {
+            return [
+              {
+                'id': '11111111-1111-4111-8111-111111111111',
+                'parent_taxon_id': null,
+                'rank': 'GENUS',
+                'scientific_name': 'Solanum',
+                'authorship': null,
+                'is_hybrid': false,
+                'description': null,
+                'is_active': false,
+                'row_version': 3,
+                'created_at': '2026-10-03T07:00:00+00:00',
+                'updated_at': '2026-10-04T07:00:00+00:00',
+              },
+            ];
+          }
+
+          return [
+            {
+              'id': '11111111-1111-4111-8111-111111111111',
+              'parent_taxon_id': null,
+              'rank': 'GENUS',
+              'scientific_name': 'Solanum',
+              'authorship': null,
+              'is_hybrid': false,
+              'description': null,
+              'is_active': true,
+              'row_version': 4,
+              'created_at': '2026-10-03T07:00:00+00:00',
+              'updated_at': '2026-10-04T08:00:00+00:00',
+            },
+          ];
+        },
+        (functionName, parameters) async {
+          writeCalls++;
+
+          return {
+            'status': 'version_conflict',
+            'botanical_taxon_id': '11111111-1111-4111-8111-111111111111',
+            'expected_row_version': 3,
+            'current_row_version': 4,
+            'updated_at': '2026-10-04T08:00:00+00:00',
+          };
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          taxonRepository: taxonRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Riattiva'), findsOneWidget);
+
+      await tester.tap(find.text('Riattiva'));
+      await tester.pumpAndSettle();
+
+      expect(writeCalls, 1);
+      expect(loadCalls, 2);
+
+      expect(
+        find.textContaining('La classificazione botanica è stata modificata'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          'I dati sono stati ricaricati prima di effettuare una nuova operazione.',
+        ),
+        findsOneWidget,
+      );
+
+      expect(find.text('Riattiva'), findsNothing);
+      expect(find.text('Disattiva'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'reloads authoritative taxonomy after uncertain activation outcome',
+    (tester) async {
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      var loadCalls = 0;
+      var writeCalls = 0;
+
+      final taxonRepository = BotanicalTaxonRepository.withProviders(
+        ({bool activeOnly = true}) async {
+          expect(activeOnly, isFalse);
+          loadCalls++;
+
+          return [
+            {
+              'id': '11111111-1111-4111-8111-111111111111',
+              'parent_taxon_id': null,
+              'rank': 'GENUS',
+              'scientific_name': 'Solanum',
+              'authorship': null,
+              'is_hybrid': false,
+              'description': null,
+              'is_active': loadCalls > 1,
+              'row_version': loadCalls > 1 ? 4 : 3,
+              'created_at': '2026-10-03T07:00:00+00:00',
+              'updated_at': loadCalls > 1
+                  ? '2026-10-04T08:00:00+00:00'
+                  : '2026-10-04T07:00:00+00:00',
+            },
+          ];
+        },
+        (functionName, parameters) async {
+          writeCalls++;
+          throw Exception('simulated uncertain outcome');
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          taxonRepository: taxonRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Riattiva'), findsOneWidget);
+
+      await tester.tap(find.text('Riattiva'));
+      await tester.pumpAndSettle();
+
+      expect(writeCalls, 1);
+      expect(loadCalls, 2);
+
+      expect(find.text('Stato da verificare'), findsOneWidget);
+      expect(
+        find.textContaining(
+          'Non è stato possibile verificare l\'esito dell\'operazione.',
+        ),
+        findsOneWidget,
+      );
+
+      expect(find.text('Riattiva'), findsNothing);
+      expect(find.text('Disattiva'), findsOneWidget);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      final deactivateButton = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, 'Disattiva'),
+      );
+
+      expect(deactivateButton.onPressed, isNotNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
   testWidgets('opens edit taxon dialog with existing values', (tester) async {
     final authorityRepository = CatalogAuthorityRepository.withInvoker((
       functionName,
@@ -1964,7 +2931,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
 
         return [
           {
@@ -2049,7 +3016,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
 
         return [
           {
@@ -2138,7 +3105,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         loadCalls++;
 
         return [
@@ -2243,7 +3210,7 @@ void main() {
 
       final taxonRepository = BotanicalTaxonRepository.withProviders(
         ({bool activeOnly = true}) async {
-          expect(activeOnly, isTrue);
+          expect(activeOnly, isFalse);
           loadCalls++;
 
           return [
@@ -2339,7 +3306,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         loadCalls++;
 
         return [
@@ -2453,7 +3420,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         loadCalls++;
 
         return [
@@ -2545,7 +3512,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         loadCalls++;
 
         return [
@@ -2638,7 +3605,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         loadCalls++;
 
         return [
@@ -2731,7 +3698,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         loadCalls++;
 
         return [
@@ -2825,7 +3792,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         loadCalls++;
 
         return [
@@ -2917,7 +3884,7 @@ void main() {
 
       final taxonRepository = BotanicalTaxonRepository.withProviders(
         ({bool activeOnly = true}) async {
-          expect(activeOnly, isTrue);
+          expect(activeOnly, isFalse);
           loadCalls++;
 
           return [
@@ -3008,7 +3975,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         loadCalls++;
 
         return [
@@ -3092,7 +4059,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         loadCalls++;
 
         return [
@@ -3180,7 +4147,7 @@ void main() {
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
         taxonLoads++;
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
 
         if (taxonLoads == 1) {
           return [
@@ -3316,7 +4283,7 @@ void main() {
 
     final taxonRepository = BotanicalTaxonRepository.withProviders(
       ({bool activeOnly = true}) async {
-        expect(activeOnly, isTrue);
+        expect(activeOnly, isFalse);
         loadCalls++;
 
         return [
@@ -3426,7 +4393,7 @@ void main() {
 
       final taxonRepository = BotanicalTaxonRepository.withProviders(
         ({bool activeOnly = true}) async {
-          expect(activeOnly, isTrue);
+          expect(activeOnly, isFalse);
           loadCalls++;
 
           if (loadCalls == 1) {
@@ -3549,7 +4516,7 @@ void main() {
 
       final taxonRepository = BotanicalTaxonRepository.withProviders(
         ({bool activeOnly = true}) async {
-          expect(activeOnly, isTrue);
+          expect(activeOnly, isFalse);
           loadCalls++;
 
           if (loadCalls == 1) {
