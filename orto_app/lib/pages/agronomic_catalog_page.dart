@@ -9,6 +9,7 @@ import '../data/models/crop.dart';
 import '../data/models/crop_cultivar.dart';
 import '../data/models/botanical_taxon.dart';
 import '../core/write_authority/botanical_taxon_write_result.dart';
+import '../core/write_authority/catalog_crop_write_result.dart';
 
 class AgronomicCatalogPage extends StatefulWidget {
   final CatalogAuthorityRepository? repository;
@@ -36,6 +37,7 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
   Future<List<BotanicalTaxon>>? _taxaFuture;
   Future<List<Crop>>? _cropsFuture;
   final Set<String> _taxaWithPendingActiveChange = <String>{};
+  final Set<String> _cropsWithPendingActiveChange = <String>{};
 
   bool _authorityAlreadyClaimed = false;
   bool _authorityInitializationForbidden = false;
@@ -846,6 +848,621 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
     }
   }
 
+  Future<void> _openCreateCropDialog() async {
+    final taxa = await _taxonRepository!.getTaxa(activeOnly: true);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (taxa.isEmpty) {
+      await _showCropActiveChangeError(
+        'Non è possibile creare una coltura perché non sono presenti '
+        'classificazioni botaniche attive.',
+      );
+      return;
+    }
+    var canonicalName = '';
+    var selectedTaxonId = taxa.first.id;
+    var description = '';
+    var isSubmitting = false;
+    String? errorMessage;
+    var requiresAuthoritativeReload = false;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Future<void> submit() async {
+              final normalizedCanonicalName = canonicalName.trim();
+
+              if (normalizedCanonicalName.isEmpty) {
+                setDialogState(() {
+                  errorMessage = 'Il nome della coltura è obbligatorio.';
+                });
+                return;
+              }
+
+              setDialogState(() {
+                isSubmitting = true;
+                errorMessage = null;
+              });
+
+              try {
+                final result = await _cropRepository!.createCrop(
+                  taxonId: selectedTaxonId,
+                  canonicalName: normalizedCanonicalName,
+                  description: _optionalText(description),
+                );
+
+                if (!dialogContext.mounted) {
+                  return;
+                }
+
+                switch (result) {
+                  case CatalogCropCreated():
+                    Navigator.of(dialogContext).pop();
+
+                    if (!mounted) {
+                      return;
+                    }
+
+                    setState(() {
+                      _cropsFuture = _cropRepository!.getCrops(
+                        activeOnly: false,
+                      );
+                    });
+
+                  case CreateCatalogCropForbidden():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage = 'Non sei autorizzato a creare colture.';
+                    });
+
+                  case CreateCatalogCropInvalidInput():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'I dati inseriti non sono validi. Controlla i campi.';
+                    });
+
+                  case CreateCatalogCropTaxonNotFound():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'La classificazione botanica selezionata non è più disponibile.';
+                    });
+
+                  case CreateCatalogCropDependencyInactive():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'La classificazione botanica selezionata non è più attiva.';
+                    });
+
+                  case CreateCatalogCropDuplicateCanonicalName():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'Esiste già una coltura con questo nome nel Catalogo Agronomico.';
+                    });
+                }
+              } catch (_) {
+                if (!dialogContext.mounted) {
+                  return;
+                }
+
+                setDialogState(() {
+                  isSubmitting = false;
+                  requiresAuthoritativeReload = true;
+                  errorMessage =
+                      'Non è stato possibile verificare l\'esito della creazione. '
+                      'Chiudi questa finestra: i dati verranno ricaricati prima di '
+                      'un nuovo tentativo.';
+                });
+              }
+            }
+
+            return AlertDialog(
+              title: const Text('Nuova coltura'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      enabled: !isSubmitting && !requiresAuthoritativeReload,
+                      onChanged: (value) {
+                        canonicalName = value;
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Nome coltura',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedTaxonId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Classificazione botanica',
+                      ),
+                      items: [
+                        for (final taxon in taxa)
+                          DropdownMenuItem<String>(
+                            value: taxon.id,
+                            child: Text(
+                              '${taxon.rank} · ${taxon.scientificName}',
+                            ),
+                          ),
+                      ],
+                      onChanged: isSubmitting || requiresAuthoritativeReload
+                          ? null
+                          : (value) {
+                              if (value != null) {
+                                setDialogState(() {
+                                  selectedTaxonId = value;
+                                });
+                              }
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      enabled: !isSubmitting && !requiresAuthoritativeReload,
+                      maxLines: 3,
+                      onChanged: (value) {
+                        description = value;
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Descrizione',
+                      ),
+                    ),
+                    if (errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Text(errorMessage!),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Annulla'),
+                ),
+                FilledButton(
+                  onPressed: isSubmitting || requiresAuthoritativeReload
+                      ? null
+                      : submit,
+                  child: const Text('Salva'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (requiresAuthoritativeReload && mounted) {
+      setState(() {
+        _cropsFuture = _cropRepository!.getCrops(activeOnly: false);
+      });
+    }
+  }
+
+  Future<void> _openEditCropDialog(Crop crop) async {
+    final rowVersion = crop.rowVersion;
+    final currentTaxonId = crop.taxonId;
+
+    if (rowVersion == null || rowVersion < 1 || currentTaxonId == null) {
+      await _showCropActiveChangeError(
+        'Non è possibile modificare la coltura perché i dati necessari '
+        'non sono disponibili.',
+      );
+      return;
+    }
+
+    final taxa = await _taxonRepository!.getTaxa(activeOnly: false);
+
+    if (!mounted) {
+      return;
+    }
+
+    final selectableTaxa = taxa
+        .where((taxon) => taxon.isActive || taxon.id == currentTaxonId)
+        .toList();
+
+    final currentTaxonExists = selectableTaxa.any(
+      (taxon) => taxon.id == currentTaxonId,
+    );
+
+    if (!currentTaxonExists) {
+      await _showCropActiveChangeError(
+        'La classificazione botanica attualmente collegata alla coltura '
+        'non è più disponibile.',
+      );
+      return;
+    }
+    var canonicalName = crop.name;
+    var description = crop.description ?? '';
+    var selectedTaxonId = currentTaxonId;
+    var isSubmitting = false;
+    String? errorMessage;
+    var requiresAuthoritativeReload = false;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Future<void> submit() async {
+              final normalizedCanonicalName = canonicalName.trim();
+
+              if (normalizedCanonicalName.isEmpty) {
+                setDialogState(() {
+                  errorMessage = 'Il nome della coltura è obbligatorio.';
+                });
+                return;
+              }
+
+              setDialogState(() {
+                isSubmitting = true;
+                errorMessage = null;
+              });
+
+              try {
+                final result = await _cropRepository!.updateCrop(
+                  catalogCropId: crop.id,
+                  expectedRowVersion: rowVersion,
+                  taxonId: selectedTaxonId,
+                  canonicalName: normalizedCanonicalName,
+                  description: _optionalText(description),
+                );
+
+                if (!dialogContext.mounted) {
+                  return;
+                }
+
+                switch (result) {
+                  case CatalogCropUpdated():
+                  case UpdateCatalogCropUnchanged():
+                    Navigator.of(dialogContext).pop();
+
+                    if (!mounted) {
+                      return;
+                    }
+
+                    setState(() {
+                      _cropsFuture = _cropRepository!.getCrops(
+                        activeOnly: false,
+                      );
+                    });
+
+                  case UpdateCatalogCropVersionConflict():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      requiresAuthoritativeReload = true;
+                      errorMessage =
+                          'La coltura è stata modificata nel frattempo. '
+                          'Ricarica i dati prima di effettuare una nuova modifica.';
+                    });
+
+                  case UpdateCatalogCropForbidden():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'Non sei autorizzato a modificare la coltura.';
+                    });
+
+                  case UpdateCatalogCropInvalidInput():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'I dati inseriti non sono validi. Controlla i campi.';
+                    });
+
+                  case UpdateCatalogCropNotFound():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'La coltura da modificare non è più disponibile.';
+                    });
+
+                  case UpdateCatalogCropTaxonNotFound():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'La classificazione botanica selezionata '
+                          'non è più disponibile.';
+                    });
+
+                  case UpdateCatalogCropDependencyInactive():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage =
+                          'La classificazione botanica selezionata non è attiva.';
+                    });
+
+                  case UpdateCatalogCropDuplicateCanonicalName():
+                    setDialogState(() {
+                      isSubmitting = false;
+                      errorMessage = 'Esiste già una coltura con questo nome.';
+                    });
+                }
+              } catch (_) {
+                if (!dialogContext.mounted) {
+                  return;
+                }
+
+                setDialogState(() {
+                  isSubmitting = false;
+                  requiresAuthoritativeReload = true;
+                  errorMessage =
+                      'Non è stato possibile verificare l\'esito del salvataggio. '
+                      'Ricarica i dati prima di effettuare una nuova modifica.';
+                });
+              }
+            }
+
+            return AlertDialog(
+              title: const Text('Modifica coltura'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      initialValue: canonicalName,
+                      enabled: !isSubmitting,
+                      onChanged: (value) {
+                        canonicalName = value;
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Nome coltura',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedTaxonId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Classificazione botanica',
+                      ),
+                      items: [
+                        for (final taxon in selectableTaxa)
+                          DropdownMenuItem<String>(
+                            value: taxon.id,
+                            child: Text(
+                              '${taxon.rank} · ${taxon.scientificName}'
+                              '${taxon.isActive ? '' : ' · Inattiva'}',
+                            ),
+                          ),
+                      ],
+                      onChanged: isSubmitting
+                          ? null
+                          : (value) {
+                              if (value != null) {
+                                setDialogState(() {
+                                  selectedTaxonId = value;
+                                });
+                              }
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      initialValue: description,
+                      enabled: !isSubmitting,
+                      maxLines: 3,
+                      onChanged: (value) {
+                        description = value;
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Descrizione',
+                      ),
+                    ),
+                    if (errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Text(errorMessage!),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Annulla'),
+                ),
+                FilledButton(
+                  onPressed: isSubmitting || requiresAuthoritativeReload
+                      ? null
+                      : submit,
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Salva'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (requiresAuthoritativeReload && mounted) {
+      setState(() {
+        _cropsFuture = _cropRepository!.getCrops(activeOnly: false);
+      });
+    }
+  }
+
+  Future<void> _showCropActiveChangeError(String message) async {
+    if (!mounted) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Operazione non completata'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _setCropActive(Crop crop, bool isActive) async {
+    if (_cropsWithPendingActiveChange.contains(crop.id)) {
+      return;
+    }
+    final rowVersion = crop.rowVersion;
+
+    if (rowVersion == null || rowVersion < 1) {
+      await _showCropActiveChangeError(
+        'Non è possibile modificare lo stato della coltura perché '
+        'la versione del dato non è disponibile.',
+      );
+      return;
+    }
+    setState(() {
+      _cropsWithPendingActiveChange.add(crop.id);
+    });
+
+    try {
+      final result = await _cropRepository!.setCropActive(
+        catalogCropId: crop.id,
+        expectedRowVersion: rowVersion,
+        isActive: isActive,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (result is CatalogCropActiveChanged ||
+          result is SetCatalogCropActiveUnchanged) {
+        setState(() {
+          _cropsFuture = _cropRepository!.getCrops(activeOnly: false);
+        });
+      }
+
+      if (result is SetCatalogCropActiveDependents) {
+        await _showCropActiveChangeError(
+          'Impossibile disattivare la coltura: sono presenti '
+          '${result.dependentCount} cultivar attive collegate.',
+        );
+      }
+
+      if (result is SetCatalogCropActiveDependencyInactive) {
+        await _showCropActiveChangeError(
+          'Impossibile riattivare la coltura perché la classificazione '
+          'botanica collegata non è attiva.',
+        );
+      }
+
+      if (result is SetCatalogCropActiveForbidden) {
+        await _showCropActiveChangeError(
+          'Non sei autorizzato a modificare lo stato della coltura.',
+        );
+      }
+
+      if (result is SetCatalogCropActiveInvalidInput) {
+        await _showCropActiveChangeError(
+          'La richiesta di modifica dello stato della coltura non è valida.',
+        );
+      }
+
+      if (result is SetCatalogCropActiveNotFound) {
+        await _showCropActiveChangeError('La coltura non è più disponibile.');
+      }
+
+      if (result is SetCatalogCropActiveVersionConflict) {
+        setState(() {
+          _cropsFuture = _cropRepository!.getCrops(activeOnly: false);
+        });
+
+        await _showCropActiveChangeError(
+          'La coltura è stata modificata. '
+          'I dati sono stati ricaricati prima di effettuare una nuova operazione.',
+        );
+      }
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _cropsFuture = _cropRepository!.getCrops(activeOnly: false);
+      });
+
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Stato da verificare'),
+            content: const Text(
+              'Non è stato possibile verificare l\'esito dell\'operazione. '
+              'I dati sono stati ricaricati prima di consentire una nuova modifica.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _cropsWithPendingActiveChange.remove(crop.id);
+        });
+      }
+    }
+  }
+
+  Future<void> _confirmDeactivateCrop(Crop crop) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Disattivare la coltura?'),
+          content: const Text(
+            'La coltura rimarrà nel catalogo ma non sarà più attiva.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Annulla'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Conferma'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    await _setCropActive(crop, false);
+  }
+
   String? _optionalText(String value) {
     final trimmed = value.trim();
     return trimmed.isEmpty ? null : trimmed;
@@ -1029,7 +1646,7 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
               widget.taxonRepository ?? BotanicalTaxonRepository();
           _taxaFuture ??= _taxonRepository!.getTaxa(activeOnly: false);
           _cropRepository ??= widget.cropRepository ?? CropRepository();
-          _cropsFuture ??= _cropRepository!.getCrops();
+          _cropsFuture ??= _cropRepository!.getCrops(activeOnly: false);
 
           return FutureBuilder<List<Crop>>(
             future: _cropsFuture,
@@ -1164,9 +1781,24 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                   },
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Colture',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Colture',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (capabilities.canManageIdentity)
+                      FilledButton.icon(
+                        onPressed: _openCreateCropDialog,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Nuova coltura'),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 12),
               ];
@@ -1197,8 +1829,42 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                             Text(crop.scientificName!),
                           if (crop.botanicalFamilyName != null)
                             Text(crop.botanicalFamilyName!),
+                          if (!crop.isActive) const Text('Inattiva'),
                         ],
                       ),
+                      trailing: capabilities.canManageIdentity
+                          ? Wrap(
+                              spacing: 8,
+                              children: [
+                                TextButton(
+                                  onPressed:
+                                      _cropsWithPendingActiveChange.contains(
+                                        crop.id,
+                                      )
+                                      ? null
+                                      : () => _openEditCropDialog(crop),
+                                  child: const Text('Modifica'),
+                                ),
+                                TextButton(
+                                  onPressed:
+                                      _cropsWithPendingActiveChange.contains(
+                                        crop.id,
+                                      )
+                                      ? null
+                                      : () {
+                                          if (crop.isActive) {
+                                            _confirmDeactivateCrop(crop);
+                                          } else {
+                                            _setCropActive(crop, true);
+                                          }
+                                        },
+                                  child: Text(
+                                    crop.isActive ? 'Disattiva' : 'Riattiva',
+                                  ),
+                                ),
+                              ],
+                            )
+                          : null,
                     ),
                   );
                 }
