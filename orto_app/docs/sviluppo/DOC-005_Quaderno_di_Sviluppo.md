@@ -4,7 +4,7 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.19
+**Versione:** 0.20
 
 **Stato:** In sviluppo
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 01/10/2026
+**Ultimo aggiornamento:** 06/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.19 |
+| Versione | 0.20 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 01/10/2026 |
+| Ultimo aggiornamento | 06/10/2026 |
 
 ---
 
@@ -58,6 +58,7 @@
 | 0.17 | 18/09/2026 | Aggiornamento e chiusura documentale della Sessione S029: completamento della UI del lifecycle di `plantings`, azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per gli stati terminali, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`, suite completa finale 1011/1011, commit tecnico `6b3fa92`; Sessione S029 conclusa con 1 h 19 min di sviluppo, 2 h 50 min di documentazione e 4 h 09 min complessivi |
 | 0.18 | 28/09/2026 | Aggiornamento e chiusura documentale della Sessione S030: realizzazione del Catalogo Agronomico V1 globale, separazione tra identità botaniche e Knowledge agronomica, Catalog Authority, ingestion e workflow editoriale, Knowledge canonica, pubblicazione e Resolver, Write Path autoritativi, cutover finale a `botanical_taxa` → `crops` → `crop_cultivars`, riallineamento di `plantings` a `crop_id` + `cultivar_id`, integrazione Flutter, deployment remoto e verifiche finali; Sessione S030 conclusa con 21 h 06 min di sviluppo, 6 h 13 min di documentazione e 27 h 19 min complessivi; totale progetto 229 h 03 min |
 | 0.19 | 01/10/2026 | Aggiornamento e chiusura documentale della Sessione S031: integrazione operativa Flutter del Catalogo Agronomico globale nelle Impostazioni, gestione dello stato e dell'inizializzazione controllata della Catalog Authority, esposizione delle capability server-side, consultazione delle colture globali, navigazione gerarchica Coltura → Cultivar, caricamento on demand delle cultivar, gestione degli stati vuoto/errore/retry, eliminazione del precedente percorso autonomo `Impostazioni → Varietà`, 971 test superati e definizione della pianificazione FUTURE della S032; Sessione S031 conclusa con 4 h 03 min di sviluppo, 2 h 03 min di documentazione e 6 h 06 min complessivi; chiusura documentale il 01/10/2026 alle 12:07; totale progetto 235 h 09 min |
+| 0.20 | 06/10/2026 | Aggiornamento documentale in corso della Sessione S032: ricognizione dell'architettura reale del Catalogo Agronomico V1; verifica del contratto autoritativo della tassonomia botanica; integrazione Flutter dei Write Path di tassonomia, colture e cultivar; collegamento Crop → Taxon; gestione UI della classificazione botanica con lettura, creazione, modifica, attivazione e disattivazione; applicazione delle capability della Catalog Authority; concorrenza ottimistica mediante `row_version`; nessuna sovrascrittura automatica su `version_conflict`; nessun retry automatico dopo esito incerto; reload dello stato autoritativo; `flutter analyze` senza problemi e suite finale 1077/1077; commit conclusivo dello sviluppo `842a6b6`; sviluppo S032 concluso con 7 h 58 min; fase Manuali S032 ancora in corso |
 
 ---
 
@@ -100,8 +101,11 @@ Per una sessione ancora in corso viene riportato soltanto il tempo già consolid
 | S029 | 17–18/09/2026 | 4 h 09 min | 201 h 44 min | Lifecycle operativo delle coltivazioni | ✅ |
 | S030 | 18–28/09/2026 | 27 h 19 min | 229 h 03 min | Catalogo Agronomico V1 globale e cutover finale Database + Flutter | ✅ |
 | S031 | 28/09–01/10/2026 | 6 h 06 min | 235 h 09 min | Integrazione operativa Flutter del Catalogo Agronomico globale e navigazione Coltura → Cultivar | ✅ |
+| S032 | 01–06/10/2026 | 7 h 58 min* | 243 h 07 min* | Gestione operativa delle identità del Catalogo Agronomico e UI della tassonomia botanica | 🟡 |
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
+
+* Per la Sessione S032 la fase di sviluppo è conclusa con 7 h 58 min, mentre la fase Manuali è ancora in corso. La durata e il progressivo indicati per S032 comprendono pertanto esclusivamente il tempo già consolidato prima dell'aggiunta del tempo documentale S032. Il totale definitivo della sessione e del progetto sarà registrato alla chiusura della fase Manuali.
 
 Per le Sessioni S004, S005 e S006 è disponibile il tempo complessivo storico della sessione, ma non la ripartizione attendibile tra sviluppo e documentazione.
 
@@ -320,6 +324,75 @@ Totale progetto             235 h 09 min
 
 La Sessione S031 risulta pertanto conclusa sia nella fase di sviluppo sia nella fase documentale.
 
+Per la Sessione S032 il tempo di sviluppo consolidato è:
+
+```text
+Sviluppo S032     7 h 58 min
+```
+
+La fase sviluppo S032 è conclusa.
+
+Gli intervalli di sviluppo consolidati sono:
+
+```text
+01/10/2026   13:18 → 13:30    0 h 12 min
+02/10/2026   09:36 → 09:50    0 h 14 min
+02/10/2026   11:24 → 13:30    2 h 06 min
+03/10/2026   08:42 → 10:48    2 h 06 min
+03/10/2026   16:33 → 17:40    1 h 07 min
+04/10/2026   11:04 → 13:17    2 h 13 min
+-----------------------------------------
+Totale                         7 h 58 min
+```
+
+La fase sviluppo S032 è stata chiusa il:
+
+> **04/10/2026 alle 13:17**
+
+La fase Manuali S032 è iniziata ufficialmente il:
+
+> **04/10/2026 alle 22:40**
+
+Durante la compilazione è stata dichiarata una sospensione del conteggio documentale.
+
+L'orario puntuale di inizio della sospensione non viene registrato in questo aggiornamento perché non è stato consolidato con sufficiente certezza.
+
+La fase Manuali S032 è stata ripresa il:
+
+> **06/10/2026 alle 09:59**
+
+La fase Manuali S032 è attualmente **IN CORSO**.
+
+Il tempo documentale definitivo della S032 non viene quindi ancora calcolato.
+
+Il progressivo consolidato prima dell'aggiunta del tempo Manuali S032 è:
+
+```text
+235 h 09 min   totale progetto alla chiusura S031
++ 7 h 58 min   sviluppo S032
+-----------------------------------------------
+243 h 07 min   totale consolidato prima del tempo Manuali S032
+```
+
+La ripartizione consolidata, prima dell'aggiunta del tempo Manuali S032, è:
+
+```text
+Sviluppo complessivo                 180 h 40 min
+Documentazione chiusa fino a S031     62 h 27 min
+-------------------------------------------------
+Totale consolidato                   243 h 07 min
+```
+
+Stato corrente:
+
+```text
+S032 sviluppo        CONCLUSO
+S032 documentazione  IN CORSO
+S032 totale          DA CONSOLIDARE
+```
+
+Il totale definitivo della Sessione S032 e il nuovo progressivo complessivo del progetto saranno registrati esclusivamente alla chiusura ufficiale della fase Manuali S032.
+
 ---
 
 # Indice
@@ -366,6 +439,7 @@ La Sessione S031 risulta pertanto conclusa sia nella fase di sviluppo sia nella 
 3.29 S029
 3.30 S030
 3.31 S031
+3.32 S032
 
 ## 4. Considerazioni finali
 
@@ -11321,3 +11395,856 @@ S031 totale          6 h 06 min
 
 Progetto complessivo 235 h 09 min
 ```
+
+---
+
+# Sessione S032 — Gestione operativa delle identità del Catalogo Agronomico
+
+## Obiettivo della sessione
+
+La Sessione S032 ha avuto come obiettivo l'estensione dell'integrazione Flutter del **Catalogo Agronomico V1 globale**, partendo dalla consultazione introdotta nella S031 e procedendo verso la gestione operativa controllata delle identità del Catalogo.
+
+La sessione è stata avviata con una ricognizione tecnica della baseline reale, senza assumere come vincolante la precedente pianificazione esplorativa.
+
+La ricognizione ha evidenziato che il backend del Catalogo risultava già molto più avanzato rispetto a quanto ipotizzato nella roadmap precedente: le migration della S030 avevano già realizzato l'architettura globale del Catalogo, la Catalog Authority, la tassonomia botanica, le identità globali Crop e Cultivar, il sistema delle fonti e dell'acquisizione, il workflow editoriale, la Knowledge canonica, la pubblicazione, il Resolver e i relativi Write Path autoritativi.
+
+Di conseguenza, la precedente pianificazione indicativa delle sessioni S032–S042+ deve essere considerata **esplorativa e non ufficiale**.
+
+La S032 ha quindi concentrato il lavoro sull'integrazione Flutter progressiva dei Write Path già disponibili, secondo la sequenza:
+
+```text
+Tassonomia botanica
+→ Colture
+→ Cultivar
+```
+
+senza introdurre dati agronomici di esempio o popolamenti provvisori nel Catalogo reale.
+
+---
+
+## Stato iniziale
+
+La S032 è partita dalla baseline consolidata al termine della S031.
+
+Lo stato Git iniziale risultava:
+
+```text
+branch: main
+HEAD: a66e146a45a47633e53f35d3284e210b09ec9135
+working tree: clean
+HEAD = origin/main
+```
+
+Ultimo commit iniziale:
+
+```text
+a66e146 Completa documentazione S031
+```
+
+Le verifiche iniziali hanno inoltre confermato:
+
+- ambiente Supabase locale operativo;
+- migration locali e remote allineate;
+- 33 migration presenti nella baseline verificata;
+- `flutter analyze` senza problemi;
+- suite Flutter completa con **971/971 test superati**;
+- nessuna necessità di aggiornare Flutter o le dipendenze durante la S032.
+
+È stato confermato il principio:
+
+> durante la S032 non vengono introdotti aggiornamenti di Flutter o dei package non necessari agli obiettivi della sessione.
+
+---
+
+## Ricognizione dell'architettura reale del Catalogo
+
+La ricognizione iniziale ha verificato che il backend del Catalogo Agronomico V1 comprende già una sequenza organica di migration dedicate a:
+
+- Catalog Authority;
+- identità globali;
+- tassonomia botanica;
+- Crop globali;
+- Cultivar globali;
+- registro dei parametri agronomici;
+- vocabolari di contesto;
+- fonti;
+- documenti;
+- acquisizione;
+- osservazioni;
+- alias;
+- workflow editoriale;
+- candidati;
+- evidence;
+- submission e review;
+- Knowledge agronomica canonica;
+- pubblicazione;
+- Resolver;
+- Write Path dedicati;
+- cutover globale finale.
+
+Questa ricognizione ha modificato il presupposto operativo della pianificazione precedente.
+
+La S032 non deve quindi progettare nuovamente tali componenti, ma integrare progressivamente nell'applicazione Flutter i contratti autoritativi già disponibili e verificati.
+
+Rimane valido il principio architetturale:
+
+```text
+backend autoritativo
+Flutter client non autoritativo
+Write Path server-side per le modifiche
+```
+
+---
+
+## Contratto della tassonomia botanica
+
+La S032 ha verificato il contratto effettivo di `public.botanical_taxa`.
+
+La tassonomia supporta:
+
+- struttura gerarchica mediante `parent_taxon_id`;
+- concorrenza ottimistica mediante `row_version`;
+- tassonomia parziale;
+- prevenzione server-side dei cicli;
+- stato attivo/inattivo;
+- lettura autenticata;
+- modifiche esclusivamente attraverso Write Path autorizzati.
+
+I rank botanici effettivamente ammessi sono:
+
+```text
+ORDER
+FAMILY
+GENUS
+SPECIES
+SUBSPECIES
+VARIETY
+FORMA
+UNRANKED
+```
+
+È stato consolidato un principio fondamentale:
+
+> **CULTIVAR non è un rank tassonomico.**
+
+La Cultivar costituisce una distinta identità agronomica globale e non deve essere inserita nella gerarchia dei rank di `botanical_taxa`.
+
+La classificazione botanica può inoltre essere parziale.
+
+Il `parent_taxon_id` rappresenta la classificazione superiore disponibile e non obbliga alla presenza di ogni rank intermedio.
+
+Flutter non deve quindi introdurre regole tassonomiche aggiuntive non previste dal backend.
+
+---
+
+## Write Path autoritativi della tassonomia
+
+Sono stati verificati i Write Path:
+
+```text
+create_botanical_taxon
+update_botanical_taxon
+set_botanical_taxon_active
+```
+
+I contratti server-side gestiscono, tra gli altri:
+
+- autorizzazione tramite Catalog Authority;
+- validazione dei dati;
+- classificazione superiore mancante;
+- classificazione superiore inattiva;
+- duplicati;
+- auto-parent;
+- cicli gerarchici;
+- concorrenza ottimistica;
+- `version_conflict`;
+- stato `unchanged`;
+- dipendenze attive;
+- attivazione e disattivazione.
+
+È stato inoltre verificato che Flutter non deve introdurre un blocco artificiale quando una voce botanica conserva una classificazione superiore precedentemente valida che nel frattempo sia diventata inattiva.
+
+In questi casi il server rimane l'autorità finale sulle invarianti ammesse.
+
+---
+
+## Integrazione Flutter del Write Path tassonomico
+
+La S032 ha introdotto il modello Flutter della tassonomia e il relativo repository autoritativo.
+
+Sono stati integrati:
+
+```text
+lib/data/models/botanical_taxon.dart
+lib/data/repositories/botanical_taxon_repository.dart
+```
+
+insieme alla gerarchia dei risultati dei Write Path necessaria a distinguere gli esiti restituiti dal server.
+
+Il checkpoint successivo all'integrazione ha prodotto:
+
+```text
+999/999 test superati
+```
+
+---
+
+## Collegamento Crop → Taxon
+
+Il modello Crop è stato esteso per supportare il collegamento opzionale alla classificazione botanica.
+
+Sono stati introdotti i riferimenti:
+
+```text
+taxonId
+taxonRank
+```
+
+Il collegamento rimane opzionale e coerente con il principio di tassonomia parziale.
+
+Dopo l'integrazione:
+
+```text
+999/999 test superati
+```
+
+---
+
+## Write Path delle colture
+
+La S032 ha integrato lato Flutter i Write Path autoritativi delle colture globali.
+
+Sono stati introdotti:
+
+- gerarchia dei risultati;
+- repository dedicato;
+- parsing degli stati restituiti dalle RPC;
+- gestione della concorrenza ottimistica;
+- test specifici.
+
+Il checkpoint ha prodotto:
+
+```text
+1017/1017 test superati
+```
+
+Commit tecnico:
+
+```text
+745fd53 Integra Write Path tassonomia e colture catalogo
+```
+
+---
+
+## Write Path delle cultivar
+
+Successivamente sono stati integrati i Write Path autoritativi delle cultivar globali.
+
+L'integrazione comprende:
+
+- contratti RPC;
+- gerarchia dei risultati;
+- repository;
+- gestione degli stati server-side;
+- test specifici.
+
+Il checkpoint ha prodotto:
+
+```text
+1033/1033 test superati
+```
+
+Commit tecnico:
+
+```text
+d9380a8 Integra Write Path cultivar catalogo
+```
+
+---
+
+## Ricognizione della UI del Catalogo
+
+La ricognizione della UI esistente ha confermato che, al termine della S031, erano già disponibili:
+
+- visualizzazione della Catalog Authority;
+- consultazione delle colture;
+- consultazione delle cultivar;
+- navigazione `Coltura → Cultivar`;
+- utilizzo delle colture nei flussi operativi già integrati.
+
+Non risultava invece ancora disponibile una gestione completa di:
+
+- tassonomia;
+- Crop;
+- Cultivar;
+- alias;
+- fonti e acquisizione;
+- candidati;
+- revisione;
+- pubblicazione;
+- Resolver.
+
+È stata quindi approvata una progressione della UI basata sulla sequenza:
+
+```text
+Tassonomia
+→ Colture
+→ Cultivar
+```
+
+senza anticipare nella S032 le successive funzioni editoriali.
+
+---
+
+## Consultazione della tassonomia nella UI
+
+La pagina del Catalogo Agronomico è stata estesa con una sezione dedicata alla tassonomia botanica.
+
+L'integrazione comprende:
+
+- repository iniettabile;
+- caricamento asincrono;
+- visualizzazione della classificazione;
+- stato vuoto;
+- stato dati disponibili;
+- gestione errore;
+- retry.
+
+Il checkpoint ha prodotto:
+
+```text
+1036/1036 test superati
+```
+
+Commit tecnico:
+
+```text
+dc1639d Integra tassonomia botanica nel Catalogo Agronomico
+```
+
+---
+
+## Creazione di una voce botanica
+
+È stata integrata nella UI la creazione controllata delle voci botaniche.
+
+La finestra di creazione consente di gestire:
+
+- rank;
+- nome scientifico;
+- autore;
+- classificazione superiore;
+- indicazione di ibrido;
+- descrizione.
+
+L'azione è disponibile esclusivamente quando la Catalog Authority espone la capability:
+
+```text
+canManageIdentity
+```
+
+Sono stati verificati:
+
+- validazione;
+- duplicati;
+- classificazione superiore inattiva;
+- prevenzione degli invii multipli;
+- annullamento senza scrittura;
+- reload autoritativo dopo il successo.
+
+Il checkpoint ha prodotto:
+
+```text
+1044/1044 test superati
+```
+
+Commit tecnico:
+
+```text
+6735e94 Integra creazione taxon nel Catalogo Agronomico
+```
+
+---
+
+## Modifica di una voce botanica
+
+La S032 ha successivamente integrato la modifica delle voci botaniche.
+
+Il dialog viene inizializzato con i dati correnti e permette di modificare:
+
+- rank;
+- nome scientifico;
+- autore;
+- classificazione superiore;
+- indicazione di ibrido;
+- descrizione.
+
+La voce corrente viene esclusa dalle possibili classificazioni superiori.
+
+La modifica utilizza il `row_version` della versione visualizzata.
+
+In caso di:
+
+```text
+version_conflict
+```
+
+Flutter:
+
+- non forza la sovrascrittura;
+- non esegue retry automatico della scrittura;
+- ricarica lo stato autoritativo.
+
+Lo stesso principio viene applicato quando l'esito della scrittura è incerto a causa di un'eccezione o di un problema di comunicazione.
+
+Sono stati inoltre approvati i termini destinati all'utente:
+
+```text
+Classificazione botanica
+Voce botanica
+Classificazione superiore
+```
+
+Il termine tecnico interno `taxon` può continuare a essere utilizzato nel codice.
+
+Il checkpoint ha prodotto:
+
+```text
+1063/1063 test superati
+```
+
+Commit tecnico:
+
+```text
+fa83c0f Integra modifica tassonomia botanica nel Catalogo Agronomico
+```
+
+---
+
+## Attivazione e disattivazione della tassonomia
+
+La gestione dello stato delle voci botaniche è stata completata per gli utenti dotati della capability `canManageIdentity`.
+
+La UI espone:
+
+```text
+voce attiva   → Disattiva
+voce inattiva → Riattiva
+```
+
+Le voci non attive vengono esplicitamente identificate come:
+
+```text
+Inattiva
+```
+
+La disattivazione richiede una conferma esplicita.
+
+La riattivazione non richiede una conferma aggiuntiva.
+
+Le operazioni utilizzano il `row_version` della versione visualizzata e impediscono invii multipli concorrenti dalla UI.
+
+Gli esiti:
+
+```text
+active_changed
+unchanged
+```
+
+determinano un reload dello stato autoritativo.
+
+In presenza di dipendenze attive:
+
+```text
+active_dependents
+```
+
+Flutter non offre alcun bypass delle regole server-side.
+
+Quando viene restituito:
+
+```text
+dependency_inactive
+```
+
+deve essere prima riattivata la classificazione superiore richiesta.
+
+In presenza di:
+
+```text
+version_conflict
+```
+
+non viene eseguito alcun retry automatico della scrittura e viene ricaricato lo stato autoritativo.
+
+Anche in caso di eccezione o esito incerto della comunicazione, Flutter non ripete automaticamente l'operazione ma verifica lo stato autoritativo.
+
+È stato quindi consolidato il principio:
+
+> Flutter non duplica le regole di dipendenza già applicate dal database.
+
+---
+
+## Gestione della concorrenza e degli esiti incerti
+
+La S032 ha consolidato una regola generale per i Write Path del Catalogo.
+
+La concorrenza ottimistica utilizza:
+
+```text
+row_version
+```
+
+In caso di conflitto:
+
+```text
+version_conflict
+```
+
+il client non deve:
+
+- sovrascrivere automaticamente;
+- modificare arbitrariamente la versione attesa;
+- ripetere automaticamente la scrittura.
+
+Deve invece ricaricare lo stato autoritativo.
+
+Analogamente, quando una chiamata di scrittura produce un esito incerto, ad esempio per un problema di comunicazione successivo all'invio della richiesta, il client non può assumere che la scrittura non sia avvenuta.
+
+Il comportamento corretto è:
+
+```text
+nessun retry automatico
+→ reload autoritativo
+→ verifica dello stato effettivo
+```
+
+Questa regola evita duplicazioni o sovrascritture involontarie.
+
+---
+
+## Catalog Authority e autorizzazioni
+
+La S032 ha confermato la separazione architetturale tra:
+
+- Catalog Authority;
+- Profile Write Authority;
+- Profile Edit Lock.
+
+La gestione del Catalogo globale non dipende dal lock di modifica del profilo.
+
+Le operazioni amministrative sulle identità del Catalogo sono invece abilitate dalle capability specifiche della Catalog Authority.
+
+Per la gestione della tassonomia la capability rilevante è:
+
+```text
+canManageIdentity
+```
+
+Flutter utilizza tale capability per determinare la disponibilità delle azioni di gestione, mentre il backend continua a eseguire la verifica autoritativa dell'autorizzazione.
+
+---
+
+## Verifiche tecniche finali
+
+La verifica finale della S032 ha coperto:
+
+- lettura della tassonomia;
+- creazione;
+- modifica;
+- attivazione;
+- disattivazione;
+- Catalog Authority;
+- concorrenza ottimistica;
+- dipendenze;
+- errori;
+- esiti incerti;
+- reload autoritativo.
+
+La suite specifica della pagina Catalogo ha raggiunto:
+
+```text
+61/61 test superati
+```
+
+Durante la regressione globale `flutter analyze` ha rilevato un caso di:
+
+```text
+use_build_context_synchronously
+```
+
+Il problema è stato corretto mediante controllo dello stato `mounted`.
+
+Durante tale correzione sono state introdotte accidentalmente alcune righe duplicate nel file locale; l'anomalia è stata individuata e corretta immediatamente, senza ricorrere a reset Git e senza entrare in alcun commit.
+
+La verifica finale ha quindi prodotto:
+
+```text
+flutter analyze
+No issues found!
+
+flutter test
+1077/1077 test superati
+```
+
+---
+
+## Git finale dello sviluppo S032
+
+L'ultimo blocco della gestione dello stato della tassonomia ha modificato esclusivamente:
+
+```text
+lib/pages/agronomic_catalog_page.dart
+test/pages/agronomic_catalog_page_test.dart
+```
+
+Prima del commit finale:
+
+```text
+git diff --check
+```
+
+non ha prodotto errori.
+
+Il commit conclusivo dello sviluppo è:
+
+```text
+842a6b6 Integra gestione stato tassonomia nel Catalogo Agronomico
+```
+
+SHA completo:
+
+```text
+842a6b6468964300d43d0edac1d8853c3a4bb908
+```
+
+Il push è stato completato correttamente.
+
+Lo stato finale verificato è:
+
+```text
+branch: main
+HEAD = origin/main
+working tree: clean
+```
+
+---
+
+## Database, migration e dipendenze
+
+La S032 non ha introdotto nuove migration nel blocco finale di sviluppo e non ha effettuato un nuovo cutover del Catalogo.
+
+L'attività ha utilizzato i contratti server-side e i Write Path autoritativi già disponibili nel backend del Catalogo Agronomico V1.
+
+Non sono stati introdotti aggiornamenti di Flutter o dei package.
+
+Lo stato del database rimane autoritativo per:
+
+- identità;
+- autorizzazioni;
+- invarianti;
+- dipendenze;
+- concorrenza;
+- stato attivo/inattivo.
+
+---
+
+## Decisioni consolidate nella S032
+
+La S032 consolida le seguenti decisioni:
+
+1. la Catalog Authority rimane separata dal Profile Edit Lock e dalla Profile Write Authority;
+2. la tassonomia botanica è globale e indipendente dai profili;
+3. `CULTIVAR` non è un rank tassonomico;
+4. la Cultivar costituisce una distinta identità agronomica globale;
+5. la tassonomia parziale è supportata;
+6. Flutter non introduce regole tassonomiche non previste dal backend;
+7. Flutter non replica le regole di dipendenza autoritative del server;
+8. la concorrenza ottimistica utilizza `row_version`;
+9. un `version_conflict` non determina mai una sovrascrittura automatica;
+10. un esito incerto di una scrittura non determina un retry automatico;
+11. dopo conflitto o esito incerto viene ricaricato lo stato autoritativo;
+12. le funzioni di gestione delle identità sono esposte soltanto in presenza delle capability appropriate;
+13. la progressione della UI del Catalogo segue `Tassonomia → Colture → Cultivar`;
+14. nella UI destinata all'utente vengono utilizzati i termini `Classificazione botanica`, `Voce botanica` e `Classificazione superiore`;
+15. durante la S032 non vengono aggiornati Flutter o i package senza necessità tecnica;
+16. la precedente pianificazione S032–S042+ è da considerare esplorativa e non costituisce roadmap ufficiale.
+
+---
+
+## APERTO / FUTURE dopo lo sviluppo S032
+
+La S032 non completa l'intera gestione editoriale del Catalogo Agronomico.
+
+Restano APERTI o FUTURE:
+
+1. completamento della UI CRUD delle colture;
+2. completamento della UI CRUD delle cultivar;
+3. gestione UI degli alias;
+4. acquisizione e aggiornamento delle fonti;
+5. normalizzazione e importazione dei dati acquisiti;
+6. gestione dei candidati;
+7. workflow editoriale di revisione;
+8. pubblicazione;
+9. Resolver nella UI;
+10. popolamento progressivo del Catalogo con dati reali, verificati e tracciabili;
+11. modello canonico delle consociazioni tra colture;
+12. integrazione progressiva della Knowledge agronomica nei flussi operativi.
+
+Rimane FUTURE anche la funzione di hard delete dei `plantings`, ammessa esclusivamente come correzione amministrativa o tecnica di record inseriti per errore e non come normale operazione del lifecycle delle coltivazioni.
+
+Rimangono validi i principi:
+
+```text
+nessun seed operativo di esempio
+nessun dato provvisorio nel Catalogo reale
+nessuna fonte esterna sovrascrive automaticamente il Catalogo approvato
+```
+
+---
+
+## Sviluppo futuro previsto — Sessione S033
+
+La S033 dovrà partire dalla baseline stabile:
+
+```text
+842a6b6468964300d43d0edac1d8853c3a4bb908
+```
+
+con:
+
+```text
+HEAD = origin/main
+working tree clean
+```
+
+Il primo passo sarà un **CHECKPOINT DI RICEZIONE**.
+
+L'obiettivo principale previsto è proseguire progressivamente la gestione Flutter delle identità del Catalogo, completando prima la gestione delle **Colture** e successivamente quella delle **Cultivar**.
+
+Per le Colture dovranno essere verificati e integrati:
+
+- contratto finale delle RPC;
+- creazione;
+- modifica;
+- attivazione;
+- disattivazione;
+- collegamento alla tassonomia;
+- concorrenza ottimistica;
+- `version_conflict`;
+- esiti incerti;
+- reload autoritativo;
+- test specifici;
+- regressione globale.
+
+Successivamente, per le Cultivar, dovranno essere affrontati:
+
+- gestione nel contesto della Coltura;
+- creazione;
+- modifica;
+- attivazione;
+- disattivazione;
+- concorrenza ottimistica;
+- gestione sicura degli errori e degli esiti incerti;
+- test specifici;
+- regressione globale.
+
+Il percorso integrato previsto è:
+
+```text
+Tassonomia
+→ Coltura
+→ Cultivar
+```
+
+La S033 dovrà continuare a verificare:
+
+- Catalog Authority;
+- capability;
+- stato attivo/inattivo;
+- dipendenze;
+- `row_version`;
+- stato autoritativo del database;
+- `flutter analyze`;
+- suite completa dei test.
+
+Le funzioni relative ad alias, fonti, acquisizione, candidati, revisione, pubblicazione e Resolver rimangono FUTURE e non vengono assegnate automaticamente alla S033.
+
+---
+
+## Timing dello sviluppo S032
+
+La fase di sviluppo S032 è iniziata ufficialmente il:
+
+> **01/10/2026 alle 13:18**
+
+ed è stata dichiarata conclusa il:
+
+> **04/10/2026 alle 13:17**
+
+Gli intervalli consolidati sono:
+
+```text
+01/10/2026   13:18 → 13:30   0 h 12 min
+02/10/2026   09:36 → 09:50   0 h 14 min
+02/10/2026   11:24 → 13:30   2 h 06 min
+03/10/2026   08:42 → 10:48   2 h 06 min
+03/10/2026   16:33 → 17:40   1 h 07 min
+04/10/2026   11:04 → 13:17   2 h 13 min
+----------------------------------------
+Totale sviluppo S032         7 h 58 min
+```
+
+Le sospensioni intermedie sono escluse dal conteggio.
+
+Il progressivo dello sviluppo diventa:
+
+```text
+172 h 42 min   sviluppo consolidato alla chiusura S031
++ 7 h 58 min   sviluppo S032
+--------------------------------
+180 h 40 min   sviluppo complessivo
+```
+
+---
+
+# Timing della documentazione S032
+
+La fase Manuali S032 è iniziata ufficialmente il:
+
+> **04/10/2026 alle 22:40**
+
+La fase documentale è ancora **IN CORSO**.
+
+Durante la compilazione è stata effettuata una sospensione esplicita del conteggio; il lavoro documentale è stato successivamente ripreso il:
+
+> **06/10/2026 alle 09:59**
+
+Il tempo della sospensione non deve essere incluso nel conteggio.
+
+Poiché la fase Manuali S032 non è ancora conclusa, il tempo documentale definitivo e il totale definitivo della Sessione S032 non vengono ancora registrati.
+
+Alla situazione corrente risultano consolidati:
+
+```text
+Sviluppo complessivo        180 h 40 min
+Documentazione chiusa
+fino alla S031               62 h 27 min
+----------------------------------------
+Totale consolidato prima
+del tempo Manuali S032      243 h 07 min
+```
+
+Stato corrente:
+
+```text
+S032 sviluppo        CONCLUSO
+S032 documentazione  IN CORSO
+S032 totale          DA CONSOLIDARE
+
+Totale consolidato prima
+del tempo Manuali S032
+                     243 h 07 min
+```
+
+Il totale definitivo della S032 e il nuovo progressivo complessivo del progetto saranno calcolati esclusivamente alla chiusura ufficiale della fase Manuali S032.
