@@ -35,8 +35,6 @@
 
 ---
 
-# Cronologia delle revisioni
-
 | Versione | Data | Descrizione |
 |-----------|------------|----------------------------------------------|
 | 0.1 | 26/07/2026 | Prima emissione del Quaderno di Sviluppo |
@@ -58,9 +56,7 @@
 | 0.17 | 18/09/2026 | Aggiornamento e chiusura documentale della Sessione S029: completamento della UI del lifecycle di `plantings`, azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per gli stati terminali, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`, suite completa finale 1011/1011, commit tecnico `6b3fa92`; Sessione S029 conclusa con 1 h 19 min di sviluppo, 2 h 50 min di documentazione e 4 h 09 min complessivi |
 | 0.18 | 28/09/2026 | Aggiornamento e chiusura documentale della Sessione S030: realizzazione del Catalogo Agronomico V1 globale, separazione tra identità botaniche e Knowledge agronomica, Catalog Authority, ingestion e workflow editoriale, Knowledge canonica, pubblicazione e Resolver, Write Path autoritativi, cutover finale a `botanical_taxa` → `crops` → `crop_cultivars`, riallineamento di `plantings` a `crop_id` + `cultivar_id`, integrazione Flutter, deployment remoto e verifiche finali; Sessione S030 conclusa con 21 h 06 min di sviluppo, 6 h 13 min di documentazione e 27 h 19 min complessivi; totale progetto 229 h 03 min |
 | 0.19 | 01/10/2026 | Aggiornamento e chiusura documentale della Sessione S031: integrazione operativa Flutter del Catalogo Agronomico globale nelle Impostazioni, gestione dello stato e dell'inizializzazione controllata della Catalog Authority, esposizione delle capability server-side, consultazione delle colture globali, navigazione gerarchica Coltura → Cultivar, caricamento on demand delle cultivar, gestione degli stati vuoto/errore/retry, eliminazione del precedente percorso autonomo `Impostazioni → Varietà`, 971 test superati e definizione della pianificazione FUTURE della S032; Sessione S031 conclusa con 4 h 03 min di sviluppo, 2 h 03 min di documentazione e 6 h 06 min complessivi; chiusura documentale il 01/10/2026 alle 12:07; totale progetto 235 h 09 min |
-| 0.20 | 06/10/2026 | Aggiornamento documentale in corso della Sessione S032: ricognizione dell'architettura reale del Catalogo Agronomico V1; verifica del contratto autoritativo della tassonomia botanica; integrazione Flutter dei Write Path di tassonomia, colture e cultivar; collegamento Crop → Taxon; gestione UI della classificazione botanica con lettura, creazione, modifica, attivazione e disattivazione; applicazione delle capability della Catalog Authority; concorrenza ottimistica mediante `row_version`; nessuna sovrascrittura automatica su `version_conflict`; nessun retry automatico dopo esito incerto; reload dello stato autoritativo; `flutter analyze` senza problemi e suite finale 1077/1077; commit conclusivo dello sviluppo `842a6b6`; sviluppo S032 concluso con 7 h 58 min; fase Manuali S032 ancora in corso |
-
----
+| 0.20 | 06/10/2026 | Aggiornamento e chiusura documentale della Sessione S032: ricognizione dell'architettura reale del Catalogo Agronomico V1; verifica del contratto autoritativo della tassonomia botanica; integrazione Flutter dei Write Path di tassonomia, colture e cultivar; collegamento Crop → Taxon; gestione UI della classificazione botanica con lettura, creazione, modifica, attivazione e disattivazione; applicazione delle capability della Catalog Authority; concorrenza ottimistica mediante `row_version`; nessuna sovrascrittura automatica su `version_conflict`; nessun retry automatico dopo esito incerto; reload dello stato autoritativo; `flutter analyze` senza problemi e suite finale 1077/1077; commit conclusivo dello sviluppo `842a6b6`; Sessione S032 conclusa con 7 h 58 min di sviluppo, 3 h 32 min di documentazione e 11 h 30 min complessivi; chiusura documentale il 06/10/2026 alle 14:30; totale progetto 246 h 39 min |
 
 # Registro delle sessioni di sviluppo
 
@@ -101,11 +97,9 @@ Per una sessione ancora in corso viene riportato soltanto il tempo già consolid
 | S029 | 17–18/09/2026 | 4 h 09 min | 201 h 44 min | Lifecycle operativo delle coltivazioni | ✅ |
 | S030 | 18–28/09/2026 | 27 h 19 min | 229 h 03 min | Catalogo Agronomico V1 globale e cutover finale Database + Flutter | ✅ |
 | S031 | 28/09–01/10/2026 | 6 h 06 min | 235 h 09 min | Integrazione operativa Flutter del Catalogo Agronomico globale e navigazione Coltura → Cultivar | ✅ |
-| S032 | 01–06/10/2026 | 7 h 58 min* | 243 h 07 min* | Gestione operativa delle identità del Catalogo Agronomico e UI della tassonomia botanica | 🟡 |
+| S032 | 01–06/10/2026 | 11 h 30 min | 246 h 39 min | Gestione operativa delle identità del Catalogo Agronomico e UI della tassonomia botanica | ✅ |
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
-
-* Per la Sessione S032 la fase di sviluppo è conclusa con 7 h 58 min, mentre la fase Manuali è ancora in corso. La durata e il progressivo indicati per S032 comprendono pertanto esclusivamente il tempo già consolidato prima dell'aggiunta del tempo documentale S032. Il totale definitivo della sessione e del progetto sarà registrato alla chiusura della fase Manuali.
 
 Per le Sessioni S004, S005 e S006 è disponibile il tempo complessivo storico della sessione, ma non la ripartizione attendibile tra sviluppo e documentazione.
 
@@ -324,13 +318,18 @@ Totale progetto             235 h 09 min
 
 La Sessione S031 risulta pertanto conclusa sia nella fase di sviluppo sia nella fase documentale.
 
-Per la Sessione S032 il tempo di sviluppo consolidato è:
+Per la Sessione S032 il tempo definitivo è composto da:
 
 ```text
-Sviluppo S032     7 h 58 min
+Sviluppo         7 h 58 min
+Documentazione   3 h 32 min
+--------------------------
+Totale S032     11 h 30 min
 ```
 
-La fase sviluppo S032 è conclusa.
+La fase sviluppo S032 è iniziata ufficialmente il:
+
+> **01/10/2026 alle 13:18**
 
 Gli intervalli di sviluppo consolidati sono:
 
@@ -353,45 +352,78 @@ La fase Manuali S032 è iniziata ufficialmente il:
 
 > **04/10/2026 alle 22:40**
 
-Durante la compilazione è stata dichiarata una sospensione del conteggio documentale.
+ed è stata sospesa il:
 
-L'orario puntuale di inizio della sospensione non viene registrato in questo aggiornamento perché non è stato consolidato con sufficiente certezza.
+> **04/10/2026 alle 22:58**
+
+Il **05/10/2026 non è stato svolto lavoro sui Manuali S032**.
 
 La fase Manuali S032 è stata ripresa il:
 
 > **06/10/2026 alle 09:59**
 
-La fase Manuali S032 è attualmente **IN CORSO**.
+È stata sospesa il:
 
-Il tempo documentale definitivo della S032 non viene quindi ancora calcolato.
+> **06/10/2026 alle 10:55**
 
-Il progressivo consolidato prima dell'aggiunta del tempo Manuali S032 è:
+ed è ripresa il:
+
+> **06/10/2026 alle 11:54**
+
+È stata nuovamente sospesa il:
+
+> **06/10/2026 alle 12:20**
+
+ed è ripresa il:
+
+> **06/10/2026 alle 12:38**
+
+La fase Manuali S032 è stata conclusa il:
+
+> **06/10/2026 alle 14:30**
+
+Gli intervalli documentali definitivi sono:
+
+```text
+04/10/2026   22:40 → 22:58    0 h 18 min
+05/10/2026   nessun lavoro    0 h 00 min
+06/10/2026   09:59 → 10:55    0 h 56 min
+06/10/2026   11:54 → 12:20    0 h 26 min
+06/10/2026   12:38 → 14:30    1 h 52 min
+-----------------------------------------
+Totale                         3 h 32 min
+```
+
+Gli intervalli tra le sospensioni e le successive riprese sono esclusi dal conteggio.
+
+Il totale definitivo della Sessione S032 è:
+
+```text
+Sviluppo         7 h 58 min
+Documentazione   3 h 32 min
+--------------------------
+Totale S032     11 h 30 min
+```
+
+Il progressivo definitivo del progetto alla chiusura della S032 è:
 
 ```text
 235 h 09 min   totale progetto alla chiusura S031
-+ 7 h 58 min   sviluppo S032
++11 h 30 min   totale Sessione S032
 -----------------------------------------------
-243 h 07 min   totale consolidato prima del tempo Manuali S032
+246 h 39 min   totale progetto alla chiusura S032
 ```
 
-La ripartizione consolidata, prima dell'aggiunta del tempo Manuali S032, è:
+La ripartizione complessiva del progetto alla chiusura della S032 è:
 
 ```text
-Sviluppo complessivo                 180 h 40 min
-Documentazione chiusa fino a S031     62 h 27 min
--------------------------------------------------
-Totale consolidato                   243 h 07 min
+Sviluppo complessivo        180 h 40 min
+Documentazione complessiva   65 h 59 min
+----------------------------------------
+Totale progetto             246 h 39 min
 ```
 
-Stato corrente:
-
-```text
-S032 sviluppo        CONCLUSO
-S032 documentazione  IN CORSO
-S032 totale          DA CONSOLIDARE
-```
-
-Il totale definitivo della Sessione S032 e il nuovo progressivo complessivo del progetto saranno registrati esclusivamente alla chiusura ufficiale della fase Manuali S032.
+La Sessione S032 risulta pertanto conclusa sia nella fase di sviluppo sia nella fase documentale.
 
 ---
 
@@ -12214,37 +12246,98 @@ La fase Manuali S032 è iniziata ufficialmente il:
 
 > **04/10/2026 alle 22:40**
 
-La fase documentale è ancora **IN CORSO**.
+Il primo intervallo documentale si è concluso con la sospensione dichiarata alle:
 
-Durante la compilazione è stata effettuata una sospensione esplicita del conteggio; il lavoro documentale è stato successivamente ripreso il:
+> **04/10/2026 alle 22:58**
+
+Il **05/10/2026 non è stato svolto lavoro sui Manuali S032** e pertanto per tale giornata non viene conteggiato alcun tempo documentale.
+
+La fase Manuali S032 è stata ripresa il:
 
 > **06/10/2026 alle 09:59**
 
-Il tempo della sospensione non deve essere incluso nel conteggio.
+Nel corso del 06/10/2026 sono state registrate due ulteriori sospensioni, alle **10:55** e alle **12:20**, con successive riprese rispettivamente alle **11:54** e alle **12:38**.
 
-Poiché la fase Manuali S032 non è ancora conclusa, il tempo documentale definitivo e il totale definitivo della Sessione S032 non vengono ancora registrati.
+La fase Manuali S032 è stata dichiarata conclusa il:
 
-Alla situazione corrente risultano consolidati:
+> **06/10/2026 alle 14:30**
+
+Gli intervalli effettivi consolidati sono:
 
 ```text
-Sviluppo complessivo        180 h 40 min
-Documentazione chiusa
-fino alla S031               62 h 27 min
+04/10/2026   22:40 → 22:58   0 h 18 min
+05/10/2026   nessun lavoro   0 h 00 min
+06/10/2026   09:59 → 10:55   0 h 56 min
+06/10/2026   11:54 → 12:20   0 h 26 min
+06/10/2026   12:38 → 14:30   1 h 52 min
 ----------------------------------------
-Totale consolidato prima
-del tempo Manuali S032      243 h 07 min
+Totale Manuali S032          3 h 32 min
 ```
 
-Stato corrente:
+Gli intervalli compresi tra le sospensioni e le successive riprese sono esclusi dal conteggio.
+
+Il tempo complessivo della Sessione S032 risulta pertanto:
+
+```text
+Sviluppo S032        7 h 58 min
+Documentazione S032  3 h 32 min
+--------------------------------
+Totale S032         11 h 30 min
+```
+
+Il progressivo dello sviluppo alla chiusura della S032 è:
+
+```text
+172 h 42 min   sviluppo consolidato alla chiusura S031
++ 7 h 58 min   sviluppo S032
+--------------------------------
+180 h 40 min   sviluppo complessivo
+```
+
+Il progressivo della documentazione diventa:
+
+```text
+62 h 27 min   documentazione consolidata alla chiusura S031
++ 3 h 32 min  documentazione S032
+--------------------------------
+65 h 59 min   documentazione complessiva
+```
+
+Il progressivo complessivo del progetto alla chiusura della S032 diventa:
+
+```text
+180 h 40 min   sviluppo complessivo
++65 h 59 min   documentazione complessiva
+--------------------------------
+246 h 39 min   totale complessivo progetto
+```
+
+Lo stesso risultato è verificabile partendo dal totale definitivo raggiunto alla chiusura della S031:
+
+```text
+235 h 09 min   totale progetto alla chiusura S031
++11 h 30 min   Sessione S032
+--------------------------------
+246 h 39 min   totale progetto alla chiusura S032
+```
+
+Stato conclusivo:
 
 ```text
 S032 sviluppo        CONCLUSO
-S032 documentazione  IN CORSO
-S032 totale          DA CONSOLIDARE
+S032 documentazione  CONCLUSA
+S032 sessione        CONCLUSA
 
-Totale consolidato prima
-del tempo Manuali S032
-                     243 h 07 min
+Sviluppo S032         7 h 58 min
+Documentazione S032   3 h 32 min
+Totale S032          11 h 30 min
+
+Sviluppo complessivo       180 h 40 min
+Documentazione complessiva  65 h 59 min
+Totale progetto            246 h 39 min
+
+Chiusura Manuali S032
+06/10/2026 alle 14:30
 ```
 
-Il totale definitivo della S032 e il nuovo progressivo complessivo del progetto saranno calcolati esclusivamente alla chiusura ufficiale della fase Manuali S032.
+Con la chiusura della fase Manuali alle **14:30 del 06/10/2026**, la Sessione S032 risulta definitivamente conclusa.
