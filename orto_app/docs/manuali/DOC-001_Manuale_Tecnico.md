@@ -4,7 +4,7 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.10
+**Versione:** 2.11
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 30/09/2026
+**Ultimo aggiornamento:** 06/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,14 +26,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.10 |
+| Versione | 2.11 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 30/09/2026 |
+| Ultimo aggiornamento | 06/10/2026 |
 
 ---
 
@@ -64,6 +64,7 @@
 | 2.8 | 18/09/2026 | Aggiornamento con la Sessione S029: integrazione UI del lifecycle autoritativo di `plantings`, azioni contestuali in `PlantingCard`, gestione delle transizioni mediante `set_planting_status`, conferma esplicita di `end_date` per `finished` e `removed`, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition` e aggiornamento dei test dedicati |
 | 2.9 | 24/09/2026 | Aggiornamento con la Sessione S030: evoluzione del Catalogo Agronomico da modello Profile-owned a architettura globale, multisorgente, tracciabile, versionabile, contestualizzabile ed editorialmente controllata; introduzione di identità botaniche globali, Catalog Authority e capability, provenienza e ingestion, workflow editoriale, Knowledge agronomica canonica, pubblicazione, WITHDRAW, Resolver e read model canonici; riallineamento del contratto operativo da `variety_id` a `cultivar_id` opzionale; aggiornamento dell'integrazione Flutter, della documentazione architetturale e delle verifiche locali e remote |
 | 2.10 | 30/09/2026 | Aggiornamento con la Sessione S031: integrazione operativa del Catalogo Agronomico globale nella UI Flutter mediante accesso unico da Impostazioni, gestione dello stato della Catalog Authority e delle relative capability, lettura delle colture globali, navigazione Coltura → Cultivar con caricamento on demand, gestione degli stati vuoti, errore e retry, eliminazione del precedente percorso autonomo Varietà e riallineamento delle evoluzioni FUTURE al nuovo percorso applicativo |
+| 2.11 | 06/10/2026 | Aggiornamento con la Sessione S032: verifica del contratto autoritativo della tassonomia botanica globale; integrazione Flutter dei Write Path di tassonomia, colture e cultivar; collegamento Crop → Taxon; gestione UI della Classificazione botanica con lettura, creazione, modifica, attivazione e disattivazione; applicazione delle capability della Catalog Authority; concorrenza ottimistica mediante `row_version`; nessuna sovrascrittura automatica su `version_conflict`; nessun retry automatico dopo esito incerto; rilettura dello stato autoritativo; verifica finale con `flutter analyze` senza problemi e 1077/1077 test superati |
 
 ---
 
@@ -754,13 +755,40 @@ La Sessione S030 ha trasformato il Catalogo Agronomico da precedente area di evo
 
 La Sessione S031 ha avviato l'integrazione operativa di tale architettura nella UI Flutter, introducendo il punto di accesso unico al Catalogo Agronomico, la gestione dello stato della Catalog Authority, la visualizzazione delle relative capability, la lettura delle colture globali e la navigazione dalle colture alle cultivar.
 
-Le evoluzioni successive devono quindi partire dall'architettura e dal percorso applicativo ormai consolidati, senza reintrodurre i modelli o i percorsi UI superati dal cutover e dalla successiva integrazione Flutter.
+La Sessione S032 ha proseguito questa integrazione introducendo:
 
-Tra gli incrementi FUTURE attualmente previsti rientrano:
+- gestione operativa della Classificazione botanica nella UI;
+- creazione e modifica delle voci botaniche;
+- attivazione e disattivazione delle voci botaniche;
+- controllo applicativo mediante capability di gestione delle identità;
+- concorrenza ottimistica e rilettura autoritativa;
+- gestione sicura delle scritture con esito incerto;
+- collegamento applicativo opzionale Crop → Taxon;
+- Write Path Flutter per le identità Crop;
+- Write Path Flutter per le identità Cultivar.
 
-- backend canonico per le consociazioni tra colture;
-- completamento dell'interfaccia editoriale e amministrativa del Catalogo Agronomico;
+Le evoluzioni successive devono quindi partire dall'architettura e dai percorsi applicativi effettivamente implementati e verificati, senza reintrodurre modelli, componenti o percorsi UI superati dal cutover e dalle successive integrazioni Flutter.
+
+Per la gestione delle identità del Catalogo, l'evoluzione progressiva segue il modello:
+
+```text
+Tassonomia
+    ↓
+Crop
+    ↓
+Cultivar
+```
+
+La gestione UI della tassonomia è stata completata nel perimetro S032.
+
+Il principale sviluppo successivo proposto consiste nel completamento della gestione UI delle Crop e, successivamente, delle Cultivar, utilizzando i Write Path già disponibili. L'assegnazione definitiva di tali attività alla Sessione S033 dovrà essere confermata nel relativo CHECKPOINT DI RICEZIONE e nella pianificazione della sessione.
+
+Tra gli ulteriori incrementi FUTURE rientrano:
+
+- backend e UI canonici per le consociazioni tra colture;
+- gestione UI degli alias del Catalogo;
 - flusso operativo **Impostazioni → Catalogo Agronomico → Aggiornamento fonti**;
+- acquisizione e normalizzazione delle fonti;
 - ingestion e revisione dei dati candidati;
 - pubblicazione e gestione editoriale della Knowledge;
 - integrazione completa del Resolver nei flussi di creazione e pianificazione delle coltivazioni;
@@ -772,9 +800,13 @@ Tra gli incrementi FUTURE attualmente previsti rientrano:
 - moduli dedicati a raccolti, fertilizzazioni, trattamenti, costi, ricavi e statistiche;
 - ulteriori incrementi previsti dalla Database V1 non ancora implementati.
 
+La precedente articolazione esplorativa dell'evoluzione del Catalogo sulle sessioni **S032–S042+ non costituisce una roadmap ufficiale**.
+
+La ricognizione svolta in S032 ha infatti verificato che il backend del Catalogo Agronomico V1 dispone già di componenti più avanzati rispetto a quelli ipotizzati nella pianificazione esplorativa. Le sessioni successive devono quindi essere pianificate partendo dallo stato reale del codice e del database, evitando di ricreare funzionalità già implementate.
+
 Il popolamento reale del Catalogo dovrà avvenire mediante dati verificati e approvati. Fino all'avvio operativo non devono essere introdotti seed dimostrativi o dati provvisori destinati a confondersi con i dati reali.
 
-L'architettura continuerà a evolvere in modo incrementale mediante migration versionate, verifiche riproducibili, test automatici e aggiornamento coordinato della documentazione.
+L'architettura continuerà a evolvere in modo incrementale mediante migration versionate quando necessarie, verifiche riproducibili, test automatici e aggiornamento coordinato della documentazione.
 
 L'obiettivo rimane accompagnare la crescita di Orto Smart mantenendo un software affidabile, sicuro, tracciabile e facilmente manutenibile.
 
@@ -1224,19 +1256,39 @@ Consente di organizzare le coltivazioni e gli eventi operativi nel relativo cont
 
 ### BotanicalTaxon
 
-Nel database il Catalogo globale utilizza `botanical_taxa` come struttura canonica per le identità tassonomiche.
+Nel database il Catalogo globale utilizza `botanical_taxa` come struttura canonica per le identità tassonomiche botaniche.
 
-I rank previsti comprendono:
+Il contratto verificato nella Sessione S032 prevede i rank:
 
+- `ORDER`;
 - `FAMILY`;
 - `GENUS`;
 - `SPECIES`;
+- `SUBSPECIES`;
 - `VARIETY`;
-- `CULTIVAR`.
+- `FORMA`;
+- `UNRANKED`.
+
+`CULTIVAR` **non è un rank tassonomico** del contratto corrente. Le cultivar costituiscono identità agronomiche globali distinte e vengono rappresentate mediante `crop_cultivars`.
+
+La tassonomia supporta una struttura gerarchica mediante `parent_taxon_id`. Il collegamento rappresenta la classificazione superiore disponibile e non richiede che ogni livello tassonomico intermedio sia necessariamente presente.
+
+Sono quindi ammesse classificazioni botaniche parziali, nel rispetto degli invarianti applicati dal backend.
 
 Le identità botaniche sono globali e non dipendono dal Profile del singolo utente.
 
+Il contratto comprende inoltre:
+
+- stato attivo/inattivo;
+- concorrenza ottimistica mediante `row_version`;
+- prevenzione server-side dei cicli gerarchici;
+- controllo dei duplicati;
+- validazione della classificazione superiore;
+- controllo delle dipendenze nelle operazioni di attivazione e disattivazione.
+
 La normalizzazione dei testi consente confronti coerenti senza sostituire l'identità stabile delle entità.
+
+Il client Flutter non replica autonomamente gli invarianti tassonomici e di dipendenza già autoritativamente gestiti dal database.
 
 ### Crop
 
@@ -1251,6 +1303,17 @@ crop_catalog_read
 ```
 
 Il modello Dart `Crop` rappresenta la coltura utilizzata dal client.
+
+Con S032 il modello applicativo supporta inoltre il collegamento opzionale alla classificazione botanica mediante:
+
+```text
+taxonId
+taxonRank
+```
+
+Il collegamento Crop → Taxon rimane opzionale e consente di associare la coltura alla classificazione botanica canonica disponibile senza trasformare la Crop in un'entità tassonomica.
+
+La gestione delle identità Crop utilizza i Write Path autoritativi del Catalogo e rimane subordinata alle capability della Catalog Authority.
 
 ### CropCultivar
 
@@ -1276,15 +1339,19 @@ mentre il client utilizza il modello:
 CropCultivar
 ```
 
+La cultivar è un'identità agronomica globale distinta dalla tassonomia botanica e non deve essere interpretata come un rank di `botanical_taxa`.
+
 La precedente terminologia tecnica `CropVariety`, `varietyId` e `variety_id` appartiene al modello precedente al cutover S030 e non costituisce più il contratto tecnico corrente.
 
-Nell'interfaccia italiana può continuare a essere utilizzato il termine **Varietà**.
+Nell'interfaccia italiana può continuare a essere utilizzato il termine **Varietà** quando appropriato al contesto utente, mentre il dominio tecnico utilizza `Cultivar`.
 
 Le letture canoniche vengono esposte attraverso:
 
 ```text
 crop_cultivar_catalog_read
 ```
+
+Con S032 anche le operazioni di scrittura delle identità Cultivar sono integrate nel Repository Flutter attraverso i Write Path autoritativi del Catalogo.
 
 ### CatalogCapabilities
 
@@ -1297,7 +1364,9 @@ Le capability distinguono le responsabilità di:
 - review;
 - publication.
 
-Il modello informa il client sulle capability disponibili ma non sostituisce l'autorizzazione server-side.
+In particolare, le operazioni di gestione delle identità botaniche, Crop e Cultivar richiedono la capability prevista per la gestione delle identità.
+
+Il modello informa il client sulle capability disponibili e consente alla UI di esporre soltanto le operazioni pertinenti, ma **non sostituisce l'autorizzazione server-side**.
 
 ### Planting
 
@@ -1328,7 +1397,7 @@ Gli snapshot appartengono alla decisione operativa confermata e non vengono aggi
 
 ## 4.4 Catalogo Agronomico globale
 
-La Sessione S030 ha introdotto un modello dati dedicato al Catalogo Agronomico V1.
+La Sessione S030 ha introdotto il modello dati del Catalogo Agronomico V1 globale e le Sessioni S031–S032 ne hanno progressivamente integrato il contratto nell'applicazione Flutter.
 
 La catena canonica delle principali identità è:
 
@@ -1352,7 +1421,125 @@ crop_varieties
 
 Il modello S026 rimane parte della storia evolutiva del progetto, ma non rappresenta più lo schema corrente.
 
-Il perimetro S030 comprende complessivamente **26 tabelle** dedicate alla nuova architettura del Catalogo e alle relative strutture di supporto.
+Il Catalogo è **globale** e le sue identità non appartengono a un singolo Garden o Profile.
+
+### Tassonomia botanica globale
+
+`botanical_taxa` rappresenta la classificazione botanica canonica utilizzata dal Catalogo.
+
+La gerarchia è espressa mediante:
+
+```text
+parent_taxon_id
+```
+
+e supporta una classificazione parziale: non è necessario creare artificialmente ogni livello intermedio quando l'informazione disponibile consente di collegare una voce direttamente alla classificazione superiore effettivamente nota.
+
+I rank previsti dal contratto corrente sono:
+
+```text
+ORDER
+FAMILY
+GENUS
+SPECIES
+SUBSPECIES
+VARIETY
+FORMA
+UNRANKED
+```
+
+`CULTIVAR` **non è un rank tassonomico**.
+
+Le cultivar costituiscono identità agronomiche globali separate, rappresentate da `crop_cultivars`.
+
+La tassonomia supporta inoltre:
+
+- stato attivo/inattivo;
+- concorrenza ottimistica mediante `row_version`;
+- controllo dei duplicati;
+- validazione delle relazioni parent;
+- prevenzione dei cicli;
+- controllo delle dipendenze nelle operazioni di attivazione e disattivazione.
+
+Gli invarianti tassonomici rimangono autoritativi nel backend.
+
+Il client può applicare controlli preliminari utili alla UI, ma non deve ricostruire o sostituire le regole server-side.
+
+### Crop
+
+`crops` rappresenta le identità agronomiche globali delle colture.
+
+Una Crop può essere collegata opzionalmente alla classificazione botanica.
+
+Nel contratto Flutter corrente tale relazione è rappresentata anche mediante:
+
+```text
+taxonId
+taxonRank
+```
+
+quando disponibili.
+
+La relazione Crop → Taxon non obbliga quindi ogni Crop a possedere una classificazione botanica completa prima di poter esistere nel Catalogo.
+
+### Cultivar
+
+`crop_cultivars` rappresenta le identità globali delle cultivar associate alle rispettive Crop.
+
+Il termine tecnico corrente è **Cultivar**.
+
+I precedenti concetti applicativi:
+
+```text
+CropVariety
+varietyId
+variety_id
+```
+
+non rappresentano più il dominio canonico corrente.
+
+La UI può utilizzare il termine italiano **Varietà** quando appropriato per la comprensione dell'utente, ma il modello tecnico e il contratto applicativo rimangono basati su Cultivar.
+
+### Catalog Authority e Write Path
+
+Le operazioni sensibili sulle identità globali del Catalogo sono governate dalla **Catalog Authority**, distinta dalla Profile Write Authority e dal Profile Edit Lock.
+
+Le capability della Catalog Authority separano responsabilità relative a:
+
+- gestione delle identità;
+- ingestion;
+- revisione;
+- pubblicazione.
+
+Il possesso o la visualizzazione di una capability lato client non sostituisce l'autorizzazione server-side.
+
+Le scritture sensibili devono utilizzare i relativi Write Path autoritativi.
+
+Con S032 il client Flutter integra i Write Path per:
+
+- tassonomia botanica;
+- Crop;
+- Cultivar.
+
+Per la tassonomia botanica sono utilizzate le RPC:
+
+```text
+create_botanical_taxon
+update_botanical_taxon
+set_botanical_taxon_active
+```
+
+Le operazioni soggette a concorrenza ottimistica utilizzano la versione della risorsa secondo il contratto del relativo Write Path.
+
+In presenza di un conflitto di versione non viene effettuata una sovrascrittura forzata.
+
+In presenza di una scrittura con esito incerto non viene effettuato un retry automatico.
+
+Quando necessario, il client rilegge invece lo stato autoritativo dal backend.
+
+### Perimetro del Catalogo V1
+
+Il perimetro introdotto con S030 comprende complessivamente **26 tabelle** dedicate alla nuova architettura del Catalogo e alle relative strutture di supporto.
 
 Oltre alle identità canoniche, il modello comprende aree dedicate a:
 
@@ -1365,11 +1552,15 @@ Oltre alle identità canoniche, il modello comprende aree dedicate a:
 - alias delle identità;
 - mapping;
 - workflow editoriale;
+- candidati ed evidenze;
 - revisioni;
 - Knowledge agronomica canonica;
-- pubblicazione.
+- pubblicazione;
+- Resolver.
 
-Il Catalogo è globale e non appartiene a un singolo Garden o Profile.
+La presenza di queste strutture nel backend non implica che ogni relativo workflow sia già disponibile nella UI.
+
+Al termine di S032 la gestione UI completa delle identità è stata raggiunta per la Classificazione botanica, mentre la gestione UI completa di Crop e Cultivar rimane uno sviluppo successivo nonostante i rispettivi Write Path Flutter siano già integrati.
 
 ## 4.5 Provenienza, ingestion e workflow editoriale
 
@@ -1696,6 +1887,8 @@ Questa separazione impedisce che un dato acquisito da una fonte esterna diventi 
 
 L'implementazione fisica del Database V1 è proceduta incrementalmente dalla Sessione S019 alla Sessione S030.
 
+Le Sessioni S031 e S032 non hanno sostituito tale baseline database, ma ne hanno progressivamente integrato nell'applicazione Flutter il contratto operativo del Catalogo Agronomico globale.
+
 ### Fondazioni e Profile Write Authority
 
 Le prime sessioni hanno introdotto e consolidato:
@@ -1742,7 +1935,7 @@ bed_geometries
 bed_geometry_corrections
 ```
 
-Le operazioni sensibili utilizzano RPC autoritative, controllo delle invarianti e, quando previsto, concorrenza ottimistica mediante:
+Le operazioni sensibili utilizzano RPC autoritative, controllo degli invarianti e, quando previsto, concorrenza ottimistica mediante:
 
 ```text
 row_version
@@ -1871,7 +2064,7 @@ crop_varieties
 
 sono state rimosse al completamento del cutover.
 
-Il nuovo perimetro S030 comprende **26 tabelle** dedicate al Catalogo e alle relative strutture di supporto.
+Il perimetro introdotto con S030 comprende **26 tabelle** dedicate al Catalogo e alle relative strutture di supporto.
 
 L'architettura comprende:
 
@@ -1886,6 +2079,7 @@ L'architettura comprende:
 - alias;
 - mapping;
 - workflow editoriale;
+- candidati ed evidenze;
 - revisioni;
 - Knowledge agronomica canonica;
 - pubblicazione;
@@ -1904,9 +2098,52 @@ configurate con:
 security_invoker = true
 ```
 
+La presenza delle strutture backend del Catalogo non implica che tutti i relativi workflow siano già disponibili nella UI Flutter.
+
+### Tassonomia botanica
+
+La tassonomia globale utilizza `botanical_taxa`.
+
+La gerarchia è rappresentata mediante:
+
+```text
+parent_taxon_id
+```
+
+e supporta classificazioni parziali senza obbligare alla creazione di ogni livello tassonomico intermedio.
+
+I rank previsti dal contratto corrente sono:
+
+```text
+ORDER
+FAMILY
+GENUS
+SPECIES
+SUBSPECIES
+VARIETY
+FORMA
+UNRANKED
+```
+
+`CULTIVAR` non appartiene ai rank tassonomici.
+
+Le cultivar sono identità agronomiche globali distinte e vengono rappresentate mediante `crop_cultivars`.
+
+Il contratto della tassonomia comprende inoltre:
+
+- stato attivo/inattivo;
+- `row_version`;
+- controllo dei duplicati;
+- validazione del parent;
+- prevenzione dei cicli;
+- controllo delle dipendenze;
+- concorrenza ottimistica.
+
+Gli invarianti rimangono autoritativi nel database.
+
 ### Catalog Authority
 
-La Catalog Authority è distinta dalla Profile Write Authority.
+La Catalog Authority è distinta dalla Profile Write Authority e dal Profile Edit Lock.
 
 Le capability previste distinguono:
 
@@ -1928,6 +2165,94 @@ Le funzioni sensibili utilizzano i principi previsti dal contratto server-side, 
 
 Il claim iniziale dell'autorità è un'operazione esplicita e non viene eseguito automaticamente dal client.
 
+La capability disponibile lato Flutter viene utilizzata per governare l'esposizione delle funzioni pertinenti nella UI, ma non sostituisce l'autorizzazione server-side.
+
+### Write Path del Catalogo e integrazione Flutter S032
+
+La ricognizione effettuata durante S032 ha verificato che il backend del Catalogo possiede già Write Path dedicati alle identità globali.
+
+Flutter integra ora i Write Path per:
+
+- tassonomia botanica;
+- Crop;
+- Cultivar.
+
+Per la tassonomia botanica il contratto utilizza:
+
+```text
+create_botanical_taxon
+update_botanical_taxon
+set_botanical_taxon_active
+```
+
+Il Repository Layer traduce gli esiti delle RPC in result type applicativi senza sostituire l'autorità del backend.
+
+Le operazioni soggette a concorrenza ottimistica utilizzano la versione della risorsa prevista dal relativo contratto.
+
+In presenza di:
+
+```text
+version_conflict
+```
+
+il client:
+
+- non forza la sovrascrittura;
+- non effettua un retry automatico della scrittura;
+- rilegge lo stato autoritativo;
+- riallinea la UI allo stato persistito.
+
+In presenza di un errore di comunicazione che renda incerto l'esito di una scrittura, il client non assume automaticamente né il successo né il fallimento e non ripete automaticamente l'operazione.
+
+Viene invece effettuata la verifica dello stato autoritativo.
+
+S032 non ha introdotto nuove migration nel blocco finale di sviluppo: l'incremento ha integrato e utilizzato il contratto backend già disponibile.
+
+### Stato UI del Catalogo dopo S032
+
+Al termine di S032 la UI Flutter dispone della gestione operativa della **Classificazione botanica**.
+
+Sono implementati:
+
+- caricamento delle voci botaniche;
+- creazione;
+- modifica;
+- attivazione;
+- disattivazione;
+- controllo applicativo della capability di gestione delle identità;
+- gestione degli stati attivi e inattivi;
+- conferma esplicita della disattivazione;
+- gestione dei conflitti di versione;
+- gestione sicura degli esiti incerti;
+- rilettura autoritativa quando necessaria.
+
+Flutter non replica gli invarianti server-side relativi a gerarchia, cicli, duplicati e dipendenze.
+
+La UI utilizza i termini:
+
+- **Classificazione botanica**;
+- **Voce botanica**;
+- **Classificazione superiore**.
+
+Il modello `Crop` supporta inoltre il collegamento opzionale alla tassonomia mediante:
+
+```text
+taxonId
+taxonRank
+```
+
+I Write Path Flutter per Crop e Cultivar sono integrati, mentre i rispettivi CRUD UI completi rimangono sviluppi successivi.
+
+L'evoluzione progressiva delle identità del Catalogo segue quindi:
+
+```text
+Tassonomia
+    ↓
+Crop
+    ↓
+Cultivar
+```
+
 ### Knowledge e Resolver
 
 La Knowledge canonica è separata dalle osservazioni e dai dati candidati.
@@ -1947,6 +2272,10 @@ conferma utente
    ↓
 fatto operativo
 ```
+
+La presenza del backend editoriale, della Knowledge e del Resolver non implica che i relativi workflow UI siano già completi.
+
+L'acquisizione delle fonti, i dati candidati, la revisione, la pubblicazione e l'integrazione completa del Resolver rimangono fasi successive dell'evoluzione applicativa.
 
 ## 5.4 Relazioni e vincoli
 
@@ -2289,13 +2618,108 @@ La riproducibilità mediante migration rimane un requisito: modifiche manuali no
 
 La baseline Database V1 rimane il riferimento storico e progettuale generale, ma la sua implementazione procede attraverso decisioni e incrementi documentati.
 
-S030 ha completato il nuovo perimetro del Catalogo Agronomico e non deve più essere descritta come sviluppo futuro.
+S030 ha completato il nuovo perimetro backend del Catalogo Agronomico V1 globale e non deve più essere descritta come sviluppo futuro.
 
-Restano invece aperti, tra gli incrementi successivi:
+Le Sessioni S031 e S032 hanno successivamente avviato e consolidato l'integrazione applicativa Flutter di tale architettura.
 
-- backend canonico delle consociazioni;
+In particolare, la ricognizione tecnica eseguita durante S032 ha verificato che il backend del Catalogo è più avanzato di quanto ipotizzato nella precedente roadmap esplorativa: sono già presenti strutture dedicate a identità globali, tassonomia botanica, fonti, acquisizioni, osservazioni, alias, workflow editoriale, candidati, evidenze, revisioni, Knowledge canonica, pubblicazione, Resolver e relativi Write Path.
+
+Di conseguenza, la precedente scansione esplorativa **S032–S042+ non costituisce una roadmap ufficiale** e non deve essere utilizzata per dedurre automaticamente l'ordine delle future sessioni.
+
+### Stato raggiunto con S032
+
+S032 ha consolidato il contratto applicativo delle identità globali del Catalogo secondo la progressione:
+
+```text
+Tassonomia
+    ↓
+Crop
+    ↓
+Cultivar
+```
+
+Per la tassonomia botanica sono stati integrati in Flutter i Write Path autoritativi e completata la gestione UI della **Classificazione botanica**, comprendente:
+
+- lettura;
+- creazione;
+- modifica;
+- attivazione;
+- disattivazione;
+- gestione della capability `can_manage_identity`;
+- concorrenza ottimistica mediante `row_version`;
+- gestione di `version_conflict`;
+- rilettura dello stato autoritativo;
+- gestione prudenziale delle scritture con esito incerto.
+
+Il contratto tassonomico corrente supporta una gerarchia parziale tramite `parent_taxon_id`.
+
+I rank previsti sono:
+
+```text
+ORDER
+FAMILY
+GENUS
+SPECIES
+SUBSPECIES
+VARIETY
+FORMA
+UNRANKED
+```
+
+`CULTIVAR` non è un rank tassonomico: le cultivar rimangono identità agronomiche globali distinte.
+
+Sono inoltre integrati nel Repository Layer Flutter i Write Path di Crop e Cultivar.
+
+Il modello `Crop` supporta il collegamento opzionale alla tassonomia mediante:
+
+```text
+taxonId
+taxonRank
+```
+
+I CRUD UI completi di Crop e Cultivar non sono tuttavia ancora completati.
+
+Gli invarianti relativi a gerarchia, duplicati, cicli, dipendenze, autorizzazioni e concorrenza rimangono autoritativi lato server e non devono essere duplicati arbitrariamente nel client.
+
+In caso di conflitto di versione non è previsto alcun overwrite forzato né retry automatico della scrittura.
+
+In caso di esito incerto di una scrittura, il client non deve ripetere automaticamente l'operazione: deve invece verificare nuovamente lo stato autoritativo.
+
+### Incrementi successivi del Catalogo
+
+Il passo applicativo successivo proposto consiste nel proseguire la gestione delle identità globali secondo l'ordine:
+
+```text
+Classificazione botanica
+        ↓
+gestione Crop
+        ↓
+gestione Cultivar
+```
+
+La gestione UI completa di Crop e successivamente di Cultivar costituisce quindi il candidato principale per la sessione successiva, da confermare nel relativo checkpoint e nella pianificazione della sessione.
+
+Restano inoltre sviluppi successivi, senza assegnazione automatica a una specifica sessione:
+
+- gestione UI degli alias;
+- acquisizione e aggiornamento delle fonti;
+- normalizzazione e importazione;
+- gestione dei dati candidati;
+- workflow editoriale di revisione;
+- pubblicazione;
+- integrazione completa del Resolver nei flussi applicativi;
+- popolamento verificato del Catalogo con dati reali;
+- backend canonico delle consociazioni.
+
+La funzione di aggiornamento delle fonti dovrà rimanere separata dai dati approvati del Catalogo.
+
+I dati acquisiti da fonti esterne devono produrre dati candidati sottoposti a revisione e non possono sovrascrivere automaticamente il patrimonio canonico approvato.
+
+### Altri incrementi della Database V1
+
+Al di fuori del completamento applicativo del Catalogo rimangono, tra gli incrementi successivi:
+
 - operazioni amministrative protette ancora non implementate;
-- integrazione completa del Resolver nei flussi di pianificazione e inserimento;
 - ulteriori entità della Database V1 non ancora tradotte fisicamente;
 - attività;
 - irrigazione;
@@ -2307,13 +2731,17 @@ Restano invece aperti, tra gli incrementi successivi:
 - eventuale hard delete amministrativo di Planting;
 - evoluzioni future della multiutenza.
 
+L'eventuale hard delete di una `Planting` non deve appartenere al normale lifecycle utente: rimane previsto esclusivamente come futura funzione amministrativa o tecnica per correggere record inseriti erroneamente.
+
 Rimane inoltre da verificare o ripristinare il percorso UI per la creazione del primo Garden quando il Profile non possiede ancora orti.
 
 Il Write Path backend per Garden esiste già; la verifica riguarda il percorso applicativo che consente all'utente di raggiungere la creazione iniziale.
 
+### Avvio dei dati operativi reali
+
 Il popolamento operativo dovrà rispettare una sequenza controllata.
 
-In particolare, prima dell'utilizzo reale:
+Prima dell'utilizzo reale:
 
 ```text
 verifica DB locale pulito
@@ -2331,15 +2759,17 @@ apertura Season reale
 registrazione Planting reali
 ```
 
-Non devono essere introdotti dati dimostrativi o provvisori destinati a confondersi con il futuro patrimonio operativo reale.
+Non devono essere introdotti dati dimostrativi, temporanei o provvisori destinati a confondersi con il futuro patrimonio operativo reale.
 
-L'implementazione continuerà mediante incrementi piccoli e verificabili, evitando migration di tipo big bang.
+L'inserimento dei dati agronomici reali deve iniziare soltanto quando il Catalogo Agronomico V1 dispone della struttura e del processo di verifica necessari per distinguere chiaramente dati acquisiti, candidati, revisionati e canonici.
+
+L'implementazione continuerà mediante incrementi piccoli, verificabili e versionati, evitando migration di tipo big bang e mantenendo il database coerente con lo stato realmente approvato del progetto.
 
 ## 5.10 Considerazioni finali
 
 PostgreSQL costituisce il livello autoritativo della persistenza di Orto Smart.
 
-Dalla baseline S017 fino al cutover S030, l'architettura ha progressivamente consolidato:
+Dalla baseline S017 fino al cutover S030, l'architettura database ha progressivamente consolidato:
 
 - struttura Profile-owned dei dati operativi;
 - Profile Write Authority;
@@ -2356,11 +2786,33 @@ Dalla baseline S017 fino al cutover S030, l'architettura ha progressivamente con
 - pubblicazione;
 - Resolver.
 
+S030 rappresenta il completamento del cutover fisico del Catalogo Agronomico V1 globale.
+
+Le Sessioni S031 e S032 hanno successivamente proseguito l'integrazione applicativa Flutter del contratto già disponibile nel backend, senza sostituire il principio di autorità del database.
+
+In particolare, S032 ha verificato e integrato:
+
+- il contratto finale della tassonomia botanica globale;
+- la gerarchia mediante `parent_taxon_id`;
+- il supporto alla tassonomia parziale;
+- la separazione tra rank tassonomici e Cultivar;
+- la concorrenza ottimistica mediante `row_version`;
+- i Write Path Flutter di Tassonomia, Crop e Cultivar;
+- la gestione UI della Classificazione botanica;
+- la gestione dei conflitti senza overwrite forzato;
+- il divieto di retry automatico delle scritture con esito incerto;
+- la rilettura dello stato autoritativo quando necessaria;
+- la separazione tra Catalog Authority e Profile Write Authority.
+
 Lo stato corrente non coincide quindi né con il database operativo originario né con la sola baseline nominale S017.
 
-È il risultato delle migration e delle decisioni architetturali approvate fino alla S030.
+Dal punto di vista fisico del database, esso deriva dalle migration e dalle decisioni architetturali consolidate fino al cutover S030; dal punto di vista del contratto applicativo, il sistema incorpora anche le integrazioni e le verifiche completate nelle Sessioni S031 e S032.
 
-I principi che devono continuare a guidarne l'evoluzione sono:
+La presenza nel backend di strutture avanzate del Catalogo non implica che tutti i relativi workflow siano già disponibili nella UI.
+
+Al termine di S032 la gestione della Classificazione botanica è operativa, mentre la gestione UI completa di Crop e Cultivar e i successivi workflow editoriali rimangono incrementi applicativi futuri.
+
+I principi che devono continuare a guidare l'evoluzione sono:
 
 - integrità prima della comodità del client;
 - sicurezza server-side;
@@ -2368,6 +2820,9 @@ I principi che devono continuare a guidarne l'evoluzione sono:
 - RLS e privilegi espliciti;
 - autorità coerente con il dominio interessato;
 - concorrenza controllata;
+- nessun overwrite forzato in caso di conflitto;
+- nessun retry automatico di scritture con esito incerto;
+- rilettura dello stato autoritativo quando necessaria;
 - comportamento fail-closed;
 - tracciabilità;
 - preservazione della storia;
@@ -2553,6 +3008,45 @@ complete_profile_edit_takeover
 get_profile_edit_lock_state
 ```
 
+### BotanicalTaxonRepository
+
+`BotanicalTaxonRepository`, integrato in S032, rappresenta il punto di accesso Flutter alla tassonomia botanica globale del Catalogo Agronomico.
+
+Le letture consentono al client di ottenere le identità botaniche necessarie alla visualizzazione e alla gestione della **Classificazione botanica**.
+
+Le scritture utilizzano esclusivamente i Write Path autoritativi:
+
+```text
+create_botanical_taxon
+update_botanical_taxon
+set_botanical_taxon_active
+```
+
+Il Repository converte gli stati restituiti dalle RPC in result type applicativi tipizzati e non utilizza scritture dirette sulla tabella `botanical_taxa` come percorso alternativo.
+
+Le operazioni di modifica e di variazione dello stato utilizzano la concorrenza ottimistica prevista dal contratto attraverso la versione della risorsa.
+
+In presenza di:
+
+```text
+version_conflict
+```
+
+il client non forza la sovrascrittura e non ripete automaticamente la scrittura. Lo stato deve essere nuovamente acquisito dalla fonte autoritativa.
+
+La stessa regola di sicurezza si applica quando l'esito di una scrittura è incerto, per esempio a seguito di un'eccezione di rete dopo l'invio della richiesta: il client non può assumere che l'operazione sia fallita e non deve ripeterla automaticamente.
+
+Il backend rimane autoritativo per gli invarianti della tassonomia, tra cui:
+
+- validità della classificazione superiore;
+- prevenzione dei cicli;
+- gestione dei duplicati;
+- dipendenze tra taxon;
+- attivazione e disattivazione;
+- concorrenza mediante `row_version`.
+
+Flutter non replica tali regole come fonte autonoma di verità.
+
 ### CropRepository
 
 Dopo il cutover S030, `CropRepository` rappresenta il punto di accesso applicativo alle colture del **Catalogo Agronomico globale**.
@@ -2571,21 +3065,34 @@ Il read model è configurato con:
 security_invoker = true
 ```
 
-`CropRepository` non espone più il precedente percorso applicativo di scrittura personale delle colture.
-
-L'identità e la gestione editoriale del Catalogo appartengono al backend autoritativo del Catalogo e alle capability previste per la Catalog Authority.
-
-Il modello Dart corrente rimane:
+Il modello Dart corrente è:
 
 ```text
 Crop
 ```
 
-ma il relativo contratto deve essere letto secondo il Catalogo globale S030 e non secondo la precedente struttura Profile-owned.
+e il relativo contratto deve essere letto secondo il Catalogo globale introdotto con S030 e consolidato nelle sessioni successive, non secondo la precedente struttura Profile-owned.
+
+Con S032 il modello applicativo supporta inoltre il collegamento opzionale della Crop alla tassonomia botanica mediante:
+
+```text
+taxonId
+taxonRank
+```
+
+S032 ha inoltre integrato nel Repository il Write Path delle identità Crop del Catalogo globale.
+
+Le scritture non costituiscono un ritorno al precedente modello di gestione personale delle colture: appartengono al Catalogo globale e rimangono subordinate all'autorità e alle capability previste dal backend.
+
+Il Repository converte gli esiti delle RPC in result type applicativi tipizzati e supporta la concorrenza ottimistica prevista dal contratto.
+
+In caso di `version_conflict` non viene eseguita una sovrascrittura forzata.
+
+Quando l'esito di una scrittura non è determinabile con certezza, il client non effettua un retry automatico e deve verificare nuovamente lo stato autoritativo.
 
 ### CropCultivarRepository
 
-`CropCultivarRepository` rappresenta il punto di accesso applicativo alle cultivar.
+`CropCultivarRepository` rappresenta il punto di accesso applicativo alle cultivar del Catalogo globale.
 
 Le letture vengono effettuate mediante:
 
@@ -2616,9 +3123,19 @@ variety_id
 
 non appartiene più al contratto applicativo corrente dopo il cutover S030.
 
-Nell'interfaccia utente italiana può continuare a essere utilizzato il termine **Varietà**.
+Nell'interfaccia utente italiana può continuare a essere utilizzato il termine **Varietà** quando appropriato al contesto utente, mentre il dominio tecnico corrente utilizza `Cultivar`.
 
 La relazione tra cultivar e coltura rimane determinata dal Catalogo canonico.
+
+Con S032 `CropCultivarRepository` integra anche il Write Path autoritativo delle identità Cultivar.
+
+Le operazioni di scrittura appartengono al Catalogo globale, sono soggette alle capability della Catalog Authority e utilizzano i contratti server-side previsti dal backend.
+
+Gli esiti delle RPC vengono convertiti in result type applicativi tipizzati.
+
+Le operazioni soggette a concorrenza ottimistica utilizzano la versione attesa della risorsa; un `version_conflict` non autorizza una sovrascrittura forzata.
+
+Anche per le Cultivar, un esito di scrittura incerto non deve produrre un retry automatico: il client deve prima rileggere lo stato autoritativo.
 
 ### CatalogAuthorityRepository
 
@@ -2654,6 +3171,8 @@ ingestion
 review
 publication
 ```
+
+La gestione delle identità botaniche, Crop e Cultivar introdotta nel client rimane quindi distinta dalla Profile Write Authority: l'autorizzazione del Catalogo globale dipende dalla Catalog Authority e dalle verifiche server-side.
 
 ### PlantingRepository
 
@@ -2758,14 +3277,18 @@ Le letture possono utilizzare:
 - RPC di lettura;
 - altre interfacce server-side previste dal relativo contratto.
 
-Per il Catalogo S030, le letture principali utilizzate dal client comprendono:
+Per il Catalogo Agronomico globale, le letture principali utilizzate dal client comprendono i read model canonici:
 
 ```text
 crop_catalog_read
 crop_cultivar_catalog_read
 ```
 
+La tassonomia botanica globale viene inoltre acquisita dal backend attraverso il relativo Repository applicativo, mantenendo `botanical_taxa` come fonte canonica delle identità tassonomiche.
+
 Il Repository converte il payload restituito dal backend nel modello Dart corrispondente.
+
+La lettura dello stato autoritativo assume particolare importanza nelle operazioni soggette a concorrenza o con esito incerto: il client non deve ricostruire autonomamente uno stato che può essere determinato con certezza soltanto dal backend.
 
 ### Scritture
 
@@ -2789,21 +3312,107 @@ transazione / modifica
 
 Il gate applicativo dipende dal dominio.
 
-Per esempio:
+In particolare:
 
 ```text
-dati operativi
-    → Profile Write Authority
+dati operativi Profile-owned
+    ↓
+Profile Write Authority
+    ↓
+RPC autoritativa
 
-Catalogo globale
-    → Catalog Authority / capability
+Catalogo Agronomico globale
+    ↓
+Catalog Authority / capability
+    ↓
+RPC autoritativa
 ```
 
-Il Repository non deve confondere questi due modelli.
+Il Repository non deve confondere questi due modelli di autorità.
+
+La Profile Write Authority protegge i percorsi Profile-owned per i quali il relativo contratto richiede il controllo del lease.
+
+La Catalog Authority è invece indipendente dal Profile Edit Lock e governa, attraverso capability specifiche e controlli server-side, le operazioni autoritative sul Catalogo Agronomico globale.
+
+Con S032 il client Flutter integra i Write Path delle identità globali per:
+
+- tassonomia botanica;
+- Crop;
+- Cultivar.
+
+Per la tassonomia botanica le RPC autoritative verificate comprendono:
+
+```text
+create_botanical_taxon
+update_botanical_taxon
+set_botanical_taxon_active
+```
+
+Le operazioni di scrittura del Catalogo non autorizzano il client a modificare direttamente le tabelle come percorso alternativo alle RPC previste.
+
+### Concorrenza e stato autoritativo
+
+Quando il contratto della risorsa prevede concorrenza ottimistica, il client utilizza la versione conosciuta della risorsa e il backend verifica che essa corrisponda ancora allo stato persistito.
+
+Il meccanismo si basa su:
+
+```text
+row_version
+expected_row_version
+```
+
+o sui corrispondenti parametri previsti dalla specifica RPC.
+
+Un esito:
+
+```text
+version_conflict
+```
+
+indica che lo stato sul quale il client stava operando non è più quello autoritativo.
+
+In questo caso il client:
+
+- non forza la sovrascrittura;
+- non effettua automaticamente una nuova scrittura;
+- rilegge lo stato autoritativo dal backend;
+- presenta quindi all'utente lo stato aggiornato.
+
+### Esiti incerti delle scritture
+
+Un errore di comunicazione non implica necessariamente che una scrittura non sia stata eseguita.
+
+Se la richiesta è stata inviata ma il client non può determinare con certezza se il server abbia completato l'operazione, l'esito viene considerato **incerto**.
+
+In tale situazione il client:
+
+- non ripete automaticamente la scrittura;
+- non presume né il successo né il fallimento dell'operazione;
+- acquisisce nuovamente lo stato autoritativo;
+- utilizza lo stato restituito dal backend per proseguire in sicurezza.
+
+Questa regola evita che un retry automatico produca duplicazioni o una seconda modifica dopo che la prima richiesta potrebbe essere già stata applicata.
+
+### Invarianti server-side
+
+L'esposizione di controlli nella UI non trasferisce al client l'autorità sugli invarianti del Catalogo.
+
+In particolare, per la tassonomia botanica rimangono server-side i controlli relativi a:
+
+- classificazione superiore;
+- cicli gerarchici;
+- duplicati;
+- stato attivo/inattivo;
+- dipendenze;
+- concorrenza.
+
+Flutter può prevenire operazioni manifestamente non appropriate dal punto di vista dell'interfaccia, ma non deve duplicare tali regole come fonte autonoma di verità.
+
+Lo stesso principio vale per gli altri domini: autorizzazione, integrità e invarianti persistenti rimangono responsabilità del backend autoritativo.
 
 ## 6.5 Mapping degli esiti e gestione degli errori
 
-Il Repository Layer traduce le risposte tecniche del backend in risultati utilizzabili dal dominio e dalla UI.
+Il Repository Layer traduce le risposte tecniche del backend in risultati applicativi utilizzabili dal dominio e dalla UI.
 
 Gli esiti vengono gestiti esplicitamente quando fanno parte del contratto della specifica operazione.
 
@@ -2826,7 +3435,11 @@ oltre agli esiti specifici previsti dalle singole RPC.
 
 Non tutti gli status sono necessariamente condivisi da tutti i Repository.
 
-Il mapping deve riflettere il contratto effettivo della singola operazione.
+Il mapping deve riflettere il contratto effettivo della singola operazione e non deve dedurre arbitrariamente il significato di uno status non previsto.
+
+Con S032 questo principio è applicato anche ai Write Path Flutter del Catalogo Agronomico globale per tassonomia botanica, Crop e Cultivar mediante result type applicativi dedicati.
+
+### Payload non riconosciuti o non confermabili
 
 Un payload:
 
@@ -2839,11 +3452,59 @@ non viene interpretato come successo.
 
 Il comportamento adottato è **fail-closed**.
 
-Quando un errore può lasciare la UI con uno stato non più affidabile, il flusso applicativo può richiedere una nuova lettura autoritativa prima di presentare il risultato definitivo all'utente.
+Il client non deve trasformare l'assenza di una conferma valida in un successo presunto.
 
-Questo principio viene applicato, tra gli altri casi, al lifecycle delle Planting in presenza di conflitti o transizioni non più valide.
+### Conflitti di versione
 
-I dettagli tecnici interni non devono essere esposti direttamente all'utente quando non sono necessari alla comprensione dell'errore.
+Quando una scrittura soggetta a concorrenza ottimistica restituisce:
+
+```text
+version_conflict
+```
+
+il client considera non più affidabile lo stato sul quale era stata avviata l'operazione.
+
+In questo caso:
+
+- non viene effettuata una sovrascrittura forzata;
+- non viene ripetuta automaticamente la scrittura;
+- viene richiesta una nuova lettura dello stato autoritativo;
+- la UI viene riallineata allo stato restituito dal backend.
+
+L'utente può quindi valutare nuovamente l'operazione sulla base dello stato corrente anziché sovrascrivere inconsapevolmente una modifica concorrente.
+
+### Esito incerto di una scrittura
+
+Un'eccezione o un errore di comunicazione successivo all'invio di una richiesta non dimostra che la scrittura non sia stata eseguita dal server.
+
+Quando il client non può stabilire con certezza l'esito della richiesta, l'operazione viene trattata come avente **esito incerto**.
+
+In questa situazione:
+
+- non viene effettuato un retry automatico della scrittura;
+- non viene assunto automaticamente né il successo né il fallimento;
+- viene effettuata una rilettura autoritativa;
+- la prosecuzione del flusso dipende dallo stato effettivamente restituito dal backend.
+
+Questo comportamento è particolarmente importante per evitare che la ripetizione automatica di una richiesta produca una seconda modifica dopo che la prima potrebbe essere già stata applicata.
+
+### Esiti specifici del dominio
+
+Gli esiti specifici vengono interpretati secondo il contratto della relativa operazione.
+
+Per esempio, nella gestione della tassonomia botanica il backend può impedire operazioni incompatibili con le dipendenze esistenti o con lo stato della classificazione superiore.
+
+Il client non aggira tali esiti e non ricostruisce autonomamente gli invarianti server-side.
+
+Analogamente, nel lifecycle delle Planting, conflitti o transizioni non più valide possono richiedere una nuova lettura autoritativa prima di presentare lo stato definitivo all'utente.
+
+### Presentazione degli errori
+
+I result type applicativi separano il contratto tecnico del Repository dalla sua rappresentazione nella UI.
+
+La UI deve fornire un messaggio comprensibile e coerente con l'esito ricevuto senza esporre dettagli tecnici interni quando questi non sono necessari alla comprensione del problema.
+
+Quando la sicurezza dell'operazione richiede una rilettura autoritativa, il messaggio presentato all'utente non deve indurre a ripetere automaticamente una scrittura il cui esito non è ancora determinato.
 
 ## 6.6 Repository e autorità
 
@@ -2882,7 +3543,7 @@ risultato
 Repository
 ```
 
-Questo principio è particolarmente importante perché Orto Smart possiede ora più domini di autorità.
+Questo principio è particolarmente importante perché Orto Smart possiede più domini di autorità distinti.
 
 ```text
 Profile Write Authority
@@ -2890,9 +3551,46 @@ Profile Write Authority
 Catalog Authority
 ```
 
-La prima protegge il writer dei dati operativi Profile-owned.
+La **Profile Write Authority** protegge i percorsi di scrittura dei dati operativi Profile-owned per i quali il relativo contratto richiede il controllo del writer e del lease.
 
-La seconda protegge le operazioni sensibili sul Catalogo Agronomico globale.
+La **Catalog Authority** governa invece le operazioni sensibili sul Catalogo Agronomico globale ed è indipendente dal Profile Edit Lock.
+
+Le capability della Catalog Authority distinguono responsabilità quali:
+
+```text
+identity
+ingestion
+review
+publication
+```
+
+Con S032 la capability relativa alla gestione delle identità viene utilizzata dal client anche per governare l'esposizione delle operazioni di gestione di:
+
+- tassonomia botanica;
+- Crop;
+- Cultivar.
+
+Il controllo applicativo delle capability consente alla UI di mostrare soltanto le funzioni pertinenti, ma **non costituisce autorizzazione sufficiente alla scrittura**.
+
+Ogni operazione sensibile continua a essere verificata dal backend attraverso il relativo Write Path autoritativo.
+
+Di conseguenza:
+
+```text
+capability lato client
+        ↓
+gate applicativo / UI
+        ↓
+Write Path
+        ↓
+verifica server-side
+        ↓
+decisione autoritativa
+```
+
+Il client non può attribuirsi autonomamente una capability, aggirare un diniego del backend o trasformare il possesso di uno stato locale in autorità sulla risorsa.
+
+La separazione tra Profile Write Authority e Catalog Authority impedisce inoltre che il meccanismo di single-writer dei dati personali venga impropriamente esteso alle identità globali del Catalogo.
 
 ## 6.7 Relazione con il Motore Agronomico
 
@@ -3463,7 +4161,7 @@ Gli stati terminali non propongono ulteriori transizioni lifecycle.
 
 ## 7.8 Catalogo Agronomico nella UI
 
-Il cutover S030 ha modificato il contratto applicativo del Catalogo, mentre la Sessione S031 ne ha avviato l'integrazione operativa nell'interfaccia Flutter.
+Il cutover S030 ha modificato il contratto applicativo del Catalogo Agronomico, la Sessione S031 ne ha avviato l'integrazione operativa nell'interfaccia Flutter e la Sessione S032 ha introdotto il primo flusso completo di gestione delle identità globali attraverso la **Classificazione botanica**.
 
 La precedente UI basata sul Catalogo personale S026/S027 non rappresenta più l'architettura corrente.
 
@@ -3478,16 +4176,16 @@ CropVarietyRepository
 
 insieme ai precedenti Write Path personali del Catalogo.
 
-Le letture correnti utilizzano invece:
+Il client corrente utilizza invece i domini:
 
 ```text
+BotanicalTaxon
 Crop
 CropCultivar
-CropRepository
-CropCultivarRepository
+CatalogCapabilities
 ```
 
-sui read model canonici del Catalogo globale.
+e i relativi Repository coerenti con il Catalogo Agronomico globale.
 
 ### Accesso al Catalogo Agronomico
 
@@ -3499,7 +4197,7 @@ Impostazioni
 Catalogo Agronomico
 ```
 
-La voce **Catalogo Agronomico** identifica quindi il percorso operativo corrente per la gestione e la consultazione del Catalogo globale.
+La voce **Catalogo Agronomico** identifica il percorso operativo corrente per la consultazione e la progressiva gestione del Catalogo globale.
 
 Il precedente percorso autonomo:
 
@@ -3513,7 +4211,17 @@ Varietà
 
 La relativa pagina Flutter separata non fa più parte dell'interfaccia corrente.
 
-Le cultivar vengono ora trattate come entità subordinate alla coltura di appartenenza secondo il percorso:
+La struttura applicativa segue progressivamente il modello:
+
+```text
+Classificazione botanica
+        ↓
+Colture
+        ↓
+Cultivar
+```
+
+Le cultivar rimangono inoltre subordinate alla coltura di appartenenza secondo il percorso:
 
 ```text
 Impostazioni
@@ -3525,7 +4233,7 @@ Coltura
 Cultivar
 ```
 
-Questa organizzazione mantiene coerente la UI con il modello canonico del Catalogo, nel quale una cultivar appartiene a una specifica Crop.
+Questa organizzazione mantiene coerente la UI con il modello canonico del Catalogo globale.
 
 ### Catalog Authority
 
@@ -3552,9 +4260,112 @@ La UI non introduce un proprio modello autorizzativo.
 
 Il backend rimane autoritativo per la determinazione dell'authority e delle relative capability.
 
+Con S032 le operazioni UI di gestione delle identità botaniche sono esposte soltanto quando le capability restituite dal backend indicano la possibilità di gestire le identità, rappresentata lato Flutter da `canManageIdentity`.
+
+Il gate applicativo controlla quindi la disponibilità delle azioni nella UI, ma non sostituisce l'autorizzazione server-side applicata dal relativo Write Path.
+
+### Classificazione botanica
+
+La Sessione S032 integra nella pagina del Catalogo Agronomico la gestione operativa della tassonomia botanica globale.
+
+Nell'interfaccia vengono utilizzati i termini approvati:
+
+- **Classificazione botanica** per il dominio tassonomico;
+- **Voce botanica** per una singola identità tassonomica;
+- **Classificazione superiore** per il collegamento gerarchico al taxon superiore disponibile.
+
+La classificazione utilizza il modello `BotanicalTaxon` e il relativo Repository applicativo.
+
+La UI supporta:
+
+- caricamento della classificazione botanica;
+- visualizzazione delle voci;
+- stato vuoto;
+- stato di errore;
+- creazione di una nuova voce botanica;
+- modifica di una voce esistente;
+- attivazione;
+- disattivazione;
+- rilettura dello stato autoritativo quando richiesta dal risultato dell'operazione.
+
+La creazione consente di specificare i dati previsti dal contratto applicativo, tra cui:
+
+- rank;
+- nome scientifico;
+- autore;
+- classificazione superiore;
+- indicazione di ibrido;
+- descrizione.
+
+La tassonomia può essere parziale: la classificazione superiore rappresenta il livello superiore disponibile e la UI non impone autonomamente la presenza di ogni rank intermedio.
+
+I rank appartengono al contratto autoritativo della tassonomia.
+
+`CULTIVAR` non viene presentato come rank tassonomico, perché le cultivar costituiscono identità agronomiche globali distinte.
+
+### Modifica della classificazione botanica
+
+La modifica di una voce botanica utilizza i dati correnti della risorsa e la relativa versione.
+
+Il dialog di modifica consente di intervenire sui campi previsti dal contratto, mantenendo il backend come fonte autoritativa degli invarianti.
+
+Nella selezione della classificazione superiore la voce che si sta modificando viene esclusa come possibile parent di se stessa.
+
+Questo controllo UI non sostituisce la prevenzione server-side dei cicli.
+
+La UI non introduce inoltre regole tassonomiche ulteriori rispetto al contratto autoritativo.
+
+In particolare, se una voce possiede già una classificazione superiore che successivamente è diventata inattiva, Flutter non deve impedire autonomamente una modifica che lasci invariato tale collegamento qualora il backend la consideri valida.
+
+### Attivazione e disattivazione
+
+Le voci botaniche possono essere attive o inattive.
+
+Per gli utenti dotati della capability necessaria, la UI rende disponibili le azioni:
+
+```text
+Attiva  → Disattiva
+Inattiva → Riattiva
+```
+
+Le voci inattive vengono identificate esplicitamente nell'interfaccia.
+
+La **disattivazione** richiede una conferma esplicita dell'utente.
+
+La **riattivazione** non richiede una seconda conferma.
+
+Le dipendenze rimangono governate dal backend.
+
+Se una voce non può essere disattivata perché possiede dipendenze attive, il client non offre percorsi di bypass.
+
+Analogamente, se una riattivazione richiede che venga prima riattivata la classificazione superiore, la UI rispetta l'esito autoritativo senza ricostruire autonomamente le regole di dipendenza.
+
+### Concorrenza e scritture con esito incerto
+
+Le operazioni di modifica e di variazione dello stato utilizzano la versione della risorsa visualizzata dal client secondo il contratto di concorrenza ottimistica.
+
+In presenza di:
+
+```text
+version_conflict
+```
+
+la UI:
+
+- non forza la sovrascrittura;
+- non effettua un retry automatico della scrittura;
+- rilegge lo stato autoritativo;
+- riallinea la rappresentazione locale alla risorsa corrente.
+
+Lo stesso principio viene applicato quando una scrittura produce un esito incerto, per esempio a seguito di un errore di comunicazione dopo l'invio della richiesta.
+
+In questo caso la UI non presume che la scrittura sia fallita e non la ripete automaticamente.
+
+Viene invece verificato nuovamente lo stato autoritativo prima di consentire la prosecuzione del flusso.
+
 ### Colture del Catalogo globale
 
-La pagina del Catalogo Agronomico legge le colture globali mediante il Repository previsto dal contratto S030.
+La pagina del Catalogo Agronomico legge le colture globali mediante `CropRepository` e il read model canonico previsto dal Catalogo.
 
 La UI gestisce gli stati:
 
@@ -3563,21 +4374,24 @@ La UI gestisce gli stati:
 - errore;
 - elenco delle colture disponibili.
 
-Per ciascuna coltura possono essere visualizzate le informazioni disponibili nel read model canonico, tra cui:
+Per ciascuna coltura possono essere visualizzate le informazioni disponibili nel read model canonico.
 
-- nome canonico;
-- nome scientifico;
-- famiglia botanica, quando disponibile.
+Con S032 il modello `Crop` supporta inoltre il collegamento opzionale alla tassonomia botanica mediante:
 
-La Sessione S031 non introduce dati dimostrativi o provvisori nel database.
+```text
+taxonId
+taxonRank
+```
 
-Il database rimane intenzionalmente privo di dati di prova fino all'avvio del popolamento reale e verificato del Catalogo Agronomico.
+S032 ha integrato nel Repository anche il Write Path delle identità Crop, ma **non ha ancora completato il relativo CRUD nella UI**.
+
+La gestione UI completa delle Crop rimane quindi un passo successivo dell'evoluzione progressiva del Catalogo.
 
 ### Cultivar della coltura
 
-La gestione delle cultivar è stata integrata direttamente nel percorso della coltura selezionata.
+La consultazione delle cultivar rimane integrata direttamente nel percorso della coltura selezionata.
 
-La Sessione S031 riutilizza:
+Il client utilizza:
 
 ```text
 CropCultivar
@@ -3616,30 +4430,59 @@ con l'azione:
 Riprova
 ```
 
-che consente di ripetere il caricamento.
+che consente di ripetere la **lettura** delle cultivar.
 
-### Amministrazione ed evoluzione del Catalogo
+Questo retry di lettura non deve essere confuso con un retry automatico di una scrittura con esito incerto, che rimane vietato dal contratto applicativo.
 
-La Sessione S031 implementa quindi il primo percorso operativo Flutter per:
+Con S032 `CropCultivarRepository` integra anche il Write Path delle identità Cultivar, ma **il CRUD completo delle Cultivar nella UI non è ancora implementato**.
 
-- accesso al Catalogo Agronomico dalle Impostazioni;
+### Stato raggiunto e sviluppo successivo
+
+Al termine della Sessione S032 il percorso Flutter del Catalogo Agronomico comprende:
+
+- accesso unico dalle Impostazioni;
 - gestione dello stato della Catalog Authority;
 - visualizzazione delle capability;
+- lettura e gestione operativa della Classificazione botanica;
+- creazione e modifica delle voci botaniche;
+- attivazione e disattivazione delle voci botaniche;
+- gestione della concorrenza ottimistica;
+- rilettura autoritativa dopo conflitti o esiti incerti;
 - lettura delle colture globali;
+- collegamento applicativo Crop → Taxon;
 - selezione della coltura;
 - caricamento on demand delle relative cultivar;
-- gestione degli stati vuoti e degli errori;
-- retry del caricamento delle cultivar.
+- gestione degli stati vuoti e degli errori di lettura;
+- Write Path Flutter per le identità Crop;
+- Write Path Flutter per le identità Cultivar.
 
 Non risultano invece ancora implementati come flussi UI operativi completi:
 
-- gestione editoriale delle identità agronomiche;
+- CRUD delle Crop;
+- CRUD delle Cultivar;
+- gestione degli alias;
 - acquisizione e aggiornamento delle fonti;
-- ingestion dei dati candidati;
-- revisione dei candidati;
+- gestione UI dei dati candidati;
+- revisione editoriale;
 - pubblicazione;
-- workflow editoriale completo;
+- interazione completa con il Resolver;
 - popolamento iniziale reale e verificato del Catalogo.
+
+L'evoluzione approvata della UI procede progressivamente secondo:
+
+```text
+Tassonomia
+    ↓
+Crop
+    ↓
+Cultivar
+```
+
+La tassonomia ha raggiunto con S032 il primo flusso completo di gestione delle identità.
+
+Il passo successivo previsto è completare progressivamente la gestione UI delle Crop e successivamente delle Cultivar, senza vincolare anticipatamente allo stesso ciclo di sviluppo le ulteriori funzioni editoriali.
+
+### Aggiornamento delle fonti
 
 La collocazione approvata per il futuro workflow di aggiornamento delle fonti rimane:
 
@@ -3654,6 +4497,14 @@ Aggiornamento fonti
 L'importazione dovrà produrre dati candidati separati dai dati approvati e sottoposti a revisione.
 
 Nessun dato proveniente da fonti esterne può sovrascrivere automaticamente il Catalogo Agronomico approvato.
+
+### Dati reali e dati di prova
+
+La Sessione S032 non introduce dati dimostrativi o provvisori nel database.
+
+Il database rimane intenzionalmente privo di dati di prova del Catalogo fino all'avvio del popolamento reale e verificato.
+
+Questa scelta evita che dati temporanei o utilizzati esclusivamente per lo sviluppo vengano confusi con le identità e le conoscenze agronomiche destinate all'uso operativo reale.
 
 ## 7.9 Gestione dello stato e sincronizzazione
 
@@ -3674,12 +4525,50 @@ PostgreSQL
   ↓
 esito
   ↓
-eventuale rilettura
+eventuale rilettura autoritativa
   ↓
 aggiornamento UI
 ```
 
-In presenza di esiti che rendono potenzialmente obsoleta la rappresentazione locale, la UI deve rileggere i dati quando previsto dal flusso.
+La rappresentazione mantenuta dal client è uno stato applicativo locale e non sostituisce lo stato persistito e validato dal backend.
+
+Quando l'esito di un'operazione rende potenzialmente obsoleta o non più affidabile la rappresentazione locale, la UI deve effettuare una nuova lettura autoritativa prima di proseguire secondo il relativo contratto applicativo.
+
+### Conflitti e stato locale obsoleto
+
+La concorrenza ottimistica consente al backend di rilevare quando una modifica è stata avviata utilizzando una versione non più corrente della risorsa.
+
+In presenza di:
+
+```text
+version_conflict
+```
+
+il client:
+
+- non forza la sovrascrittura;
+- non ripete automaticamente la scrittura;
+- considera potenzialmente obsoleto lo stato locale;
+- rilegge la risorsa dal backend;
+- aggiorna la UI con lo stato autoritativo.
+
+Questo principio viene applicato sia ai flussi operativi che ai Write Path del Catalogo Agronomico per i quali è prevista la concorrenza ottimistica.
+
+### Scritture con esito incerto
+
+Un errore di comunicazione non dimostra necessariamente che la modifica non sia stata eseguita dal server.
+
+Se il client non può determinare con certezza l'esito di una scrittura:
+
+- non presume automaticamente il fallimento;
+- non presume automaticamente il successo;
+- non effettua un retry automatico della scrittura;
+- verifica nuovamente lo stato autoritativo;
+- riallinea la UI sulla base dello stato effettivamente persistito.
+
+Questa regola evita di duplicare una modifica quando la prima richiesta potrebbe essere stata applicata dal backend prima dell'interruzione della comunicazione.
+
+### Applicazione ai flussi operativi
 
 Nel lifecycle delle Planting questo principio viene applicato, tra gli altri, agli esiti:
 
@@ -3688,11 +4577,22 @@ version_conflict
 invalid_transition
 ```
 
-`BedPage` riallinea le coltivazioni allo stato persistito prima di presentare il risultato all'utente.
+`BedPage` riallinea le coltivazioni allo stato persistito prima di presentare il risultato definitivo all'utente quando il contratto dell'operazione richiede la rilettura.
 
-Non vengono effettuati retry automatici di scritture dal risultato incerto.
+### Applicazione al Catalogo Agronomico
 
-Il principio è:
+Con S032 lo stesso principio è applicato ai flussi di gestione delle identità del Catalogo Agronomico.
+
+In particolare, la gestione della Classificazione botanica utilizza la rilettura autoritativa dopo:
+
+- conflitti di versione;
+- operazioni che modificano lo stato della risorsa;
+- esiti per i quali il contratto richiede il riallineamento;
+- eccezioni o errori di comunicazione che rendono incerto l'esito della scrittura.
+
+La UI non ricostruisce autonomamente lo stato che presume debba risultare dalla modifica, ma utilizza nuovamente il backend come fonte autoritativa.
+
+Il principio generale rimane:
 
 ```text
 richiesta
@@ -3701,8 +4601,12 @@ decisione autoritativa
    ↓
 rilettura quando necessaria
    ↓
+stato persistito verificato
+   ↓
 rappresentazione aggiornata
 ```
+
+Questo modello mantiene separati lo stato temporaneo della UI e lo stato autoritativo del sistema, riducendo il rischio di sovrascritture involontarie, duplicazioni e rappresentazioni locali non più coerenti con il database.
 
 ## 7.10 Principi di progettazione dell'interfaccia
 
@@ -3752,19 +4656,62 @@ L'interfaccia deve evolvere insieme ai relativi contratti backend.
 
 ## 7.11 Evoluzione futura
 
-La Sessione S031 ha avviato l'integrazione operativa del Catalogo Agronomico globale nella UI Flutter.
+La Sessione S031 ha avviato l'integrazione operativa del Catalogo Agronomico globale nella UI Flutter e la Sessione S032 ha esteso tale integrazione introducendo la gestione operativa della Classificazione botanica e i Write Path Flutter delle identità Crop e Cultivar.
 
-Sono ora disponibili il punto di accesso unico da **Impostazioni → Catalogo Agronomico**, la gestione degli stati della Catalog Authority, la visualizzazione delle relative capability, la lettura delle colture globali e la navigazione dalla coltura alle cultivar caricate on demand.
+Al termine di S032 sono quindi disponibili:
 
-Tra gli sviluppi UI successivi rientrano:
+- il punto di accesso unico da **Impostazioni → Catalogo Agronomico**;
+- la gestione degli stati della Catalog Authority;
+- la visualizzazione delle relative capability;
+- la lettura e la gestione operativa della Classificazione botanica;
+- creazione, modifica, attivazione e disattivazione delle voci botaniche;
+- gestione della concorrenza ottimistica e degli esiti incerti secondo lo stato autoritativo del backend;
+- lettura delle colture globali;
+- collegamento applicativo opzionale Crop → Taxon;
+- navigazione dalla coltura alle cultivar caricate on demand;
+- Write Path Flutter per le identità Crop;
+- Write Path Flutter per le identità Cultivar.
 
-- verifica o ripristino del percorso per la creazione del primo Garden;
-- completamento della UI amministrativa/editoriale del Catalogo;
-- workflow `Impostazioni → Catalogo Agronomico → Aggiornamento fonti`;
-- ingestion e revisione dei dati candidati;
+L'evoluzione della gestione delle identità del Catalogo prosegue secondo la sequenza:
+
+```text
+Tassonomia
+    ↓
+Crop
+    ↓
+Cultivar
+```
+
+La gestione UI della tassonomia è stata completata nel perimetro previsto da S032.
+
+Il principale passo successivo proposto per S033 è il completamento progressivo della gestione UI delle **Crop** e, successivamente, delle **Cultivar**, riutilizzando i Write Path già integrati e mantenendo gli stessi principi di:
+
+- autorizzazione mediante Catalog Authority;
+- controllo delle capability;
+- concorrenza ottimistica;
+- assenza di sovrascritture forzate;
+- assenza di retry automatici delle scritture con esito incerto;
+- rilettura dello stato autoritativo quando necessaria;
+- backend come autorità finale sugli invarianti.
+
+L'assegnazione definitiva delle attività alla Sessione S033 dovrà comunque essere confermata nel relativo CHECKPOINT DI RICEZIONE e nella pianificazione della sessione.
+
+Restano sviluppi successivi, senza vincolarli anticipatamente alla S033:
+
+- gestione UI degli alias;
+- workflow **Impostazioni → Catalogo Agronomico → Aggiornamento fonti**;
+- acquisizione e normalizzazione delle fonti;
+- ingestion dei dati candidati;
+- gestione e revisione dei candidati;
+- workflow editoriale completo;
 - pubblicazione della Knowledge;
-- integrazione completa del Resolver nei flussi di pianificazione e inserimento;
-- backend e UI canonici delle consociazioni;
+- integrazione completa del Resolver nei flussi applicativi;
+- popolamento iniziale reale e verificato del Catalogo;
+- backend e UI canonici delle consociazioni.
+
+Restano inoltre tra gli sviluppi applicativi generali:
+
+- verifica o ripristino del percorso per la creazione del primo Garden, se ancora necessario nello stato corrente;
 - attività agricole;
 - irrigazione;
 - raccolti;
@@ -3774,6 +4721,12 @@ Tra gli sviluppi UI successivi rientrano:
 - statistiche;
 - notifiche e promemoria;
 - ulteriori ottimizzazioni per smartphone e tablet.
+
+La precedente articolazione esplorativa che distribuiva l'evoluzione del Catalogo sulle sessioni **S032–S042+ non costituisce una roadmap ufficiale**.
+
+La ricognizione effettuata in S032 ha infatti verificato che il backend del Catalogo Agronomico V1 possiede già un'infrastruttura più avanzata rispetto a quella ipotizzata nella pianificazione esplorativa, comprendendo i domini necessari per identità globali, tassonomia, fonti, acquisizione, osservazioni, alias, workflow editoriale, candidati, evidenze, revisione, pubblicazione e Resolver.
+
+La pianificazione delle sessioni successive deve quindi partire dallo stato effettivamente implementato e verificato, evitando di ricreare componenti già presenti.
 
 Le nuove funzioni dovranno mantenere la separazione tra:
 
@@ -3793,7 +4746,7 @@ L'interfaccia può esporre stati, capability e azioni disponibili, ma non deve d
 
 L'interfaccia Flutter costituisce il punto di contatto tra l'utente e i domini applicativi di Orto Smart.
 
-Alla conclusione della S030 risultano consolidati nell'interfaccia:
+Al termine della Sessione S032 risultano consolidati nell'interfaccia, tra gli altri:
 
 - gestione delle Bed;
 - geometria storicizzata;
@@ -3801,13 +4754,38 @@ Alla conclusione della S030 risultano consolidati nell'interfaccia:
 - creazione e modifica autoritativa delle coltivazioni;
 - lifecycle delle Planting;
 - gestione dei conflitti e rilettura autoritativa;
-- accesso in lettura al Catalogo globale;
+- accesso al Catalogo Agronomico globale;
+- gestione dello stato della Catalog Authority e visualizzazione delle capability;
 - terminologia tecnica Crop/Cultivar;
-- gestione corretta degli stati vuoti verificati durante lo smoke test.
+- lettura delle Crop globali;
+- navigazione Crop → Cultivar con caricamento on demand;
+- gestione operativa della Classificazione botanica;
+- creazione e modifica delle voci botaniche;
+- attivazione e disattivazione delle voci botaniche;
+- gestione della concorrenza ottimistica nelle operazioni interessate;
+- rilettura autoritativa dopo conflitti o scritture con esito incerto;
+- collegamento applicativo opzionale Crop → Taxon;
+- integrazione dei Write Path Flutter per le identità Crop e Cultivar.
 
-Rimangono invece distinti come sviluppi successivi i workflow amministrativi ed editoriali del Catalogo e il completamento delle altre aree operative.
+Il Catalogo Agronomico non deve tuttavia essere considerato completo nella sua interfaccia amministrativa ed editoriale.
+
+Rimangono distinti come sviluppi successivi:
+
+- completamento della gestione UI delle Crop;
+- completamento della gestione UI delle Cultivar;
+- alias;
+- acquisizione e aggiornamento delle fonti;
+- dati candidati e relativa revisione;
+- pubblicazione;
+- Resolver;
+- popolamento reale e verificato del Catalogo;
+- completamento delle altre aree operative dell'applicazione.
 
 La UI deve continuare a rappresentare fedelmente ciò che il backend rende realmente disponibile, senza anticipare funzioni non ancora implementate e senza sostituire le decisioni autoritative del server o le conferme dell'utente.
+
+In particolare, capability visualizzate dal client, controlli preliminari, selezioni disponibili e stato locale della UI non costituiscono autorità sulla risorsa.
+
+Il backend rimane responsabile dell'autorizzazione, degli invarianti, delle dipendenze, della concorrenza e dello stato persistito.
 
 Nel Capitolo 8 viene approfondito il Motore Agronomico e il modo in cui dati, regole e Knowledge vengono trasformati in suggerimenti applicativi.
 
@@ -4761,7 +5739,32 @@ flutter analyze
 No issues found
 ```
 
-Il risultato S030 costituisce il riferimento più recente per lo stato corrente del codice Flutter.
+Il risultato costituisce il riferimento storico della verifica statica al termine della S030.
+
+### Verifica S032
+
+Durante la verifica finale della Sessione S032 è stata eseguita nuovamente l'analisi statica dell'intera applicazione.
+
+Una verifica intermedia ha individuato una segnalazione relativa a:
+
+```text
+use_build_context_synchronously
+```
+
+nel codice interessato dall'integrazione della gestione della tassonomia botanica.
+
+La segnalazione è stata corretta introducendo il controllo appropriato dello stato `mounted`, quindi l'analisi è stata rieseguita sull'applicazione completa.
+
+Il risultato finale verificato della Sessione S032 è:
+
+```text
+flutter analyze
+No issues found
+```
+
+La S032 si è quindi conclusa senza issue rilevate dall'analizzatore Flutter.
+
+I risultati S029, S030 e S032 devono essere considerati verifiche storiche distinte: il risultato S032 rappresenta lo stato più recente documentato per l'analisi statica del codice Flutter.
 
 ## 9.4 Test automatici
 
@@ -4857,7 +5860,61 @@ flutter test
 953 test passati
 ```
 
-Il risultato S030 è distinto dal risultato storico S029 e rappresenta il riferimento più recente documentato per la suite Flutter al termine della S030.
+Il risultato S030 è distinto dal risultato storico S029 e rappresenta lo stato verificato della suite Flutter al termine della S030.
+
+### Verifica S032
+
+La Sessione S032 ha esteso la copertura automatica relativa all'integrazione Flutter del Catalogo Agronomico globale.
+
+Le verifiche hanno accompagnato progressivamente:
+
+- integrazione del Repository e dei result type della tassonomia botanica;
+- collegamento opzionale Crop → Taxon;
+- integrazione dei Write Path di Crop;
+- integrazione dei Write Path di Cultivar;
+- lettura della Classificazione botanica nella pagina del Catalogo;
+- creazione delle voci botaniche;
+- modifica delle voci botaniche;
+- attivazione e disattivazione;
+- controllo della Catalog Authority;
+- concorrenza ottimistica;
+- gestione delle dipendenze;
+- gestione degli errori;
+- gestione delle scritture con esito incerto;
+- rilettura dello stato autoritativo.
+
+Durante lo sviluppo sono stati raggiunti checkpoint progressivi della suite completa, tra cui:
+
+```text
+999/999
+1017/1017
+1033/1033
+1036/1036
+1044/1044
+1063/1063
+```
+
+Questi valori rappresentano stati intermedi della suite e non devono essere interpretati come risultati separati da sommare.
+
+Al termine dell'integrazione della gestione dello stato della tassonomia è stata eseguita la suite specifica della pagina del Catalogo Agronomico, con risultato:
+
+```text
+61/61 test passati
+```
+
+È stata quindi rieseguita l'intera suite Flutter:
+
+```text
+flutter test
+
+1077/1077 test passati
+```
+
+Il risultato **1077/1077** costituisce il risultato finale verificato della Sessione S032.
+
+La verifica finale conferma che l'integrazione della gestione della tassonomia e dei Write Path del Catalogo non ha introdotto regressioni rilevate dalla suite automatica esistente.
+
+I risultati S029, S030 e S032 rimangono risultati storici distinti e descrivono lo stato effettivamente verificato del progetto al termine delle rispettive sessioni.
 
 ## 9.5 Verifiche del database
 
@@ -4992,10 +6049,11 @@ I risultati principali documentati nelle sessioni recenti sono:
 |---|---:|---|---|
 | S029 | 1011/1011 | No issues found | Verifiche applicative lifecycle |
 | S030 | 953 test passati | No issues found | DB reset OK; DB lint locale OK; DB lint remoto OK; Acceptance Tranche 10 e 11 superate |
+| S032 | 1077/1077 | No issues found | Nessuna nuova migration nel blocco finale S032; verifiche applicative del Catalogo e suite specifica Catalog page 61/61 |
 
-I due risultati della suite Flutter non devono essere sommati.
+I risultati delle suite Flutter non devono essere sommati.
 
-Rappresentano due stati verificati del progetto in momenti differenti:
+Rappresentano stati verificati del progetto in momenti differenti:
 
 ```text
 S029
@@ -5003,30 +6061,77 @@ S029
     ↓
 S030
 953 test
+    ↓
+S032
+1077 test
 ```
 
-Il numero dei test può diminuire tra sessioni senza implicare automaticamente una regressione: modifiche architetturali, rimozione di componenti legacy, sostituzione di test non più pertinenti o riallineamento dei contratti possono modificare la composizione della suite.
+Il numero dei test può aumentare o diminuire tra sessioni senza implicare automaticamente un miglioramento o una regressione: modifiche architetturali, aggiunta o rimozione di componenti, sostituzione di test non più pertinenti e riallineamento dei contratti possono modificare la composizione della suite.
 
-La documentazione deve pertanto riportare il risultato effettivamente eseguito nella sessione a cui si riferisce.
+Per S032, oltre alla suite completa finale di **1077/1077**, è stata verificata la suite specifica della pagina del Catalogo Agronomico:
+
+```text
+61/61 test passati
+```
+
+La verifica S032 ha coperto in particolare:
+
+- lettura della tassonomia botanica;
+- creazione e modifica delle voci botaniche;
+- attivazione e disattivazione;
+- Catalog Authority;
+- concorrenza ottimistica;
+- dipendenze;
+- gestione degli errori;
+- scritture con esito incerto;
+- rilettura dello stato autoritativo.
+
+Durante la verifica finale S032 una segnalazione `use_build_context_synchronously` rilevata dall'analisi statica è stata corretta; la successiva esecuzione di `flutter analyze` si è conclusa con:
+
+```text
+No issues found
+```
+
+S032 non ha introdotto nuove migration nel blocco finale di sviluppo e non devono quindi esserle attribuiti i risultati di DB reset, DB lint o acceptance test documentati per S030.
+
+La documentazione deve riportare esclusivamente il risultato effettivamente eseguito nella sessione a cui si riferisce, mantenendo distinta la verifica applicativa Flutter dalle verifiche specifiche del database.
 
 ## 9.10 Evoluzione futura
 
 La strategia di verifica continuerà ad evolvere parallelamente alla crescita del progetto.
 
+S032 ha già ampliato in modo significativo la copertura del Catalogo Agronomico, includendo verifiche dedicate a:
+
+- tassonomia botanica;
+- creazione e modifica delle voci botaniche;
+- attivazione e disattivazione;
+- Catalog Authority;
+- concorrenza ottimistica;
+- dipendenze;
+- gestione degli errori;
+- scritture con esito incerto;
+- rilettura dello stato autoritativo.
+
+Le evoluzioni future della strategia di test dovranno quindi accompagnare le funzionalità che verranno effettivamente implementate, senza considerare nuovamente come future le verifiche già consolidate in S032.
+
 Tra gli sviluppi previsti rientrano:
 
-- incremento della copertura dei test automatici;
-- test dedicati ai nuovi moduli del Motore Agronomico;
-- ampliamento delle verifiche sul Catalogo Agronomico e sulla Knowledge;
+- incremento progressivo della copertura dei test automatici;
+- test della gestione UI completa di Crop;
+- test della gestione UI completa di Cultivar;
+- verifiche dei successivi workflow del Catalogo Agronomico;
+- test relativi ad alias, acquisizione delle fonti, dati candidati e workflow editoriale quando tali funzioni verranno integrate nell'applicazione;
+- ampliamento delle verifiche sulla Knowledge agronomica canonica;
 - test del Resolver nei diversi contesti applicativi;
+- test dedicati ai nuovi moduli del Motore Agronomico;
+- verifiche di integrazione tra Knowledge e Motore Agronomico;
 - ampliamento delle verifiche sulle funzionalità di irrigazione;
 - test della pianificazione delle attività;
-- verifiche di integrazione tra Knowledge e Motore Agronomico;
 - consolidamento delle procedure di acceptance;
-- continuo miglioramento delle verifiche di sicurezza e concorrenza;
-- controllo sistematico delle migration locale/remoto.
+- continuo miglioramento delle verifiche di sicurezza, autorizzazione e concorrenza;
+- controllo sistematico delle migration locali e remote quando le sessioni introducono modifiche al database.
 
-Ogni nuova funzionalità dovrà mantenere la separazione tra:
+Ogni nuova funzionalità dovrà mantenere, quando applicabile, la separazione tra:
 
 ```text
 test applicativi
@@ -5036,7 +6141,21 @@ test di sicurezza
 acceptance test
 ```
 
-quando la natura della modifica lo richiede.
+La tipologia delle verifiche deve dipendere dalla natura effettiva della modifica.
+
+Una sessione che interviene esclusivamente sul livello Flutter non deve essere documentata come se avesse eseguito nuove verifiche di migration o acceptance database; analogamente, una modifica al contratto persistente deve essere accompagnata dalle verifiche database previste dal workflow.
+
+I risultati devono continuare a essere registrati per singola sessione, mantenendo distinti:
+
+```text
+risultato storico
+        ↓
+stato corrente verificato
+        ↓
+verifiche future
+```
+
+senza trasferire retroattivamente risultati da una sessione a un'altra.
 
 ## 9.11 Considerazioni finali
 
@@ -5059,6 +6178,8 @@ documentazione dei risultati
 ```
 
 consente di mantenere sotto controllo l'evoluzione dell'applicazione.
+
+Le diverse tipologie di verifica devono essere applicate in funzione della natura effettiva della modifica e i risultati devono rimanere attribuiti alla sessione nella quale sono stati realmente ottenuti.
 
 La Sessione S029 ha confermato questo metodo nell'integrazione UI del lifecycle delle coltivazioni, raggiungendo:
 
@@ -5093,9 +6214,74 @@ superata
 
 Le fixture utilizzate per le verifiche S030 sono state sottoposte a rollback e non costituiscono dati operativi permanenti.
 
-Il database deve continuare a rimanere privo di dati demo o provvisori fino all'avvio della gestione reale dell'orto.
+La Sessione S032 ha proseguito la verifica sul livello applicativo Flutter del Catalogo Agronomico, con particolare riferimento alla tassonomia botanica e ai Write Path delle identità globali.
 
-La strategia di qualità documentata in questo capitolo costituisce quindi il riferimento metodologico per le successive sessioni di sviluppo, mantenendo separati il risultato storico delle singole sessioni, lo stato corrente verificato e le future attività di collaudo.
+La suite specifica della pagina del Catalogo Agronomico ha raggiunto:
+
+```text
+61/61 test passati
+```
+
+La suite completa finale ha raggiunto:
+
+```text
+flutter test
+
+1077/1077 test passati
+```
+
+La verifica statica finale ha inoltre confermato:
+
+```text
+flutter analyze
+No issues found
+```
+
+Prima del risultato finale, una segnalazione `use_build_context_synchronously` individuata dall'analizzatore è stata corretta e la verifica è stata rieseguita con esito pulito.
+
+Le verifiche S032 hanno coperto in particolare:
+
+- lettura della tassonomia botanica;
+- creazione e modifica delle voci botaniche;
+- attivazione e disattivazione;
+- Catalog Authority;
+- concorrenza ottimistica;
+- dipendenze;
+- gestione degli errori;
+- conflitti di versione;
+- scritture con esito incerto;
+- rilettura dello stato autoritativo.
+
+S032 non ha introdotto nuove migration nel blocco finale di sviluppo; i risultati relativi a DB reset, DB lint e Acceptance Tranche 10 e 11 rimangono pertanto risultati storici della S030 e non devono essere attribuiti alla S032.
+
+Il database deve continuare a rimanere privo di dati demo o provvisori fino all'avvio della gestione reale dell'orto e al popolamento controllato del Catalogo Agronomico verificato.
+
+La strategia di qualità documentata in questo capitolo costituisce il riferimento metodologico per le successive sessioni di sviluppo.
+
+Devono rimanere sempre distinti:
+
+```text
+risultato storico della sessione
+            ↓
+stato corrente verificato
+            ↓
+attività di verifica future
+```
+
+senza sommare risultati appartenenti a suite eseguite in momenti differenti e senza attribuire a una sessione verifiche che non sono state effettivamente eseguite.
+
+Al termine della S032, il riferimento applicativo più recente documentato è quindi costituito da:
+
+```text
+flutter analyze
+No issues found
+
+Catalog page
+61/61 test passati
+
+suite Flutter completa
+1077/1077 test passati
+```
 
 # 10. Evoluzione del Progetto
 
@@ -5247,12 +6433,18 @@ PostgreSQL
 
 consente di sviluppare i diversi livelli mantenendo responsabilità distinte.
 
-La stessa separazione è stata estesa con S030 al dominio della conoscenza agronomica:
+Con S030 questa separazione è stata estesa al dominio della conoscenza agronomica attraverso l'introduzione del Catalogo Agronomico globale e della relativa infrastruttura server-side.
+
+Le Sessioni S031 e S032 hanno successivamente iniziato a integrare tale contratto nel livello applicativo Flutter, mantenendo distinta l'autorità del client da quella del database.
+
+Il modello corrente può essere rappresentato come:
 
 ```text
 Catalog Authority
         ↓
-Catalogo Agronomico
+Write Path autoritativi
+        ↓
+Catalogo Agronomico globale
         ↓
 Knowledge canonica
         ↓
@@ -5263,21 +6455,98 @@ Motore Agronomico
 applicazione
 ```
 
-Questa organizzazione consente di evolvere il Catalogo senza trasformare il Catalogo stesso in una parte inseparabile della logica applicativa.
+La Catalog Authority costituisce un'autorità specifica del Catalogo e rimane distinta dalla Profile Write Authority e dal meccanismo di Profile Edit Lock utilizzato per altri domini applicativi.
+
+Le operazioni sensibili sulle identità globali non vengono quindi autorizzate dalla sola presenza dell'interfaccia Flutter.
+
+Il client utilizza le capability disponibili per determinare le operazioni presentabili all'utente, mentre l'autorizzazione effettiva e la validazione finale rimangono server-side.
+
+Con S032 questo principio è stato applicato in particolare a:
+
+- tassonomia botanica;
+- Crop;
+- Cultivar.
+
+Per questi domini il livello Flutter utilizza Repository e Write Path dedicati anziché effettuare scritture dirette sulle tabelle.
+
+La tassonomia botanica costituisce inoltre un esempio concreto di separazione tra responsabilità applicativa e responsabilità autoritativa.
+
+Flutter gestisce:
+
+- visualizzazione;
+- raccolta dell'input;
+- selezione delle classificazioni;
+- stato dell'interfaccia;
+- presentazione degli esiti;
+- rilettura dello stato autoritativo.
+
+Il database rimane invece responsabile di:
+
+- autorizzazione;
+- validazione;
+- unicità;
+- integrità gerarchica;
+- prevenzione dei cicli;
+- gestione delle dipendenze;
+- concorrenza ottimistica;
+- transazione;
+- stato persistente finale.
+
+La concorrenza sulle identità del Catalogo utilizza `row_version`.
+
+In presenza di `version_conflict`, il client non deve forzare la sovrascrittura e non deve eseguire automaticamente una nuova scrittura utilizzando una versione aggiornata.
+
+Il comportamento previsto è:
+
+```text
+version_conflict
+        ↓
+nessun overwrite forzato
+        ↓
+nessun retry automatico
+        ↓
+rilettura dello stato autoritativo
+        ↓
+aggiornamento della UI
+```
+
+Lo stesso principio di prudenza viene applicato quando l'esito di una scrittura è incerto, per esempio a causa di un errore di comunicazione dopo l'invio della richiesta:
+
+```text
+esito incerto
+        ↓
+nessun retry automatico
+        ↓
+rilettura dello stato autoritativo
+        ↓
+determinazione dello stato reale
+```
+
+Questa organizzazione consente di evolvere il Catalogo senza trasformarlo in una parte inseparabile della logica applicativa e senza duplicare nel client regole che appartengono al contratto autoritativo del database.
 
 La scalabilità riguarda inoltre il modello dati.
 
 Le nuove entità dovranno essere introdotte mantenendo:
 
-- ownership coerente;
+- ownership o authority coerente con il dominio;
 - integrità referenziale;
 - controllo delle cancellazioni;
 - storicizzazione quando necessaria;
 - compatibilità con i dati operativi esistenti;
 - Write Path appropriati;
-- RLS e controlli server-side.
+- RLS e controlli server-side;
+- gestione esplicita della concorrenza quando richiesta.
 
 L'architettura dovrà continuare a privilegiare strutture compatte e ridurre duplicazioni non necessarie, soprattutto per i dati che possono essere recuperati da fonti esterne o da sistemi già autorevoli.
+
+La presenza nel backend di strutture avanzate non deve infine essere interpretata automaticamente come disponibilità completa delle corrispondenti funzioni nell'interfaccia utente.
+
+Al termine della S032:
+
+- la gestione UI della tassonomia botanica è integrata;
+- i Write Path Flutter di Crop e Cultivar sono integrati;
+- la gestione UI completa di Crop e Cultivar rimane da completare progressivamente;
+- i workflow successivi relativi ad alias, fonti, acquisizione, candidati, revisione, pubblicazione e Resolver rimangono distinti incrementi futuri finché non vengono effettivamente integrati e verificati.
 
 ## 10.5 Integrazioni future
 
@@ -5359,7 +6628,46 @@ FUTURE
 
 Il presente Manuale Tecnico raccoglie e documenta l'architettura software, i principi progettuali e le principali scelte tecniche che costituiscono il fondamento di Orto Smart.
 
-L'architettura corrente riflette l'evoluzione progressiva del progetto e comprende, oltre ai livelli applicativi originari, il nuovo Catalogo Agronomico globale e la relativa infrastruttura di Knowledge.
+L'architettura corrente riflette l'evoluzione progressiva del progetto e comprende, oltre ai livelli applicativi originari, il Catalogo Agronomico globale introdotto a livello persistente con S030 e progressivamente integrato nel livello Flutter nelle sessioni successive.
+
+Al termine della S032, il Catalogo Agronomico dispone di un contratto applicativo più avanzato rispetto allo stato iniziale del cutover S030.
+
+In particolare risultano integrati e verificati:
+
+- il modello Flutter della tassonomia botanica globale;
+- il Repository della tassonomia botanica;
+- i Write Path Flutter per tassonomia, Crop e Cultivar;
+- il collegamento opzionale Crop → Taxon;
+- la gestione della Catalog Authority e delle relative capability;
+- la concorrenza ottimistica tramite `row_version`;
+- la gestione esplicita dei conflitti di versione;
+- il comportamento prudenziale in presenza di scritture con esito incerto;
+- la rilettura dello stato autoritativo;
+- la gestione UI della tassonomia botanica, comprese creazione, modifica, attivazione e disattivazione.
+
+La tassonomia botanica supporta una classificazione parziale e gerarchica.
+
+Il contratto corrente distingue esplicitamente:
+
+```text
+tassonomia botanica
+        ≠
+Cultivar
+```
+
+`CULTIVAR` non costituisce un rango tassonomico.
+
+La Cultivar è una distinta identità globale del Catalogo e rimane separata dalla gerarchia botanica.
+
+Analogamente, rimangono distinti:
+
+```text
+Profile Write Authority
+        ≠
+Catalog Authority
+```
+
+La gestione delle identità globali del Catalogo non dipende quindi dal Profile Edit Lock utilizzato per altri domini applicativi.
 
 La distinzione tra:
 
@@ -5377,13 +6685,83 @@ Knowledge risolta
 decisione operativa automatica
 ```
 
-costituisce uno dei principi fondamentali dell'evoluzione futura.
+continua a costituire uno dei principi fondamentali dell'evoluzione del progetto.
 
-Analogamente, schema, sicurezza, authority, integrazione applicativa, interazione utente e documentazione devono continuare a evolvere come livelli distinti ma coerenti.
+Schema, sicurezza, authority, integrazione applicativa, interazione utente e documentazione devono continuare a evolvere come livelli distinti ma coerenti.
+
+Il database rimane l'autorità finale per le operazioni sensibili.
+
+Flutter non deve duplicare regole autoritative già garantite dal server e non deve trasformare una capability visualizzata dal client in un'autorizzazione sostitutiva di quella server-side.
+
+In caso di conflitto di versione:
+
+```text
+version_conflict
+        ↓
+nessun overwrite forzato
+        ↓
+nessun retry automatico
+        ↓
+rilettura dello stato autoritativo
+```
+
+In caso di esito incerto di una scrittura:
+
+```text
+esito incerto
+        ↓
+nessun retry automatico
+        ↓
+verifica dello stato autoritativo
+```
+
+Questi principi riducono il rischio di sovrascritture involontarie e di duplicazione di operazioni il cui esito effettivo non è noto al client.
 
 Il Database V1 complessivo rimane parzialmente implementato.
 
-Le funzionalità future dovranno pertanto essere introdotte senza confondere ciò che è già implementato con ciò che appartiene alla roadmap.
+Anche il Catalogo Agronomico presenta livelli di maturità differenti tra backend e interfaccia utente.
+
+Al termine della S032:
+
+```text
+backend Catalogo
+        ↓
+struttura avanzata già disponibile
+
+Flutter
+        ↓
+integrazione progressiva
+
+Tassonomia
+        ↓
+gestione UI integrata e verificata
+
+Crop e Cultivar
+        ↓
+Write Path integrati
+        ↓
+gestione UI completa ancora da completare
+```
+
+Le funzionalità relative ad alias, fonti, acquisizione, candidati, revisione, pubblicazione e Resolver non devono essere considerate complete nell'interfaccia utente soltanto perché esistono strutture backend che le supportano.
+
+La progressione applicativa approvata rimane:
+
+```text
+Tassonomia
+        ↓
+Crop
+        ↓
+Cultivar
+```
+
+La tassonomia ha raggiunto in S032 il primo livello completo di gestione UI di questa progressione.
+
+Il completamento della gestione UI di Crop e successivamente di Cultivar costituisce la naturale prosecuzione tecnica, ma l'assegnazione definitiva delle attività alle singole sessioni deve essere confermata nei relativi checkpoint di pianificazione.
+
+La precedente roadmap esplorativa che associava rigidamente le evoluzioni del Catalogo alle sessioni S032–S042+ non costituisce una roadmap ufficiale e non deve essere utilizzata per dedurre automaticamente il contenuto delle sessioni future.
+
+Le funzionalità future dovranno essere introdotte senza confondere ciò che è già implementato con ciò che appartiene alla roadmap.
 
 L'evoluzione di Orto Smart continuerà secondo il principio:
 
@@ -5392,16 +6770,20 @@ baseline storica
         +
 decisioni architetturali versionate
         +
-migration riproducibili
+migration riproducibili quando necessarie
         +
 sicurezza server-side
         +
 integrazione applicativa controllata
         +
+concorrenza gestita
+        +
 test
         +
 documentazione coerente
 ```
+
+Il database operativo dovrà inoltre rimanere privo di dati demo o provvisori fino all'avvio del popolamento controllato del Catalogo Agronomico verificato e della gestione reale dell'orto.
 
 In questo modo il progetto potrà crescere mantenendo contemporaneamente:
 
@@ -5413,3 +6795,5 @@ In questo modo il progetto potrà crescere mantenendo contemporaneamente:
 - possibilità di evoluzione.
 
 Il Manuale Tecnico costituisce quindi il riferimento architetturale generale del progetto, mentre gli altri documenti ufficiali ne descrivono gli aspetti specialistici, la cronologia, la roadmap, le decisioni e le procedure operative.
+
+Lo stato documentato al termine della S032 deve essere considerato il nuovo riferimento applicativo del Manuale Tecnico, senza alterare la validità storica delle decisioni e delle verifiche appartenenti alle sessioni precedenti.
