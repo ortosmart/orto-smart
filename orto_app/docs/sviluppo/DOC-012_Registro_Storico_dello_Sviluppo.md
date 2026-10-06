@@ -6,7 +6,7 @@
 
 **Versione:** 4.1
 
-**Stato:** In aggiornamento
+**Stato:** Approvato
 
 **Autore:** Renzo Siega
 
@@ -27,7 +27,7 @@
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
 | Versione | 4.1 |
-| Stato | In aggiornamento |
+| Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
@@ -61,7 +61,7 @@
 | 3.8 | 18/09/2026 | Aggiornamento e chiusura della Sessione S029: completamento della UI del lifecycle di `plantings`, gestione esplicita di `end_date` per gli stati terminali, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`, suite completa finale verificata con 1011/1011 test superati; Sessione S029 conclusa in 4 h 09 min complessivi, di cui 1 h 19 min di sviluppo e 2 h 50 min di documentazione, con totale progetto pari a 201 h 44 min |
 | 3.9 | 28/09/2026 | Aggiornamento e chiusura della Sessione S030: completamento del Catalogo Agronomico globale attraverso 11 tranche tecniche, introduzione delle identità botaniche globali, Catalog Authority, fonti e osservazioni, workflow editoriale, Knowledge agronomica canonica, pubblicazione e Resolver, cutover finale Database + Flutter, 26 tabelle nel perimetro Catalogo e 953 test Flutter superati; Sessione S030 conclusa in 27 h 19 min complessivi, di cui 21 h 06 min di sviluppo e 6 h 13 min di documentazione, con totale progetto pari a 229 h 03 min |
 | 4.0 | 01/10/2026 | Aggiornamento e chiusura della Sessione S031: integrazione operativa Flutter del Catalogo Agronomico nel percorso `Impostazioni → Catalogo Agronomico → Colture → Cultivar`, integrazione della Catalog Authority e delle relative capability, inizializzazione esplicita e confermata dell'authority, consultazione delle colture globali, caricamento on demand delle cultivar, gestione degli stati UI e rimozione del precedente percorso autonomo `Impostazioni → Varietà`; 971 test Flutter superati, nessuna nuova migration, Sessione S031 conclusa in 6 h 06 min complessivi, di cui 4 h 03 min di sviluppo e 2 h 03 min di documentazione, con totale progetto pari a 235 h 09 min; versione pubblica invariata a `0.1.21-alpha` e versione Flutter invariata a `0.1.21-alpha+6`. |
-| 4.1 | 06/10/2026 | Aggiornamento in corso per la Sessione S032: conclusa la fase sviluppo con ricognizione del contratto autoritativo del Catalogo, integrazione Flutter dei Write Path di Taxon, Crop e Cultivar, completamento della UI di gestione della Classificazione botanica, concorrenza mediante `row_version`, gestione fail-safe di `version_conflict` ed esiti incerti e verifica finale con 1077/1077 test; sviluppo S032 consolidato a 7 h 58 min, fase Manuali ancora in corso e totale definitivo della sessione da consolidare. |
+| 4.1 | 06/10/2026 | Aggiornamento e chiusura della Sessione S032: ricognizione del contratto autoritativo del Catalogo, integrazione Flutter dei Write Path di Taxon, Crop e Cultivar, completamento della UI di gestione della Classificazione botanica, concorrenza mediante `row_version`, gestione fail-safe di `version_conflict` ed esiti incerti e verifica finale con 1077/1077 test; Sessione S032 conclusa in 11 h 30 min complessivi, di cui 7 h 58 min di sviluppo e 3 h 32 min di documentazione; chiusura documentale il 06/10/2026 alle 14:30; totale progetto pari a 246 h 39 min; versione pubblica invariata a `0.1.21-alpha` e versione Flutter invariata a `0.1.21-alpha+6`. |
 
 ---
 
@@ -111,7 +111,7 @@ Le informazioni riportate nel presente capitolo vengono aggiornate al termine de
 
 ## 2.1 Stato attuale del progetto
 
-Alla data del presente aggiornamento, la **fase sviluppo della Sessione S032 è conclusa**, mentre la relativa fase Manuali è ancora in corso.
+Alla data del presente aggiornamento, la **Sessione S032 è completamente conclusa**, sia nella fase di sviluppo sia nella fase documentale.
 
 La fase sviluppo S032 si è svolta dal:
 
@@ -139,54 +139,62 @@ La fase Manuali S032 è iniziata il:
 04/10/2026 alle 22:40
 ```
 
-ed è ancora in corso.
+ed è stata conclusa il:
 
-Gli intervalli di lavoro documentale vengono conteggiati esclusivamente quando esplicitamente attivi; gli intervalli tra una sospensione e la successiva ripresa sono esclusi.
+```text
+06/10/2026 alle 14:30
+```
 
-Poiché la fase documentale non è ancora conclusa, non vengono ancora consolidati:
+Gli intervalli documentali definitivi sono:
 
-- il tempo documentale definitivo della S032;
-- il tempo complessivo definitivo della S032;
-- il totale definitivo del progetto alla chiusura della S032.
+```text
+04/10/2026   22:40 → 22:58   0 h 18 min
+05/10/2026   nessun lavoro   0 h 00 min
+06/10/2026   09:59 → 10:55   0 h 56 min
+06/10/2026   11:54 → 12:20   0 h 26 min
+06/10/2026   12:38 → 14:30   1 h 52 min
+---------------------------------------
+Totale                         3 h 32 min
+```
+
+Gli intervalli compresi tra le sospensioni e le successive riprese sono esclusi dal conteggio.
 
 Lo stato corrente è:
 
 | Indicatore | Valore |
 |------------|--------|
-| Ultima sessione completamente conclusa | S031 |
+| Ultima sessione completamente conclusa | S032 |
 | Ultima fase sviluppo completata | S032 |
-| Sessione in corso | S032 — Manuali |
-| Stato della documentazione | Aggiornamento S032 in corso |
+| Sessione in corso | Nessuna |
+| Stato della documentazione | S032 conclusa |
 | Versione pubblica corrente | 0.1.21-alpha |
 | Versione Flutter corrente | 0.1.21-alpha+6 |
 
-Il tempo attualmente consolidato della Sessione S032 è:
+Il tempo definitivo della Sessione S032 è:
 
 | Attività | Durata |
 |----------|-------:|
 | Sviluppo | 7 h 58 min |
-| Documentazione | IN CORSO |
-| **Totale S032** | **DA CONSOLIDARE** |
+| Documentazione | 3 h 32 min |
+| **Totale S032** | **11 h 30 min** |
 
-I progressivi definitivi alla chiusura della S031 rimangono:
-
-```text
-Sviluppo complessivo        172 h 42 min
-Documentazione complessiva   62 h 27 min
-----------------------------------------
-Totale progetto             235 h 09 min
-```
-
-Con l'aggiunta della sola fase sviluppo S032 già conclusa, il progressivo tecnico intermedio raggiunto è:
+I progressivi definitivi alla chiusura della S032 sono:
 
 ```text
 Sviluppo complessivo        180 h 40 min
-Documentazione consolidata   62 h 27 min
+Documentazione complessiva   65 h 59 min
 ----------------------------------------
-Progressivo intermedio      243 h 07 min
+Totale progetto             246 h 39 min
 ```
 
-Il valore **243 h 07 min** non costituisce il totale definitivo della Sessione S032: rappresenta esclusivamente il progressivo del progetto dopo l'aggiunta delle **7 h 58 min** di sviluppo S032 al totale definitivo della S031.
+Il progressivo complessivo deriva da:
+
+```text
+235 h 09 min   totale progetto alla chiusura S031
++11 h 30 min   totale Sessione S032
+-----------------------------------------------
+246 h 39 min   totale progetto alla chiusura S032
+```
 
 La Sessione S032 ha preso avvio dalla ricognizione del contratto backend del Catalogo Agronomico già realizzato nella S030 e integrato in lettura nella S031.
 
@@ -336,7 +344,7 @@ La cronologia sintetica riporta, in ordine cronologico, le principali sessioni c
 
 Per ciascuna sessione completamente conclusa vengono indicati l'evento principale e il tempo complessivo della sessione, comprensivo dello sviluppo e della documentazione quando entrambi presenti.
 
-Per la Sessione S032, la cui fase Manuali è ancora in corso, viene riportato separatamente il solo tempo di sviluppo già consolidato; il tempo complessivo della sessione e il relativo progressivo definitivo saranno registrati alla chiusura documentale.
+La Sessione S032 è completamente conclusa. Il relativo tempo comprende **7 h 58 min di sviluppo** e **3 h 32 min di documentazione**, per un totale di **11 h 30 min**.
 
 | Sessione | Attività principale | Ore sessione | Totale progressivo |
 |-----------|---------------------|-------------:|-------------------:|
@@ -371,7 +379,7 @@ Per la Sessione S032, la cui fase Manuali è ancora in corso, viene riportato se
 | **S029** | Completamento della UI del lifecycle di `plantings` | **4 h 09 min** | **201 h 44 min** |
 | **S030** | Implementazione del Catalogo Agronomico globale e cutover finale Database + Flutter | **27 h 19 min** | **229 h 03 min** |
 | **S031** | Integrazione operativa Flutter del Catalogo Agronomico e navigazione gerarchica Coltura → Cultivar | **6 h 06 min** | **235 h 09 min** |
-| **S032** | Write Path Flutter di Taxon, Crop e Cultivar e gestione completa della Classificazione botanica | **7 h 58 min sviluppo; Manuali in corso** | **243 h 07 min intermedio** |
+| **S032** | Write Path Flutter di Taxon, Crop e Cultivar e gestione completa della Classificazione botanica | **11 h 30 min** | **246 h 39 min** |
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -485,28 +493,38 @@ Il totale progressivo definitivo del progetto alla chiusura della S031 è:
 235 h 09 min
 ```
 
-Per la Sessione S032 è attualmente consolidata esclusivamente la fase sviluppo:
+Per la Sessione S032 il tempo complessivo definitivo di **11 h 30 min** è composto da:
 
 ```text
 Sviluppo         7 h 58 min
-Documentazione   IN CORSO
+Documentazione   3 h 32 min
 --------------------------
-Totale           DA CONSOLIDARE
+Totale          11 h 30 min
 ```
 
-La fase sviluppo S032 si è svolta dal **01/10/2026 alle 13:18** al **04/10/2026 alle 13:17**, attraverso gli intervalli effettivi registrati nel Quaderno di Sviluppo (DOC-005).
+La fase sviluppo S032 si è svolta dal **01/10/2026 alle 13:18** al **04/10/2026 alle 13:17**, attraverso gli intervalli effettivi registrati nel Quaderno di Sviluppo (DOC-005), per un tempo netto complessivo di **7 h 58 min**.
 
-La fase Manuali S032 è iniziata il **04/10/2026 alle 22:40** ed è ancora in corso.
-
-Pertanto, fino alla chiusura della fase documentale, il valore:
+La fase Manuali S032 si è svolta secondo gli intervalli:
 
 ```text
-243 h 07 min
+04/10/2026   22:40 → 22:58   0 h 18 min
+05/10/2026   nessun lavoro   0 h 00 min
+06/10/2026   09:59 → 10:55   0 h 56 min
+06/10/2026   11:54 → 12:20   0 h 26 min
+06/10/2026   12:38 → 14:30   1 h 52 min
+---------------------------------------
+Totale                         3 h 32 min
 ```
 
-rappresenta esclusivamente il **progressivo intermedio** ottenuto aggiungendo le 7 h 58 min di sviluppo S032 al totale definitivo di 235 h 09 min raggiunto alla chiusura della S031.
+Gli intervalli tra le sospensioni e le successive riprese sono esclusi dal conteggio.
 
-Non deve essere interpretato come totale definitivo del progetto alla chiusura della S032.
+La fase documentale S032 è stata conclusa alle **14:30 del 06/10/2026**.
+
+Il totale progressivo definitivo del progetto alla chiusura della S032 è:
+
+```text
+246 h 39 min
+```
 
 ---
 
@@ -643,9 +661,9 @@ In presenza di un esito incerto di una scrittura il client non ripete automatica
 
 La completa UI amministrativa di Crop e Cultivar rimane un incremento successivo.
 
-La relativa fase documentale S032 è **ancora in corso**.
+La relativa fase documentale S032 è conclusa. La Sessione S032 risulta pertanto completamente chiusa, sia nella fase di sviluppo sia nella fase documentale, alle **14:30 del 06/10/2026**.
 
-La conclusione tecnica della S032 non equivale al completamento dell'intero workflow editoriale e amministrativo del Catalogo.
+La conclusione della S032 non equivale al completamento dell'intero workflow editoriale e amministrativo del Catalogo.
 
 Rimangono successivi incrementi controllati:
 
@@ -666,37 +684,34 @@ Il presente capitolo raccoglie gli indicatori che consentono di monitorare l'evo
 
 A differenza degli indicatori storici riportati nel capitolo 2, che rappresentano una fotografia dello stato attuale del progetto, gli indicatori evolutivi consentono di osservare la crescita di Orto Smart sotto il profilo organizzativo, tecnico e documentale.
 
-Alla data del presente aggiornamento le Sessioni S001–S031 sono completamente concluse.
+Alla data del presente aggiornamento le Sessioni S001–S032 sono completamente concluse.
 
-La fase sviluppo della Sessione S032 è conclusa, mentre la relativa fase Manuali è ancora in corso.
+La Sessione S032 è conclusa sia nella fase di sviluppo sia nella relativa fase Manuali.
 
 | Indicatore | Valore attuale |
 |------------|----------------|
-| Sessioni completamente concluse | 31 |
+| Sessioni completamente concluse | 32 |
 | Fasi sviluppo completate | 32 |
 | Ore di sviluppo consolidate | 180 h 40 min |
-| Ore di documentazione consolidate | 62 h 27 min |
-| Totale definitivo progetto alla chiusura S031 | 235 h 09 min |
-| Progressivo intermedio dopo sviluppo S032 | 243 h 07 min |
+| Ore di documentazione consolidate | 65 h 59 min |
+| Totale definitivo progetto alla chiusura S032 | 246 h 39 min |
 | Motori agronomici completati | 5 |
 | Documenti ufficiali approvati | 10 |
-| Ultima sessione completamente conclusa | S031 |
+| Ultima sessione completamente conclusa | S032 |
 | Ultima fase sviluppo completata | S032 |
-| Sessione in corso | S032 — Manuali |
+| Sessione in corso | Nessuna |
 | Versione pubblica corrente | 0.1.21-alpha |
 | Versione Flutter corrente | 0.1.21-alpha+6 |
 
-Le **180 h 40 min** di sviluppo comprendono le **7 h 58 min** della fase sviluppo S032 già conclusa.
+Le **180 h 40 min** di sviluppo comprendono le **7 h 58 min** della fase sviluppo S032.
 
-Le **62 h 27 min** di documentazione rappresentano invece il progressivo definitivo alla chiusura della S031 e non comprendono ancora la fase Manuali S032 in corso.
+Le **65 h 59 min** di documentazione comprendono le **3 h 32 min** della fase Manuali S032, conclusa alle **14:30 del 06/10/2026**.
 
-Di conseguenza:
+Il totale definitivo del progetto alla chiusura della S032 è pertanto:
 
 ```text
-243 h 07 min
+246 h 39 min
 ```
-
-è un progressivo intermedio e non costituisce il totale definitivo del progetto alla chiusura della S032.
 
 La S028 ha completato il modello persistente e il Write Path autoritativo di `plantings`.
 
@@ -854,7 +869,7 @@ La S031 non modifica tale perimetro persistente e completa l'integrazione operat
 
 La S032 integra nel client i Write Path autoritativi già disponibili per Taxon, Crop e Cultivar e completa la UI di gestione della Classificazione botanica senza introdurre un contratto persistente alternativo.
 
-Il completamento della fase sviluppo S032 non equivale al completamento dell'intera baseline Database V1 né dell'intero workflow amministrativo/editoriale del Catalogo.
+La conclusione della Sessione S032 non equivale al completamento dell'intera baseline Database V1 né dell'intero workflow amministrativo/editoriale del Catalogo.
 
 ## Catalogo Agronomico globale
 
