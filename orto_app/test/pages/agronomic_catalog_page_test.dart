@@ -882,7 +882,7 @@ void main() {
       cultivarLoads += 1;
       requestedCropId = cropId;
 
-      expect(activeOnly, isTrue);
+      expect(activeOnly, isFalse);
 
       return [];
     });
@@ -953,7 +953,7 @@ void main() {
       bool activeOnly = true,
     }) async {
       expect(cropId, '33333333-3333-4333-8333-333333333333');
-      expect(activeOnly, isTrue);
+      expect(activeOnly, isFalse);
       return [];
     });
 
@@ -1021,7 +1021,7 @@ void main() {
       bool activeOnly = true,
     }) async {
       expect(cropId, '33333333-3333-4333-8333-333333333333');
-      expect(activeOnly, isTrue);
+      expect(activeOnly, isFalse);
 
       return [
         {
@@ -1029,9 +1029,9 @@ void main() {
           'crop_id': cropId,
           'crop_canonical_name': 'Pomodoro',
           'canonical_name': 'San Marzano',
-          'verification_status': 'REVIEW',
+          'verification_status': 'PROVISIONAL',
           'description': 'Cultivar di prova',
-          'is_active': true,
+          'is_active': false,
           'row_version': 1,
           'created_at': '2026-09-29T08:00:00+00:00',
           'updated_at': '2026-09-29T08:00:00+00:00',
@@ -1055,7 +1055,10 @@ void main() {
 
     expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
     expect(find.text('San Marzano'), findsOneWidget);
-    expect(find.text('REVIEW · Cultivar di prova'), findsOneWidget);
+    expect(
+      find.text('Provvisoria · Cultivar di prova · Inattiva'),
+      findsOneWidget,
+    );
     expect(find.text('Nessuna cultivar presente.'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -1184,7 +1187,7 @@ void main() {
       cultivarLoads += 1;
 
       expect(cropId, '33333333-3333-4333-8333-333333333333');
-      expect(activeOnly, isTrue);
+      expect(activeOnly, isFalse);
 
       if (cultivarLoads == 1) {
         throw Exception('Errore caricamento cultivar');
@@ -1235,7 +1238,7 @@ void main() {
     );
     expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
     expect(find.text('San Marzano'), findsOneWidget);
-    expect(find.text('Cultivar di prova'), findsOneWidget);
+    expect(find.text('Verificata · Cultivar di prova'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   testWidgets(
@@ -6771,6 +6774,1937 @@ void main() {
       expect(find.text('Modifica classificazione botanica'), findsNothing);
       expect(find.text('Solanum aggiornato da altro utente'), findsOneWidget);
 
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'shows create cultivar action with identity management capability',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura di prova',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T08:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      final cultivarRepository = CropCultivarRepository.withLoader(({
+        String? cropId,
+        bool activeOnly = true,
+      }) async {
+        expect(cropId, '33333333-3333-4333-8333-333333333333');
+        expect(activeOnly, isFalse);
+        return [];
+      });
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // L'azione Cultivar non deve comparire nella pagina principale.
+      expect(find.text('Nuova cultivar'), findsNothing);
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      final createCultivarButton = find.widgetWithText(
+        FilledButton,
+        'Nuova cultivar',
+      );
+
+      expect(createCultivarButton, findsOneWidget);
+
+      await tester.tap(createCultivarButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nuova cultivar · Pomodoro'), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'Nome cultivar'), findsOneWidget);
+      expect(find.text('Stato identità'), findsOneWidget);
+      expect(find.text('Provvisoria'), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'Descrizione'), findsOneWidget);
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'hides create cultivar action without identity management capability',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': false,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura di prova',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T08:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      final cultivarRepository = CropCultivarRepository.withLoader(({
+        String? cropId,
+        bool activeOnly = true,
+      }) async {
+        expect(cropId, '33333333-3333-4333-8333-333333333333');
+        expect(activeOnly, isFalse);
+        return [];
+      });
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Nuova cultivar'), findsNothing);
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'creates a cultivar with expected parameters and reloads cultivars',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+      const cultivarId = '44444444-4444-4444-8444-444444444444';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura di prova',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T08:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      var cultivarLoads = 0;
+      var writeCalls = 0;
+
+      final cultivarRepository = CropCultivarRepository.withProviders(
+        loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+          cultivarLoads += 1;
+
+          expect(cropId, '33333333-3333-4333-8333-333333333333');
+          expect(activeOnly, isFalse);
+
+          if (cultivarLoads == 1) {
+            return [];
+          }
+
+          return [
+            {
+              'cultivar_id': cultivarId,
+              'crop_id': cropId,
+              'crop_canonical_name': 'Pomodoro',
+              'canonical_name': 'San Marzano',
+              'verification_status': 'PROVISIONAL',
+              'description': 'Cultivar da salsa',
+              'is_active': true,
+              'row_version': 1,
+              'created_at': '2026-10-07T08:30:00+00:00',
+              'updated_at': '2026-10-07T08:30:00+00:00',
+            },
+          ];
+        },
+        invokeRpc: (functionName, parameters) async {
+          writeCalls += 1;
+
+          expect(functionName, 'create_crop_cultivar');
+          expect(parameters, {
+            'target_crop_id': cropId,
+            'cultivar_canonical_name': 'San Marzano',
+            'cultivar_verification_status': 'PROVISIONAL',
+            'cultivar_description': 'Cultivar da salsa',
+          });
+
+          return {
+            'status': 'created',
+            'crop_cultivar_id': cultivarId,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:30:00+00:00',
+            'updated_at': '2026-10-07T08:30:00+00:00',
+          };
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      expect(cultivarLoads, 1);
+      expect(find.text('Nessuna cultivar presente.'), findsOneWidget);
+
+      final createCultivarButton = find.widgetWithText(
+        FilledButton,
+        'Nuova cultivar',
+      );
+
+      await tester.tap(createCultivarButton);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Nome cultivar'),
+        'San Marzano',
+      );
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Descrizione'),
+        'Cultivar da salsa',
+      );
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
+      await tester.pumpAndSettle();
+
+      expect(writeCalls, 1);
+      expect(cultivarLoads, 2);
+
+      expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
+      expect(find.text('San Marzano'), findsOneWidget);
+      expect(find.text('Provvisoria · Cultivar da salsa'), findsOneWidget);
+      expect(find.text('Nessuna cultivar presente.'), findsNothing);
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets('blocks retry when create cultivar write outcome is uncertain', (
+    tester,
+  ) async {
+    const cropId = '33333333-3333-4333-8333-333333333333';
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final cropRepository = CropRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      expect(activeOnly, isFalse);
+
+      return [
+        {
+          'crop_id': cropId,
+          'canonical_name': 'Pomodoro',
+          'description': 'Coltura di prova',
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-10-07T08:00:00+00:00',
+          'updated_at': '2026-10-07T08:00:00+00:00',
+          'taxon_id': '22222222-2222-4222-8222-222222222223',
+          'taxon_rank': 'SPECIES',
+          'taxon_scientific_name': 'Solanum lycopersicum',
+          'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+          'family_scientific_name': 'Solanaceae',
+        },
+      ];
+    });
+
+    var cultivarLoads = 0;
+    var writeCalls = 0;
+
+    final cultivarRepository = CropCultivarRepository.withProviders(
+      loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+        cultivarLoads += 1;
+
+        expect(cropId, '33333333-3333-4333-8333-333333333333');
+        expect(activeOnly, isFalse);
+
+        return [];
+      },
+      invokeRpc: (functionName, parameters) async {
+        writeCalls += 1;
+
+        expect(functionName, 'create_crop_cultivar');
+        expect(parameters, {
+          'target_crop_id': cropId,
+          'cultivar_canonical_name': 'San Marzano',
+          'cultivar_verification_status': 'PROVISIONAL',
+          'cultivar_description': 'Cultivar da salsa',
+        });
+
+        throw StateError('Esito RPC non verificabile');
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        cropRepository: cropRepository,
+        cultivarRepository: cultivarRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Pomodoro'));
+    await tester.pumpAndSettle();
+
+    expect(cultivarLoads, 1);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Nuova cultivar'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Nome cultivar'),
+      'San Marzano',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Descrizione'),
+      'Cultivar da salsa',
+    );
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
+    await tester.pumpAndSettle();
+
+    expect(writeCalls, 1);
+
+    // Nessun reload mentre il dialog conserva lo stato
+    // dell'operazione dall'esito incerto.
+    expect(cultivarLoads, 1);
+
+    expect(
+      find.widgetWithText(AlertDialog, 'Nuova cultivar · Pomodoro'),
+      findsOneWidget,
+    );
+
+    expect(
+      find.text(
+        'Non è stato possibile verificare l\'esito della creazione. '
+        'Chiudi questa finestra: i dati verranno ricaricati prima di '
+        'un nuovo tentativo.',
+      ),
+      findsOneWidget,
+    );
+
+    // Dopo un esito incerto non deve essere possibile inviare
+    // nuovamente create_crop_cultivar.
+    final saveButton = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Salva'),
+    );
+    expect(saveButton.onPressed, isNull);
+
+    // Anche tutti i campi modificabili devono essere bloccati.
+    final nameField = tester.widget<TextField>(
+      find.widgetWithText(TextField, 'Nome cultivar'),
+    );
+    final descriptionField = tester.widget<TextField>(
+      find.widgetWithText(TextField, 'Descrizione'),
+    );
+    final statusField = tester.widget<DropdownButtonFormField<String>>(
+      find.byType(DropdownButtonFormField<String>),
+    );
+
+    expect(nameField.enabled, isFalse);
+    expect(descriptionField.enabled, isFalse);
+    expect(statusField.onChanged, isNull);
+
+    // Annulla resta disponibile per uscire in sicurezza.
+    final cancelButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Annulla'),
+    );
+    expect(cancelButton.onPressed, isNotNull);
+
+    // Nessun retry automatico.
+    expect(writeCalls, 1);
+
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets(
+    'reloads cultivars after closing create dialog with uncertain write outcome',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+      const cultivarId = '44444444-4444-4444-8444-444444444444';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura di prova',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T08:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      var cultivarLoads = 0;
+      var writeCalls = 0;
+
+      final cultivarRepository = CropCultivarRepository.withProviders(
+        loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+          cultivarLoads += 1;
+
+          expect(cropId, '33333333-3333-4333-8333-333333333333');
+          expect(activeOnly, isFalse);
+
+          if (cultivarLoads == 1) {
+            return [];
+          }
+
+          // Simula lo stato autoritativo riletto dopo l'esito incerto:
+          // la create potrebbe essere stata applicata dal server.
+          return [
+            {
+              'cultivar_id': cultivarId,
+              'crop_id': cropId,
+              'crop_canonical_name': 'Pomodoro',
+              'canonical_name': 'San Marzano',
+              'verification_status': 'PROVISIONAL',
+              'description': 'Cultivar da salsa',
+              'is_active': true,
+              'row_version': 1,
+              'created_at': '2026-10-07T08:30:00+00:00',
+              'updated_at': '2026-10-07T08:30:00+00:00',
+            },
+          ];
+        },
+        invokeRpc: (functionName, parameters) async {
+          writeCalls += 1;
+
+          expect(functionName, 'create_crop_cultivar');
+          expect(parameters, {
+            'target_crop_id': cropId,
+            'cultivar_canonical_name': 'San Marzano',
+            'cultivar_verification_status': 'PROVISIONAL',
+            'cultivar_description': 'Cultivar da salsa',
+          });
+
+          throw StateError('Esito RPC non verificabile');
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      expect(cultivarLoads, 1);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Nuova cultivar'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Nome cultivar'),
+        'San Marzano',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Descrizione'),
+        'Cultivar da salsa',
+      );
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
+      await tester.pumpAndSettle();
+
+      // Nessun reload mentre il dialog conserva lo stato
+      // dell'operazione dall'esito incerto.
+      expect(writeCalls, 1);
+      expect(cultivarLoads, 1);
+
+      expect(
+        find.widgetWithText(AlertDialog, 'Nuova cultivar · Pomodoro'),
+        findsOneWidget,
+      );
+
+      // L'utente chiude il dialog.
+      await tester.tap(find.widgetWithText(TextButton, 'Annulla'));
+      await tester.pumpAndSettle();
+
+      // Nessuna seconda create.
+      expect(writeCalls, 1);
+
+      // Dopo la chiusura viene riletto lo stato autoritativo.
+      expect(cultivarLoads, 2);
+
+      expect(
+        find.widgetWithText(AlertDialog, 'Nuova cultivar · Pomodoro'),
+        findsNothing,
+      );
+      expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
+      expect(find.text('San Marzano'), findsOneWidget);
+      expect(find.text('Provvisoria · Cultivar da salsa'), findsOneWidget);
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'updates cultivar with original row version and current crop id',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+      const cultivarId = '44444444-4444-4444-8444-444444444444';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura di prova',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T08:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      var cultivarLoads = 0;
+      var updateCalls = 0;
+
+      final cultivarRepository = CropCultivarRepository.withProviders(
+        loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+          cultivarLoads += 1;
+
+          expect(cropId, '33333333-3333-4333-8333-333333333333');
+          expect(activeOnly, isFalse);
+
+          return [
+            {
+              'cultivar_id': cultivarId,
+              'crop_id': cropId,
+              'crop_canonical_name': 'Pomodoro',
+              'canonical_name': cultivarLoads == 1
+                  ? 'San Marzano'
+                  : 'San Marzano aggiornato',
+              'verification_status': cultivarLoads == 1
+                  ? 'PROVISIONAL'
+                  : 'VERIFIED',
+              'description': cultivarLoads == 1
+                  ? 'Descrizione originale'
+                  : 'Descrizione aggiornata',
+              'is_active': true,
+              'row_version': cultivarLoads == 1 ? 7 : 8,
+              'created_at': '2026-10-07T08:30:00+00:00',
+              'updated_at': cultivarLoads == 1
+                  ? '2026-10-07T08:30:00+00:00'
+                  : '2026-10-07T09:00:00+00:00',
+            },
+          ];
+        },
+        invokeRpc: (functionName, parameters) async {
+          updateCalls += 1;
+
+          expect(functionName, 'update_crop_cultivar');
+          expect(parameters, {
+            'target_crop_cultivar_id': cultivarId,
+            'expected_row_version': 7,
+            'target_crop_id': cropId,
+            'cultivar_canonical_name': 'San Marzano aggiornato',
+            'cultivar_verification_status': 'VERIFIED',
+            'cultivar_description': 'Descrizione aggiornata',
+          });
+
+          return {
+            'status': 'updated',
+            'crop_cultivar_id': cultivarId,
+            'row_version': 8,
+            'updated_at': '2026-10-07T09:00:00+00:00',
+          };
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      expect(cultivarLoads, 1);
+
+      final cultivarTile = find.ancestor(
+        of: find.text('San Marzano'),
+        matching: find.byType(ListTile),
+      );
+
+      final editAction = find.descendant(
+        of: cultivarTile,
+        matching: find.text('Modifica'),
+      );
+
+      await tester.ensureVisible(editAction);
+      await tester.tap(editAction);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Modifica cultivar'), findsOneWidget);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Nome cultivar'),
+        'San Marzano aggiornato',
+      );
+
+      await tester.tap(find.text('Provvisoria'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Verificata').last);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Descrizione'),
+        'Descrizione aggiornata',
+      );
+
+      await tester.ensureVisible(find.text('Salva'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
+      await tester.pumpAndSettle();
+
+      expect(updateCalls, 1);
+      expect(cultivarLoads, 2);
+
+      expect(find.text('Modifica cultivar'), findsNothing);
+      expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
+      expect(find.text('San Marzano aggiornato'), findsOneWidget);
+      expect(find.text('Verificata · Descrizione aggiornata'), findsOneWidget);
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'blocks retry and reloads cultivars after closing edit dialog on version conflict',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+      const cultivarId = '44444444-4444-4444-8444-444444444444';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura di prova',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T08:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      var cultivarLoads = 0;
+      var updateCalls = 0;
+
+      final cultivarRepository = CropCultivarRepository.withProviders(
+        loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+          cultivarLoads += 1;
+
+          expect(cropId, '33333333-3333-4333-8333-333333333333');
+          expect(activeOnly, isFalse);
+
+          return [
+            {
+              'cultivar_id': cultivarId,
+              'crop_id': cropId,
+              'crop_canonical_name': 'Pomodoro',
+              'canonical_name': cultivarLoads == 1
+                  ? 'San Marzano'
+                  : 'San Marzano aggiornato da altro utente',
+              'verification_status': cultivarLoads == 1
+                  ? 'PROVISIONAL'
+                  : 'VERIFIED',
+              'description': cultivarLoads == 1
+                  ? 'Descrizione originale'
+                  : 'Descrizione aggiornata da altro utente',
+              'is_active': true,
+              'row_version': cultivarLoads == 1 ? 7 : 8,
+              'created_at': '2026-10-07T08:30:00+00:00',
+              'updated_at': cultivarLoads == 1
+                  ? '2026-10-07T08:30:00+00:00'
+                  : '2026-10-07T09:00:00+00:00',
+            },
+          ];
+        },
+        invokeRpc: (functionName, parameters) async {
+          updateCalls += 1;
+
+          expect(functionName, 'update_crop_cultivar');
+          expect(parameters, {
+            'target_crop_cultivar_id': cultivarId,
+            'expected_row_version': 7,
+            'target_crop_id': cropId,
+            'cultivar_canonical_name': 'San Marzano modificato localmente',
+            'cultivar_verification_status': 'PROVISIONAL',
+            'cultivar_description': 'Descrizione originale',
+          });
+
+          return {
+            'status': 'version_conflict',
+            'crop_cultivar_id': cultivarId,
+            'expected_row_version': 7,
+            'current_row_version': 8,
+            'updated_at': '2026-10-07T09:00:00+00:00',
+          };
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      expect(cultivarLoads, 1);
+
+      final cultivarTile = find.ancestor(
+        of: find.text('San Marzano'),
+        matching: find.byType(ListTile),
+      );
+
+      final editAction = find.descendant(
+        of: cultivarTile,
+        matching: find.text('Modifica'),
+      );
+
+      await tester.ensureVisible(editAction);
+      await tester.tap(editAction);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Modifica cultivar'), findsOneWidget);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Nome cultivar'),
+        'San Marzano modificato localmente',
+      );
+
+      await tester.ensureVisible(find.text('Salva'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
+      await tester.pumpAndSettle();
+
+      expect(updateCalls, 1);
+      expect(cultivarLoads, 1);
+
+      // Il conflitto mantiene aperto il dialog e conserva i dati locali.
+      expect(find.text('Modifica cultivar'), findsOneWidget);
+      expect(find.text('San Marzano modificato localmente'), findsOneWidget);
+
+      expect(
+        find.text(
+          'La cultivar è stata modificata nel frattempo. '
+          'Ricarica i dati prima di effettuare una nuova modifica.',
+        ),
+        findsOneWidget,
+      );
+
+      // Non deve essere possibile una seconda scrittura con row_version obsoleto.
+      final saveButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Salva'),
+      );
+      expect(saveButton.onPressed, isNull);
+
+      // La chiusura resta disponibile.
+      final cancelButton = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, 'Annulla'),
+      );
+      expect(cancelButton.onPressed, isNotNull);
+
+      // Nessun retry automatico.
+      expect(updateCalls, 1);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Annulla'));
+      await tester.pumpAndSettle();
+
+      // Solo dopo la chiusura rileggiamo lo stato autoritativo.
+      expect(updateCalls, 1);
+      expect(cultivarLoads, 2);
+
+      expect(find.text('Modifica cultivar'), findsNothing);
+      expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
+      expect(
+        find.text('San Marzano aggiornato da altro utente'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Verificata · Descrizione aggiornata da altro utente'),
+        findsOneWidget,
+      );
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('blocks retry when edit cultivar write outcome is uncertain', (
+    tester,
+  ) async {
+    const cropId = '33333333-3333-4333-8333-333333333333';
+    const cultivarId = '44444444-4444-4444-8444-444444444444';
+
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    final cropRepository = CropRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      expect(activeOnly, isFalse);
+
+      return [
+        {
+          'crop_id': cropId,
+          'canonical_name': 'Pomodoro',
+          'description': 'Coltura di prova',
+          'is_active': true,
+          'row_version': 1,
+          'created_at': '2026-10-07T08:00:00+00:00',
+          'updated_at': '2026-10-07T08:00:00+00:00',
+          'taxon_id': '22222222-2222-4222-8222-222222222223',
+          'taxon_rank': 'SPECIES',
+          'taxon_scientific_name': 'Solanum lycopersicum',
+          'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+          'family_scientific_name': 'Solanaceae',
+        },
+      ];
+    });
+
+    var cultivarLoads = 0;
+    var writeCalls = 0;
+
+    final cultivarRepository = CropCultivarRepository.withProviders(
+      loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+        cultivarLoads += 1;
+
+        expect(cropId, '33333333-3333-4333-8333-333333333333');
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'cultivar_id': cultivarId,
+            'crop_id': cropId,
+            'crop_canonical_name': 'Pomodoro',
+            'canonical_name': 'San Marzano',
+            'verification_status': 'PROVISIONAL',
+            'description': 'Descrizione originale',
+            'is_active': true,
+            'row_version': 7,
+            'created_at': '2026-10-07T08:30:00+00:00',
+            'updated_at': '2026-10-07T08:30:00+00:00',
+          },
+        ];
+      },
+      invokeRpc: (functionName, parameters) async {
+        writeCalls += 1;
+
+        expect(functionName, 'update_crop_cultivar');
+        expect(parameters, {
+          'target_crop_cultivar_id': cultivarId,
+          'expected_row_version': 7,
+          'target_crop_id': cropId,
+          'cultivar_canonical_name': 'San Marzano modificato localmente',
+          'cultivar_verification_status': 'PROVISIONAL',
+          'cultivar_description': 'Descrizione originale',
+        });
+
+        throw StateError('Esito RPC non verificabile');
+      },
+    );
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        cropRepository: cropRepository,
+        cultivarRepository: cultivarRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Pomodoro'));
+    await tester.pumpAndSettle();
+
+    expect(cultivarLoads, 1);
+
+    final cultivarTile = find.ancestor(
+      of: find.text('San Marzano'),
+      matching: find.byType(ListTile),
+    );
+
+    final editAction = find.descendant(
+      of: cultivarTile,
+      matching: find.text('Modifica'),
+    );
+
+    await tester.ensureVisible(editAction);
+    await tester.tap(editAction);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Modifica cultivar'), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Nome cultivar'),
+      'San Marzano modificato localmente',
+    );
+
+    await tester.ensureVisible(find.text('Salva'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
+    await tester.pumpAndSettle();
+
+    expect(writeCalls, 1);
+    expect(cultivarLoads, 1);
+
+    // L'esito della scrittura non è noto: il dialog resta aperto
+    // e conserva i dati locali inseriti dall'utente.
+    expect(find.text('Modifica cultivar'), findsOneWidget);
+    expect(find.text('San Marzano modificato localmente'), findsOneWidget);
+
+    expect(
+      find.text(
+        'Non è stato possibile verificare l\'esito del salvataggio. '
+        'Chiudi questa finestra: i dati verranno ricaricati prima '
+        'di un nuovo tentativo.',
+      ),
+      findsOneWidget,
+    );
+
+    // Non deve essere possibile ripetere una scrittura il cui esito
+    // potrebbe essere già stato applicato dal server.
+    final saveButton = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Salva'),
+    );
+    expect(saveButton.onPressed, isNull);
+
+    // Anche i campi devono restare bloccati fino alla rilettura autoritativa.
+    final nameField = tester.widget<TextFormField>(
+      find.widgetWithText(TextFormField, 'Nome cultivar'),
+    );
+    expect(nameField.enabled, isFalse);
+
+    final descriptionField = tester.widget<TextFormField>(
+      find.widgetWithText(TextFormField, 'Descrizione'),
+    );
+    expect(descriptionField.enabled, isFalse);
+
+    final statusField = tester.widget<DropdownButtonFormField<String>>(
+      find.byType(DropdownButtonFormField<String>),
+    );
+    expect(statusField.onChanged, isNull);
+
+    // La chiusura resta disponibile.
+    final cancelButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Annulla'),
+    );
+    expect(cancelButton.onPressed, isNotNull);
+
+    // Nessun retry automatico.
+    expect(writeCalls, 1);
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'reloads cultivars after closing edit dialog with uncertain write outcome',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+      const cultivarId = '44444444-4444-4444-8444-444444444444';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura di prova',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T08:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      var cultivarLoads = 0;
+      var writeCalls = 0;
+
+      final cultivarRepository = CropCultivarRepository.withProviders(
+        loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+          cultivarLoads += 1;
+
+          expect(cropId, '33333333-3333-4333-8333-333333333333');
+          expect(activeOnly, isFalse);
+
+          return [
+            {
+              'cultivar_id': cultivarId,
+              'crop_id': cropId,
+              'crop_canonical_name': 'Pomodoro',
+              'canonical_name': cultivarLoads == 1
+                  ? 'San Marzano'
+                  : 'San Marzano stato autoritativo',
+              'verification_status': cultivarLoads == 1
+                  ? 'PROVISIONAL'
+                  : 'VERIFIED',
+              'description': cultivarLoads == 1
+                  ? 'Descrizione originale'
+                  : 'Descrizione autoritativa',
+              'is_active': true,
+              'row_version': cultivarLoads == 1 ? 7 : 8,
+              'created_at': '2026-10-07T08:30:00+00:00',
+              'updated_at': cultivarLoads == 1
+                  ? '2026-10-07T08:30:00+00:00'
+                  : '2026-10-07T09:00:00+00:00',
+            },
+          ];
+        },
+        invokeRpc: (functionName, parameters) async {
+          writeCalls += 1;
+
+          expect(functionName, 'update_crop_cultivar');
+          expect(parameters, {
+            'target_crop_cultivar_id': cultivarId,
+            'expected_row_version': 7,
+            'target_crop_id': cropId,
+            'cultivar_canonical_name': 'San Marzano modificato localmente',
+            'cultivar_verification_status': 'PROVISIONAL',
+            'cultivar_description': 'Descrizione originale',
+          });
+
+          throw StateError('Esito RPC non verificabile');
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      expect(cultivarLoads, 1);
+
+      final cultivarTile = find.ancestor(
+        of: find.text('San Marzano'),
+        matching: find.byType(ListTile),
+      );
+
+      final editAction = find.descendant(
+        of: cultivarTile,
+        matching: find.text('Modifica'),
+      );
+
+      await tester.ensureVisible(editAction);
+      await tester.tap(editAction);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Nome cultivar'),
+        'San Marzano modificato localmente',
+      );
+
+      await tester.ensureVisible(find.text('Salva'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Salva'));
+      await tester.pumpAndSettle();
+
+      // Finché il dialog resta aperto non rileggiamo il DB.
+      expect(writeCalls, 1);
+      expect(cultivarLoads, 1);
+      expect(find.text('Modifica cultivar'), findsOneWidget);
+      expect(find.text('San Marzano modificato localmente'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Annulla'));
+      await tester.pumpAndSettle();
+
+      // Dopo la chiusura rileggiamo lo stato autoritativo senza retry.
+      expect(writeCalls, 1);
+      expect(cultivarLoads, 2);
+
+      expect(find.text('Modifica cultivar'), findsNothing);
+      expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
+      expect(find.text('San Marzano stato autoritativo'), findsOneWidget);
+      expect(
+        find.text('Verificata · Descrizione autoritativa'),
+        findsOneWidget,
+      );
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'deactivates cultivar with original row version and reloads cultivars',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+      const cultivarId = '44444444-4444-4444-8444-444444444444';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura di prova',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T08:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      var cultivarLoads = 0;
+      var writeCalls = 0;
+
+      final cultivarRepository = CropCultivarRepository.withProviders(
+        loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+          cultivarLoads += 1;
+
+          expect(cropId, '33333333-3333-4333-8333-333333333333');
+          expect(activeOnly, isFalse);
+
+          return [
+            {
+              'cultivar_id': cultivarId,
+              'crop_id': cropId,
+              'crop_canonical_name': 'Pomodoro',
+              'canonical_name': 'San Marzano',
+              'verification_status': 'PROVISIONAL',
+              'description': 'Cultivar da salsa',
+              'is_active': cultivarLoads == 1,
+              'row_version': cultivarLoads == 1 ? 7 : 8,
+              'created_at': '2026-10-07T08:30:00+00:00',
+              'updated_at': cultivarLoads == 1
+                  ? '2026-10-07T08:30:00+00:00'
+                  : '2026-10-07T09:00:00+00:00',
+            },
+          ];
+        },
+        invokeRpc: (functionName, parameters) async {
+          writeCalls += 1;
+
+          expect(functionName, 'set_crop_cultivar_active');
+          expect(parameters, {
+            'target_crop_cultivar_id': cultivarId,
+            'expected_row_version': 7,
+            'cultivar_is_active': false,
+          });
+
+          return {
+            'status': 'active_changed',
+            'crop_cultivar_id': cultivarId,
+            'is_active': false,
+            'row_version': 8,
+            'updated_at': '2026-10-07T09:00:00+00:00',
+          };
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      expect(cultivarLoads, 1);
+      expect(writeCalls, 0);
+
+      final cultivarTile = find.ancestor(
+        of: find.text('San Marzano'),
+        matching: find.byType(ListTile),
+      );
+
+      final deactivateAction = find.descendant(
+        of: cultivarTile,
+        matching: find.text('Disattiva'),
+      );
+
+      expect(deactivateAction, findsOneWidget);
+
+      await tester.ensureVisible(deactivateAction);
+      await tester.tap(deactivateAction);
+      await tester.pumpAndSettle();
+
+      // Prima della conferma non deve partire alcuna scrittura.
+      expect(find.text('Disattivare la cultivar?'), findsOneWidget);
+      expect(writeCalls, 0);
+
+      await tester.tap(find.text('Conferma'));
+      await tester.pumpAndSettle();
+
+      // La scrittura usa il row_version originale e provoca il reload.
+      expect(writeCalls, 1);
+      expect(cultivarLoads, 2);
+
+      expect(find.text('Cultivar di Pomodoro'), findsOneWidget);
+
+      final updatedCultivarTile = find.ancestor(
+        of: find.text('San Marzano'),
+        matching: find.byType(ListTile),
+      );
+
+      expect(
+        find.descendant(
+          of: updatedCultivarTile,
+          matching: find.text('Provvisoria · Cultivar da salsa · Inattiva'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: updatedCultivarTile,
+          matching: find.text('Riattiva'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: updatedCultivarTile,
+          matching: find.text('Disattiva'),
+        ),
+        findsNothing,
+      );
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'explains inactive parent crop when cultivar reactivation is blocked',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+      const cultivarId = '44444444-4444-4444-8444-444444444444';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura inattiva',
+            'is_active': false,
+            'row_version': 8,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T09:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      var writeCalls = 0;
+
+      final cultivarRepository = CropCultivarRepository.withProviders(
+        loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+          expect(cropId, '33333333-3333-4333-8333-333333333333');
+          expect(activeOnly, isFalse);
+
+          return [
+            {
+              'cultivar_id': cultivarId,
+              'crop_id': cropId,
+              'crop_canonical_name': 'Pomodoro',
+              'canonical_name': 'San Marzano',
+              'verification_status': 'PROVISIONAL',
+              'description': 'Cultivar da salsa',
+              'is_active': false,
+              'row_version': 7,
+              'created_at': '2026-10-07T08:30:00+00:00',
+              'updated_at': '2026-10-07T08:30:00+00:00',
+            },
+          ];
+        },
+        invokeRpc: (functionName, parameters) async {
+          writeCalls += 1;
+
+          expect(functionName, 'set_crop_cultivar_active');
+          expect(parameters, {
+            'target_crop_cultivar_id': cultivarId,
+            'expected_row_version': 7,
+            'cultivar_is_active': true,
+          });
+
+          return {'status': 'dependency_inactive'};
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      final cultivarTile = find.ancestor(
+        of: find.text('San Marzano'),
+        matching: find.byType(ListTile),
+      );
+
+      final reactivateAction = find.descendant(
+        of: cultivarTile,
+        matching: find.text('Riattiva'),
+      );
+
+      expect(reactivateAction, findsOneWidget);
+      expect(writeCalls, 0);
+
+      await tester.ensureVisible(reactivateAction);
+      await tester.tap(reactivateAction);
+      await tester.pumpAndSettle();
+
+      expect(writeCalls, 1);
+
+      expect(
+        find.text(
+          'Impossibile riattivare la cultivar perché la coltura '
+          'collegata non è attiva.',
+        ),
+        findsOneWidget,
+      );
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'reloads authoritative cultivars after activation version conflict',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+      const cultivarId = '44444444-4444-4444-8444-444444444444';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura di prova',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T08:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      var cultivarLoads = 0;
+      var writeCalls = 0;
+
+      final cultivarRepository = CropCultivarRepository.withProviders(
+        loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+          cultivarLoads += 1;
+
+          expect(cropId, '33333333-3333-4333-8333-333333333333');
+          expect(activeOnly, isFalse);
+
+          return [
+            {
+              'cultivar_id': cultivarId,
+              'crop_id': cropId,
+              'crop_canonical_name': 'Pomodoro',
+              'canonical_name': 'San Marzano',
+              'verification_status': 'PROVISIONAL',
+              'description': 'Cultivar da salsa',
+              'is_active': cultivarLoads > 1,
+              'row_version': cultivarLoads == 1 ? 7 : 8,
+              'created_at': '2026-10-07T08:30:00+00:00',
+              'updated_at': cultivarLoads == 1
+                  ? '2026-10-07T08:30:00+00:00'
+                  : '2026-10-07T09:00:00+00:00',
+            },
+          ];
+        },
+        invokeRpc: (functionName, parameters) async {
+          writeCalls += 1;
+
+          expect(functionName, 'set_crop_cultivar_active');
+          expect(parameters, {
+            'target_crop_cultivar_id': cultivarId,
+            'expected_row_version': 7,
+            'cultivar_is_active': true,
+          });
+
+          return {
+            'status': 'version_conflict',
+            'crop_cultivar_id': cultivarId,
+            'expected_row_version': 7,
+            'current_row_version': 8,
+            'updated_at': '2026-10-07T09:00:00+00:00',
+          };
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      expect(cultivarLoads, 1);
+      expect(writeCalls, 0);
+
+      var cultivarTile = find.ancestor(
+        of: find.text('San Marzano'),
+        matching: find.byType(ListTile),
+      );
+
+      final reactivateAction = find.descendant(
+        of: cultivarTile,
+        matching: find.text('Riattiva'),
+      );
+
+      expect(reactivateAction, findsOneWidget);
+
+      await tester.ensureVisible(reactivateAction);
+      await tester.tap(reactivateAction);
+      await tester.pumpAndSettle();
+
+      // Una sola scrittura. Il reload autoritativo deve attendere
+      // la chiusura del messaggio di version conflict.
+      expect(writeCalls, 1);
+      expect(cultivarLoads, 1);
+
+      expect(
+        find.textContaining('La cultivar è stata modificata'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          'I dati verranno ricaricati prima di effettuare una nuova operazione.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      // Dopo la chiusura del messaggio viene ricaricato lo stato autoritativo.
+      expect(writeCalls, 1);
+      expect(cultivarLoads, 2);
+
+      cultivarTile = find.ancestor(
+        of: find.text('San Marzano'),
+        matching: find.byType(ListTile),
+      );
+
+      expect(
+        find.descendant(
+          of: cultivarTile,
+          matching: find.text('Provvisoria · Cultivar da salsa'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: cultivarTile, matching: find.text('Riattiva')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: cultivarTile, matching: find.text('Disattiva')),
+        findsOneWidget,
+      );
+
+      // Nessun retry automatico della scrittura.
+      expect(writeCalls, 1);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'reloads authoritative cultivars after uncertain activation outcome',
+    (tester) async {
+      const cropId = '33333333-3333-4333-8333-333333333333';
+      const cultivarId = '44444444-4444-4444-8444-444444444444';
+
+      final authorityRepository = CatalogAuthorityRepository.withInvoker((
+        functionName,
+        parameters,
+      ) async {
+        expect(functionName, 'get_my_catalog_capabilities');
+        expect(parameters, isEmpty);
+
+        return {
+          'status': 'ok',
+          'can_manage_identity': true,
+          'can_ingest': true,
+          'can_review': true,
+          'can_publish': true,
+          'row_version': 1,
+        };
+      });
+
+      final cropRepository = CropRepository.withLoader(({
+        bool activeOnly = true,
+      }) async {
+        expect(activeOnly, isFalse);
+
+        return [
+          {
+            'crop_id': cropId,
+            'canonical_name': 'Pomodoro',
+            'description': 'Coltura di prova',
+            'is_active': true,
+            'row_version': 1,
+            'created_at': '2026-10-07T08:00:00+00:00',
+            'updated_at': '2026-10-07T08:00:00+00:00',
+            'taxon_id': '22222222-2222-4222-8222-222222222223',
+            'taxon_rank': 'SPECIES',
+            'taxon_scientific_name': 'Solanum lycopersicum',
+            'family_taxon_id': '22222222-2222-4222-8222-222222222222',
+            'family_scientific_name': 'Solanaceae',
+          },
+        ];
+      });
+
+      var cultivarLoads = 0;
+      var writeCalls = 0;
+
+      final cultivarRepository = CropCultivarRepository.withProviders(
+        loadCultivars: ({String? cropId, bool activeOnly = true}) async {
+          cultivarLoads += 1;
+
+          expect(cropId, '33333333-3333-4333-8333-333333333333');
+          expect(activeOnly, isFalse);
+
+          return [
+            {
+              'cultivar_id': cultivarId,
+              'crop_id': cropId,
+              'crop_canonical_name': 'Pomodoro',
+              'canonical_name': 'San Marzano',
+              'verification_status': 'PROVISIONAL',
+              'description': 'Cultivar da salsa',
+              'is_active': cultivarLoads > 1,
+              'row_version': cultivarLoads == 1 ? 7 : 8,
+              'created_at': '2026-10-07T08:30:00+00:00',
+              'updated_at': cultivarLoads == 1
+                  ? '2026-10-07T08:30:00+00:00'
+                  : '2026-10-07T09:00:00+00:00',
+            },
+          ];
+        },
+        invokeRpc: (functionName, parameters) async {
+          writeCalls += 1;
+
+          expect(functionName, 'set_crop_cultivar_active');
+          expect(parameters, {
+            'target_crop_cultivar_id': cultivarId,
+            'expected_row_version': 7,
+            'cultivar_is_active': true,
+          });
+
+          throw StateError('Esito RPC non verificabile');
+        },
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          repository: authorityRepository,
+          cropRepository: cropRepository,
+          cultivarRepository: cultivarRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pomodoro'));
+      await tester.pumpAndSettle();
+
+      expect(cultivarLoads, 1);
+      expect(writeCalls, 0);
+
+      var cultivarTile = find.ancestor(
+        of: find.text('San Marzano'),
+        matching: find.byType(ListTile),
+      );
+
+      final reactivateAction = find.descendant(
+        of: cultivarTile,
+        matching: find.text('Riattiva'),
+      );
+
+      expect(reactivateAction, findsOneWidget);
+
+      await tester.ensureVisible(reactivateAction);
+      await tester.tap(reactivateAction);
+      await tester.pumpAndSettle();
+
+      // Esito incerto: una sola scrittura e nessun retry.
+      expect(writeCalls, 1);
+      expect(cultivarLoads, 1);
+
+      expect(find.text('Stato da verificare'), findsOneWidget);
+      expect(
+        find.textContaining(
+          'Non è stato possibile verificare l\'esito dell\'operazione.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          'I dati verranno ricaricati prima di consentire una nuova modifica.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      // Solo dopo la chiusura dell'avviso viene riletto lo stato autoritativo.
+      expect(writeCalls, 1);
+      expect(cultivarLoads, 2);
+
+      cultivarTile = find.ancestor(
+        of: find.text('San Marzano'),
+        matching: find.byType(ListTile),
+      );
+
+      expect(
+        find.descendant(
+          of: cultivarTile,
+          matching: find.text('Provvisoria · Cultivar da salsa'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: cultivarTile, matching: find.text('Riattiva')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: cultivarTile, matching: find.text('Disattiva')),
+        findsOneWidget,
+      );
+
+      // Il reload autoritativo non deve provocare una seconda scrittura.
+      expect(writeCalls, 1);
       expect(tester.takeException(), isNull);
     },
   );
