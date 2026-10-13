@@ -1,10 +1,11 @@
+
 # ORTO SMART
 
 ### DOC-011
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 2.4
+**Versione:** 2.5
 
 **Stato:** In sviluppo
 
@@ -14,7 +15,7 @@
 
 **Data prima emissione:** 28/07/2026
 
-**Ultimo aggiornamento:** 06/10/2026
+**Ultimo aggiornamento:** 13/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +27,12 @@
 |-------|--------|
 | Documento | DOC-011 |
 | Titolo | Decisioni Architetturali (ADR) |
-| Versione | 2.4 |
+| Versione | 2.5 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 06/10/2026 |
+| Ultimo aggiornamento | 13/10/2026 |
 
 ---
 
@@ -63,6 +64,7 @@
 | 2.2 | 17/09/2026 | Introduzione della DEC-014 dopo la Sessione S028: modello autoritativo di `plantings`, metodi di avvio canonici, occupazione longitudinale half-open, controllo congiunto degli overlap temporali e longitudinali, compatibilità con la geometria storicizzata delle aiuole, lifecycle autoritativo, separazione tra aggiornamento ordinario e transizione di stato, Write Path RPC-only, concorrenza ottimistica e assenza di hard delete nel normale flusso operativo |
 | 2.3 | 23/09/2026 | Introduzione della DEC-015 dopo la Sessione S030: evoluzione del Catalogo DB V1 Profile-owned in Catalogo Agronomico V1 globale, multisorgente, tracciabile, versionabile, contestualizzabile ed editorialmente controllato; introduzione della Catalog Authority, separazione tra identità botaniche e Knowledge agronomica, workflow di ingestion/revisione/pubblicazione, Resolver e cutover finale `botanical_taxa` → `crops` → `crop_cultivars` con riallineamento di `plantings` e Flutter |
 | 2.4 | 06/10/2026 | Consolidamento della DEC-015 dopo la Sessione S032: riallineamento del contratto tassonomico ai rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA` e `UNRANKED`; esclusione di `CULTIVAR` dai rank tassonomici; conferma della Cultivar come identità agronomica separata; tassonomia parziale mediante `parent_taxon_id`; collegamento opzionale `Crop → Taxon`; integrazione Flutter dei Write Path di Taxon, Crop e Cultivar; concorrenza mediante `row_version`, rilettura autoritativa su `version_conflict` ed esiti incerti e completamento della UI della Classificazione botanica, senza introduzione di una nuova decisione architetturale |
+| 2.5 | 13/10/2026 | Aggiornamento della tracciabilità applicativa della DEC-015 dopo S033/S033B: completamento delle UI amministrative Crop e Cultivar e consolidamento dell'HUB dei Registri Agronomici; registrazione della ricognizione statica dei sette registri e dell'audit locale limitato dei Write Path di `plantings`, senza nuove decisioni architetturali né modifiche retroattive alle decisioni precedenti |
 
 ---
 
@@ -3869,13 +3871,14 @@ La riattivazione utilizza il Write Path autoritativo senza introdurre nel client
 
 Quando il server segnala dipendenze attive o una classificazione superiore inattiva, Flutter espone l'esito senza offrire bypass delle invarianti server-side.
 
+
 ### Stato della gestione Crop e Cultivar
 
 La Sessione S032 ha integrato i Repository e i result type necessari ai Write Path di Crop e Cultivar e ha consolidato i relativi contratti di concorrenza e gestione degli errori.
 
-La completa UI amministrativa CRUD delle Crop e delle Cultivar non è tuttavia considerata completata dalla S032.
+Alla chiusura della S032, la completa UI amministrativa CRUD delle Crop e delle Cultivar non era ancora considerata completata.
 
-La progressione applicativa rimane:
+La progressione applicativa prevista era:
 
 ```text
 Tassonomia
@@ -3885,7 +3888,21 @@ Crop
 Cultivar
 ```
 
-Il completamento progressivo delle UI Crop e Cultivar costituisce evoluzione successiva e non modifica l'architettura definita dalla presente decisione.
+La Sessione S033, Fase A, ha successivamente completato l'integrazione delle interfacce amministrative del Catalogo Agronomico, comprendendo:
+
+- HUB dei Registri Agronomici;
+- pagina dedicata alla Classificazione botanica;
+- pagina dedicata alla gestione delle Colture;
+- pagina dedicata alla gestione delle Cultivar;
+- operazioni di creazione, modifica, attivazione e disattivazione previste dai rispettivi contratti;
+- gestione dei conflitti di versione e degli esiti di scrittura incerti mediante rilettura autoritativa, senza overwrite forzati o retry automatici;
+- consolidamento della navigazione e separazione delle responsabilità tra le pagine.
+
+La successiva estrazione delle pagine dedicate alla Classificazione botanica, alle Colture e alle Cultivar ha consolidato l'organizzazione del livello Flutter.
+
+Il completamento della Fase A rappresenta un'evoluzione applicativa della DEC-015 e non introduce una nuova decisione architetturale indipendente.
+
+Restano distinti dalle interfacce completate i futuri registri agronomici della Fase B e le ulteriori funzionalità editoriali, multisorgente e di Knowledge agronomica non ancora implementate.
 
 ### Motore di rotazione
 
@@ -4087,6 +4104,7 @@ Sono state scartate o rinviate le seguenti alternative:
 
 Tali alternative avrebbero prodotto ambiguità di ownership, perdita di provenienza, insufficiente separazione tra dati esterni e conoscenza approvata, rischio di modifiche operative automatiche, duplicazione delle identità, coesistenza indefinita tra modelli concorrenti oppure una seconda logica autoritativa nel client non sincronizzata con il database.
 
+
 ### Conseguenze
 
 - Il Catalogo Agronomico V1 è globale e non Profile-owned.
@@ -4114,11 +4132,15 @@ Tali alternative avrebbero prodotto ambiguità di ownership, perdita di provenie
 - Flutter utilizza `BotanicalTaxon`, `Crop`, `CropCultivar` e i Repository del Catalogo globale.
 - Taxon, Crop e Cultivar dispongono nel livello Flutter dell'integrazione dei rispettivi Write Path autoritativi.
 - La UI di gestione della tassonomia botanica è completata secondo il contratto S032.
-- Le UI amministrative complete di Crop e Cultivar rimangono evoluzioni successive.
+- La S033 Fase A completa le interfacce amministrative di Crop e Cultivar e consolida l'HUB dei Registri Agronomici e la navigazione tra le pagine dedicate.
+- Le operazioni amministrative Flutter rispettano i Write Path autoritativi e le capability previste, senza introdurre percorsi di scrittura diretta alternativi.
 - La concorrenza delle identità utilizza `row_version`.
 - `version_conflict` non autorizza overwrite o retry automatici.
 - Un esito di scrittura incerto richiede rilettura autoritativa prima di una nuova azione.
 - Flutter non replica le invarianti autoritative del database.
+- La S033 Fase A non modifica le invarianti architetturali della DEC-015, ma ne completa una parte dell'integrazione applicativa.
+- I sette Registri Agronomici oggetto della ricognizione statica S033B rimangono un incremento Flutter successivo, distinto dalle UI Crop e Cultivar completate.
+- L'audit S033B dei Write Path di `plantings` ha prodotto un esito favorevole limitatamente al perimetro locale esaminato, senza nuove migration, modifiche SQL o prove runtime aggiuntive; tale esito non costituisce una certificazione generale del backend.
 - Il motore di rotazione confronta l'identità canonica della famiglia botanica.
 - Il backend canonico delle associazioni colturali rimane FUTURE.
 - Le migration Supabase costituiscono la fonte riproducibile dello schema.

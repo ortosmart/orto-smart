@@ -1,17 +1,18 @@
+
 # ORTO SMART
 
 ### DOC-009
 
 # Workflow Operativo
 
-**Versione:** 2.3
+**Versione:** 2.4
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 03/09/2026
+**Ultimo aggiornamento:** 13/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +24,12 @@
 |--------|--------|
 | Documento | DOC-009 |
 | Titolo | Workflow Operativo |
-| Versione | 2.3 |
+| Versione | 2.4 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 03/09/2026 |
+| Ultimo aggiornamento | 13/10/2026 |
 
 ---
 
@@ -41,6 +42,7 @@
 | 2.1 | 04/08/2026 | Uniformazione allo Standard Documentale e revisione del documento |
 | 2.2 | 08/08/2026 | Consolidamento del Workflow Operativo, introduzione della verifica incrociata, gestione dei tempi effettivi, revisione della sequenza Git e completamento degli allegati operativi |
 | 2.3 | 03/09/2026 | Manutenzione straordinaria del Workflow Operativo: correzione della data di prima emissione sulla base della prima registrazione verificata nella cronologia Git |
+| 2.4 | 13/10/2026 | Formalizzazione della separazione tra sviluppo e Manuali, dell'avvio dichiarato della fase documentale e del protocollo di passaggio e ricezione tra conversazioni; aggiornamento della Fase 6, della checklist e del diagramma operativo |
 
 ---
 
@@ -117,6 +119,7 @@ Il Workflow Operativo deve essere seguito durante tutte le sessioni di sviluppo 
 
 ---
 
+
 # 3. Principi del Workflow
 
 Il Workflow Operativo si basa sui seguenti principi.
@@ -172,10 +175,10 @@ Ogni modifica significativa deve essere accompagnata dal relativo aggiornamento 
 
 Ogni attività deve poter essere ricostruita attraverso:
 
-- Git
-- documentazione
-- registro delle sessioni
-- decisioni architetturali
+- Git;
+- documentazione;
+- registro delle sessioni;
+- decisioni architetturali.
 
 ---
 
@@ -184,6 +187,64 @@ Ogni attività deve poter essere ricostruita attraverso:
 Una sessione di sviluppo può essere considerata conclusa esclusivamente quando risultano soddisfatti tutti i criteri di chiusura definiti nel presente Workflow Operativo.
 
 La verifica operativa delle condizioni di chiusura è descritta nel capitolo **8 – Criteri di chiusura della Sessione**.
+
+La chiusura della fase tecnica di sviluppo e il completamento documentale sono eventi distinti, anche quando appartengono alla stessa sessione progettuale.
+
+---
+
+## 3.8 Separazione tra sviluppo e documentazione
+
+Le attività di sviluppo e quelle di aggiornamento dei Manuali costituiscono fasi operative distinte.
+
+Possono essere svolte in conversazioni separate, mantenendo un riferimento comune alla sessione progettuale e garantendo la continuità delle informazioni.
+
+La conclusione della fase sviluppo non determina automaticamente l'avvio della fase Manuali.
+
+La fase Manuali inizia esclusivamente quando viene dichiarato esplicitamente il suo avvio, con il relativo orario.
+
+Devono essere rispettati i seguenti principi:
+
+- separazione delle attività tecniche e documentali;
+- registrazione distinta dei rispettivi intervalli di lavoro;
+- esclusione delle pause dai tempi netti;
+- consolidamento del tempo di sviluppo alla conclusione della relativa fase;
+- consolidamento del tempo documentale alla chiusura dichiarata dei Manuali;
+- verifica incrociata prima della chiusura documentale definitiva.
+
+La documentazione deve rappresentare lo stato tecnico effettivamente raggiunto e verificato, senza trasformare ipotesi, proiezioni esplorative o attività FUTURE in risultati già acquisiti.
+
+---
+
+## 3.9 Continuità operativa tra conversazioni
+
+Il passaggio a una nuova conversazione non determina automaticamente la conclusione della sessione corrente né l'apertura di una nuova sessione.
+
+Il cambio di conversazione e il cambio di sessione sono eventi distinti.
+
+Quando il lavoro prosegue in una nuova conversazione, deve essere predisposto un **CHECKPOINT DI PASSAGGIO CHAT**.
+
+Il checkpoint deve riportare, per quanto applicabile:
+
+- identificazione della sessione e stato delle attività;
+- ultimo punto effettivamente completato;
+- modifiche effettuate;
+- decisioni APPROVATE;
+- questioni APERTE;
+- elementi FUTURE o scartati;
+- stato di codice, database e documentazione;
+- commit, versioni e verifiche conosciute;
+- tempi di lavoro e sospensioni;
+- eventuali file modificati non ancora committati;
+- prossimo passo operativo;
+- controlli necessari alla ripresa.
+
+Nella nuova conversazione, prima di effettuare modifiche al progetto, deve essere eseguito un **CHECKPOINT DI RICEZIONE**.
+
+Il checkpoint di ricezione deve confrontare le informazioni trasferite con le fonti ufficiali disponibili, verificare lo stato effettivo del progetto e risolvere eventuali discrepanze prima di dichiarare verificato il passaggio.
+
+Le informazioni contenute nel checkpoint precedente non devono essere considerate automaticamente confermate.
+
+Il protocollo si applica, quando pertinente, sia alle conversazioni di sviluppo sia a quelle dedicate ai Manuali.
 
 ---
 
@@ -280,11 +341,20 @@ Il push su GitHub viene effettuato soltanto dopo il completamento dell'aggiornam
 
 ---
 
+
 ## Fase 6 – Documentazione
 
 **Obiettivo**
 
 Mantenere la documentazione allineata allo stato reale del progetto e verificare la coerenza delle informazioni registrate.
+
+**Avvio della fase Manuali**
+
+Quando le attività documentali sono gestite in una fase distinta dallo sviluppo, l'avvio dei Manuali deve essere dichiarato esplicitamente, registrandone la data e l'orario.
+
+La chiusura della fase sviluppo non comporta automaticamente l'apertura della fase Manuali.
+
+Le due fasi mantengono registrazioni temporali distinte, anche quando appartengono alla stessa sessione progettuale.
 
 **Attività**
 
@@ -498,10 +568,13 @@ Il rispetto sistematico delle procedure descritte nel presente documento garanti
 
 ---
 
+
 # Allegato A
 ## Checklist Workflow Operativo
 
 La presente checklist deve essere utilizzata come controllo operativo durante ogni sessione del progetto Orto Smart.
+
+I controlli devono essere applicati in funzione delle attività effettivamente svolte. Le verifiche non pertinenti alla natura della sessione devono essere riconosciute come non applicabili e non costituiscono attività mancanti.
 
 ### Apertura
 
@@ -511,6 +584,8 @@ La presente checklist deve essere utilizzata come controllo operativo durante og
 - [ ] Verificata, quando necessaria, la sincronizzazione del repository
 - [ ] Definito l'obiettivo della sessione
 - [ ] Individuate le attività previste
+- [ ] Eseguito il CHECKPOINT DI RICEZIONE, quando la sessione prosegue in una nuova conversazione
+- [ ] Verificate le informazioni ricevute rispetto alle fonti ufficiali disponibili
 
 ### Sviluppo
 
@@ -518,20 +593,22 @@ La presente checklist deve essere utilizzata come controllo operativo durante og
 - [ ] Eseguite modifiche piccole e verificabili
 - [ ] Verificato progressivamente il comportamento del software
 - [ ] Eseguito `dart format`, quando applicabile
-- [ ] Eseguito `flutter analyze`
-- [ ] Eseguito `flutter test`
+- [ ] Eseguito `flutter analyze`, quando applicabile
+- [ ] Eseguito `flutter test`, quando applicabile
 - [ ] Completata la verifica funzionale, quando applicabile
 
 ### Commit del codice
 
 - [ ] Verificato `git status`
 - [ ] Verificati i file da aggiungere allo staging
-- [ ] Eseguito il commit del codice
-- [ ] Verificato il commit con `git log`
+- [ ] Eseguito il commit del codice, quando sono presenti modifiche da versionare
+- [ ] Verificato il commit con `git log`, quando applicabile
 - [ ] Non eseguito anticipatamente il push finale
 
 ### Documentazione
 
+- [ ] Dichiarato esplicitamente l'avvio della fase Manuali, con relativo orario
+- [ ] Mantenuta distinta la fase documentale dalla fase sviluppo
 - [ ] Individuati i documenti realmente interessati
 - [ ] Aggiornati i documenti necessari
 - [ ] Riletti i documenti modificati
@@ -546,17 +623,26 @@ La presente checklist deve essere utilizzata come controllo operativo durante og
 - [ ] Annotate eventuali pause o sospensioni
 - [ ] Registrate le relative riprese
 - [ ] Calcolato il tempo effettivo al netto delle interruzioni
-- [ ] Distinto, quando previsto, il tempo di sviluppo dal tempo di documentazione
+- [ ] Distinto il tempo di sviluppo dal tempo di documentazione, quando entrambi presenti
+- [ ] Consolidato il tempo di sviluppo alla chiusura della relativa fase
+- [ ] Consolidato il tempo documentale alla chiusura dichiarata dei Manuali
 - [ ] Aggiornati i documenti che registrano i tempi
+
+### Continuità tra conversazioni
+
+- [ ] Predisposto il CHECKPOINT DI PASSAGGIO CHAT, quando è previsto un cambio di conversazione
+- [ ] Registrati lo stato effettivo, le decisioni, i punti aperti e il prossimo passo
+- [ ] Distinto il cambio di conversazione dall'eventuale cambio di sessione
+- [ ] Individuate le verifiche necessarie alla ripresa
 
 ### Chiusura e Git finale
 
 - [ ] Eseguito `git status`
 - [ ] Verificati i documenti presenti nello staging
-- [ ] Eseguito il commit della documentazione
+- [ ] Eseguito il commit della documentazione, quando sono presenti modifiche
 - [ ] Verificata la cronologia con `git log`
 - [ ] Verificato nuovamente `git status`
-- [ ] Eseguito il push finale
+- [ ] Eseguito il push finale, quando necessario
 - [ ] Verificata la sincronizzazione tra repository locale e remoto
 - [ ] Registrato il checkpoint finale
 - [ ] Definiti gli obiettivi della sessione successiva
@@ -566,51 +652,79 @@ Una sessione può essere dichiarata conclusa soltanto dopo il completamento di t
 
 ---
 
+
 # Allegato B
 ## Diagramma del Workflow
 
+Il diagramma rappresenta il flusso generale delle attività del progetto Orto Smart.
+
+Le fasi relative al codice e alle verifiche software si applicano soltanto quando pertinenti alla natura della sessione.
+
+La chiusura della fase sviluppo non determina automaticamente l'avvio della fase Manuali, che deve essere dichiarato esplicitamente con il relativo orario.
+
 ```text
-Pianificazione
-      │
-      ▼
-Sviluppo
-      │
-      ▼
-Controlli di Qualità
-      │
-      ▼
-Verifica Funzionale
-      │
-      ▼
-Commit del Codice
-      │
-      ▼
-Documentazione
-      │
-      ▼
-Verifica Incrociata
-      │
-      ▼
-Registrazione dei Tempi
-      │
-      ▼
-Commit della Documentazione
-      │
-      ▼
-Verifica Git Finale
-      │
-      ▼
-Push GitHub
-      │
-      ▼
-Verifica Sincronizzazione
-      │
-      ▼
-Checkpoint e Obiettivi Successivi
-      │
-      ▼
-Sessione Chiusa
+Pianificazione e verifica dello stato iniziale
+                    │
+                    ▼
+          Sviluppo / Analisi tecnica
+                    │
+                    ▼
+          Controlli di Qualità
+             (se applicabili)
+                    │
+                    ▼
+          Verifica Funzionale
+             (se applicabile)
+                    │
+                    ▼
+           Commit del Codice
+             (se applicabile)
+                    │
+                    ▼
+       Chiusura della Fase Sviluppo
+       e consolidamento dei suoi tempi
+                    │
+                    ▼
+       Avvio dichiarato della Fase Manuali
+       con registrazione dell'orario
+                    │
+                    ▼
+              Documentazione
+                    │
+                    ▼
+           Verifica Incrociata
+                    │
+                    ▼
+        Consolidamento dei Tempi
+           della Fase Manuali
+                    │
+                    ▼
+       Commit della Documentazione
+                    │
+                    ▼
+            Verifica Git Finale
+                    │
+                    ▼
+               Push GitHub
+             (se necessario)
+                    │
+                    ▼
+          Verifica Sincronizzazione
+                    │
+                    ▼
+       Checkpoint e Obiettivi Successivi
+                    │
+                    ▼
+        Chiusura Complessiva Sessione
 ```
+
+Il diagramma descrive la sequenza ordinaria. Le fasi non applicabili devono essere riconosciute come tali e non costituiscono condizioni mancanti ai fini della chiusura.
+
+Il passaggio a una nuova conversazione può avvenire durante una qualsiasi fase e richiede, quando pertinente, il CHECKPOINT DI PASSAGGIO CHAT e il successivo CHECKPOINT DI RICEZIONE.
+
+Il cambio di conversazione non implica automaticamente il cambio di sessione.
+
+---
 
 # Allegato C
 ## Matrice della Documentazione

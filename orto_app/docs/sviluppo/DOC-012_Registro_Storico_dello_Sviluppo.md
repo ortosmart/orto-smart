@@ -1,10 +1,11 @@
+
 # ORTO SMART
 
 ### DOC-012
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 4.1
+**Versione:** 4.3
 
 **Stato:** Approvato
 
@@ -14,7 +15,7 @@
 
 **Data prima emissione:** 29/07/2026
 
-**Ultimo aggiornamento:** 06/10/2026
+**Ultimo aggiornamento:** 13/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +27,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 4.1 |
+| Versione | 4.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 06/10/2026 |
+| Ultimo aggiornamento | 13/10/2026 |
 
 ---
 
@@ -62,6 +63,9 @@
 | 3.9 | 28/09/2026 | Aggiornamento e chiusura della Sessione S030: completamento del Catalogo Agronomico globale attraverso 11 tranche tecniche, introduzione delle identità botaniche globali, Catalog Authority, fonti e osservazioni, workflow editoriale, Knowledge agronomica canonica, pubblicazione e Resolver, cutover finale Database + Flutter, 26 tabelle nel perimetro Catalogo e 953 test Flutter superati; Sessione S030 conclusa in 27 h 19 min complessivi, di cui 21 h 06 min di sviluppo e 6 h 13 min di documentazione, con totale progetto pari a 229 h 03 min |
 | 4.0 | 01/10/2026 | Aggiornamento e chiusura della Sessione S031: integrazione operativa Flutter del Catalogo Agronomico nel percorso `Impostazioni → Catalogo Agronomico → Colture → Cultivar`, integrazione della Catalog Authority e delle relative capability, inizializzazione esplicita e confermata dell'authority, consultazione delle colture globali, caricamento on demand delle cultivar, gestione degli stati UI e rimozione del precedente percorso autonomo `Impostazioni → Varietà`; 971 test Flutter superati, nessuna nuova migration, Sessione S031 conclusa in 6 h 06 min complessivi, di cui 4 h 03 min di sviluppo e 2 h 03 min di documentazione, con totale progetto pari a 235 h 09 min; versione pubblica invariata a `0.1.21-alpha` e versione Flutter invariata a `0.1.21-alpha+6`. |
 | 4.1 | 06/10/2026 | Aggiornamento e chiusura della Sessione S032: ricognizione del contratto autoritativo del Catalogo, integrazione Flutter dei Write Path di Taxon, Crop e Cultivar, completamento della UI di gestione della Classificazione botanica, concorrenza mediante `row_version`, gestione fail-safe di `version_conflict` ed esiti incerti e verifica finale con 1077/1077 test; Sessione S032 conclusa in 11 h 30 min complessivi, di cui 7 h 58 min di sviluppo e 3 h 32 min di documentazione; chiusura documentale il 06/10/2026 alle 14:30; totale progetto pari a 246 h 39 min; versione pubblica invariata a `0.1.21-alpha` e versione Flutter invariata a `0.1.21-alpha+6`. |
+| 4.2 | 12/10/2026 | Aggiornamento del Registro Storico con lo sviluppo S033/S033B: completamento della Fase A Flutter dei Registri Agronomici, introduzione dell'HUB e delle pagine dedicate a Classificazione botanica e Colture/Cultivar, verifica finale con 1107/1107 test Flutter superati, ricognizione statica di 21/21 RPC dei Registri Agronomici e audit locale dei Write Path di `plantings` con esito favorevole nel perimetro esaminato; aggiornamento degli indicatori storici, delle milestone, degli indicatori evolutivi, degli elementi FUTURE e delle regole di registrazione delle ore. Fase sviluppo conclusa in 22 h 43 min; fase Manuali ancora in corso, con cronologia e progressivi definitivi da consolidare alla chiusura documentale. |
+| 4.3 | 13/10/2026 | Consolidamento definitivo della Sessione S033/S033B dopo la chiusura della fase Manuali alle 21:34 del 13/10/2026; aggiornamento coordinato degli indicatori storici ed evolutivi, della cronologia sintetica, dei progressivi e dello stato delle milestone. Consuntivo definitivo S033/S033B di 24 h 35 min, composto da 22 h 43 min di sviluppo e 1 h 52 min di documentazione; progressivo complessivo del progetto pari a 271 h 14 min, di cui 203 h 23 min di sviluppo e 67 h 51 min di documentazione. Confermata la conclusione integrale della S033/S033B, con S033B come prosecuzione tecnica non autonoma; S034 non ancora avviata. |
+
 
 ---
 
@@ -107,25 +111,29 @@ Il presente capitolo riassume gli indicatori storici che descrivono lo stato evo
 
 Gli indicatori riportati costituiscono una fotografia sintetica del progetto alla data dell'ultimo aggiornamento del presente documento e consentono di monitorarne la crescita nel tempo.
 
-Le informazioni riportate nel presente capitolo vengono aggiornate al termine delle sessioni di sviluppo concluse, mantenendo la coerenza con il Quaderno di Sviluppo (DOC-005) e con il Workflow Operativo (DOC-009).
+Le informazioni riportate vengono aggiornate sulla base delle sessioni di sviluppo effettivamente concluse e delle fasi documentali consolidate, mantenendo la coerenza con il Quaderno di Sviluppo (DOC-005) e con il Workflow Operativo (DOC-009).
+
+Quando lo sviluppo è concluso ma la relativa documentazione è ancora in corso, vengono distinti i tempi consolidati dal totale complessivo definitivo, che sarà determinato soltanto alla chiusura documentale.
+
 
 ## 2.1 Stato attuale del progetto
 
-Alla data del presente aggiornamento, la **Sessione S032 è completamente conclusa**, sia nella fase di sviluppo sia nella fase documentale.
+Alla data del **13/10/2026**, la **Sessione S033/S033B è l'ultima sessione completamente conclusa**, sia nella fase di sviluppo sia nella fase documentale.
 
-La fase sviluppo S032 si è svolta dal:
+La fase sviluppo S033/S033B è stata conclusa il **12/10/2026 alle 16:42**, con **22 h 43 min** di lavoro effettivo.
 
-```text
-01/10/2026 alle 13:18
-```
+La successiva fase Manuali S033/S033B è stata conclusa il **13/10/2026 alle 21:34**, con **1 h 52 min** di documentazione effettiva.
 
-al:
+La durata definitiva della Sessione S033/S033B è quindi di **24 h 35 min** e il progressivo complessivo del progetto raggiunge **271 h 14 min**.
 
-```text
-04/10/2026 alle 13:17
-```
+Le sottosezioni seguenti distinguono la chiusura storica della S032 dal consuntivo definitivo S033/S033B, conservando la tracciabilità dei progressivi intermedi.
 
-attraverso più intervalli effettivi di lavoro e sospensione registrati nel Quaderno di Sviluppo (DOC-005).
+La **S034 non è ancora iniziata**.
+
+
+### Chiusura storica S032
+
+La fase sviluppo S032 si è svolta dal 01/10/2026 alle 13:18 al 04/10/2026 alle 13:17, attraverso più intervalli effettivi di lavoro e sospensione registrati nel Quaderno di Sviluppo (DOC-005).
 
 Il tempo di sviluppo consolidato della Sessione S032 è:
 
@@ -133,17 +141,7 @@ Il tempo di sviluppo consolidato della Sessione S032 è:
 7 h 58 min
 ```
 
-La fase Manuali S032 è iniziata il:
-
-```text
-04/10/2026 alle 22:40
-```
-
-ed è stata conclusa il:
-
-```text
-06/10/2026 alle 14:30
-```
+La fase Manuali S032 è iniziata il 04/10/2026 alle 22:40 ed è stata conclusa il 06/10/2026 alle 14:30.
 
 Gli intervalli documentali definitivi sono:
 
@@ -157,20 +155,9 @@ Gli intervalli documentali definitivi sono:
 Totale                         3 h 32 min
 ```
 
-Gli intervalli compresi tra le sospensioni e le successive riprese sono esclusi dal conteggio.
+Gli intervalli compresi tra sospensioni e successive riprese sono esclusi dal conteggio.
 
-Lo stato corrente è:
-
-| Indicatore | Valore |
-|------------|--------|
-| Ultima sessione completamente conclusa | S032 |
-| Ultima fase sviluppo completata | S032 |
-| Sessione in corso | Nessuna |
-| Stato della documentazione | S032 conclusa |
-| Versione pubblica corrente | 0.1.21-alpha |
-| Versione Flutter corrente | 0.1.21-alpha+6 |
-
-Il tempo definitivo della Sessione S032 è:
+Il tempo definitivo della S032 è:
 
 | Attività | Durata |
 |----------|-------:|
@@ -196,11 +183,79 @@ Il progressivo complessivo deriva da:
 246 h 39 min   totale progetto alla chiusura S032
 ```
 
-La Sessione S032 ha preso avvio dalla ricognizione del contratto backend del Catalogo Agronomico già realizzato nella S030 e integrato in lettura nella S031.
 
-La ricognizione ha confermato che il backend dispone già di un contratto autoritativo più avanzato rispetto alla precedente roadmap esplorativa, comprendente tassonomia botanica globale, Crop, Cultivar, Catalog Authority e Write Path dedicati.
+### Stato corrente S033/S033B
 
-Il contratto tassonomico verificato utilizza i rank:
+La Sessione S033/S033B risulta definitivamente conclusa sia nella fase di sviluppo sia nella fase documentale.
+
+| Indicatore | Valore |
+|------------|--------|
+| Ultima sessione completamente conclusa | S033/S033B |
+| Ultima fase sviluppo completata | S033/S033B |
+| Fase documentale S033/S033B | Conclusa |
+| Chiusura sviluppo S033/S033B | 12/10/2026 alle 16:42 |
+| Chiusura Manuali S033/S033B | 13/10/2026 alle 21:34 |
+| Durata sviluppo S033/S033B | 22 h 43 min |
+| Durata documentazione S033/S033B | 1 h 52 min |
+| Durata complessiva S033/S033B | 24 h 35 min |
+| Versione pubblica corrente | `0.1.21-alpha` |
+| Versione Flutter corrente | `0.1.21-alpha+6` |
+| Prossima sessione di sviluppo | S034, non ancora avviata |
+
+Il progressivo definitivo dello sviluppo è:
+
+```text
+Sviluppo alla chiusura S032      180 h 40 min
++ Sviluppo S033/S033B             22 h 43 min
+--------------------------------------------
+Sviluppo complessivo            203 h 23 min
+```
+
+Il progressivo definitivo della documentazione è:
+
+```text
+Documentazione alla chiusura S032   65 h 59 min
++ Manuali S033/S033B                 1 h 52 min
+----------------------------------------------
+Documentazione complessiva         67 h 51 min
+```
+
+Il consuntivo complessivo della Sessione S033/S033B è:
+
+```text
+Sviluppo S033/S033B         22 h 43 min
+Manuali S033/S033B           1 h 52 min
+--------------------------------------
+Totale S033/S033B           24 h 35 min
+```
+
+Il progressivo definitivo del progetto alla chiusura della S033/S033B è:
+
+```text
+Totale progetto alla chiusura S032   246 h 39 min
++ Sessione S033/S033B                 24 h 35 min
+------------------------------------------------
+Totale progetto                     271 h 14 min
+```
+
+La ripartizione complessiva aggiornata è:
+
+```text
+Sviluppo complessivo        203 h 23 min
+Documentazione complessiva   67 h 51 min
+----------------------------------------
+Totale progetto             271 h 14 min
+```
+
+Il precedente valore di **269 h 22 min** rappresenta esclusivamente il progressivo storico raggiunto dopo la conclusione dello sviluppo S033/S033B, prima del consolidamento delle ore documentali. Non costituisce più il totale corrente del progetto.
+
+La prossima sessione S034 non è ancora iniziata. Il suo obiettivo iniziale approvato è la progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile. L'eventuale primo incremento implementativo sarà valutato separatamente.
+
+### Baseline architetturale ereditata dalla S032
+
+La Sessione S032 ha completato la ricognizione del contratto backend del Catalogo Agronomico globale e l'integrazione Flutter dei Write Path autoritativi di Taxon, Crop e Cultivar.
+
+La tassonomia botanica globale utilizza i rank:
 
 ```text
 ORDER
@@ -213,47 +268,17 @@ FORMA
 UNRANKED
 ```
 
-`CULTIVAR` non è un rank tassonomico.
+`CULTIVAR` non costituisce un rank tassonomico: la Cultivar è un'identità agronomica globale separata.
 
-La Cultivar costituisce un'identità agronomica globale separata dalla tassonomia botanica.
+La gerarchia botanica utilizza `parent_taxon_id` e ammette classificazioni parziali senza richiedere la creazione artificiale di tutti i livelli intermedi.
 
-La gerarchia tassonomica utilizza:
+Per Taxon, Crop e Cultivar, la concorrenza ottimistica applicativa utilizza `row_version`.
 
-```text
-parent_taxon_id
-```
+In presenza di `version_conflict`, il client non forza sovrascritture né ripete automaticamente la scrittura. In presenza di un esito incerto, il client rilegge lo stato autoritativo dal backend senza effettuare retry automatici potenzialmente duplicativi.
 
-e consente classificazioni parziali: non è necessario creare artificialmente tutti i livelli intermedi quando non disponibili.
+Le regole di integrità e le invarianti persistenti rimangono autoritative lato server.
 
-La S032 ha integrato nel livello Flutter i Write Path autoritativi per:
-
-```text
-Taxon
-Crop
-Cultivar
-```
-
-mantenendo il database come autorità del contratto persistente e delle relative invarianti.
-
-Per Taxon, Crop e Cultivar il client utilizza concorrenza ottimistica mediante:
-
-```text
-row_version
-```
-
-In presenza di:
-
-```text
-version_conflict
-```
-
-il client non effettua overwrite forzati e non esegue retry automatici della scrittura.
-
-In presenza di un esito incerto della scrittura, ad esempio a seguito di un'eccezione di rete dopo l'invio della richiesta, il client non ripete automaticamente l'operazione ma rilegge lo stato autoritativo dal backend.
-
-La S032 ha inoltre completato la UI di gestione della tassonomia botanica nel Catalogo Agronomico.
-
-La terminologia applicativa approvata è:
+La terminologia applicativa approvata per la tassonomia è:
 
 ```text
 Classificazione botanica
@@ -261,17 +286,7 @@ Voce botanica
 Classificazione superiore
 ```
 
-La UI consente, agli utenti dotati della capability appropriata della Catalog Authority:
-
-- consultazione della tassonomia;
-- creazione di una voce botanica;
-- modifica di una voce botanica;
-- disattivazione;
-- riattivazione.
-
-Le regole relative a dipendenze, gerarchia, cicli, parent inattivi e altre invarianti rimangono autoritative lato server e non vengono duplicate nel client Flutter.
-
-La S032 ha mantenuto separati:
+Restano distinti i meccanismi di autorizzazione:
 
 ```text
 Catalog Authority
@@ -283,11 +298,9 @@ e:
 Profile Write Authority / profile_edit_locks
 ```
 
-poiché il Catalogo Agronomico globale non appartiene al profilo operativo del singolo orto.
+Il Catalogo Agronomico globale non appartiene al profilo operativo del singolo orto.
 
-La S032 non ha introdotto nuove migration nel blocco conclusivo del Catalogo e non ha introdotto dati dimostrativi, provvisori o di esempio.
-
-La verifica tecnica finale della fase sviluppo S032 ha confermato:
+La S032 ha concluso la propria fase sviluppo con:
 
 ```text
 flutter analyze
@@ -304,39 +317,159 @@ Il commit tecnico conclusivo della fase sviluppo S032 è:
 Integra gestione stato tassonomia nel Catalogo Agronomico
 ```
 
-Alla chiusura della fase sviluppo S032 il branch `main` risultava allineato a `origin/main` e il working tree risultava pulito.
+### S033 — Fase A Registri Agronomici Flutter
 
-La completa UI amministrativa di Crop e Cultivar non è stata completata nella S032.
+La Sessione S033 ha completato la **Fase A di sviluppo Flutter dei Registri Agronomici**, proseguendo l'evoluzione applicativa del Catalogo Agronomico senza trasferire al client l'autorità delle regole persistenti.
 
-La direzione proposta per la sessione successiva è il completamento progressivo della gestione applicativa delle identità del Catalogo secondo la sequenza:
+Le attività completate comprendono:
+
+- **A1 — HUB Registri Agronomici:** organizzazione del percorso applicativo e della navigazione.
+- **A2 — Classificazione botanica:** estrazione della gestione tassonomica in una pagina dedicata.
+- **A3 — Colture e Cultivar:** estrazione della gestione delle identità agronomiche in una pagina dedicata, con consultazione e operazioni amministrative autorizzate.
+- **A4 — Consolidamento:** verifiche statiche, test e controllo finale dell'integrazione Flutter.
+
+La gestione delle identità botaniche e agronomiche è stata organizzata in percorsi applicativi distinti, mantenendo le dipendenze e i controlli di autorizzazione previsti dalla baseline.
+
+La gestione Flutter di Colture e Cultivar comprende i flussi di creazione, modifica e attivazione/disattivazione nel perimetro delle capability autorizzate.
+
+Gli esiti incerti e i conflitti non determinano scritture automatiche di recupero: lo stato persistente viene riletto dall'autorità backend prima di consentire ulteriori decisioni operative.
+
+Le verifiche conclusive S033 hanno restituito:
 
 ```text
-Taxonomy
-    ↓
-Crop
-    ↓
-Cultivar
+HUB Registri Agronomici       11/11 test
+Colture e Cultivar            38/38 test
+Fase A                        80/80 test
+Suite Flutter complessiva   1107/1107 test
+
+flutter analyze
+    No issues found
+
+git diff --check
+    Nessuna anomalia
 ```
 
-La sessione successiva dovrà comunque iniziare con un CHECKPOINT DI RICEZIONE e la relativa pianificazione non deve essere considerata automaticamente avviata dalla presente indicazione.
+I gruppi di test indicati appartengono a perimetri parzialmente sovrapposti e **non devono essere sommati tra loro**.
 
-Rimangono inoltre FUTURE:
+La versione pubblica e la versione Flutter sono rimaste invariate:
 
-- UI completa di gestione Crop;
-- UI completa di gestione Cultivar;
-- gestione applicativa degli alias;
-- acquisizione e aggiornamento delle fonti;
-- gestione dei dati candidati;
-- revisione editoriale;
-- pubblicazione;
-- integrazione completa del Resolver nei flussi operativi;
+```text
+Versione pubblica   0.1.21-alpha
+Versione Flutter    0.1.21-alpha+6
+```
+
+I commit tecnici della S033 comprendono:
+
+```text
+8a864ee  Integra gestione Colture Catalogo Agronomico
+015f899  Integra gestione Cultivar Catalogo Agronomico
+841763b  Estrae Classificazione botanica dal Catalogo Agronomico
+270b27e  Estrae Colture e Cultivar dal Catalogo Agronomico
+```
+
+Il commit HEAD conclusivo dello sviluppo è:
+
+```text
+270b27e654e072a1127509e335c13a45fae35d8d
+Estrae Colture e Cultivar dal Catalogo Agronomico
+```
+
+Alla chiusura dello sviluppo il branch `main` risultava allineato a `origin/main` e il working tree risultava pulito.
+
+### S033B — Ricognizione backend dei Registri Agronomici
+
+La fase S033B ha svolto una ricognizione del backend già disponibile per i Registri Agronomici.
+
+Nel perimetro esaminato sono state censite **21 RPC su 21**, relative alle seguenti entità:
+
+```text
+measurement_units
+agronomic_parameters
+parameter_enum_values
+production_contexts
+protection_contexts
+training_contexts
+harvest_purposes
+```
+
+La ricognizione ha identificato il contratto autoritativo già presente e le dipendenze da considerare nella successiva progettazione Flutter.
+
+Nel perimetro Flutter esaminato non risultavano ancora implementati i corrispondenti modelli e repository applicativi dedicati a questi Registri.
+
+La ricognizione non costituisce implementazione della Fase B Flutter.
+
+### S033B — Audit locale del Write Path di plantings
+
+La S033B ha inoltre esaminato il perimetro locale disponibile delle funzioni autoritative di `plantings`:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+Le verifiche hanno riguardato, nel perimetro osservato:
+
+- proprietà e configurazione `SECURITY DEFINER` delle funzioni;
+- privilegi di esecuzione e assenza di overload rilevati;
+- abilitazione RLS e policy SELECT;
+- assenza di privilegi diretti di scrittura per i ruoli applicativi ordinari;
+- trigger di aggiornamento e `row_version`;
+- controlli della Profile Write Authority;
+- meccanismi di lock, lease e takeover;
+- generazione e gestione server-side dei token di lock.
+
+L'esito della ricognizione è stato **favorevole limitatamente al perimetro esaminato**, senza evidenza di difetti dimostrati che richiedessero correzioni immediate.
+
+Questa conclusione **non costituisce una certificazione generale di sicurezza**.
+
+Non sono stati eseguiti nuovi test runtime di scrittura, test di concorrenza, test end-to-end Flutter/Supabase o verifiche del database remoto nell'ambito dell'audit S033B.
+
+La S033B non ha introdotto modifiche Flutter, SQL, migration o modifiche persistenti al database.
+
+È stata effettuata soltanto la pulizia di uno snippet SQL temporaneo, secondo la decisione approvata.
+
+### Decisioni e continuità progettuale
+
+Le decisioni consolidate con S033/S033B comprendono:
+
+- completamento della Fase A Flutter dei Registri Agronomici;
+- accettazione delle verifiche finali nel perimetro effettivamente testato;
+- esito favorevole dell'audit locale di `plantings`, limitatamente alle verifiche eseguite;
+- nessuna correzione preventiva del backend in assenza di un difetto dimostrato;
+- conservazione della separazione tra autorità backend e responsabilità del client Flutter;
+- chiusura dello sviluppo S033/S033B il 12/10/2026 alle 16:42.
+
+Per la S034 è stato approvato il seguente **obiettivo iniziale**, senza avvio automatico della sessione:
+
+> Progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
+
+La sessione S034 dovrà iniziare con il CHECKPOINT DI RICEZIONE e la verifica dei contratti effettivi. La progettazione delle schermate, della navigazione, dei modelli, dei repository e dei flussi autorizzati dovrà precedere la scelta dell'eventuale primo incremento implementativo.
+
+### Elementi FUTURE e verifiche ancora aperte
+
+Rimangono FUTURE o da valutare nelle successive sessioni:
+
+- implementazione Flutter dei Registri Agronomici oltre la Fase A;
+- gestione applicativa degli alias del Catalogo;
+- acquisizione e aggiornamento delle fonti agronomiche;
+- gestione dei dati candidati e revisione editoriale;
+- pubblicazione e integrazione completa del Resolver nei flussi operativi;
 - backend canonico delle consociazioni;
 - selezione esplicita della Cultivar nella creazione dei planting;
-- hard delete dei planting esclusivamente come correzione amministrativa o tecnica eccezionale.
+- ulteriori test runtime dei Write Path di `plantings`;
+- verifiche di concorrenza della Profile Write Authority;
+- test end-to-end Flutter/Supabase e verifica del database remoto;
+- eventuale hardening di condizioni geometriche estreme, solo previa dimostrazione e valutazione del problema;
+- hard delete dei planting esclusivamente come correzione amministrativa o tecnica eccezionale;
+- completamento delle ulteriori funzionalità operative dell'orto secondo le decisioni delle sessioni future.
 
 Il popolamento reale del Catalogo con dati agronomici rimane subordinato a un workflow sufficientemente sicuro, verificato e tracciabile.
 
 Il database deve continuare a rimanere privo di dati demo o provvisori fino all'avvio della gestione reale dell'orto.
+
+Le roadmap informali o esplorative non costituiscono baseline progettuale, decisione operativa né autorizzazione a modificare lo sviluppo o la documentazione ufficiale.
+
 
 # 3. Cronologia sintetica dello sviluppo
 
@@ -344,7 +477,11 @@ La cronologia sintetica riporta, in ordine cronologico, le principali sessioni c
 
 Per ciascuna sessione completamente conclusa vengono indicati l'evento principale e il tempo complessivo della sessione, comprensivo dello sviluppo e della documentazione quando entrambi presenti.
 
-La Sessione S032 è completamente conclusa. Il relativo tempo comprende **7 h 58 min di sviluppo** e **3 h 32 min di documentazione**, per un totale di **11 h 30 min**.
+La Sessione S032 è stata completamente conclusa con **7 h 58 min di sviluppo** e **3 h 32 min di documentazione**, per un totale di **11 h 30 min**.
+
+La successiva Sessione **S033/S033B è stata completamente conclusa il 13/10/2026**, con **22 h 43 min di sviluppo** e **1 h 52 min di documentazione**, per un totale definitivo di **24 h 35 min**.
+
+La prosecuzione tecnica S033B è parte integrante della S033 e non costituisce una sessione autonoma. Il progressivo definitivo del progetto alla chiusura della S033/S033B è **271 h 14 min**.
 
 | Sessione | Attività principale | Ore sessione | Totale progressivo |
 |-----------|---------------------|-------------:|-------------------:|
@@ -380,6 +517,7 @@ La Sessione S032 è completamente conclusa. Il relativo tempo comprende **7 h 58
 | **S030** | Implementazione del Catalogo Agronomico globale e cutover finale Database + Flutter | **27 h 19 min** | **229 h 03 min** |
 | **S031** | Integrazione operativa Flutter del Catalogo Agronomico e navigazione gerarchica Coltura → Cultivar | **6 h 06 min** | **235 h 09 min** |
 | **S032** | Write Path Flutter di Taxon, Crop e Cultivar e gestione completa della Classificazione botanica | **11 h 30 min** | **246 h 39 min** |
+| **S033/S033B** | Completamento della Fase A Flutter dei Registri Agronomici, HUB e pagine Classificazione botanica e Colture/Cultivar; ricognizione statica delle 21 RPC dei Registri Agronomici e audit locale dei Write Path di `plantings` | **24 h 35 min** | **271 h 14 min** |
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -526,6 +664,58 @@ Il totale progressivo definitivo del progetto alla chiusura della S032 è:
 246 h 39 min
 ```
 
+Per la Sessione S033/S033B il tempo complessivo definitivo di **24 h 35 min** è composto da:
+
+```text
+Sviluppo        22 h 43 min
+Documentazione   1 h 52 min
+--------------------------
+Totale          24 h 35 min
+```
+
+La fase sviluppo S033/S033B, comprensiva della prosecuzione tecnica S033B, è stata conclusa il **12/10/2026 alle 16:42**, per un tempo netto complessivo di **22 h 43 min**, secondo gli intervalli effettivi registrati nel Quaderno di Sviluppo (DOC-005).
+
+La fase Manuali S033/S033B è iniziata il **12/10/2026 alle 16:52** e si è svolta secondo gli intervalli:
+
+```text
+12/10/2026   16:52 → 17:02   0 h 10 min
+12/10/2026   19:04 → 20:03   0 h 59 min
+13/10/2026   10:32 → 10:54   0 h 22 min
+13/10/2026   21:13 → 21:34   0 h 21 min
+---------------------------------------
+Totale                         1 h 52 min
+```
+
+Gli intervalli tra le sospensioni e le successive riprese sono esclusi dal conteggio.
+
+La fase documentale S033/S033B è stata conclusa alle **21:34 del 13/10/2026**.
+
+Il totale progressivo definitivo del progetto alla chiusura della S033/S033B deriva da:
+
+```text
+246 h 39 min   totale progetto alla chiusura S032
++24 h 35 min   totale Sessione S033/S033B
+-----------------------------------------------
+271 h 14 min   totale progetto alla chiusura S033/S033B
+```
+
+Il totale progressivo definitivo del progetto alla chiusura della S033/S033B è:
+
+```text
+271 h 14 min
+```
+
+La ripartizione complessiva aggiornata è:
+
+```text
+Sviluppo complessivo        203 h 23 min
+Documentazione complessiva   67 h 51 min
+----------------------------------------
+Totale progetto             271 h 14 min
+```
+
+La S033/S033B risulta completamente conclusa. La S034 non è ancora iniziata.
+
 ---
 
 ## 3.1 Lettura della cronologia
@@ -548,6 +738,8 @@ Le milestone rappresentano i principali traguardi che hanno segnato l'evoluzione
 A differenza della cronologia delle sessioni, che documenta lo svolgimento delle attività nel tempo, le milestone evidenziano i cambiamenti che hanno avuto un impatto significativo sull'architettura, sulle funzionalità, sull'organizzazione o sulla documentazione del progetto.
 
 Esse costituiscono i principali punti di riferimento per ricostruire la crescita complessiva di Orto Smart.
+
+La registrazione di una milestone tecnica attesta il raggiungimento del traguardo nel perimetro effettivamente verificato e non implica necessariamente la conclusione della relativa fase documentale.
 
 | Sessione | Milestone | Descrizione |
 |-----------|-----------|-------------|
@@ -583,6 +775,8 @@ Esse costituiscono i principali punti di riferimento per ricostruire la crescita
 | **S030** | Catalogo Agronomico globale | Completata attraverso 11 tranche tecniche la nuova architettura globale del Catalogo Agronomico: identità botaniche globali, registro dei parametri agronomici, vocabolari e contesti, fonti/acquisizioni/osservazioni, alias e riconciliazione, workflow editoriale, Knowledge agronomica canonica, Catalog Authority e sicurezza, pubblicazione/versionamento, Resolver e read model, fino al cutover finale Database + Flutter. Il perimetro Catalogo comprende 26 tabelle; le vecchie strutture `botanical_families`, `catalog_crops_s030` e `crop_varieties` sono state rimosse e il contratto operativo è stato riallineato a `botanical_taxa`, `crops`, `crop_cultivars` e `cultivar_id`. |
 | **S031** | Integrazione operativa Flutter del Catalogo Agronomico | Completata l'integrazione applicativa del Catalogo Agronomico globale nel percorso `Impostazioni → Catalogo Agronomico → Colture → Cultivar`; integrate la lettura delle capability della Catalog Authority e l'inizializzazione esplicita e confermata dell'authority, la consultazione delle colture globali, il caricamento on demand delle cultivar e gli stati loading/empty/error/retry; eliminato il precedente percorso autonomo `Impostazioni → Varietà`, mantenendo la gerarchia canonica Crop → Cultivar e il backend autoritativo. Nessuna nuova migration; verifica finale con 971 test Flutter superati. |
 | **S032** | Write Path delle identità del Catalogo e gestione della Classificazione botanica | Verificato il contratto backend autoritativo del Catalogo e integrati nel client Flutter i Write Path di Taxon, Crop e Cultivar. Consolidato il contratto tassonomico globale con rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA`, `UNRANKED`, esclusione di `CULTIVAR` dai rank, tassonomia parziale mediante `parent_taxon_id` e collegamento opzionale Crop → Taxon. Completata la UI della Classificazione botanica con lettura, creazione, modifica, disattivazione e riattivazione, capability della Catalog Authority, concorrenza mediante `row_version`, nessun overwrite o retry automatico su `version_conflict` o esito incerto e rilettura autoritativa dello stato. Nessuna nuova migration nel blocco conclusivo; verifica finale con 1077/1077 test Flutter superati. |
+| **S033** | Fase A Registri Agronomici Flutter | Completati l'HUB Registri Agronomici e l'organizzazione delle pagine dedicate alla Classificazione botanica e alla gestione di Colture e Cultivar. Consolidati i flussi Flutter di consultazione e gestione autorizzata delle identità globali, preservando la Catalog Authority, le invarianti server-side, la concorrenza ottimistica e la gestione fail-safe degli esiti incerti. Completata la Fase A con 80/80 test nel relativo perimetro e 1107/1107 test nella suite Flutter complessiva; `flutter analyze` senza problemi. Nessun incremento della versione pubblica o Flutter. |
+| **S033B** | Ricognizione backend Registri Agronomici e audit locale di `plantings` | Censite 21/21 RPC dei Registri Agronomici relative a unità di misura, parametri agronomici, valori enumerati e contesti di produzione, protezione, allevamento e destinazione del raccolto. Eseguito audit locale delle RPC `create_planting`, `update_planting` e `set_planting_status`, dei privilegi, della RLS e dei controlli di Profile Write Authority. Esito favorevole limitatamente al perimetro esaminato, senza nuovi test runtime di scrittura, concorrenza o end-to-end e senza verifica del database remoto. Nessuna modifica Flutter, SQL, migration o persistente al database; nessuna correzione preventiva in assenza di difetti dimostrati. |
 
 ---
 
@@ -593,6 +787,8 @@ Le milestone identificano gli eventi che hanno segnato un'evoluzione significati
 Esse costituiscono i principali punti di riferimento per ricostruire la storia tecnica di Orto Smart e rappresentano i momenti in cui sono state introdotte nuove funzionalità, nuovi componenti architetturali o importanti cambiamenti organizzativi.
 
 La registrazione di una milestone tecnica non implica necessariamente che la relativa sessione sia già completamente chiusa sotto il profilo documentale.
+
+### Evoluzione del Catalogo Agronomico S030–S032
 
 La milestone tecnica della Sessione S030 ha completato il passaggio dal precedente Catalogo V1 Profile-owned a un Catalogo Agronomico globale, multisource, tracciabile, versionabile, contestualizzabile ed editorialmente controllato, mantenuto separato dai dati operativi del singolo orto.
 
@@ -612,7 +808,7 @@ La S031 ha inoltre integrato nell'interfaccia lo stato della Catalog Authority e
 
 La relativa fase documentale S031 è conclusa.
 
-La S031 non modifica il contratto persistente definito dalla S030 e non introduce nuove migration: rappresenta l'incremento applicativo che rende concretamente consultabile nel client Flutter il Catalogo globale realizzato nella sessione precedente.
+La S031 non ha modificato il contratto persistente definito dalla S030 e non ha introdotto nuove migration: ha rappresentato l'incremento applicativo che ha reso consultabile nel client Flutter il Catalogo globale realizzato nella sessione precedente.
 
 La milestone tecnica della Sessione S032 ha completato un ulteriore passaggio: dalla sola consultazione del Catalogo alla prima gestione applicativa completa di una sua identità globale.
 
@@ -659,22 +855,121 @@ In presenza di `version_conflict` non vengono effettuati overwrite forzati o ret
 
 In presenza di un esito incerto di una scrittura il client non ripete automaticamente l'operazione, ma rilegge lo stato autoritativo dal backend.
 
-La completa UI amministrativa di Crop e Cultivar rimane un incremento successivo.
+Alla chiusura della S032 la completa UI amministrativa di Crop e Cultivar rimaneva un incremento successivo. Tale incremento è stato successivamente completato nella Fase A della S033.
 
-La relativa fase documentale S032 è conclusa. La Sessione S032 risulta pertanto completamente chiusa, sia nella fase di sviluppo sia nella fase documentale, alle **14:30 del 06/10/2026**.
+La fase documentale S032 è conclusa. La Sessione S032 risulta pertanto completamente chiusa, sia nella fase di sviluppo sia nella fase documentale, alle **14:30 del 06/10/2026**.
 
 La conclusione della S032 non equivale al completamento dell'intero workflow editoriale e amministrativo del Catalogo.
 
-Rimangono successivi incrementi controllati:
+### S033 — Completamento della Fase A Flutter
 
-- UI completa di Crop;
-- UI completa di Cultivar;
-- alias;
-- acquisizione delle fonti;
-- dati candidati;
-- revisione;
+La milestone tecnica S033 ha completato la Fase A Registri Agronomici Flutter.
+
+L'incremento ha organizzato le funzionalità già integrate in una struttura applicativa più chiara, articolata in:
+
+```text
+HUB Registri Agronomici
+    ├── Classificazione botanica
+    └── Colture e Cultivar
+```
+
+La gestione della Classificazione botanica è stata collocata in una pagina dedicata, separandola dalla gestione di Colture e Cultivar.
+
+La gestione applicativa di Colture e Cultivar è stata completata nel perimetro della Fase A, con consultazione, creazione, modifica, disattivazione e riattivazione subordinate alle capability della Catalog Authority.
+
+La separazione delle pagine non modifica l'autorità dei contratti persistenti e non introduce regole client-side sostitutive delle invarianti server-side.
+
+In caso di conflitto di versione o di esito incerto della scrittura, il client mantiene il comportamento fail-safe già definito, evitando overwrite e retry automatici e privilegiando la rilettura dello stato autoritativo.
+
+La verifica finale S033 ha confermato:
+
+```text
+HUB Registri Agronomici       11/11
+Colture e Cultivar            38/38
+Fase A                        80/80
+Suite Flutter complessiva   1107/1107
+
+flutter analyze
+    No issues found
+```
+
+I conteggi delle suite parziali si riferiscono a perimetri sovrapposti e non sono additivi.
+
+La Fase A è conclusa, senza incremento della versione pubblica `0.1.21-alpha` né della versione Flutter `0.1.21-alpha+6`.
+
+### S033B — Ricognizione del backend dei Registri Agronomici
+
+La S033B ha verificato staticamente la disponibilità del contratto backend dei Registri Agronomici.
+
+La ricognizione ha censito 21/21 RPC nel perimetro delle seguenti entità:
+
+```text
+measurement_units
+agronomic_parameters
+parameter_enum_values
+production_contexts
+protection_contexts
+training_contexts
+harvest_purposes
+```
+
+Il censimento ha consentito di distinguere il backend già disponibile dalle componenti Flutter ancora da progettare.
+
+Nel perimetro Flutter esaminato non risultavano implementati i modelli e repository dedicati a tali Registri.
+
+La milestone riguarda pertanto la **ricognizione del contratto backend**, non l'implementazione del relativo sottosistema Flutter.
+
+### S033B — Audit locale del Write Path di plantings
+
+La S033B ha inoltre condotto un audit locale delle funzioni autoritative:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+La verifica ha riguardato il contratto di esecuzione, i privilegi, la configurazione `SECURITY DEFINER`, la RLS, la policy di lettura, i trigger di aggiornamento, la concorrenza ottimistica e i meccanismi di Profile Write Authority.
+
+L'esito è stato favorevole **nel solo perimetro effettivamente esaminato**.
+
+Non sono stati eseguiti nuovi test runtime delle scritture, test di concorrenza, test end-to-end Flutter/Supabase o verifiche del database remoto.
+
+L'esito non rappresenta una certificazione generale di sicurezza e non autorizza a considerare superflue eventuali verifiche successive.
+
+Non sono emersi difetti dimostrati tali da richiedere correzioni immediate.
+
+La S033B non ha introdotto modifiche Flutter, SQL, migration o persistenti al database.
+
+
+### Stato delle milestone e continuità
+
+Lo sviluppo S033/S033B è stato concluso il **12/10/2026 alle 16:42**, per un tempo netto complessivo di **22 h 43 min**.
+
+La relativa fase Manuali è stata conclusa il **13/10/2026 alle 21:34**, per un tempo complessivo di **1 h 52 min**.
+
+La Sessione S033/S033B risulta pertanto **completamente conclusa**, sia sotto il profilo tecnico sia sotto quello documentale, con un consuntivo definitivo di **24 h 35 min**.
+
+Le milestone tecniche previste nel perimetro effettivamente approvato per S033/S033B risultano raggiunte. Tale conclusione non implica il completamento delle funzionalità ancora classificate FUTURE.
+
+Le attività che rimangono FUTURE comprendono, tra le altre:
+
+- implementazione del sottosistema Flutter dei Registri Agronomici oltre la Fase A;
+- gestione applicativa degli alias;
+- acquisizione e aggiornamento delle fonti;
+- gestione dei dati candidati e revisione editoriale;
 - pubblicazione;
-- integrazione completa del Resolver nei flussi applicativi.
+- integrazione completa del Resolver nei flussi operativi;
+- backend canonico delle consociazioni;
+- selezione esplicita della Cultivar nella creazione dei planting;
+- ulteriori verifiche runtime, di concorrenza ed end-to-end dei Write Path;
+- eventuali interventi di hardening soltanto a seguito di evidenze tecniche verificate.
+
+Per la S034 è stato approvato l'obiettivo iniziale:
+
+> Progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
+
+La S034 non è ancora avviata. Il suo obiettivo iniziale non rappresenta una milestone già raggiunta e non determina automaticamente le attività implementative della sessione.
 
 ---
 
@@ -684,34 +979,73 @@ Il presente capitolo raccoglie gli indicatori che consentono di monitorare l'evo
 
 A differenza degli indicatori storici riportati nel capitolo 2, che rappresentano una fotografia dello stato attuale del progetto, gli indicatori evolutivi consentono di osservare la crescita di Orto Smart sotto il profilo organizzativo, tecnico e documentale.
 
-Alla data del presente aggiornamento le Sessioni S001–S032 sono completamente concluse.
+Alla data del **13/10/2026**, le Sessioni **S001–S033** risultano completamente concluse, sia nella fase di sviluppo sia nella relativa fase documentale. La prosecuzione tecnica **S033B** è parte integrante della S033 e non costituisce una sessione autonoma.
 
-La Sessione S032 è conclusa sia nella fase di sviluppo sia nella relativa fase Manuali.
+Lo sviluppo S033/S033B è stato concluso il **12/10/2026 alle 16:42**, mentre la relativa fase Manuali è stata conclusa il **13/10/2026 alle 21:34**.
+
+I progressivi definitivi alla chiusura della S032 rimangono invariati e costituiscono la base storica per il consolidamento della S033/S033B.
 
 | Indicatore | Valore attuale |
 |------------|----------------|
-| Sessioni completamente concluse | 32 |
-| Fasi sviluppo completate | 32 |
-| Ore di sviluppo consolidate | 180 h 40 min |
-| Ore di documentazione consolidate | 65 h 59 min |
+| Sessioni completamente concluse | 33 — S001–S033, con S033B come prosecuzione della S033 |
+| Fasi sviluppo completate | 33 — S001–S033 |
+| Ore di sviluppo consolidate | 203 h 23 min |
+| Ore di documentazione consolidate | 67 h 51 min |
 | Totale definitivo progetto alla chiusura S032 | 246 h 39 min |
+| Durata complessiva Sessione S033/S033B | 24 h 35 min |
+| Totale definitivo progetto alla chiusura S033/S033B | 271 h 14 min |
 | Motori agronomici completati | 5 |
 | Documenti ufficiali approvati | 10 |
-| Ultima sessione completamente conclusa | S032 |
-| Ultima fase sviluppo completata | S032 |
-| Sessione in corso | Nessuna |
+| Ultima sessione completamente conclusa | S033/S033B |
+| Ultima fase sviluppo completata | S033/S033B |
+| Ultima fase documentale completata | Manuali S033/S033B |
+| Prossima sessione di sviluppo | S034, non ancora iniziata |
 | Versione pubblica corrente | 0.1.21-alpha |
 | Versione Flutter corrente | 0.1.21-alpha+6 |
 
-Le **180 h 40 min** di sviluppo comprendono le **7 h 58 min** della fase sviluppo S032.
+Le **180 h 40 min** di sviluppo consolidate alla chiusura della S032 comprendono le **7 h 58 min** della relativa fase sviluppo.
 
-Le **65 h 59 min** di documentazione comprendono le **3 h 32 min** della fase Manuali S032, conclusa alle **14:30 del 06/10/2026**.
+Le **65 h 59 min** di documentazione consolidate alla chiusura della S032 comprendono le **3 h 32 min** della fase Manuali S032, conclusa alle **14:30 del 06/10/2026**.
 
-Il totale definitivo del progetto alla chiusura della S032 è pertanto:
+Il totale definitivo del progetto alla chiusura della S032 è:
 
 ```text
-246 h 39 min
+Sviluppo        180 h 40 min
+Documentazione   65 h 59 min
+---------------------------
+Totale          246 h 39 min
 ```
+
+La Sessione S033/S033B ha aggiunto **22 h 43 min di sviluppo** e **1 h 52 min di documentazione**, per un totale di **24 h 35 min**.
+
+Il progressivo definitivo aggiornato è:
+
+```text
+Sviluppo S001–S032              180 h 40 min
+Sviluppo S033/S033B              22 h 43 min
+--------------------------------------------
+Sviluppo complessivo            203 h 23 min
+
+Documentazione fino alla S032    65 h 59 min
+Documentazione S033/S033B         1 h 52 min
+--------------------------------------------
+Documentazione complessiva       67 h 51 min
+```
+
+Il totale complessivo definitivo del progetto alla chiusura della S033/S033B è:
+
+```text
+Sviluppo complessivo        203 h 23 min
+Documentazione complessiva   67 h 51 min
+----------------------------------------
+Totale progetto             271 h 14 min
+```
+
+Il precedente progressivo di **269 h 22 min** rappresenta esclusivamente lo stato intermedio successivo alla chiusura dello sviluppo S033/S033B, prima del consolidamento della relativa documentazione.
+
+La Sessione S033/S033B è definitivamente conclusa. La S034 non è ancora iniziata; il suo obiettivo iniziale approvato è la progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
+
+## Evoluzione funzionale S028–S033B
 
 La S028 ha completato il modello persistente e il Write Path autoritativo di `plantings`.
 
@@ -755,104 +1089,197 @@ La S032 ha completato:
 - rilettura autoritativa in presenza di `version_conflict` o esito incerto della scrittura;
 - verifica finale con 1077/1077 test Flutter superati.
 
-Lo stato evolutivo raggiunto è:
+La S033 ha completato la **Fase A Registri Agronomici Flutter**, attraverso quattro incrementi:
+
+- **A1 — HUB Registri Agronomici:** integrazione del punto di accesso e della navigazione applicativa;
+- **A2 — Classificazione botanica:** estrazione della gestione in una pagina dedicata;
+- **A3 — Colture e Cultivar:** completamento della gestione applicativa in una pagina dedicata, con operazioni autorizzate di creazione, modifica, disattivazione e riattivazione;
+- **A4 — Consolidamento:** verifica dell'integrazione e della compatibilità con i contratti autoritativi esistenti.
+
+La nuova organizzazione applicativa separa le responsabilità delle pagine:
+
+```text
+Impostazioni
+    ↓
+Catalogo Agronomico
+    ↓
+HUB Registri Agronomici
+    ├── Classificazione botanica
+    └── Colture e Cultivar
+```
+
+La Fase A mantiene la Catalog Authority come riferimento autorizzativo e il database come fonte autoritativa delle invarianti.
+
+In presenza di `version_conflict` o di esito incerto di una scrittura, il client non esegue overwrite forzati o retry automatici, ma prevede la rilettura dello stato autoritativo.
+
+La verifica tecnica finale S033 ha registrato:
+
+```text
+HUB Registri Agronomici       11/11
+Colture e Cultivar            38/38
+Fase A                        80/80
+Suite Flutter complessiva   1107/1107
+
+flutter analyze
+    No issues found
+```
+
+I gruppi di test indicati hanno perimetri parzialmente sovrapposti: i relativi conteggi non devono essere sommati.
+
+La S033B ha svolto una ricognizione statica del backend dei Registri Agronomici, censendo **21/21 RPC** relative a:
+
+- `measurement_units`;
+- `agronomic_parameters`;
+- `parameter_enum_values`;
+- `production_contexts`;
+- `protection_contexts`;
+- `training_contexts`;
+- `harvest_purposes`.
+
+La ricognizione ha confermato la disponibilità del contratto backend nel perimetro esaminato, senza equivalere all'implementazione delle corrispondenti funzionalità Flutter.
+
+La S033B ha inoltre eseguito un audit locale dei Write Path di `plantings`:
+
+- `create_planting`;
+- `update_planting`;
+- `set_planting_status`.
+
+L'audit ha esaminato privilegi di esecuzione, configurazione `SECURITY DEFINER`, RLS, policy di lettura, trigger e meccanismi di Profile Write Authority.
+
+L'esito è risultato favorevole **limitatamente alle verifiche locali effettivamente svolte**.
+
+Non sono stati eseguiti nuovi test runtime di scrittura, test di concorrenza, test end-to-end Flutter/Supabase o verifiche del database remoto.
+
+Non sono emersi difetti dimostrati che richiedessero una correzione immediata. La S033B non ha introdotto modifiche Flutter, SQL, migration o persistenti al database.
+
+
+## Stato evolutivo delle funzionalità
+
+Lo stato evolutivo raggiunto alla chiusura definitiva della Sessione S033/S033B è:
 
 ```text
 public.plantings
-        ✅ modello persistente
+        COMPLETATO — modello persistente
 
 Write Path autoritativo di plantings
-        ✅
+        COMPLETATO
 
 Lifecycle server-side di plantings
-        ✅
+        COMPLETATO
 
 UI di creazione e modifica di plantings
-        ✅
+        COMPLETATA
 
 UI lifecycle di plantings
-        ✅
+        COMPLETATA
 
 Gestione end_date terminale
-        ✅
+        COMPLETATA
 
 Refresh autoritativo su conflitti/transizioni non valide
-        ✅
+        COMPLETATO
 
 Catalogo Agronomico globale
-        ✅
+        COMPLETATO — perimetro backend S030
 
 Identità botaniche globali
-        ✅
+        COMPLETATE — backend
 
 Fonti, acquisizioni e osservazioni
-        ✅
+        COMPLETATE — strutture backend S030
 
 Workflow editoriale backend
-        ✅
+        COMPLETATO — perimetro S030
 
 Knowledge agronomica canonica
-        ✅
+        COMPLETATA — strutture backend S030
 
 Catalog Authority
-        ✅
+        COMPLETATA — backend
 
 Pubblicazione e Resolver backend
-        ✅
+        COMPLETATI — perimetro S030
 
 Cutover finale Database + Flutter
-        ✅
+        COMPLETATO
 
 Integrazione operativa Catalogo Agronomico nelle Impostazioni
-        ✅
+        COMPLETATA
 
 Lettura capability Catalog Authority nella UI
-        ✅
+        COMPLETATA
 
 Inizializzazione iniziale Catalog Authority esplicita e confermata
-        ✅
+        COMPLETATA
 
 Consultazione colture globali
-        ✅
+        COMPLETATA
 
 Navigazione gerarchica Coltura → Cultivar
-        ✅
+        COMPLETATA
 
 Caricamento cultivar on demand
-        ✅
+        COMPLETATO
 
 Gestione loading / empty / error / retry del Catalogo
-        ✅
+        COMPLETATA
 
 Rimozione del percorso autonomo Impostazioni → Varietà
-        ✅
+        COMPLETATA
 
 Write Path Flutter Taxon
-        ✅
+        COMPLETATO
 
 Write Path Flutter Crop
-        ✅
+        COMPLETATO
 
 Write Path Flutter Cultivar
-        ✅
+        COMPLETATO
 
 UI completa Classificazione botanica
-        ✅
+        COMPLETATA — perimetro S032/S033
 
-UI completa gestione Crop
-        ⏳
+HUB Registri Agronomici
+        COMPLETATO — Fase A S033
 
-UI completa gestione Cultivar
-        ⏳
+Pagina dedicata Classificazione botanica
+        COMPLETATA — Fase A S033
 
-Selezione esplicita del cultivar nella UI di creazione planting
-        ⏳
+UI gestione Crop
+        COMPLETATA — perimetro Fase A S033
+
+UI gestione Cultivar
+        COMPLETATA — perimetro Fase A S033
+
+Verifica Flutter Fase A
+        COMPLETATA — 80/80 test
+
+Verifica Flutter complessiva S033
+        COMPLETATA — 1107/1107 test
+
+Ricognizione backend Registri Agronomici
+        COMPLETATA — 21/21 RPC censite
+
+Audit locale Write Path plantings
+        CONCLUSO — esito favorevole nel perimetro esaminato
+
+Modelli, repository e UI Flutter degli altri Registri Agronomici
+        FUTURE — da progettare e implementare
+
+Selezione esplicita della Cultivar nella UI di creazione planting
+        FUTURE
 
 Backend canonico delle consociazioni
-        ⏳
+        FUTURE
 
 UI workflow alias / fonti / candidati / revisione / pubblicazione
-        ⏳
+        FUTURE
+
+Integrazione completa del Resolver nei flussi operativi
+        FUTURE
+
+Ulteriori verifiche runtime, concorrenza ed end-to-end
+        FUTURE
 ```
 
 La baseline complessiva Database V1 rimane:
@@ -865,11 +1292,23 @@ poiché non tutte le 52 entità di dominio progettate nella S017 sono ancora fis
 
 La S030 ha completato il nuovo perimetro persistente e autoritativo del Catalogo Agronomico globale.
 
-La S031 non modifica tale perimetro persistente e completa l'integrazione operativa del Catalogo nel client Flutter.
+La S031 ha completato l'integrazione operativa del Catalogo nel client Flutter senza modificare il relativo perimetro persistente.
 
-La S032 integra nel client i Write Path autoritativi già disponibili per Taxon, Crop e Cultivar e completa la UI di gestione della Classificazione botanica senza introdurre un contratto persistente alternativo.
+La S032 ha integrato nel client i Write Path autoritativi già disponibili per Taxon, Crop e Cultivar e ha completato la UI di gestione della Classificazione botanica.
 
-La conclusione della Sessione S032 non equivale al completamento dell'intera baseline Database V1 né dell'intero workflow amministrativo/editoriale del Catalogo.
+La S033 ha consolidato la Fase A Flutter attraverso l'HUB Registri Agronomici e la separazione delle pagine dedicate a Classificazione botanica e Colture/Cultivar, completando la gestione di queste ultime nel perimetro approvato.
+
+La S033B ha verificato staticamente una parte del backend dei Registri Agronomici e del Write Path di `plantings`, senza introdurre modifiche persistenti e senza estendere l'esito dell'audit oltre il perimetro verificato.
+
+La conclusione della Sessione S033/S033B non equivale al completamento dell'intera baseline Database V1 né dell'intero workflow amministrativo/editoriale del Catalogo Agronomico.
+
+La fase sviluppo S033/S033B è stata conclusa il **12/10/2026 alle 16:42**, con **22 h 43 min** di lavoro effettivo.
+
+La fase Manuali S033/S033B è stata conclusa il **13/10/2026 alle 21:34**, con **1 h 52 min** di lavoro documentale.
+
+La Sessione S033/S033B risulta pertanto **completamente conclusa**, con una durata definitiva di **24 h 35 min** e un progressivo complessivo del progetto pari a **271 h 14 min**.
+
+---
 
 ## Catalogo Agronomico globale
 
@@ -895,7 +1334,7 @@ Le identità botaniche globali sono rappresentate mediante:
 botanical_taxa
 ```
 
-con ranghi canonici:
+Nella ricostruzione storica della S030 erano riportati i seguenti rank:
 
 ```text
 FAMILY
@@ -904,6 +1343,25 @@ SPECIES
 VARIETY
 CULTIVAR
 ```
+
+Tale elenco appartiene alla ricostruzione della fase S030 e **non rappresenta il contratto tassonomico corrente**.
+
+La successiva ricognizione autoritativa S032, consolidata nel DOC-005 e nella DEC-015 del DOC-011, ha verificato che i rank tassonomici correnti sono:
+
+```text
+ORDER
+FAMILY
+GENUS
+SPECIES
+SUBSPECIES
+VARIETY
+FORMA
+UNRANKED
+```
+
+**`CULTIVAR` non è un rank tassonomico.** La Cultivar costituisce un'identità agronomica globale separata, gestita mediante `crop_cultivars`.
+
+La gerarchia botanica utilizza `parent_taxon_id` e consente classificazioni parziali, senza richiedere la creazione artificiale di tutti i livelli intermedi.
 
 La normalizzazione testuale del Catalogo è centralizzata mediante:
 
@@ -1436,9 +1894,10 @@ In particolare Flutter non tenta di duplicare le regole server-side relative a:
 
 Il backend rimane autoritativo.
 
+
 ### Progressione della UI del Catalogo
 
-La direzione applicativa consolidata è:
+La progressione applicativa del Catalogo Agronomico segue la gerarchia delle identità globali:
 
 ```text
 Taxonomy
@@ -1448,9 +1907,22 @@ Crop
 Cultivar
 ```
 
-La gestione completa della Taxonomy è stata realizzata nella S032.
+Alla chiusura della S032, la gestione completa della Classificazione botanica era stata realizzata.
 
-I Write Path Flutter di Crop e Cultivar sono integrati, mentre le rispettive UI complete di gestione rimangono un incremento successivo.
+Nella stessa sessione erano stati integrati i Write Path Flutter di Crop e Cultivar, mentre le rispettive interfacce complete di gestione rimanevano un incremento successivo.
+
+**Questa descrizione rappresenta lo stato storico alla chiusura della S032.**
+
+La successiva Sessione S033 ha completato tale incremento nell'ambito della Fase A Registri Agronomici Flutter, introducendo:
+
+- l'HUB Registri Agronomici;
+- una pagina dedicata alla Classificazione botanica;
+- una pagina dedicata alla gestione di Colture e Cultivar;
+- i flussi autorizzati di consultazione, creazione, modifica, disattivazione e riattivazione di Colture e Cultivar.
+
+Pertanto, **alla chiusura dello sviluppo S033/S033B, la gestione Flutter di Colture e Cultivar risulta completata nel perimetro della Fase A**, mentre rimangono FUTURE gli ulteriori Registri Agronomici e le altre funzionalità del workflow amministrativo/editoriale del Catalogo.
+
+La progressione applicativa conserva la Catalog Authority e il backend come autorità per le capability, le invarianti persistenti e la concorrenza.
 
 ### Verifica tecnica S032
 
@@ -1480,6 +1952,167 @@ La S032 non ha introdotto dati demo o provvisori nel Catalogo.
 
 Il popolamento reale continua a essere subordinato a un workflow sicuro, verificato e tracciabile.
 
+## Fase A Registri Agronomici Flutter S033
+
+La Sessione S033 ha completato la Fase A dell'integrazione Flutter dei Registri Agronomici, proseguendo il lavoro sulle identità globali del Catalogo avviato nelle Sessioni S031 e S032.
+
+L'obiettivo della Fase A è stato organizzare e completare la gestione applicativa di Classificazione botanica, Colture e Cultivar, mantenendo il backend autoritativo e le capability della Catalog Authority come riferimenti per tutte le operazioni di modifica.
+
+### Organizzazione della Fase A
+
+La Fase A è stata articolata in quattro incrementi:
+
+- **A1 — HUB Registri Agronomici:** predisposizione e integrazione del punto di accesso e della navigazione;
+- **A2 — Classificazione botanica:** estrazione della gestione tassonomica in una pagina dedicata;
+- **A3 — Colture e Cultivar:** completamento della gestione applicativa in una pagina dedicata;
+- **A4 — Consolidamento:** verifica complessiva del comportamento Flutter e dei contratti già disponibili.
+
+La struttura applicativa risultante separa:
+
+```text
+HUB Registri Agronomici
+    ├── Classificazione botanica
+    └── Colture e Cultivar
+```
+
+Questa separazione riguarda la presentazione e l'organizzazione delle funzionalità Flutter, senza introdurre un nuovo contratto persistente.
+
+### Gestione delle identità globali
+
+La gestione di Classificazione botanica, Colture e Cultivar mantiene:
+
+- lettura dello stato autoritativo;
+- creazione e modifica attraverso i Write Path esistenti;
+- disattivazione e riattivazione subordinate alle capability;
+- concorrenza ottimistica mediante `row_version`;
+- nessun overwrite forzato in caso di `version_conflict`;
+- nessun retry automatico in presenza di un esito incerto;
+- rilettura dello stato autoritativo quando necessaria.
+
+Le validazioni e le invarianti persistenti rimangono di competenza del backend.
+
+La Fase A non trasferisce al client Flutter l'autorità su unicità, gerarchia tassonomica, dipendenze o autorizzazioni.
+
+### Verifica tecnica S033
+
+La verifica finale ha registrato:
+
+```text
+HUB Registri Agronomici       11/11
+Colture e Cultivar            38/38
+Fase A                        80/80
+Suite Flutter complessiva   1107/1107
+
+flutter analyze
+    No issues found
+```
+
+I conteggi delle suite mirate sono parzialmente sovrapposti e non devono essere sommati.
+
+I commit tecnici principali della S033 sono:
+
+```text
+8a864ee  Integra gestione Colture Catalogo Agronomico
+015f899  Integra gestione Cultivar Catalogo Agronomico
+841763b  Estrae Classificazione botanica dal Catalogo Agronomico
+270b27e  Estrae Colture e Cultivar dal Catalogo Agronomico
+```
+
+Il commit tecnico conclusivo è:
+
+```text
+270b27e654e072a1127509e335c13a45fae35d8d
+```
+
+La versione pubblica dell'applicazione rimane `0.1.21-alpha` e la versione Flutter rimane `0.1.21-alpha+6`.
+
+La Fase A è conclusa, ma non rappresenta il completamento di tutti i Registri Agronomici o dell'intero workflow editoriale del Catalogo.
+
+---
+
+## Ricognizione backend e audit locale S033B
+
+La prosecuzione S033B ha effettuato una ricognizione tecnica del backend dei Registri Agronomici e un audit locale dei Write Path di `plantings`.
+
+Le verifiche hanno avuto carattere conoscitivo e di controllo. Non hanno comportato nuove implementazioni Flutter, SQL, migration o modifiche persistenti al database.
+
+### Ricognizione delle RPC dei Registri Agronomici
+
+La ricognizione statica ha censito **21/21 RPC** nel perimetro dei seguenti registri:
+
+```text
+measurement_units
+agronomic_parameters
+parameter_enum_values
+production_contexts
+protection_contexts
+training_contexts
+harvest_purposes
+```
+
+Il risultato conferma la disponibilità del contratto backend esaminato.
+
+Non equivale tuttavia alla verifica runtime di tutte le operazioni né alla realizzazione delle corrispondenti interfacce Flutter.
+
+Nel perimetro Flutter verificato non risultavano ancora presenti modelli e repository dedicati a tali registri.
+
+La loro integrazione applicativa rimane pertanto un incremento successivo.
+
+### Audit locale del Write Path di plantings
+
+L'audit locale ha esaminato le RPC autoritative:
+
+```text
+create_planting
+update_planting
+set_planting_status
+```
+
+Nel perimetro verificato sono stati rilevati:
+
+- funzioni `SECURITY DEFINER` con owner `postgres`;
+- privilegio di esecuzione per `authenticated`;
+- assenza del privilegio di esecuzione per `anon` e `service_role`;
+- assenza di overload delle tre RPC esaminate;
+- RLS attiva su `plantings`;
+- policy di lettura `plantings_select_member` tramite `private.can_access_garden(garden_id)`;
+- assenza di policy di scrittura diretta per i normali ruoli applicativi;
+- trigger `plantings_set_updated_at_and_row_version`;
+- controlli server-side collegati alla Profile Write Authority, ai lock e alla concorrenza ottimistica.
+
+La ricognizione ha inoltre esaminato il trattamento dei token del protocollo di lock, con generazione server-side di materiale casuale e utilizzo di hash SHA-256 nel perimetro osservato.
+
+### Limiti ed esito dell'audit
+
+L'esito dell'audit è stato **favorevole limitatamente al perimetro locale effettivamente verificato**.
+
+Non sono stati effettuati nuovi:
+
+- test runtime di scrittura;
+- test di concorrenza;
+- test end-to-end Flutter/Supabase;
+- controlli sul database remoto.
+
+L'esito non costituisce una certificazione generale della sicurezza del Write Path.
+
+Non sono emersi difetti dimostrati tali da giustificare modifiche correttive immediate.
+
+È stato pertanto mantenuto il principio di non introdurre correzioni preventive in assenza di un problema tecnico riproducibile o adeguatamente dimostrato.
+
+
+### Stato conclusivo S033/S033B
+
+La fase sviluppo S033/S033B è stata conclusa il **12/10/2026 alle 16:42**, con un tempo netto complessivo di **22 h 43 min**.
+
+La fase Manuali S033/S033B è stata conclusa il **13/10/2026 alle 21:34**, con un tempo netto complessivo di **1 h 52 min**.
+
+La Sessione S033/S033B risulta definitivamente conclusa, con una durata complessiva di **24 h 35 min**.
+
+Il progressivo definitivo del progetto alla chiusura della S033/S033B è **271 h 14 min**, ripartito in **203 h 23 min di sviluppo** e **67 h 51 min di documentazione**.
+
+L'obiettivo iniziale approvato per la S034 è la progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
+
+La S034 non è ancora iniziata e non sono stati approvati automaticamente nuovi incrementi implementativi.
 
 ## Plantings dopo il cutover S030
 
@@ -1729,63 +2362,110 @@ Totale progetto             229 h 03 min
 
 La Sessione S030 è quindi conclusa sia nella fase di sviluppo sia nella fase documentale.
 
-## Elementi FUTURE post-S032
+## Elementi FUTURE dopo S033/S033B
 
-La conclusione della fase sviluppo S032 non implica il completamento dell'intero progetto né dell'intero sistema amministrativo ed editoriale del Catalogo Agronomico.
+La conclusione della fase sviluppo S033/S033B non implica il completamento dell'intero progetto Orto Smart, della baseline Database V1 o dell'intero sistema amministrativo ed editoriale del Catalogo Agronomico.
 
-La S032 ha completato la ricognizione del contratto autoritativo delle identità del Catalogo, ha integrato i Write Path Flutter di Taxon, Crop e Cultivar e ha completato la UI della Classificazione botanica.
-
-Non sono quindi più FUTURE:
+Le Sessioni S030–S033 hanno realizzato una progressione tecnica:
 
 ```text
-ricognizione dei Write Path delle identità
-Write Path Flutter Taxon
-Write Path Flutter Crop
-Write Path Flutter Cultivar
-UI di gestione della Classificazione botanica
+S030
+Catalogo Agronomico globale e cutover Database + Flutter
+    ↓
+S031
+Consultazione operativa del Catalogo in Flutter
+    ↓
+S032
+Write Path Flutter delle identità Taxon, Crop e Cultivar
+Gestione della Classificazione botanica
+    ↓
+S033
+HUB Registri Agronomici
+Pagine dedicate Classificazione botanica e Colture/Cultivar
+Completamento della Fase A Flutter
+    ↓
+S033B
+Ricognizione statica delle RPC dei Registri Agronomici
+Audit locale del Write Path di plantings
 ```
+
+### Funzionalità non più FUTURE
+
+Risultano completati nei rispettivi perimetri approvati e verificati:
+
+- ricognizione dei Write Path delle identità globali del Catalogo;
+- Write Path Flutter Taxon;
+- Write Path Flutter Crop;
+- Write Path Flutter Cultivar;
+- gestione applicativa della Classificazione botanica;
+- HUB Registri Agronomici;
+- pagina dedicata alla Classificazione botanica;
+- pagina dedicata alla gestione di Colture e Cultivar;
+- UI di creazione, modifica, disattivazione e riattivazione di Crop e Cultivar nel perimetro della Fase A;
+- consolidamento della Fase A con 80/80 test superati;
+- verifica della suite Flutter complessiva con 1107/1107 test superati;
+- ricognizione statica di 21/21 RPC dei Registri Agronomici;
+- audit locale dei Write Path di `plantings`, con esito favorevole limitatamente al perimetro esaminato.
+
+La ricognizione delle RPC e l'audit locale non equivalgono alla realizzazione delle relative interfacce Flutter né a una certificazione generale di sicurezza.
+
+### Elementi ancora FUTURE
 
 Rimangono aperti, tra gli altri:
 
-- UI completa di gestione Crop;
-- UI completa di gestione Cultivar;
+- progettazione e successiva implementazione Flutter degli ulteriori Registri Agronomici;
+- modelli, repository e interfacce applicative per unità di misura, parametri agronomici, valori enumerati e contesti;
 - gestione applicativa degli alias;
 - workflow operativo di acquisizione e aggiornamento delle fonti in `Impostazioni → Catalogo Agronomico → Aggiornamento fonti`;
 - gestione dei dati candidati;
 - schermate di revisione editoriale;
-- pubblicazione;
+- gestione applicativa della pubblicazione;
 - integrazione completa del Resolver nei flussi operativi;
 - backend canonico delle consociazioni;
 - selezione esplicita della Cultivar nel flusso di creazione dei planting;
 - popolamento editoriale del Catalogo con dati agronomici reali, verificabili e tracciabili;
 - smoke test con dati operativi reali;
+- verifiche runtime, di concorrenza ed end-to-end dei Write Path nei perimetri ancora da validare;
+- eventuali approfondimenti di hardening del Write Path di `plantings`, esclusivamente sulla base di evidenze tecniche;
 - manutenzione periodica ISO 3166-1 alpha-2 mediante migration e test verificati, mai automatica;
 - verifica o ripristino del percorso UI per la creazione del primo Garden;
 - completamento delle ulteriori entità previste dalla baseline Database V1;
 - hard delete amministrativo o tecnico eccezionale dei planting, escluso dal normale flusso operativo.
 
-La direzione proposta per la successiva sessione di sviluppo è il completamento progressivo della gestione delle identità del Catalogo secondo la sequenza:
+Le verifiche statiche S033B non hanno dimostrato difetti tali da richiedere una correzione immediata.
 
-```text
-Taxonomy
-    ↓
-Crop
-    ↓
-Cultivar
-```
+Non devono quindi essere introdotte modifiche preventive al backend senza un problema verificato o una decisione progettuale successiva.
 
-Poiché la gestione completa della Taxonomy è stata realizzata nella S032, il successivo incremento naturale è la UI completa di gestione Crop, seguita dalla UI completa di gestione Cultivar.
+### Obiettivo iniziale approvato per S034
 
-Questa indicazione costituisce una direzione proposta e non equivale all'avvio automatico della sessione successiva.
+Per la Sessione S034 è stato approvato il seguente obiettivo iniziale:
 
-La nuova sessione dovrà iniziare con un CHECKPOINT DI RICEZIONE e con la verifica dello stato effettivo di codice, database, test e repository.
+> Progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
 
-Nell'evoluzione successiva devono essere preservati i principi consolidati:
+L'attività iniziale prevista comprende:
+
+- verifica del contratto backend effettivamente disponibile;
+- ricognizione dell'architettura Flutter esistente;
+- definizione delle responsabilità di modelli, repository e interfacce;
+- individuazione dei flussi autorizzativi e delle regole di gestione degli esiti;
+- valutazione separata del primo eventuale incremento implementativo.
+
+La S034 non è ancora iniziata.
+
+L'approvazione dell'obiettivo iniziale non comporta l'approvazione automatica di implementazioni, modifiche SQL o ulteriori decisioni architetturali.
+
+L'avvio della nuova sessione dovrà prevedere un CHECKPOINT DI RICEZIONE e la verifica dello stato effettivo di codice, database, test e repository.
+
+### Principi da preservare
+
+Nell'evoluzione successiva devono essere mantenuti i principi consolidati:
 
 ```text
 backend autoritativo
 Catalog Authority
 can_manage_identity
+capability specifiche per le operazioni autorizzate
+Profile Write Authority per i Write Path pertinenti
 normalizzazione
 unicità
 tassonomia globale
@@ -1817,6 +2497,8 @@ Catalogo Agronomico
 
 I dati provenienti da fonti esterne non devono sovrascrivere automaticamente il Catalogo approvato.
 
+### Avvio della gestione reale dell'orto
+
 Il database deve rimanere privo di dati demo, provvisori o di prova fino all'avvio della gestione reale dell'orto.
 
 Il popolamento reale del Catalogo dovrà iniziare soltanto quando il relativo workflow sarà sufficientemente sicuro, verificato e tracciabile da consentire l'inserimento di dati reali e agronomicamente controllati.
@@ -1835,36 +2517,65 @@ La sequenza operativa prevista per l'avvio reale rimane:
 
 Il popolamento reale del Catalogo dovrà avvenire soltanto su una baseline agronomica verificata e approvata.
 
+---
+
 # 6. Regole di aggiornamento
 
-Il Registro Storico dello Sviluppo deve essere aggiornato al termine di ogni sessione di sviluppo.
+Il Registro Storico dello Sviluppo deve essere aggiornato in occasione del consolidamento documentale di ogni sessione di sviluppo.
 
-Per ogni nuova sessione di sviluppo dovranno essere aggiornati, ove necessario, i seguenti elementi:
+Per ogni nuova sessione dovranno essere aggiornati, ove necessario, i seguenti elementi:
 
 - gli indicatori storici del progetto;
 - la cronologia sintetica dello sviluppo;
 - gli indicatori evolutivi;
 - le milestone, qualora la sessione introduca un cambiamento significativo;
 - il tempo di sviluppo consolidato;
+- il tempo dedicato alla documentazione;
+- i progressivi complessivi del progetto;
 - le informazioni di sintesi del progetto.
 
-Prima della chiusura della sessione dovrà inoltre essere verificata la coerenza tra il Registro Storico dello Sviluppo, il Quaderno di Sviluppo (DOC-005), il Workflow Operativo (DOC-009) e la restante documentazione del progetto.
+La chiusura della fase sviluppo e la chiusura della fase Manuali costituiscono due eventi distinti.
+
+La conclusione dello sviluppo consente di consolidare le attività tecniche e il relativo tempo di lavoro, ma non determina automaticamente la conclusione dell'aggiornamento documentale.
+
+I progressivi definitivi della sessione devono comprendere anche il tempo effettivamente dedicato alla documentazione, una volta dichiarata conclusa la relativa fase.
+
+Prima della chiusura documentale dovrà essere verificata la coerenza tra:
+
+- Registro Storico dello Sviluppo (DOC-012);
+- Quaderno di Sviluppo (DOC-005);
+- Workflow Operativo (DOC-009);
+- Changelog;
+- restante documentazione ufficiale interessata.
+
+Gli aggiornamenti devono preservare i dati storici consolidati e distinguere chiaramente le funzionalità completate, le attività ancora aperte e gli elementi FUTURE.
+
+Le attività soltanto ipotetiche o esplorative, esterne alla progettazione ufficiale, non devono essere recepite come decisioni o impegni operativi del progetto.
 
 ## 6.1 Registrazione delle ore
 
-Le ore di lavoro devono essere registrate alla chiusura di ogni sessione, distinguendo, ove possibile, il tempo dedicato allo sviluppo software da quello dedicato alla documentazione.
+Le ore di lavoro devono essere registrate distinguendo il tempo effettivamente dedicato allo sviluppo software da quello dedicato alla documentazione.
 
-La registrazione tempestiva delle ore consente di mantenere uno storico affidabile dell'impegno complessivamente dedicato al progetto ed evita ricostruzioni successive.
+La registrazione deve basarsi sugli orari comunicati e consolidati nel corso delle rispettive fasi di lavoro.
 
-A partire dalla Sessione S007, il tempo dedicato al progetto potrà essere distinto tra:
+Devono essere rispettati i seguenti principi:
 
-| Attività | Ore |
-|----------|----:|
-| Sviluppo software | - |
-| Documentazione | - |
-| Totale sessione | - |
+- registrazione degli orari effettivi di inizio, sospensione, ripresa e chiusura;
+- esclusione delle pause dal tempo netto di lavoro;
+- separazione tra sviluppo software e documentazione;
+- conservazione dei progressivi già consolidati;
+- assenza di stime arbitrarie per intervalli non documentati;
+- consolidamento del tempo di sviluppo alla chiusura della relativa fase;
+- consolidamento del tempo documentale soltanto dopo la chiusura dichiarata della fase Manuali;
+- aggiornamento del totale complessivo dopo la disponibilità di entrambi i valori definitivi.
 
-Questa suddivisione permetterà un monitoraggio più accurato dell'evoluzione del progetto.
+La registrazione delle ore deve utilizzare, ove applicabile, la seguente struttura:
+
+| Attività | Tempo |
+|----------|------:|
+| Sviluppo software | Ore e minuti effettivi |
+| Documentazione | Ore e minuti effettivi |
+| Totale sessione | Somma dei due valori
 
 # 7. Evoluzione futura
 
