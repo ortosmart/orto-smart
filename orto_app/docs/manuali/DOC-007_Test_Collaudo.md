@@ -4,13 +4,13 @@
 
 # Test e Collaudo
 
-**Versione:** 1.0 (proposta per la prima emissione)
-**Stato:** In sviluppo
+**Versione:** 1.0
+**Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
-**Data prima emissione:** 27/07/2026
+**Data prima emissione:** 16/10/2026
 **Ultimo aggiornamento:** 16/10/2026
 
 **Repository:** `ortosmart/orto-smart`
@@ -23,11 +23,11 @@
 |-------|--------|
 | Documento | DOC-007 |
 | Titolo | Test e Collaudo |
-| Versione | 1.0 (proposta) |
-| Stato | In sviluppo |
+| Versione | 1.0 |
+| Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
-| Prima emissione | 27/07/2026 |
+| Prima emissione | 16/10/2026 |
 | Ultimo aggiornamento | 16/10/2026 |
 
 ---
@@ -38,6 +38,7 @@
 |----------|------|-------------|
 | 1.0 (proposta) | 16/10/2026 | Avvio della redazione del documento Test e Collaudo; definizione della struttura iniziale |
 | 1.0 (proposta) | 16/10/2026 | Revisione preliminare: normalizzazione dei paragrafi, uniformazione dei riferimenti DOC-001 e DOC-004 e aggiornamento dei metadati; nessuna emissione ufficiale |
+| 1.0 | 16/10/2026 | Prima emissione ufficiale del DOC-007 — Test e Collaudo, versione 1.0 approvata |
 
 ---
 
