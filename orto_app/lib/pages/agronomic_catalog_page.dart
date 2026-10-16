@@ -5,14 +5,17 @@ import '../data/repositories/catalog_authority_repository.dart';
 import '../data/repositories/crop_repository.dart';
 import '../data/repositories/crop_cultivar_repository.dart';
 import '../data/repositories/botanical_taxon_repository.dart';
+import '../data/repositories/harvest_purpose_repository.dart';
 import 'botanical_classification_page.dart';
 import 'crops_and_cultivars_page.dart';
+import 'harvest_purpose_page.dart';
 
 class AgronomicCatalogPage extends StatefulWidget {
   final CatalogAuthorityRepository? repository;
   final BotanicalTaxonRepository? taxonRepository;
   final CropRepository? cropRepository;
   final CropCultivarRepository? cultivarRepository;
+  final HarvestPurposeRepository? harvestPurposeRepository;
 
   const AgronomicCatalogPage({
     super.key,
@@ -20,6 +23,7 @@ class AgronomicCatalogPage extends StatefulWidget {
     this.taxonRepository,
     this.cropRepository,
     this.cultivarRepository,
+    this.harvestPurposeRepository,
   });
 
   @override
@@ -246,6 +250,21 @@ class _AgronomicCatalogPageState extends State<AgronomicCatalogPage> {
                         taxonRepository: widget.taxonRepository,
                         cropRepository: widget.cropRepository,
                         cultivarRepository: widget.cultivarRepository,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Finalità di raccolta'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (context) => HarvestPurposePage(
+                        capabilities: capabilities,
+                        repository: widget.harvestPurposeRepository,
                       ),
                     ),
                   );

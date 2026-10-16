@@ -6,15 +6,18 @@ import 'package:orto_app/data/repositories/catalog_authority_repository.dart';
 import 'package:orto_app/data/repositories/botanical_taxon_repository.dart';
 import 'package:orto_app/data/repositories/crop_repository.dart';
 import 'package:orto_app/data/repositories/crop_cultivar_repository.dart';
+import 'package:orto_app/data/repositories/harvest_purpose_repository.dart';
 import 'package:orto_app/pages/agronomic_catalog_page.dart';
 import 'package:orto_app/pages/botanical_classification_page.dart';
 import 'package:orto_app/pages/crops_and_cultivars_page.dart';
+import 'package:orto_app/pages/harvest_purpose_page.dart';
 
 Widget _testApp({
   required CatalogAuthorityRepository repository,
   BotanicalTaxonRepository? taxonRepository,
   CropRepository? cropRepository,
   CropCultivarRepository? cultivarRepository,
+  HarvestPurposeRepository? harvestPurposeRepository,
 }) {
   final effectiveTaxonRepository =
       taxonRepository ??
@@ -33,12 +36,19 @@ Widget _testApp({
         ({String? cropId, bool activeOnly = true}) async => [],
       );
 
+  final effectiveHarvestPurposeRepository =
+      harvestPurposeRepository ??
+      HarvestPurposeRepository.withLoader(
+        ({bool activeOnly = true}) async => [],
+      );
+
   return MaterialApp(
     home: AgronomicCatalogPage(
       repository: repository,
       taxonRepository: effectiveTaxonRepository,
       cropRepository: effectiveCropRepository,
       cultivarRepository: effectiveCultivarRepository,
+      harvestPurposeRepository: effectiveHarvestPurposeRepository,
     ),
   );
 }
@@ -217,6 +227,54 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+  testWidgets('opens harvest purposes from catalog hub', (tester) async {
+    final authorityRepository = CatalogAuthorityRepository.withInvoker((
+      functionName,
+      parameters,
+    ) async {
+      expect(functionName, 'get_my_catalog_capabilities');
+      expect(parameters, isEmpty);
+
+      return {
+        'status': 'ok',
+        'can_manage_identity': true,
+        'can_ingest': true,
+        'can_review': true,
+        'can_publish': true,
+        'row_version': 1,
+      };
+    });
+
+    var harvestPurposeLoadCalls = 0;
+
+    final harvestPurposeRepository = HarvestPurposeRepository.withLoader(({
+      bool activeOnly = true,
+    }) async {
+      harvestPurposeLoadCalls += 1;
+      expect(activeOnly, isFalse);
+      return [];
+    });
+
+    await tester.pumpWidget(
+      _testApp(
+        repository: authorityRepository,
+        harvestPurposeRepository: harvestPurposeRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(harvestPurposeLoadCalls, 0);
+    expect(find.text('Finalità di raccolta'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Finalità di raccolta'));
+    await tester.tap(find.text('Finalità di raccolta'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HarvestPurposePage), findsOneWidget);
+    expect(harvestPurposeLoadCalls, 1);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('shows catalog initialization when authority is missing', (
     tester,
   ) async {
