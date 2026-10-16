@@ -12861,3 +12861,153 @@ Alla chiusura dello sviluppo:
 Il prossimo punto di continuità approvato è la progettazione del sottosistema Flutter dei Registri Agronomici, subordinata alla verifica iniziale della baseline backend e alle successive decisioni operative.
 
 La documentazione S033/S033B costituisce una fase separata, avviata il **12/10/2026 alle 16:52**, e sarà consolidata con il proprio timing alla chiusura ufficialmente dichiarata.
+
+
+---
+
+# Sessione S034 — Correzione della gestione del congelamento semantico nel Catalog Registry
+
+## Obiettivo e perimetro effettivo
+
+La Sessione S034 ha introdotto una correzione circoscritta alla gestione delle eccezioni generate dai controlli di congelamento semantico del Catalog Registry.
+
+L'intervento ha riguardato le seguenti RPC autoritative:
+
+- `public.update_measurement_unit`;
+- `public.update_agronomic_parameter`;
+- `public.update_parameter_enum_value`.
+
+La migration realizzata è:
+
+`20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`
+
+La correzione distingue l'eccezione PostgreSQL `SQLSTATE 55000` relativa al congelamento semantico dagli altri errori che possono utilizzare lo stesso codice SQLSTATE.
+
+## Correzione della gestione delle eccezioni
+
+Le tre RPC intercettano `SQLSTATE 55000` e confrontano il valore di `SQLERRM` con il messaggio specifico emesso dal rispettivo trigger di protezione semantica.
+
+I messaggi riconosciuti sono:
+
+- `Measurement Unit semantic fields are frozen by immutable Knowledge artifacts`;
+- `Agronomic Parameter semantic fields are frozen by immutable Knowledge artifacts`;
+- `Parameter Enum Value semantic fields are frozen by immutable Knowledge artifacts`.
+
+Quando il messaggio corrisponde esattamente a quello atteso, la RPC restituisce:
+
+`{"status":"semantics_frozen"}`
+
+Se il messaggio è differente, l'eccezione viene propagata mediante `RAISE`, senza convertirla automaticamente in un esito di congelamento semantico.
+
+La correzione conserva le altre gestioni delle eccezioni previste dalle RPC, comprese `unique_violation` e, per `update_parameter_enum_value`, `foreign_key_violation`.
+
+## Migration e stato dei database
+
+La migration è stata applicata al database Supabase locale durante la S034.
+
+La migration correttiva non è stata applicata al database Supabase remoto durante la sessione.
+
+Non sono stati inseriti dati di prova permanenti.
+
+## Verifiche eseguite
+
+Durante la sessione sono stati effettuati:
+
+- confronto statico delle tre RPC con le definizioni originali;
+- verifica della coerenza dei tre trigger di congelamento semantico;
+- verifiche autorizzative, con tre controlli superati su tre;
+- controllo `git diff --cached --check`, superato.
+
+Il collaudo dinamico specifico del ramo `SQLSTATE 55000` non è stato eseguito. Il relativo esito non può pertanto essere dichiarato superato.
+
+## Git e repository
+
+Commit conclusivo dello sviluppo:
+
+`a0f51fff735aefc75b0fd60f74e727f13d6984f0`
+
+Messaggio:
+
+`S034 Fix gestione SQLSTATE 55000 nel Catalog Registry`
+
+Il push su GitHub è stato completato. `HEAD` e `origin/main` risultano allineati.
+
+Alla verifica conclusiva dello sviluppo, l'unico elemento non tracciato segnalato era la cartella locale `.vscode/`, da mantenere fuori dal commit.
+
+## Decisioni e limiti della sessione
+
+La correzione S034 è circoscritta alla gestione delle eccezioni nelle tre RPC indicate.
+
+Non introduce una nuova capability e non modifica il principio di autorizzazione server-side della Catalog Authority.
+
+Il test dinamico del ramo `SQLSTATE 55000` e l'applicazione della migration al database remoto restano attività aperte da valutare nelle successive sessioni di sviluppo.
+
+Tali attività non sono considerate automaticamente autorizzate o completate.
+
+## Timing dello sviluppo S034
+
+La sessione si è svolta dal 13/10/2026 al 15/10/2026.
+
+| Data | Intervallo | Durata |
+| --- | --- | --- |
+| 13/10/2026 | 22:25–23:48 | 1 h 23 min |
+| 14/10/2026 | 18:50–20:08 | 1 h 18 min |
+| 14/10/2026 | 20:48–22:18 | 1 h 30 min |
+| 15/10/2026 | 12:58–13:58 | 1 h 00 min |
+| **Totale** | | **5 h 11 min** |
+
+Le pause e le sospensioni sono escluse dal totale.
+
+La sessione di sviluppo è stata dichiarata conclusa il 15/10/2026 alle 13:58.
+
+## Stato finale e punto di continuità
+
+Alla chiusura dello sviluppo S034:
+
+- la migration correttiva risulta applicata al database Supabase locale;
+- le tre RPC interessate contengono la gestione selettiva di `SQLSTATE 55000`;
+- le verifiche statiche e autorizzative previste risultano superate;
+- il test dinamico specifico del ramo `SQLSTATE 55000` non è stato eseguito;
+- la migration correttiva non è stata applicata al database remoto;
+- il commit conclusivo dello sviluppo è stato pubblicato su GitHub;
+- `HEAD` e `origin/main` risultavano allineati alla verifica conclusiva dello sviluppo.
+
+La fase sviluppo S034 è stata dichiarata conclusa il **15/10/2026 alle 13:58**, con **5 h 11 min** di lavoro effettivo.
+
+### Chiusura della fase Manuali S034
+
+La fase documentale S034, distinta dalla fase sviluppo, è stata dichiarata ufficialmente conclusa il **15/10/2026 alle 23:45**.
+
+Il tempo netto consolidato della documentazione S034 è **3 h 42 min**.
+
+La Sessione S034 risulta pertanto definitivamente conclusa in entrambe le fasi.
+
+### Consuntivo definitivo S034
+
+| Indicatore | Durata |
+| --- | ---: |
+| Sviluppo S034 | 5 h 11 min |
+| Documentazione S034 | 3 h 42 min |
+| **Totale Sessione S034** | **8 h 53 min** |
+
+Il progressivo complessivo del progetto Orto Smart alla chiusura definitiva della S034 è:
+
+| Indicatore | Durata |
+| --- | ---: |
+| Sviluppo complessivo | 208 h 34 min |
+| Documentazione complessiva | 71 h 33 min |
+| **Totale definitivo progetto** | **280 h 07 min** |
+
+Il precedente progressivo di **276 h 25 min** rappresenta esclusivamente lo stato storico intermedio successivo alla chiusura dello sviluppo S034, prima del consolidamento della documentazione.
+
+### Continuità dello sviluppo
+
+Restano da valutare nelle future sessioni operative:
+
+- il test dinamico specifico della gestione di `SQLSTATE 55000`;
+- l'eventuale applicazione della migration correttiva al database remoto;
+- la prosecuzione della progettazione Flutter dei Registri Agronomici, inizialmente prevista per S034 ma non realizzata durante tale sessione.
+
+Queste attività non sono automaticamente approvate o autorizzate.
+
+Il loro eventuale inserimento nello sviluppo successivo dovrà essere deciso sulla base dello stato effettivo del progetto e delle decisioni operative approvate.

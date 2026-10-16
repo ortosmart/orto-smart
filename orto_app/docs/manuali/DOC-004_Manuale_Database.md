@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 2.4
+**Versione:** 2.5
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 06/10/2026
+**Ultimo aggiornamento:** 15/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 2.4 |
+| Versione | 2.5 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 06/10/2026 |
+| Ultimo aggiornamento | 15/10/2026 |
 
 ---
 
@@ -51,6 +51,7 @@
 | 2.2 | 24/09/2026 | Aggiornamento con le Sessioni S029-S030: consolidamento del lifecycle applicativo delle coltivazioni e trasformazione del Catalogo Agronomico V1 in architettura globale, multisorgente, tracciabile, versionabile, contestualizzabile ed editorialmente controllata; introduzione di identità botaniche globali, registry dei parametri, contesti, provenienza, ingestion, workflow editoriale, Knowledge canonica, Catalog Authority e capability, Write Path autoritativi, pubblicazione e Resolver; cutover finale verso `botanical_taxa`, `crops` e `crop_cultivars`, migrazione di `plantings` da varietà a cultivar, integrazione Flutter, verifica completa locale/remota e definizione degli incrementi FUTURE post-S030 |
 | 2.3 | 01/10/2026 | Aggiornamento con la Sessione S031: integrazione Flutter operativa del Catalogo Agronomico globale nelle Impostazioni, gestione dello stato e dell'inizializzazione controllata della Catalog Authority, esposizione delle capability server-side, consultazione delle colture globali e delle cultivar con caricamento on demand, percorso gerarchico unico `Catalogo Agronomico → Coltura → Cultivar`, eliminazione del precedente accesso autonomo `Impostazioni → Varietà`, gestione degli stati di caricamento, vuoto, errore e retry, mantenimento dell'authority backend e definizione degli incrementi FUTURE verso la gestione operativa del Catalogo |
 | 2.4 | 06/10/2026 | Aggiornamento con la Sessione S032: verifica e consolidamento del contratto della tassonomia botanica globale con rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA` e `UNRANKED`, mantenimento della Cultivar come identità agronomica separata dalla tassonomia, supporto alla classificazione parziale mediante `parent_taxon_id`, integrazione Flutter dei Write Path autoritativi di Tassonomia, Crop e Cultivar, collegamento opzionale Crop → Taxon, applicazione delle capability della Catalog Authority, concorrenza ottimistica mediante `row_version`, gestione sicura di `version_conflict` ed esiti incerti mediante rilettura autoritativa, completamento della UI della Classificazione botanica e verifica finale con `flutter analyze` senza problemi e 1077/1077 test superati; nessuna nuova migration introdotta nella Sessione S032 |
+| 2.5 | 15/10/2026 | Aggiornamento con la Sessione S034: documentazione della correzione della gestione degli errori di congelamento semantico nelle RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value`, riconoscimento selettivo di `SQLSTATE 55000` mediante confronto esatto del messaggio del trigger, propagazione delle eccezioni non riconosciute; migration applicata esclusivamente al database locale, verifiche statiche e autorizzative superate, test dinamico specifico non eseguito e applicazione remota ancora aperta |
 
 ---
 
@@ -4543,6 +4544,56 @@ Le operazioni che modificano i registri dei parametri agronomici e i vocabolari 
 Registri e vocabolari costituiscono parte del contratto semantico del Catalogo e non devono essere modificati mediante scritture client arbitrarie.
 
 Le RPC verificano server-side l'autorità richiesta e le invarianti applicabili.
+
+##### Correzione S034 — Gestione degli errori di congelamento semantico
+
+La Sessione S034 ha introdotto una correzione circoscritta alla gestione delle eccezioni nelle seguenti RPC autoritative:
+
+- `public.update_measurement_unit`;
+- `public.update_agronomic_parameter`;
+- `public.update_parameter_enum_value`.
+
+La correzione è contenuta nella migration:
+
+`20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`
+
+Il congelamento semantico protegge i campi semantici dei registri quando risultano vincolati ad artefatti immutabili della Knowledge agronomica.
+
+Le tre RPC prevedono controlli preventivi del congelamento semantico e gestiscono inoltre le eccezioni generate durante l'operazione di aggiornamento.
+
+La correzione S034 stabilisce che l'eccezione PostgreSQL `SQLSTATE 55000` venga tradotta nell'esito applicativo:
+
+`{"status":"semantics_frozen"}`
+
+esclusivamente quando il messaggio dell'eccezione (`SQLERRM`) corrisponde esattamente al messaggio previsto dal rispettivo trigger di protezione semantica.
+
+I messaggi riconosciuti sono:
+
+- `Measurement Unit semantic fields are frozen by immutable Knowledge artifacts`;
+- `Agronomic Parameter semantic fields are frozen by immutable Knowledge artifacts`;
+- `Parameter Enum Value semantic fields are frozen by immutable Knowledge artifacts`.
+
+Un'eccezione `SQLSTATE 55000` con un messaggio differente non viene convertita automaticamente in `semantics_frozen`: la RPC la propaga mediante `RAISE`.
+
+Rimane distinta la gestione degli altri errori già prevista dalle RPC, inclusi `unique_violation` e, per `update_parameter_enum_value`, `foreign_key_violation`.
+
+La correzione non introduce una nuova capability e non modifica il principio di autorizzazione server-side della Catalog Authority.
+
+##### Stato di implementazione e verifica S034
+
+La migration è stata applicata al database Supabase locale durante la S034.
+
+Sono stati eseguiti:
+
+- confronto statico delle tre RPC con i rispettivi trigger di protezione;
+- verifiche autorizzative, con tre controlli superati su tre;
+- controllo `git diff --cached --check`, superato.
+
+Non è stato eseguito un test dinamico specifico del ramo di eccezione `SQLSTATE 55000`.
+
+La migration S034 non è stata applicata al progetto Supabase remoto durante la sessione.
+
+L'eventuale verifica dinamica e l'applicazione remota rimangono attività aperte, da valutare nelle successive sessioni di sviluppo; non devono essere considerate già completate o approvate.
 
 #### Ingestion
 

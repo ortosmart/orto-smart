@@ -4,14 +4,14 @@
 
 # Linee Guida di Sviluppo
 
-**Versione:** 1.2
+**Versione:** 1.3
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 27/07/2026
-**Ultimo aggiornamento:** 03/09/2026
+**Ultimo aggiornamento:** 15/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-006 |
 | Titolo | Linee Guida di Sviluppo |
-| Versione | 1.2 |
+| Versione | 1.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 03/09/2026 |
+| Ultimo aggiornamento | 15/10/2026 |
 
 ---
 
@@ -40,6 +40,7 @@
 | 1.0 | 04/08/2026 | Revisione completa, uniformazione allo Standard Documentale e approvazione del documento |
 | 1.1 | 08/08/2026 | Aggiornamento del workflow di sviluppo, introduzione della verifica incrociata della documentazione e formalizzazione della registrazione dei tempi effettivi |
 | 1.2 | 03/09/2026 | Manutenzione straordinaria delle Linee Guida: introduzione esplicita di `dart format`, consolidamento dei tempi prima del commit documentale, verifica della sincronizzazione locale/remoto e distinzione dei controlli obbligatori in base alla natura delle modifiche |
+| 1.3 | 15/10/2026 | Manuali S034: allineamento del Capitolo 6 al DOC-009; precisazione dell'applicabilità dei controlli di qualità, delle verifiche pertinenti alle modifiche SQL e della tracciabilità dei test non eseguiti |
 
 ---
 
@@ -166,20 +167,28 @@ Ogni sessione deve seguire un processo ordinato, progressivo e verificabile basa
 1. controllo iniziale dello stato del progetto e del repository;
 2. analisi e progettazione delle modifiche;
 3. implementazione mediante piccoli cambiamenti verificabili;
-4. esecuzione dei test e delle verifiche funzionali;
-5. esecuzione di `dart format`;
-6. esecuzione di `flutter analyze`;
-7. esecuzione di `flutter test`;
-8. commit del codice verificato;
+4. esecuzione dei test e delle verifiche funzionali pertinenti;
+5. esecuzione di `dart format`, quando applicabile;
+6. esecuzione di `flutter analyze`, quando applicabile;
+7. esecuzione di `flutter test`, quando applicabile;
+8. commit del codice verificato, quando sono presenti modifiche da versionare;
 9. aggiornamento della documentazione interessata;
 10. rilettura e verifica dei singoli documenti;
 11. verifica incrociata della coerenza tra codice, documentazione e dati di progetto;
 12. consolidamento dei tempi effettivi della sessione;
-13. commit della documentazione;
+13. commit della documentazione, quando sono presenti modifiche;
 14. verifica finale del repository;
-15. push su GitHub;
+15. push su GitHub, quando necessario;
 16. verifica della sincronizzazione tra repository locale e remoto;
 17. registrazione del checkpoint finale e definizione degli obiettivi della sessione successiva.
+
+I controlli di qualità devono essere selezionati in funzione della natura delle modifiche effettivamente apportate.
+
+Quando viene modificato codice Dart o Flutter, devono essere eseguiti i controlli previsti dal Capitolo 9.
+
+Quando vengono modificate esclusivamente migration SQL, funzioni o altri componenti del database, devono essere effettuate le verifiche pertinenti al relativo contratto tecnico, senza considerare automaticamente obbligatoria la ripetizione dei test Flutter.
+
+L'eventuale mancata esecuzione di un test pertinente deve essere registrata esplicitamente e non può essere presentata come esito positivo.
 
 Le attività devono essere svolte **passo dopo passo**, verificando l'esito di ciascuna operazione prima di procedere con la successiva.
 
@@ -187,7 +196,7 @@ I dati riportati nella documentazione, in particolare versioni, sessioni, tempi,
 
 Il tempo dedicato al progetto deve rappresentare esclusivamente il tempo effettivo di lavoro. Pause, sospensioni e periodi di inattività devono essere esclusi dal conteggio e registrati secondo le modalità definite nel DOC-009.
 
-Una sessione non è considerata conclusa fino al completamento delle verifiche previste, dell'aggiornamento e della verifica incrociata della documentazione, della registrazione dei tempi e della sincronizzazione finale del repository.
+Una sessione non è considerata conclusa fino al completamento delle verifiche applicabili, dell'aggiornamento e della verifica incrociata della documentazione interessata, della registrazione dei tempi e della sincronizzazione finale del repository.
 
 ---
 

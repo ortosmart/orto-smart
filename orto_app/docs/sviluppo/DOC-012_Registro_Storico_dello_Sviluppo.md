@@ -1,11 +1,10 @@
-
 # ORTO SMART
 
 ### DOC-012
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 4.3
+**Versione:** 4.4
 
 **Stato:** Approvato
 
@@ -15,7 +14,7 @@
 
 **Data prima emissione:** 29/07/2026
 
-**Ultimo aggiornamento:** 13/10/2026
+**Ultimo aggiornamento:** 15/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -27,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 4.3 |
+| Versione | 4.4 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 13/10/2026 |
+| Ultimo aggiornamento | 15/10/2026 |
 
 ---
 
@@ -65,7 +64,7 @@
 | 4.1 | 06/10/2026 | Aggiornamento e chiusura della Sessione S032: ricognizione del contratto autoritativo del Catalogo, integrazione Flutter dei Write Path di Taxon, Crop e Cultivar, completamento della UI di gestione della Classificazione botanica, concorrenza mediante `row_version`, gestione fail-safe di `version_conflict` ed esiti incerti e verifica finale con 1077/1077 test; Sessione S032 conclusa in 11 h 30 min complessivi, di cui 7 h 58 min di sviluppo e 3 h 32 min di documentazione; chiusura documentale il 06/10/2026 alle 14:30; totale progetto pari a 246 h 39 min; versione pubblica invariata a `0.1.21-alpha` e versione Flutter invariata a `0.1.21-alpha+6`. |
 | 4.2 | 12/10/2026 | Aggiornamento del Registro Storico con lo sviluppo S033/S033B: completamento della Fase A Flutter dei Registri Agronomici, introduzione dell'HUB e delle pagine dedicate a Classificazione botanica e Colture/Cultivar, verifica finale con 1107/1107 test Flutter superati, ricognizione statica di 21/21 RPC dei Registri Agronomici e audit locale dei Write Path di `plantings` con esito favorevole nel perimetro esaminato; aggiornamento degli indicatori storici, delle milestone, degli indicatori evolutivi, degli elementi FUTURE e delle regole di registrazione delle ore. Fase sviluppo conclusa in 22 h 43 min; fase Manuali ancora in corso, con cronologia e progressivi definitivi da consolidare alla chiusura documentale. |
 | 4.3 | 13/10/2026 | Consolidamento definitivo della Sessione S033/S033B dopo la chiusura della fase Manuali alle 21:34 del 13/10/2026; aggiornamento coordinato degli indicatori storici ed evolutivi, della cronologia sintetica, dei progressivi e dello stato delle milestone. Consuntivo definitivo S033/S033B di 24 h 35 min, composto da 22 h 43 min di sviluppo e 1 h 52 min di documentazione; progressivo complessivo del progetto pari a 271 h 14 min, di cui 203 h 23 min di sviluppo e 67 h 51 min di documentazione. Confermata la conclusione integrale della S033/S033B, con S033B come prosecuzione tecnica non autonoma; S034 non ancora avviata. |
-
+| 4.4 | 15/10/2026 | Aggiornamento del Registro Storico con la Sessione S034: correzione della gestione delle eccezioni di congelamento semantico nelle RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value`; gestione selettiva di `SQLSTATE 55000` tramite confronto esatto di `SQLERRM`, con propagazione delle eccezioni non riconosciute. Migration applicata al database locale; verifiche statiche e autorizzative superate, test dinamico specifico non eseguito e migration remota non applicata. Sviluppo S034 concluso con 5 h 11 min; fase Manuali S034 ancora in corso, con progressivi complessivi definitivi da consolidare alla chiusura documentale. |
 
 ---
 
@@ -111,25 +110,46 @@ Il presente capitolo riassume gli indicatori storici che descrivono lo stato evo
 
 Gli indicatori riportati costituiscono una fotografia sintetica del progetto alla data dell'ultimo aggiornamento del presente documento e consentono di monitorarne la crescita nel tempo.
 
-Le informazioni riportate vengono aggiornate sulla base delle sessioni di sviluppo effettivamente concluse e delle fasi documentali consolidate, mantenendo la coerenza con il Quaderno di Sviluppo (DOC-005) e con il Workflow Operativo (DOC-009).
+Le informazioni riportate vengono aggiornate sulla base delle sessioni di sviluppo effettivamente concluse e delle fasi documentali consolidate, mantenendo la coerenza con il Quaderno di Sviluppo (DOC-005), il Workflow Operativo (DOC-009) e le Decisioni Architetturali (DOC-011).
 
 Quando lo sviluppo è concluso ma la relativa documentazione è ancora in corso, vengono distinti i tempi consolidati dal totale complessivo definitivo, che sarà determinato soltanto alla chiusura documentale.
 
-
 ## 2.1 Stato attuale del progetto
 
-Alla data del **13/10/2026**, la **Sessione S033/S033B è l'ultima sessione completamente conclusa**, sia nella fase di sviluppo sia nella fase documentale.
+Alla data del **16/10/2026**, la Sessione S034 risulta definitivamente conclusa sia nella fase di sviluppo sia nella fase documentale.
 
-La fase sviluppo S033/S033B è stata conclusa il **12/10/2026 alle 16:42**, con **22 h 43 min** di lavoro effettivo.
+La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58**, con **5 h 11 min** di lavoro effettivo.
 
-La successiva fase Manuali S033/S033B è stata conclusa il **13/10/2026 alle 21:34**, con **1 h 52 min** di documentazione effettiva.
+La fase Manuali S034 è stata dichiarata conclusa il **15/10/2026 alle 23:45**, con **3 h 42 min** di lavoro documentale effettivo.
 
-La durata definitiva della Sessione S033/S033B è quindi di **24 h 35 min** e il progressivo complessivo del progetto raggiunge **271 h 14 min**.
+Il tempo complessivo definitivo della S034 è **8 h 53 min**.
 
-Le sottosezioni seguenti distinguono la chiusura storica della S032 dal consuntivo definitivo S033/S033B, conservando la tracciabilità dei progressivi intermedi.
+La S034 costituisce pertanto l'ultima sessione completamente conclusa. Il totale definitivo del progetto è **280 h 07 min**.
 
-La **S034 non è ancora iniziata**.
+### Indicatori correnti
 
+| Indicatore | Valore |
+|------------|--------|
+| Sessioni completamente concluse | 34 — S001–S034, con S033B come prosecuzione della S033 |
+| Fasi sviluppo completate | 34 — S001–S034 |
+| Ore di sviluppo consolidate | 208 h 34 min |
+| Ore di documentazione consolidate | 71 h 33 min |
+| Totale definitivo progetto alla chiusura S033/S033B | 271 h 14 min |
+| Durata sviluppo S034 | 5 h 11 min |
+| Durata documentazione S034 | 3 h 42 min |
+| Durata complessiva definitiva S034 | 8 h 53 min |
+| Totale definitivo progetto alla chiusura S034 | 280 h 07 min |
+| Progressivo storico dopo il solo sviluppo S034 | 276 h 25 min |
+| Ultima sessione completamente conclusa | S034 |
+| Ultima fase sviluppo completata | S034 |
+| Ultima fase documentale completata | Manuali S034 |
+| Prossima sessione di sviluppo | Da definire secondo il workflow di sviluppo |
+| Versione pubblica corrente | `0.1.21-alpha` |
+| Versione Flutter corrente | `0.1.21-alpha+6` |
+
+Il progressivo storico di **276 h 25 min** rappresenta lo stato raggiunto dopo il completamento dello sviluppo S034 e prima del consolidamento della relativa documentazione.
+
+Il valore corrente definitivo è invece **280 h 07 min**.
 
 ### Chiusura storica S032
 
@@ -183,62 +203,25 @@ Il progressivo complessivo deriva da:
 246 h 39 min   totale progetto alla chiusura S032
 ```
 
-
-### Stato corrente S033/S033B
+### Chiusura storica S033/S033B
 
 La Sessione S033/S033B risulta definitivamente conclusa sia nella fase di sviluppo sia nella fase documentale.
 
-| Indicatore | Valore |
-|------------|--------|
-| Ultima sessione completamente conclusa | S033/S033B |
-| Ultima fase sviluppo completata | S033/S033B |
-| Fase documentale S033/S033B | Conclusa |
-| Chiusura sviluppo S033/S033B | 12/10/2026 alle 16:42 |
-| Chiusura Manuali S033/S033B | 13/10/2026 alle 21:34 |
-| Durata sviluppo S033/S033B | 22 h 43 min |
-| Durata documentazione S033/S033B | 1 h 52 min |
-| Durata complessiva S033/S033B | 24 h 35 min |
-| Versione pubblica corrente | `0.1.21-alpha` |
-| Versione Flutter corrente | `0.1.21-alpha+6` |
-| Prossima sessione di sviluppo | S034, non ancora avviata |
+La fase sviluppo S033/S033B è stata conclusa il **12/10/2026 alle 16:42**, con **22 h 43 min** di lavoro effettivo.
 
-Il progressivo definitivo dello sviluppo è:
+La fase Manuali S033/S033B è stata conclusa il **13/10/2026 alle 21:34**, con **1 h 52 min** di documentazione effettiva.
 
-```text
-Sviluppo alla chiusura S032      180 h 40 min
-+ Sviluppo S033/S033B             22 h 43 min
---------------------------------------------
-Sviluppo complessivo            203 h 23 min
-```
+Il consuntivo definitivo della sessione è:
 
-Il progressivo definitivo della documentazione è:
+| Attività | Durata |
+|----------|-------:|
+| Sviluppo | 22 h 43 min |
+| Documentazione | 1 h 52 min |
+| **Totale S033/S033B** | **24 h 35 min** |
 
-```text
-Documentazione alla chiusura S032   65 h 59 min
-+ Manuali S033/S033B                 1 h 52 min
-----------------------------------------------
-Documentazione complessiva         67 h 51 min
-```
+La prosecuzione tecnica S033B è parte integrante della S033 e non costituisce una sessione autonoma.
 
-Il consuntivo complessivo della Sessione S033/S033B è:
-
-```text
-Sviluppo S033/S033B         22 h 43 min
-Manuali S033/S033B           1 h 52 min
---------------------------------------
-Totale S033/S033B           24 h 35 min
-```
-
-Il progressivo definitivo del progetto alla chiusura della S033/S033B è:
-
-```text
-Totale progetto alla chiusura S032   246 h 39 min
-+ Sessione S033/S033B                 24 h 35 min
-------------------------------------------------
-Totale progetto                     271 h 14 min
-```
-
-La ripartizione complessiva aggiornata è:
+Il progressivo definitivo alla chiusura della S033/S033B è:
 
 ```text
 Sviluppo complessivo        203 h 23 min
@@ -247,9 +230,106 @@ Documentazione complessiva   67 h 51 min
 Totale progetto             271 h 14 min
 ```
 
-Il precedente valore di **269 h 22 min** rappresenta esclusivamente il progressivo storico raggiunto dopo la conclusione dello sviluppo S033/S033B, prima del consolidamento delle ore documentali. Non costituisce più il totale corrente del progetto.
+Il precedente valore di **269 h 22 min** rappresenta esclusivamente il progressivo storico raggiunto dopo la conclusione dello sviluppo S033/S033B, prima del consolidamento delle ore documentali. Non costituisce più il totale definitivo corrente del progetto.
 
-La prossima sessione S034 non è ancora iniziata. Il suo obiettivo iniziale approvato è la progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile. L'eventuale primo incremento implementativo sarà valutato separatamente.
+### Chiusura definitiva S034
+
+La Sessione S034 ha completato la propria fase di sviluppo con un intervento circoscritto alla gestione delle eccezioni di congelamento semantico nel Catalog Registry.
+
+L'intervento ha riguardato le seguenti funzioni:
+
+```text
+public.update_measurement_unit
+public.update_agronomic_parameter
+public.update_parameter_enum_value
+```
+
+La migration realizzata è:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+La correzione distingue l'eccezione PostgreSQL `SQLSTATE 55000` relativa al congelamento semantico dagli altri errori che possono utilizzare lo stesso codice SQLSTATE.
+
+Le RPC interessate confrontano `SQLERRM` con il messaggio specifico emesso dal rispettivo trigger. Quando il messaggio corrisponde esattamente a quello atteso, la RPC restituisce:
+
+```text
+{"status":"semantics_frozen"}
+```
+
+Le eccezioni non riconosciute vengono propagate senza essere convertite automaticamente in un esito di congelamento semantico.
+
+La migration è stata applicata al database Supabase locale. Non è stata applicata al database remoto durante la sessione.
+
+Le verifiche effettuate comprendono:
+
+- confronto statico delle tre RPC con le definizioni originali;
+- verifica della coerenza dei trigger di congelamento semantico;
+- tre controlli autorizzativi superati su tre;
+- controllo `git diff --cached --check` superato.
+
+Il test dinamico specifico del ramo `SQLSTATE 55000` non è stato eseguito. Il relativo esito non può quindi essere dichiarato superato.
+
+Il commit conclusivo dello sviluppo S034 è:
+
+```text
+a0f51fff735aefc75b0fd60f74e727f13d6984f0
+S034 Fix gestione SQLSTATE 55000 nel Catalog Registry
+```
+
+Il push su GitHub è stato completato e `HEAD` risulta allineato a `origin/main` alla chiusura dello sviluppo.
+
+Alla verifica conclusiva dello sviluppo, l'unico elemento non tracciato segnalato era la cartella locale `.vscode/`, da mantenere fuori dal commit.
+
+La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58**, con un tempo netto di **5 h 11 min**.
+
+La fase Manuali S034 è stata conclusa ufficialmente il **15/10/2026 alle 23:45**, con un tempo netto di **3 h 42 min**.
+
+Il consuntivo definitivo della sessione è:
+
+| Attività | Durata |
+|----------|-------:|
+| Sviluppo | 5 h 11 min |
+| Documentazione | 3 h 42 min |
+| **Totale S034** | **8 h 53 min** |
+
+Il progressivo storico dopo il completamento del solo sviluppo S034 era:
+
+```text
+Totale progetto alla chiusura S033/S033B   271 h 14 min
++ Sviluppo S034                              5 h 11 min
+-----------------------------------------------------
+Progressivo storico intermedio             276 h 25 min
+```
+
+Il progressivo definitivo alla chiusura della S034 è:
+
+```text
+Totale progetto alla chiusura S033/S033B   271 h 14 min
++ Sviluppo S034                              5 h 11 min
++ Documentazione S034                        3 h 42 min
+-----------------------------------------------------
+Totale definitivo progetto                 280 h 07 min
+```
+
+La ripartizione definitiva del progetto è:
+
+```text
+Sviluppo complessivo        208 h 34 min
+Documentazione complessiva   71 h 33 min
+----------------------------------------
+Totale progetto             280 h 07 min
+```
+
+La versione pubblica e la versione Flutter rimangono invariate:
+
+```text
+Versione pubblica   0.1.21-alpha
+Versione Flutter    0.1.21-alpha+6
+```
+
+La chiusura della S034 riguarda il perimetro effettivamente completato e verificato. Non implica l'esecuzione dei test rimasti aperti né l'applicazione della migration al database remoto.
 
 ### Baseline architetturale ereditata dalla S032
 
@@ -323,9 +403,9 @@ La Sessione S033 ha completato la **Fase A di sviluppo Flutter dei Registri Agro
 
 Le attività completate comprendono:
 
-- **A1 — HUB Registri Agronomici:** organizzazione del percorso applicativo e della navigazione.
-- **A2 — Classificazione botanica:** estrazione della gestione tassonomica in una pagina dedicata.
-- **A3 — Colture e Cultivar:** estrazione della gestione delle identità agronomiche in una pagina dedicata, con consultazione e operazioni amministrative autorizzate.
+- **A1 — HUB Registri Agronomici:** organizzazione del percorso applicativo e della navigazione;
+- **A2 — Classificazione botanica:** estrazione della gestione tassonomica in una pagina dedicata;
+- **A3 — Colture e Cultivar:** estrazione della gestione delle identità agronomiche in una pagina dedicata, con consultazione e operazioni amministrative autorizzate;
 - **A4 — Consolidamento:** verifiche statiche, test e controllo finale dell'integrazione Flutter.
 
 La gestione delle identità botaniche e agronomiche è stata organizzata in percorsi applicativi distinti, mantenendo le dipendenze e i controlli di autorizzazione previsti dalla baseline.
@@ -440,11 +520,11 @@ Le decisioni consolidate con S033/S033B comprendono:
 - conservazione della separazione tra autorità backend e responsabilità del client Flutter;
 - chiusura dello sviluppo S033/S033B il 12/10/2026 alle 16:42.
 
-Per la S034 è stato approvato il seguente **obiettivo iniziale**, senza avvio automatico della sessione:
+La S034 ha introdotto la correzione circoscritta della gestione delle eccezioni di congelamento semantico nel Catalog Registry.
 
-> Progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
+La S034 risulta definitivamente conclusa, con chiusura dello sviluppo il **15/10/2026 alle 13:58** e chiusura della documentazione il **15/10/2026 alle 23:45**.
 
-La sessione S034 dovrà iniziare con il CHECKPOINT DI RICEZIONE e la verifica dei contratti effettivi. La progettazione delle schermate, della navigazione, dei modelli, dei repository e dei flussi autorizzati dovrà precedere la scelta dell'eventuale primo incremento implementativo.
+La conclusione della S034 non determina automaticamente il perimetro operativo delle sessioni future, che resta soggetto a valutazione e decisione autonoma.
 
 ### Elementi FUTURE e verifiche ancora aperte
 
@@ -454,22 +534,28 @@ Rimangono FUTURE o da valutare nelle successive sessioni:
 - gestione applicativa degli alias del Catalogo;
 - acquisizione e aggiornamento delle fonti agronomiche;
 - gestione dei dati candidati e revisione editoriale;
-- pubblicazione e integrazione completa del Resolver nei flussi operativi;
+- pubblicazione e integrazione del Resolver nei flussi operativi;
 - backend canonico delle consociazioni;
 - selezione esplicita della Cultivar nella creazione dei planting;
 - ulteriori test runtime dei Write Path di `plantings`;
 - verifiche di concorrenza della Profile Write Authority;
 - test end-to-end Flutter/Supabase e verifica del database remoto;
-- eventuale hardening di condizioni geometriche estreme, solo previa dimostrazione e valutazione del problema;
+- eventuali approfondimenti di hardening, solo previa dimostrazione e valutazione del problema;
 - hard delete dei planting esclusivamente come correzione amministrativa o tecnica eccezionale;
 - completamento delle ulteriori funzionalità operative dell'orto secondo le decisioni delle sessioni future.
+
+Restano inoltre aperte, per la correzione S034:
+
+- esecuzione del test dinamico specifico del ramo `SQLSTATE 55000`;
+- eventuale applicazione della migration al database remoto, subordinata a una decisione operativa successiva.
+
+Queste attività non sono considerate automaticamente autorizzate o completate.
 
 Il popolamento reale del Catalogo con dati agronomici rimane subordinato a un workflow sufficientemente sicuro, verificato e tracciabile.
 
 Il database deve continuare a rimanere privo di dati demo o provvisori fino all'avvio della gestione reale dell'orto.
 
 Le roadmap informali o esplorative non costituiscono baseline progettuale, decisione operativa né autorizzazione a modificare lo sviluppo o la documentazione ufficiale.
-
 
 # 3. Cronologia sintetica dello sviluppo
 
@@ -481,7 +567,15 @@ La Sessione S032 è stata completamente conclusa con **7 h 58 min di sviluppo** 
 
 La successiva Sessione **S033/S033B è stata completamente conclusa il 13/10/2026**, con **22 h 43 min di sviluppo** e **1 h 52 min di documentazione**, per un totale definitivo di **24 h 35 min**.
 
-La prosecuzione tecnica S033B è parte integrante della S033 e non costituisce una sessione autonoma. Il progressivo definitivo del progetto alla chiusura della S033/S033B è **271 h 14 min**.
+La prosecuzione tecnica S033B è parte integrante della S033 e non costituisce una sessione autonoma.
+
+Il progressivo definitivo del progetto alla chiusura della S033/S033B è **271 h 14 min**.
+
+La Sessione **S034 è stata completamente conclusa il 15/10/2026**, con chiusura dello sviluppo alle **13:58** e chiusura ufficiale della fase Manuali alle **23:45**.
+
+Il consuntivo definitivo della S034 comprende **5 h 11 min di sviluppo** e **3 h 42 min di documentazione**, per un totale di **8 h 53 min**.
+
+Il progressivo definitivo del progetto alla chiusura della S034 è **280 h 07 min**.
 
 | Sessione | Attività principale | Ore sessione | Totale progressivo |
 |-----------|---------------------|-------------:|-------------------:|
@@ -518,8 +612,11 @@ La prosecuzione tecnica S033B è parte integrante della S033 e non costituisce u
 | **S031** | Integrazione operativa Flutter del Catalogo Agronomico e navigazione gerarchica Coltura → Cultivar | **6 h 06 min** | **235 h 09 min** |
 | **S032** | Write Path Flutter di Taxon, Crop e Cultivar e gestione completa della Classificazione botanica | **11 h 30 min** | **246 h 39 min** |
 | **S033/S033B** | Completamento della Fase A Flutter dei Registri Agronomici, HUB e pagine Classificazione botanica e Colture/Cultivar; ricognizione statica delle 21 RPC dei Registri Agronomici e audit locale dei Write Path di `plantings` | **24 h 35 min** | **271 h 14 min** |
+| **S034** | Correzione delle eccezioni di congelamento semantico in tre RPC del Catalog Registry; migration applicata al database locale; sviluppo e Manuali conclusi | **8 h 53 min** | **280 h 07 min** |
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
+
+La riga S034 rappresenta il consuntivo definitivo della sessione, comprensivo dello sviluppo e della documentazione ufficialmente conclusa.
 
 Per le Sessioni S004, S005 e S006 è disponibile il tempo complessivo storico della sessione, ma non la ripartizione attendibile tra sviluppo e documentazione.
 
@@ -705,7 +802,7 @@ Il totale progressivo definitivo del progetto alla chiusura della S033/S033B è:
 271 h 14 min
 ```
 
-La ripartizione complessiva aggiornata è:
+La ripartizione complessiva aggiornata alla chiusura S033/S033B è:
 
 ```text
 Sviluppo complessivo        203 h 23 min
@@ -714,7 +811,108 @@ Documentazione complessiva   67 h 51 min
 Totale progetto             271 h 14 min
 ```
 
-La S033/S033B risulta completamente conclusa. La S034 non è ancora iniziata.
+La S033/S033B risulta completamente conclusa.
+
+### Chiusura definitiva S034
+
+La Sessione S034 risulta definitivamente conclusa sia nella fase sviluppo sia nella fase Manuali.
+
+La fase sviluppo si è svolta secondo gli intervalli:
+
+```text
+13/10/2026   22:25 → 23:48   1 h 23 min
+14/10/2026   18:50 → 20:08   1 h 18 min
+14/10/2026   20:48 → 22:18   1 h 30 min
+15/10/2026   12:58 → 13:58   1 h 00 min
+---------------------------------------
+Totale                         5 h 11 min
+```
+
+Le pause tra gli intervalli sono escluse dal conteggio.
+
+L'intervento ha riguardato la gestione delle eccezioni di congelamento semantico nelle RPC:
+
+```text
+public.update_measurement_unit
+public.update_agronomic_parameter
+public.update_parameter_enum_value
+```
+
+La migration realizzata è:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+La correzione distingue i casi di congelamento semantico riconosciuti mediante confronto esatto di `SQLERRM` per `SQLSTATE 55000`, senza convertire automaticamente in `semantics_frozen` altre eccezioni che utilizzano il medesimo SQLSTATE.
+
+La migration è stata applicata al database Supabase locale, ma non al database remoto.
+
+Sono state superate le verifiche statiche e autorizzative previste nel perimetro esaminato. Il test dinamico specifico del ramo `SQLSTATE 55000` non è stato eseguito.
+
+Il commit conclusivo dello sviluppo è:
+
+```text
+a0f51fff735aefc75b0fd60f74e727f13d6984f0
+```
+
+Il commit è stato pubblicato su GitHub, con `HEAD` allineato a `origin/main` alla verifica conclusiva dello sviluppo.
+
+Il progressivo storico dopo la sola fase sviluppo S034 deriva da:
+
+```text
+271 h 14 min   totale definitivo alla chiusura S033/S033B
++ 5 h 11 min   sviluppo S034
+---------------------------------------------------------
+276 h 25 min   progressivo storico dopo lo sviluppo S034
+```
+
+La fase Manuali S034 è iniziata il **15/10/2026 alle 14:27** e si è svolta secondo gli intervalli:
+
+```text
+15/10/2026   14:27 → 14:42   0 h 15 min
+15/10/2026   19:10 → 20:31   1 h 21 min
+15/10/2026   21:39 → 23:45   2 h 06 min
+---------------------------------------
+Totale                         3 h 42 min
+```
+
+Gli intervalli di sospensione sono esclusi dal conteggio.
+
+La fase documentale S034 è stata dichiarata conclusa ufficialmente il **15/10/2026 alle 23:45**.
+
+La successiva sospensione della conversazione alle **23:54** non modifica l'orario di chiusura ufficiale né il consuntivo della fase Manuali.
+
+Il consuntivo definitivo della Sessione S034 è:
+
+```text
+Sviluppo         5 h 11 min
+Documentazione   3 h 42 min
+--------------------------
+Totale           8 h 53 min
+```
+
+Il progressivo definitivo del progetto alla chiusura S034 deriva da:
+
+```text
+271 h 14 min   totale definitivo alla chiusura S033/S033B
++ 8 h 53 min   totale Sessione S034
+---------------------------------------------------------
+280 h 07 min   totale definitivo alla chiusura S034
+```
+
+La ripartizione complessiva definitiva è:
+
+```text
+Sviluppo complessivo        208 h 34 min
+Documentazione complessiva   71 h 33 min
+----------------------------------------
+Totale progetto             280 h 07 min
+```
+
+La S034 risulta completamente conclusa.
+
+La chiusura della sessione non implica il completamento del test dinamico specifico del ramo `SQLSTATE 55000` né l'applicazione della migration al database remoto. Entrambe le attività rimangono aperte e soggette alle decisioni delle successive sessioni.
 
 ---
 
@@ -727,7 +925,8 @@ Essa consente di:
 - ricostruire le principali tappe dello sviluppo;
 - monitorare la crescita del progetto nel tempo;
 - valutare l'impegno complessivamente dedicato allo sviluppo;
-- mantenere uno storico sintetico delle attività svolte.
+- mantenere uno storico sintetico delle attività svolte;
+- distinguere i progressivi definitivi dalle registrazioni provvisorie delle sessioni con documentazione ancora in corso.
 
 ---
 
@@ -777,6 +976,7 @@ La registrazione di una milestone tecnica attesta il raggiungimento del traguard
 | **S032** | Write Path delle identità del Catalogo e gestione della Classificazione botanica | Verificato il contratto backend autoritativo del Catalogo e integrati nel client Flutter i Write Path di Taxon, Crop e Cultivar. Consolidato il contratto tassonomico globale con rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA`, `UNRANKED`, esclusione di `CULTIVAR` dai rank, tassonomia parziale mediante `parent_taxon_id` e collegamento opzionale Crop → Taxon. Completata la UI della Classificazione botanica con lettura, creazione, modifica, disattivazione e riattivazione, capability della Catalog Authority, concorrenza mediante `row_version`, nessun overwrite o retry automatico su `version_conflict` o esito incerto e rilettura autoritativa dello stato. Nessuna nuova migration nel blocco conclusivo; verifica finale con 1077/1077 test Flutter superati. |
 | **S033** | Fase A Registri Agronomici Flutter | Completati l'HUB Registri Agronomici e l'organizzazione delle pagine dedicate alla Classificazione botanica e alla gestione di Colture e Cultivar. Consolidati i flussi Flutter di consultazione e gestione autorizzata delle identità globali, preservando la Catalog Authority, le invarianti server-side, la concorrenza ottimistica e la gestione fail-safe degli esiti incerti. Completata la Fase A con 80/80 test nel relativo perimetro e 1107/1107 test nella suite Flutter complessiva; `flutter analyze` senza problemi. Nessun incremento della versione pubblica o Flutter. |
 | **S033B** | Ricognizione backend Registri Agronomici e audit locale di `plantings` | Censite 21/21 RPC dei Registri Agronomici relative a unità di misura, parametri agronomici, valori enumerati e contesti di produzione, protezione, allevamento e destinazione del raccolto. Eseguito audit locale delle RPC `create_planting`, `update_planting` e `set_planting_status`, dei privilegi, della RLS e dei controlli di Profile Write Authority. Esito favorevole limitatamente al perimetro esaminato, senza nuovi test runtime di scrittura, concorrenza o end-to-end e senza verifica del database remoto. Nessuna modifica Flutter, SQL, migration o persistente al database; nessuna correzione preventiva in assenza di difetti dimostrati. |
+| **S034** | Correzione della gestione del congelamento semantico nel Catalog Registry | Corrette le RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value` mediante gestione selettiva di `SQLSTATE 55000` e confronto esatto di `SQLERRM` con il messaggio del rispettivo trigger. Solo i casi riconosciuti restituiscono `semantics_frozen`; le altre eccezioni vengono propagate. Migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql` applicata al database locale, non al remoto. Verifiche statiche e autorizzative superate nel perimetro esaminato; test dinamico specifico del ramo `SQLSTATE 55000` non eseguito. Sviluppo concluso il 15/10/2026 alle 13:58 e Manuali conclusi ufficialmente il 15/10/2026 alle 23:45. Sessione completamente chiusa, per un totale di 8 h 53 min. |
 
 ---
 
@@ -941,6 +1141,68 @@ Non sono emersi difetti dimostrati tali da richiedere correzioni immediate.
 
 La S033B non ha introdotto modifiche Flutter, SQL, migration o persistenti al database.
 
+### S034 — Correzione del Catalog Registry
+
+La milestone tecnica S034 riguarda la correzione della gestione delle eccezioni di congelamento semantico nelle tre RPC autoritative:
+
+```text
+public.update_measurement_unit
+public.update_agronomic_parameter
+public.update_parameter_enum_value
+```
+
+La migration introdotta è:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+La correzione gestisce `SQLSTATE 55000` confrontando esattamente `SQLERRM` con il messaggio di congelamento semantico previsto dal rispettivo trigger.
+
+Soltanto quando la corrispondenza è esatta viene restituito:
+
+```json
+{"status":"semantics_frozen"}
+```
+
+Le eccezioni non riconosciute vengono propagate, senza trasformarle automaticamente in un risultato di congelamento semantico.
+
+La migration è stata applicata al database Supabase locale.
+
+**Non è stata applicata al database remoto.**
+
+Le verifiche della S034 hanno compreso:
+
+- confronto statico delle tre RPC e dei tre trigger interessati;
+- verifica dei tre controlli autorizzativi, tutti superati;
+- controllo `git diff --cached --check` superato.
+
+Il test dinamico specifico del ramo `SQLSTATE 55000` **non è stato eseguito**. La milestone non equivale pertanto alla validazione dinamica completa della correzione.
+
+Il commit conclusivo dello sviluppo S034 è:
+
+```text
+a0f51fff735aefc75b0fd60f74e727f13d6984f0
+```
+
+Il commit è stato pubblicato su GitHub e, alla verifica conclusiva dello sviluppo, `HEAD` risultava allineato a `origin/main`.
+
+La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58**, con **5 h 11 min** di lavoro effettivo.
+
+La fase Manuali S034 è stata dichiarata ufficialmente conclusa il **15/10/2026 alle 23:45**, con **3 h 42 min** di lavoro effettivo.
+
+Il consuntivo definitivo della Sessione S034 è:
+
+```text
+Sviluppo         5 h 11 min
+Documentazione   3 h 42 min
+--------------------------
+Totale           8 h 53 min
+```
+
+La Sessione S034 è pertanto completamente conclusa sotto il profilo dello sviluppo e della documentazione.
+
+L'obiettivo inizialmente approvato per S034 riguardava la progettazione del sottosistema Flutter dei Registri Agronomici. Tale obiettivo rimane documentato come previsione storica, ma **non viene dichiarato completato** sulla base dell'intervento SQL effettivamente realizzato.
 
 ### Stato delle milestone e continuità
 
@@ -950,9 +1212,26 @@ La relativa fase Manuali è stata conclusa il **13/10/2026 alle 21:34**, per un 
 
 La Sessione S033/S033B risulta pertanto **completamente conclusa**, sia sotto il profilo tecnico sia sotto quello documentale, con un consuntivo definitivo di **24 h 35 min**.
 
-Le milestone tecniche previste nel perimetro effettivamente approvato per S033/S033B risultano raggiunte. Tale conclusione non implica il completamento delle funzionalità ancora classificate FUTURE.
+La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58** e la fase Manuali S034 è stata conclusa ufficialmente il **15/10/2026 alle 23:45**.
 
-Le attività che rimangono FUTURE comprendono, tra le altre:
+La Sessione S034 risulta completamente conclusa, con un consuntivo definitivo di **8 h 53 min**.
+
+Il progressivo definitivo del progetto alla chiusura della S033/S033B è **271 h 14 min**.
+
+Il progressivo storico intermedio, dopo la sola fase sviluppo S034, era **276 h 25 min**.
+
+Alla chiusura definitiva della S034 il progressivo del progetto è **280 h 07 min**, ripartito in:
+
+```text
+Sviluppo complessivo        208 h 34 min
+Documentazione complessiva   71 h 33 min
+----------------------------------------
+Totale progetto             280 h 07 min
+```
+
+Le milestone tecniche raggiunte nei rispettivi perimetri non implicano il completamento delle funzionalità ancora classificate FUTURE.
+
+Le attività ancora aperte comprendono, tra le altre:
 
 - implementazione del sottosistema Flutter dei Registri Agronomici oltre la Fase A;
 - gestione applicativa degli alias;
@@ -963,13 +1242,17 @@ Le attività che rimangono FUTURE comprendono, tra le altre:
 - backend canonico delle consociazioni;
 - selezione esplicita della Cultivar nella creazione dei planting;
 - ulteriori verifiche runtime, di concorrenza ed end-to-end dei Write Path;
+- test dinamico specifico del ramo `SQLSTATE 55000` relativo alla correzione S034;
+- eventuale applicazione della migration S034 al database remoto, previa decisione operativa;
 - eventuali interventi di hardening soltanto a seguito di evidenze tecniche verificate.
 
-Per la S034 è stato approvato l'obiettivo iniziale:
+L'obiettivo Flutter inizialmente approvato per la S034 rimane una registrazione storica:
 
 > Progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
 
-La S034 non è ancora avviata. Il suo obiettivo iniziale non rappresenta una milestone già raggiunta e non determina automaticamente le attività implementative della sessione.
+La sua eventuale prosecuzione dovrà essere valutata e approvata separatamente, sulla base dello stato effettivo del progetto.
+
+Nessuna attività FUTURE viene automaticamente autorizzata dalla conclusione della S034.
 
 ---
 
@@ -977,7 +1260,11 @@ La S034 non è ancora avviata. Il suo obiettivo iniziale non rappresenta una mil
 
 Il presente capitolo raccoglie gli indicatori che consentono di monitorare l'evoluzione del progetto nel tempo.
 
-A differenza degli indicatori storici riportati nel capitolo 2, che rappresentano una fotografia dello stato attuale del progetto, gli indicatori evolutivi consentono di osservare la crescita di Orto Smart sotto il profilo organizzativo, tecnico e documentale.
+Gli indicatori storici riportati nel capitolo 2 descrivono lo stato consolidato alla data di aggiornamento del Registro, mentre gli indicatori evolutivi permettono di ricostruire la crescita di Orto Smart sotto il profilo organizzativo, tecnico e documentale.
+
+## Fotografia storica al 13/10/2026 — chiusura S033/S033B
+
+I valori e le indicazioni di stato riportati nella tabella seguente si riferiscono alla chiusura della Sessione S033/S033B, avvenuta prima dell'avvio della S034. Devono pertanto essere interpretati come dati storici consolidati a tale data, non come rappresentazione dello stato corrente del progetto.
 
 Alla data del **13/10/2026**, le Sessioni **S001–S033** risultano completamente concluse, sia nella fase di sviluppo sia nella relativa fase documentale. La prosecuzione tecnica **S033B** è parte integrante della S033 e non costituisce una sessione autonoma.
 
@@ -985,8 +1272,8 @@ Lo sviluppo S033/S033B è stato concluso il **12/10/2026 alle 16:42**, mentre la
 
 I progressivi definitivi alla chiusura della S032 rimangono invariati e costituiscono la base storica per il consolidamento della S033/S033B.
 
-| Indicatore | Valore attuale |
-|------------|----------------|
+| Indicatore | Valore al 13/10/2026 |
+|------------|----------------------|
 | Sessioni completamente concluse | 33 — S001–S033, con S033B come prosecuzione della S033 |
 | Fasi sviluppo completate | 33 — S001–S033 |
 | Ore di sviluppo consolidate | 203 h 23 min |
@@ -999,9 +1286,9 @@ I progressivi definitivi alla chiusura della S032 rimangono invariati e costitui
 | Ultima sessione completamente conclusa | S033/S033B |
 | Ultima fase sviluppo completata | S033/S033B |
 | Ultima fase documentale completata | Manuali S033/S033B |
-| Prossima sessione di sviluppo | S034, non ancora iniziata |
-| Versione pubblica corrente | 0.1.21-alpha |
-| Versione Flutter corrente | 0.1.21-alpha+6 |
+| Prossima sessione di sviluppo alla data della fotografia | S034, non ancora iniziata |
+| Versione pubblica corrente alla data della fotografia | 0.1.21-alpha |
+| Versione Flutter corrente alla data della fotografia | 0.1.21-alpha+6 |
 
 Le **180 h 40 min** di sviluppo consolidate alla chiusura della S032 comprendono le **7 h 58 min** della relativa fase sviluppo.
 
@@ -1018,7 +1305,7 @@ Totale          246 h 39 min
 
 La Sessione S033/S033B ha aggiunto **22 h 43 min di sviluppo** e **1 h 52 min di documentazione**, per un totale di **24 h 35 min**.
 
-Il progressivo definitivo aggiornato è:
+Il progressivo definitivo aggiornato alla chiusura della S033/S033B è:
 
 ```text
 Sviluppo S001–S032              180 h 40 min
@@ -1043,9 +1330,59 @@ Totale progetto             271 h 14 min
 
 Il precedente progressivo di **269 h 22 min** rappresenta esclusivamente lo stato intermedio successivo alla chiusura dello sviluppo S033/S033B, prima del consolidamento della relativa documentazione.
 
-La Sessione S033/S033B è definitivamente conclusa. La S034 non è ancora iniziata; il suo obiettivo iniziale approvato è la progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
+Alla data di questa fotografia, la Sessione S033/S033B era definitivamente conclusa e la S034 non era ancora iniziata. L'obiettivo iniziale approvato per la S034 era la progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
 
-## Evoluzione funzionale S028–S033B
+## Stato consolidato al 15/10/2026 — chiusura definitiva S034
+
+La Sessione S034 è stata successivamente avviata e conclusa.
+
+L'attività tecnica effettivamente realizzata ha riguardato la correzione della gestione del congelamento semantico nelle RPC autoritative del Catalog Registry.
+
+La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58**, mentre la fase Manuali S034 è stata dichiarata ufficialmente conclusa il **15/10/2026 alle 23:45**.
+
+| Indicatore | Valore alla chiusura S034 |
+|------------|---------------------------|
+| Sessioni completamente concluse | 34 — S001–S034, con S033B come prosecuzione della S033 |
+| Fasi sviluppo completate | 34 — S001–S034 |
+| Ultima sessione completamente conclusa | S034 |
+| Ultima fase sviluppo completata | S034 |
+| Ultima fase documentale completata | Manuali S034 |
+| Durata sviluppo S034 | 5 h 11 min |
+| Durata documentazione S034 | 3 h 42 min |
+| Durata complessiva S034 | 8 h 53 min |
+| Ore di sviluppo consolidate | 208 h 34 min |
+| Ore di documentazione consolidate | 71 h 33 min |
+| Totale definitivo progetto | 280 h 07 min |
+| Versione pubblica | 0.1.21-alpha |
+| Versione Flutter | 0.1.21-alpha+6 |
+
+Il consuntivo definitivo della Sessione S034 è:
+
+```text
+Sviluppo S034          5 h 11 min
+Documentazione S034    3 h 42 min
+---------------------------------
+Totale S034            8 h 53 min
+```
+
+Il progressivo complessivo del progetto alla chiusura della S034 è:
+
+```text
+Sviluppo complessivo        208 h 34 min
+Documentazione complessiva   71 h 33 min
+----------------------------------------
+Totale progetto             280 h 07 min
+```
+
+Il progressivo di **276 h 25 min** rappresenta esclusivamente lo stato intermedio successivo alla chiusura dello sviluppo S034, prima del consolidamento della relativa documentazione.
+
+La conclusione della S034 non implica il completamento del sottosistema Flutter dei Registri Agronomici, né l'esecuzione del test dinamico specifico del ramo `SQLSTATE 55000`.
+
+La migration S034 risulta applicata al database locale, non al database remoto.
+
+Le attività successive rimangono soggette a valutazione e approvazione autonoma nelle sessioni ufficiali di sviluppo.
+
+## Evoluzione funzionale S028–S034
 
 La S028 ha completato il modello persistente e il Write Path autoritativo di `plantings`.
 
@@ -1152,10 +1489,76 @@ Non sono stati eseguiti nuovi test runtime di scrittura, test di concorrenza, te
 
 Non sono emersi difetti dimostrati che richiedessero una correzione immediata. La S033B non ha introdotto modifiche Flutter, SQL, migration o persistenti al database.
 
+### S034 — Correzione della gestione del congelamento semantico
+
+La S034 ha introdotto una correzione circoscritta al backend dei Registri Agronomici, relativa alla gestione delle eccezioni di congelamento semantico.
+
+L'intervento ha interessato tre RPC:
+
+- `public.update_measurement_unit`;
+- `public.update_agronomic_parameter`;
+- `public.update_parameter_enum_value`.
+
+La migration realizzata è:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+La correzione intercetta `SQLSTATE 55000` e verifica che `SQLERRM` corrisponda esattamente al messaggio di congelamento semantico previsto dal rispettivo trigger.
+
+Soltanto in caso di corrispondenza viene restituito l'esito:
+
+```json
+{"status":"semantics_frozen"}
+```
+
+Le altre eccezioni, comprese quelle che utilizzano `SQLSTATE 55000` con un messaggio differente, vengono propagate.
+
+La migration è stata applicata esclusivamente al database Supabase locale. **Il database remoto non è stato aggiornato.**
+
+Le verifiche eseguite hanno confermato:
+
+- **3/3** confronti statici tra RPC e trigger;
+- **3/3** verifiche autorizzative;
+- superamento del controllo `git diff --cached --check`.
+
+Il test dinamico specifico del ramo `SQLSTATE 55000` non è stato eseguito e non deve essere considerato superato.
+
+La S034 non ha introdotto nuove funzionalità Flutter e non ha completato la progettazione del sottosistema Flutter dei Registri Agronomici, che costituiva l'obiettivo inizialmente approvato per la sessione.
+
+La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58**, con un tempo netto di **5 h 11 min**.
+
+Il commit conclusivo è:
+
+```text
+a0f51fff735aefc75b0fd60f74e727f13d6984f0
+```
+
+Alla chiusura dello sviluppo, il commit risultava pubblicato su GitHub e il ramo `main` allineato a `origin/main`.
+
+La fase Manuali S034 è stata dichiarata ufficialmente conclusa il **15/10/2026 alle 23:45**, con un tempo netto di **3 h 42 min**.
+
+Il consuntivo definitivo della Sessione S034 è:
+
+```text
+Sviluppo          5 h 11 min
+Documentazione    3 h 42 min
+---------------------------
+Totale            8 h 53 min
+```
+
+La Sessione S034 risulta pertanto **completamente conclusa**, sia sotto il profilo dello sviluppo sia sotto quello documentale.
+
+Il progressivo definitivo del progetto alla chiusura S034 è di **280 h 07 min**, suddiviso in **208 h 34 min di sviluppo** e **71 h 33 min di documentazione**.
+
+---
 
 ## Stato evolutivo delle funzionalità
 
-Lo stato evolutivo raggiunto alla chiusura definitiva della Sessione S033/S033B è:
+Lo stato evolutivo del progetto, aggiornato alla conclusione della fase sviluppo S034 del **15/10/2026**, è riportato di seguito.
+
+La Sessione S033/S033B è completamente conclusa, mentre la fase Manuali S034 è ancora in corso.
 
 ```text
 public.plantings
@@ -1252,16 +1655,43 @@ UI gestione Cultivar
         COMPLETATA — perimetro Fase A S033
 
 Verifica Flutter Fase A
-        COMPLETATA — 80/80 test
+        COMPLETATA — 80/80 test S033
 
 Verifica Flutter complessiva S033
-        COMPLETATA — 1107/1107 test
+        COMPLETATA — 1107/1107 test S033
 
 Ricognizione backend Registri Agronomici
-        COMPLETATA — 21/21 RPC censite
+        COMPLETATA — 21/21 RPC censite in S033B
 
 Audit locale Write Path plantings
-        CONCLUSO — esito favorevole nel perimetro esaminato
+        CONCLUSO — esito favorevole nel perimetro S033B esaminato
+
+Correzione gestione congelamento semantico Catalog Registry
+        COMPLETATA — sviluppo SQL S034
+
+RPC update_measurement_unit
+        CORRETTA — gestione selettiva SQLSTATE 55000
+
+RPC update_agronomic_parameter
+        CORRETTA — gestione selettiva SQLSTATE 55000
+
+RPC update_parameter_enum_value
+        CORRETTA — gestione selettiva SQLSTATE 55000
+
+Migration S034
+        APPLICATA — database Supabase locale
+
+Migration S034 sul database remoto
+        NON APPLICATA
+
+Verifiche statiche RPC/trigger S034
+        SUPERATE — 3/3
+
+Verifiche autorizzative S034
+        SUPERATE — 3/3
+
+Test dinamico specifico SQLSTATE 55000
+        NON ESEGUITO
 
 Modelli, repository e UI Flutter degli altri Registri Agronomici
         FUTURE — da progettare e implementare
@@ -1307,6 +1737,66 @@ La fase sviluppo S033/S033B è stata conclusa il **12/10/2026 alle 16:42**, con 
 La fase Manuali S033/S033B è stata conclusa il **13/10/2026 alle 21:34**, con **1 h 52 min** di lavoro documentale.
 
 La Sessione S033/S033B risulta pertanto **completamente conclusa**, con una durata definitiva di **24 h 35 min** e un progressivo complessivo del progetto pari a **271 h 14 min**.
+
+### Aggiornamento tecnico S034
+
+La fase sviluppo S034 ha corretto la gestione delle eccezioni di congelamento semantico nelle tre RPC:
+
+```text
+public.update_measurement_unit
+public.update_agronomic_parameter
+public.update_parameter_enum_value
+```
+
+La correzione è contenuta nella migration:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+La gestione di `SQLSTATE 55000` è subordinata al confronto esatto di `SQLERRM` con il messaggio di congelamento semantico del rispettivo trigger.
+
+Soltanto quando tale confronto ha esito positivo la RPC restituisce:
+
+```json
+{"status":"semantics_frozen"}
+```
+
+Le altre eccezioni vengono propagate.
+
+La migration è stata applicata **esclusivamente al database Supabase locale** e non al database remoto.
+
+Le verifiche statiche RPC/trigger e le verifiche autorizzative hanno avuto esito positivo, rispettivamente **3/3** e **3/3**.
+
+Il test dinamico specifico del ramo `SQLSTATE 55000` **non è stato eseguito**. Pertanto la correzione non deve essere considerata dinamicamente validata in tale scenario.
+
+Non sono state introdotte nuove funzionalità Flutter durante la S034.
+
+La suite Flutter complessiva di **1107/1107 test superati** si riferisce alla S033 e non è stata rieseguita nella S034.
+
+La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58**, con **5 h 11 min** di lavoro effettivo.
+
+La fase Manuali S034 è stata avviata il **15/10/2026 alle 14:27** e dichiarata conclusa il **15/10/2026 alle 23:45**, con **3 h 42 min** di lavoro documentale effettivo.
+
+Il consuntivo definitivo della Sessione S034 è:
+
+| Attività | Durata |
+|---|---:|
+| Sviluppo S034 | 5 h 11 min |
+| Manuali S034 | 3 h 42 min |
+| **Totale Sessione S034** | **8 h 53 min** |
+
+Il progressivo temporale definitivo del progetto Orto Smart alla chiusura della S034 è:
+
+| Voce | Durata |
+|---|---:|
+| Sviluppo complessivo | 208 h 34 min |
+| Documentazione complessiva | 71 h 33 min |
+| **Totale progetto** | **280 h 07 min** |
+
+L'obiettivo inizialmente approvato per la S034, relativo alla progettazione del sottosistema Flutter dei Registri Agronomici, non è stato completato dall'intervento SQL effettuato.
+
+La sua eventuale prosecuzione dovrà essere valutata separatamente, senza automatismi.
 
 ---
 
@@ -2110,9 +2600,25 @@ La Sessione S033/S033B risulta definitivamente conclusa, con una durata compless
 
 Il progressivo definitivo del progetto alla chiusura della S033/S033B è **271 h 14 min**, ripartito in **203 h 23 min di sviluppo** e **67 h 51 min di documentazione**.
 
-L'obiettivo iniziale approvato per la S034 è la progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
+L'obiettivo inizialmente approvato per la S034 era la progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
 
-La S034 non è ancora iniziata e non sono stati approvati automaticamente nuovi incrementi implementativi.
+La successiva Sessione S034 ha invece realizzato una correzione circoscritta al backend dei Registri Agronomici, relativa alla gestione delle eccezioni di congelamento semantico nelle RPC:
+
+- `public.update_measurement_unit`;
+- `public.update_agronomic_parameter`;
+- `public.update_parameter_enum_value`.
+
+La correzione è contenuta nella migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`, applicata esclusivamente al database Supabase locale.
+
+La fase sviluppo S034 si è conclusa il **15/10/2026 alle 13:58**, con **5 h 11 min** di lavoro effettivo.
+
+La S034 non ha completato l'obiettivo iniziale di progettazione Flutter e non ha introdotto nuove funzionalità Flutter.
+
+La fase Manuali S034 è ancora in corso.
+
+La ricognizione S033B e la correzione S034 costituiscono attività distinte: l'esito favorevole dell'audit S033B non deve essere interpretato come validazione della successiva modifica SQL.
+
+La prosecuzione dello sviluppo Flutter dei Registri Agronomici rimane da valutare sulla base dello stato effettivo del progetto, senza approvazioni automatiche.
 
 ## Plantings dopo il cutover S030
 
@@ -2362,11 +2868,11 @@ Totale progetto             229 h 03 min
 
 La Sessione S030 è quindi conclusa sia nella fase di sviluppo sia nella fase documentale.
 
-## Elementi FUTURE dopo S033/S033B
+## Elementi FUTURE dopo S033/S033B — aggiornamento S034
 
-La conclusione della fase sviluppo S033/S033B non implica il completamento dell'intero progetto Orto Smart, della baseline Database V1 o dell'intero sistema amministrativo ed editoriale del Catalogo Agronomico.
+La conclusione delle fasi di sviluppo S033/S033B e S034 non implica il completamento dell'intero progetto Orto Smart, della baseline Database V1 o dell'intero sistema amministrativo ed editoriale del Catalogo Agronomico.
 
-Le Sessioni S030–S033 hanno realizzato una progressione tecnica:
+Le Sessioni S030–S034 hanno realizzato la seguente progressione tecnica:
 
 ```text
 S030
@@ -2387,6 +2893,12 @@ Completamento della Fase A Flutter
 S033B
 Ricognizione statica delle RPC dei Registri Agronomici
 Audit locale del Write Path di plantings
+    ↓
+S034
+Correzione della gestione delle eccezioni di congelamento
+semantico in tre RPC del Catalog Registry
+Migration applicata al database locale
+Sviluppo concluso; documentazione ancora in corso
 ```
 
 ### Funzionalità non più FUTURE
@@ -2403,11 +2915,18 @@ Risultano completati nei rispettivi perimetri approvati e verificati:
 - pagina dedicata alla gestione di Colture e Cultivar;
 - UI di creazione, modifica, disattivazione e riattivazione di Crop e Cultivar nel perimetro della Fase A;
 - consolidamento della Fase A con 80/80 test superati;
-- verifica della suite Flutter complessiva con 1107/1107 test superati;
+- verifica della suite Flutter complessiva con 1107/1107 test superati nella S033;
 - ricognizione statica di 21/21 RPC dei Registri Agronomici;
-- audit locale dei Write Path di `plantings`, con esito favorevole limitatamente al perimetro esaminato.
+- audit locale dei Write Path di `plantings`, con esito favorevole limitatamente al perimetro esaminato;
+- correzione S034 della gestione delle eccezioni di congelamento semantico nelle tre RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value`;
+- applicazione della migration S034 al database Supabase locale;
+- verifiche statiche e autorizzative S034 superate nei rispettivi perimetri.
 
 La ricognizione delle RPC e l'audit locale non equivalgono alla realizzazione delle relative interfacce Flutter né a una certificazione generale di sicurezza.
+
+I 1107/1107 test Flutter superati appartengono alla verifica S033. La suite Flutter non è stata rieseguita durante la S034.
+
+La correzione S034 non può essere considerata integralmente verificata a runtime, poiché il test dinamico specifico del ramo `SQLSTATE 55000` non è stato eseguito.
 
 ### Elementi ancora FUTURE
 
@@ -2432,17 +2951,24 @@ Rimangono aperti, tra gli altri:
 - completamento delle ulteriori entità previste dalla baseline Database V1;
 - hard delete amministrativo o tecnico eccezionale dei planting, escluso dal normale flusso operativo.
 
-Le verifiche statiche S033B non hanno dimostrato difetti tali da richiedere una correzione immediata.
+Restano inoltre aperte, relativamente alla correzione S034:
+
+- esecuzione del test dinamico specifico del ramo `SQLSTATE 55000`;
+- eventuale applicazione della migration S034 al database remoto, subordinata a una successiva decisione operativa.
+
+Queste attività non sono considerate automaticamente approvate, autorizzate o completate.
+
+Le verifiche statiche S033B non hanno dimostrato difetti tali da richiedere una correzione immediata nei Write Path di `plantings`.
 
 Non devono quindi essere introdotte modifiche preventive al backend senza un problema verificato o una decisione progettuale successiva.
 
-### Obiettivo iniziale approvato per S034
+### Obiettivo iniziale approvato per S034 e consuntivo effettivo
 
-Per la Sessione S034 è stato approvato il seguente obiettivo iniziale:
+Prima dell'avvio della Sessione S034 era stato approvato il seguente obiettivo iniziale:
 
 > Progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
 
-L'attività iniziale prevista comprende:
+L'attività inizialmente prevista comprendeva:
 
 - verifica del contratto backend effettivamente disponibile;
 - ricognizione dell'architettura Flutter esistente;
@@ -2450,11 +2976,57 @@ L'attività iniziale prevista comprende:
 - individuazione dei flussi autorizzativi e delle regole di gestione degli esiti;
 - valutazione separata del primo eventuale incremento implementativo.
 
-La S034 non è ancora iniziata.
+Questo obiettivo viene conservato come registrazione storica della pianificazione precedente alla sessione.
 
-L'approvazione dell'obiettivo iniziale non comporta l'approvazione automatica di implementazioni, modifiche SQL o ulteriori decisioni architetturali.
+Il consuntivo effettivo dello sviluppo S034 documenta invece un intervento circoscritto al backend del Catalog Registry, relativo alle tre RPC:
 
-L'avvio della nuova sessione dovrà prevedere un CHECKPOINT DI RICEZIONE e la verifica dello stato effettivo di codice, database, test e repository.
+```text
+public.update_measurement_unit
+public.update_agronomic_parameter
+public.update_parameter_enum_value
+```
+
+La migration realizzata è:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+La correzione introduce una gestione selettiva delle eccezioni PostgreSQL `SQLSTATE 55000`.
+
+Ciascuna RPC confronta `SQLERRM` con il messaggio specifico previsto per il congelamento semantico dal rispettivo trigger.
+
+Soltanto in caso di corrispondenza esatta viene restituito:
+
+```json
+{"status":"semantics_frozen"}
+```
+
+Gli altri errori con lo stesso SQLSTATE non vengono automaticamente convertiti in `semantics_frozen`, ma sono propagati.
+
+La migration è stata applicata al database Supabase locale e non al database remoto.
+
+Durante la S034 sono state superate le verifiche statiche delle tre RPC e dei relativi trigger, i tre controlli autorizzativi previsti e il controllo `git diff --cached --check`.
+
+Non è stato eseguito il test dinamico specifico del ramo `SQLSTATE 55000`.
+
+La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58**, con **5 h 11 min** di lavoro effettivo.
+
+Il commit conclusivo dello sviluppo è:
+
+```text
+a0f51fff735aefc75b0fd60f74e727f13d6984f0
+```
+
+Il commit è stato pubblicato su GitHub e, alla verifica conclusiva, `HEAD` risultava allineato a `origin/main`.
+
+La versione pubblica `0.1.21-alpha` e la versione Flutter `0.1.21-alpha+6` sono rimaste invariate.
+
+La fase Manuali S034 è ancora in corso. Il consuntivo documentale e il totale definitivo della sessione saranno consolidati soltanto dopo la dichiarazione esplicita di chiusura.
+
+Il completamento dello sviluppo S034 non implica l'avvenuto completamento dell'obiettivo Flutter originariamente previsto, né autorizza automaticamente il suo trasferimento o la sua esecuzione in una sessione successiva.
+
+Le attività delle sessioni future saranno definite autonomamente sulla base dello stato effettivo del progetto e delle decisioni operative che verranno approvate.
 
 ### Principi da preservare
 

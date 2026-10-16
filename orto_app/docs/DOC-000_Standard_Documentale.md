@@ -4,14 +4,14 @@
 
 # Standard Documentale
 
-**Versione:** 1.2
+**Versione:** 1.3
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 03/09/2026
+**Ultimo aggiornamento:** 15/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-000 |
 | Titolo | Standard Documentale |
-| Versione | 1.2 |
+| Versione | 1.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 03/09/2026 |
+| Ultimo aggiornamento | 15/10/2026 |
 
 ---
 
@@ -39,6 +39,7 @@
 | 1.0 | 29/07/2026 | Prima emissione dello Standard Documentale |
 | 1.1 | 04/08/2026 | Allineamento della struttura del documento allo standard documentale ufficiale del progetto |
 | 1.2 | 03/09/2026 | Manutenzione straordinaria dello Standard Documentale: distinzione dei controlli applicabili in base alla natura del lavoro, rafforzamento della sicurezza dello staging Git, censimento dello stato effettivo dei documenti ufficiali e chiarimento relativo al codice DOC-010 non assegnato |
+| 1.3 | 15/10/2026 | Manuali S034: allineamento del Capitolo 2 al DOC-006 e al DOC-009; distinzione tra controlli Dart/Flutter e verifiche SQL, applicabilità dei controlli in base alle modifiche e tracciabilità dei test non eseguiti |
 
 ---
 
@@ -91,15 +92,20 @@ Una sessione di sviluppo non può considerarsi conclusa fino al completamento di
 
 Prima della chiusura di ogni sessione devono essere completate tutte le attività applicabili alla natura del lavoro svolto:
 
-- sviluppo del software;
-- test funzionali, quando applicabili;
-- controllo della qualità del codice mediante `dart format`, `flutter analyze` e `flutter test`, obbligatorio quando la sessione modifica il software;
-- aggiornamento della documentazione;
+- sviluppo del software, quando previsto;
+- test funzionali e verifiche tecniche pertinenti alle modifiche effettuate;
+- controllo della qualità del codice mediante `dart format`, `flutter analyze` e `flutter test`, obbligatorio quando vengono apportate modifiche al codice Dart o Flutter;
+- verifiche specifiche del database, quando vengono modificate migration SQL, funzioni o altri componenti del database;
+- aggiornamento della documentazione interessata;
 - aggiornamento del Registro Storico dello Sviluppo (DOC-012);
-- commit Git;
-- push sul repository GitHub.
+- commit Git delle modifiche verificate, quando presenti;
+- push sul repository GitHub, quando necessario.
 
-Solo dopo il completamento di tutte queste attività la sessione può essere dichiarata ufficialmente conclusa.
+I controlli devono essere selezionati in funzione della natura delle modifiche, secondo quanto previsto dal DOC-006 – Linee Guida di Sviluppo e dal DOC-009 – Workflow Operativo.
+
+I test pertinenti non eseguiti devono essere dichiarati esplicitamente e non possono essere riportati come superati.
+
+Solo dopo il completamento di tutte le attività applicabili la sessione può essere dichiarata ufficialmente conclusa.
 
 # 3. Struttura standard dei documenti
 
