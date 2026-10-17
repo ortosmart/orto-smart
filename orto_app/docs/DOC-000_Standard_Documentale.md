@@ -4,7 +4,7 @@
 
 # Standard Documentale
 
-**Versione:** 1.4
+**Versione:** 1.5
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
@@ -23,7 +23,7 @@
 |--------|--------|
 | Documento | DOC-000 |
 | Titolo | Standard Documentale |
-| Versione | 1.4 |
+| Versione | 1.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
@@ -41,6 +41,7 @@
 | 1.2 | 03/09/2026 | Manutenzione straordinaria dello Standard Documentale: distinzione dei controlli applicabili in base alla natura del lavoro, rafforzamento della sicurezza dello staging Git, censimento dello stato effettivo dei documenti ufficiali e chiarimento relativo al codice DOC-010 non assegnato |
 | 1.3 | 15/10/2026 | Manuali S034: allineamento del Capitolo 2 al DOC-006 e al DOC-009; distinzione tra controlli Dart/Flutter e verifiche SQL, applicabilità dei controlli in base alle modifiche e tracciabilità dei test non eseguiti |
 | 1.4 | 17/10/2026 | Richiamo alla procedura controllata di compilazione e revisione documentale definita nel DOC-009 v2.5 |
+| 1.5 | 17/10/2026 | Manuali S035: assegnazione ufficiale del DOC-010 al Registro Tempi di Lavoro e aggiornamento del registro documentale |
 
 ---
 
@@ -354,12 +355,11 @@ La documentazione ufficiale di Orto Smart è composta dai seguenti documenti.
 | DOC-007 | Test e Collaudo | Descrive le procedure di verifica e collaudo | Da redigere |
 | DOC-008 | Roadmap di Sviluppo | Pianifica l'evoluzione futura del software | Emesso |
 | DOC-009 | Workflow Operativo | Descrive il flusso operativo di ogni sessione | Emesso |
+| DOC-010 | Registro Tempi di Lavoro | Registra i tempi delle sessioni e i progressivi storici del progetto | Emesso |
 | CHANGELOG | Registro delle modifiche | Registra sinteticamente le modifiche introdotte nel software | Emesso |
 | DOC-011 | Decisioni Architetturali | Registra le decisioni progettuali più importanti | Emesso |
 | DOC-012 | Registro Storico dello Sviluppo | Tiene traccia del tempo dedicato al progetto e delle principali milestone | Emesso |
 | VERSION | Versione del progetto | Riporta la versione corrente del software e le informazioni di rilascio | Emesso |
-
-Il codice `DOC-010` non risulta assegnato ad alcun documento versionato nel repository. L'assenza del codice non rappresenta la cancellazione o l'archiviazione di un documento esistente e dovrà essere rivalutata soltanto in caso di futura assegnazione formale.
 
 ## 7.1 Nuovi documenti
 
