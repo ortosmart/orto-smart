@@ -4,7 +4,7 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 4.4
+**Versione:** 4.5
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 29/07/2026
 
-**Ultimo aggiornamento:** 15/10/2026
+**Ultimo aggiornamento:** 17/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 4.4 |
+| Versione | 4.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 15/10/2026 |
+| Ultimo aggiornamento | 17/10/2026 |
 
 ---
 
@@ -65,6 +65,7 @@
 | 4.2 | 12/10/2026 | Aggiornamento del Registro Storico con lo sviluppo S033/S033B: completamento della Fase A Flutter dei Registri Agronomici, introduzione dell'HUB e delle pagine dedicate a Classificazione botanica e Colture/Cultivar, verifica finale con 1107/1107 test Flutter superati, ricognizione statica di 21/21 RPC dei Registri Agronomici e audit locale dei Write Path di `plantings` con esito favorevole nel perimetro esaminato; aggiornamento degli indicatori storici, delle milestone, degli indicatori evolutivi, degli elementi FUTURE e delle regole di registrazione delle ore. Fase sviluppo conclusa in 22 h 43 min; fase Manuali ancora in corso, con cronologia e progressivi definitivi da consolidare alla chiusura documentale. |
 | 4.3 | 13/10/2026 | Consolidamento definitivo della Sessione S033/S033B dopo la chiusura della fase Manuali alle 21:34 del 13/10/2026; aggiornamento coordinato degli indicatori storici ed evolutivi, della cronologia sintetica, dei progressivi e dello stato delle milestone. Consuntivo definitivo S033/S033B di 24 h 35 min, composto da 22 h 43 min di sviluppo e 1 h 52 min di documentazione; progressivo complessivo del progetto pari a 271 h 14 min, di cui 203 h 23 min di sviluppo e 67 h 51 min di documentazione. Confermata la conclusione integrale della S033/S033B, con S033B come prosecuzione tecnica non autonoma; S034 non ancora avviata. |
 | 4.4 | 15/10/2026 | Aggiornamento del Registro Storico con la Sessione S034: correzione della gestione delle eccezioni di congelamento semantico nelle RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value`; gestione selettiva di `SQLSTATE 55000` tramite confronto esatto di `SQLERRM`, con propagazione delle eccezioni non riconosciute. Migration applicata al database locale; verifiche statiche e autorizzative superate, test dinamico specifico non eseguito e migration remota non applicata. Sviluppo S034 concluso con 5 h 11 min; fase Manuali S034 ancora in corso, con progressivi complessivi definitivi da consolidare alla chiusura documentale. |
+| 4.5 | 17/10/2026 | S035: integrazione Flutter delle Finalità di raccolta, 42 test specifici superati, analisi Flutter senza problemi; sviluppo 2 h 23 min, progressivo sviluppo 210 h 57 min; Manuali in corso. |
 
 ---
 
@@ -557,6 +558,25 @@ Il database deve continuare a rimanere privo di dati demo o provvisori fino all'
 
 Le roadmap informali o esplorative non costituiscono baseline progettuale, decisione operativa né autorizzazione a modificare lo sviluppo o la documentazione ufficiale.
 
+### Aggiornamento indicatori S035 — Sviluppo concluso, Manuali in corso
+
+La fase sviluppo S035 si è conclusa il **16/10/2026 alle 23:39**, con **2 h 23 min** di lavoro effettivo. La fase Manuali S035 è ancora in corso.
+
+| Indicatore | Valore |
+|---|---:|
+| Fasi sviluppo completate | 35 — S001–S035 |
+| Ultima fase sviluppo completata | S035 |
+| Ultima sessione completamente conclusa | S034 |
+| Sviluppo S035 | 2 h 23 min |
+| Sviluppo complessivo consolidato | 210 h 57 min |
+| Documentazione consolidata fino a S034 | 71 h 33 min |
+| Totale definitivo alla chiusura S034 | 280 h 07 min |
+| Progressivo intermedio dopo il solo sviluppo S035 | 282 h 30 min |
+
+Il progressivo di **282 h 30 min** non è il totale definitivo della S035: esclude le ore Manuali S035, da consolidare nel DOC-010. I consuntivi S034 restano invariati.
+
+---
+
 # 3. Cronologia sintetica dello sviluppo
 
 La cronologia sintetica riporta, in ordine cronologico, le principali sessioni che hanno caratterizzato l'evoluzione del progetto Orto Smart.
@@ -916,6 +936,18 @@ La chiusura della sessione non implica il completamento del test dinamico specif
 
 ---
 
+### S035 — Finalità di raccolta: integrazione Flutter
+
+Il **16/10/2026** si è conclusa la fase sviluppo S035 dedicata alla gestione Flutter delle Finalità di raccolta nei Registri Agronomici. Superati **42 test specifici** (30 + 12); `flutter analyze` senza problemi.
+
+Commit conclusivo pubblicato su GitHub: `9024e2f0c5f30052371aa8264fa1a5b2ef283efe`.
+
+Nessuna modifica al database nella S035. Restano aperti i test integrati Flutter–Supabase, il test dinamico specifico del ramo `SQLSTATE 55000` e la valutazione dell'applicazione remota della migration S034.
+
+**Sviluppo:** 2 h 23 min. **Progressivo sviluppo:** 210 h 57 min. **Manuali:** in corso.
+
+---
+
 ## 3.1 Lettura della cronologia
 
 La cronologia sintetica riportata nel presente capitolo costituisce uno strumento di consultazione rapida dell'evoluzione del progetto.
@@ -1204,6 +1236,12 @@ La Sessione S034 è pertanto completamente conclusa sotto il profilo dello svilu
 
 L'obiettivo inizialmente approvato per S034 riguardava la progettazione del sottosistema Flutter dei Registri Agronomici. Tale obiettivo rimane documentato come previsione storica, ma **non viene dichiarato completato** sulla base dell'intervento SQL effettivamente realizzato.
 
+### S035 — Gestione Flutter delle Finalità di raccolta
+
+La milestone S035 riguarda l'integrazione Flutter delle Finalità di raccolta nei Registri Agronomici. Verifiche effettuate: 42 test specifici superati e `flutter analyze` senza problemi.
+
+La milestone non certifica ancora il funzionamento integrato Flutter–Supabase. La fase sviluppo è conclusa, la fase Manuali è in corso.
+
 ### Stato delle milestone e continuità
 
 Lo sviluppo S033/S033B è stato concluso il **12/10/2026 alle 16:42**, per un tempo netto complessivo di **22 h 43 min**.
@@ -1382,6 +1420,16 @@ La migration S034 risulta applicata al database locale, non al database remoto.
 
 Le attività successive rimangono soggette a valutazione e approvazione autonoma nelle sessioni ufficiali di sviluppo.
 
+## Stato evolutivo S035 — 16/10/2026
+
+La S035 ha integrato la gestione Flutter delle Finalità di raccolta. Superati 42 test specifici; analisi statica Flutter senza problemi. Commit di sviluppo pubblicato: `9024e2f0c5f30052371aa8264fa1a5b2ef283efe`.
+
+**Progressivo sviluppo:** 210 h 57 min. **Progressivo intermedio del progetto dopo il solo sviluppo S035:** 282 h 30 min. **Totale definitivo alla chiusura S034:** 280 h 07 min.
+
+Restano aperti i test integrati Flutter–Supabase, il test dinamico `SQLSTATE 55000` e la valutazione della migration remota S034. Manuali S035 ancora in corso.
+
+---
+
 ## Evoluzione funzionale S028–S034
 
 La S028 ha completato il modello persistente e il Write Path autoritativo di `plantings`.
@@ -1556,9 +1604,9 @@ Il progressivo definitivo del progetto alla chiusura S034 è di **280 h 07 min**
 
 ## Stato evolutivo delle funzionalità
 
-Lo stato evolutivo del progetto, aggiornato alla conclusione della fase sviluppo S034 del **15/10/2026**, è riportato di seguito.
+Il quadro tecnico seguente rappresenta la situazione consolidata alla conclusione dello sviluppo S034 del **15/10/2026**. Gli aggiornamenti introdotti dalla S035 sono riportati nelle sezioni dedicate, senza alterare la fotografia storica S034.
 
-La Sessione S033/S033B è completamente conclusa, mentre la fase Manuali S034 è ancora in corso.
+La Sessione S034 è completamente conclusa; la fase sviluppo S035 è conclusa, mentre la fase Manuali S035 è ancora in corso.
 
 ```text
 public.plantings

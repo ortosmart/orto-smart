@@ -5,7 +5,7 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.22
+**Versione:** 0.23
 
 **Stato:** In sviluppo
 
@@ -15,7 +15,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 13/10/2026
+**Ultimo aggiornamento:** 17/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -27,12 +27,12 @@
 |-------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.22 |
+| Versione | 0.23 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 13/10/2026 |
+| Ultimo aggiornamento | 17/10/2026 |
 
 ---
 
@@ -62,6 +62,7 @@
 | 0.20 | 06/10/2026 | Aggiornamento e chiusura documentale della Sessione S032: ricognizione dell'architettura reale del Catalogo Agronomico V1; verifica del contratto autoritativo della tassonomia botanica; integrazione Flutter dei Write Path di tassonomia, colture e cultivar; collegamento Crop → Taxon; gestione UI della classificazione botanica con lettura, creazione, modifica, attivazione e disattivazione; applicazione delle capability della Catalog Authority; concorrenza ottimistica mediante `row_version`; nessuna sovrascrittura automatica su `version_conflict`; nessun retry automatico dopo esito incerto; reload dello stato autoritativo; `flutter analyze` senza problemi e suite finale 1077/1077; commit conclusivo dello sviluppo `842a6b6`; Sessione S032 conclusa con 7 h 58 min di sviluppo, 3 h 32 min di documentazione e 11 h 30 min complessivi; chiusura documentale il 06/10/2026 alle 14:30; totale progetto 246 h 39 min |
 | 0.21 | 12/10/2026 | Aggiornamento del Quaderno con la Sessione S033/S033B: completamento della Fase A Registri Agronomici Flutter, HUB e pagine dedicate per Classificazione botanica, Colture e Cultivar; suite finale 1107/1107; ricognizione statica di 21/21 RPC dei Registri Agronomici e audit locale di `plantings` con esito favorevole nel perimetro esaminato, senza nuovi test runtime di scrittura né modifiche backend. Sviluppo concluso il 12/10/2026 alle 16:42, durata 22 h 43 min; sviluppo progressivo 203 h 23 min e totale progetto provvisorio 269 h 22 min, esclusa la documentazione S033/S033B ancora in corso. |
 | 0.22 | 13/10/2026 | Chiusura documentale definitiva della Sessione S033/S033B: fase Manuali conclusa il 13/10/2026 alle 21:34, con 1 h 52 min di documentazione; consuntivo complessivo della sessione 24 h 35 min, di cui 22 h 43 min di sviluppo; aggiornamento del Registro delle sessioni e consolidamento dei progressivi del progetto a 203 h 23 min di sviluppo, 67 h 51 min di documentazione e 271 h 14 min complessivi. |
+| 0.23 | 17/10/2026 | Aggiornamento del Quaderno con la Sessione S035: integrazione Flutter della gestione delle Finalità di raccolta nel Catalogo Agronomico, consultazione, creazione, modifica e attivazione/disattivazione, gestione delle capability e della concorrenza ottimistica; 42 test Flutter superati e `flutter analyze` senza problemi; commit `9024e2f`; sviluppo concluso il 16/10/2026 alle 23:39, durata netta 2 h 23 min; nessuna modifica al database. |
 
 ---
 
@@ -483,9 +484,19 @@ Totale progetto             271 h 14 min
 
 La Sessione S033/S033B risulta conclusa sia nella fase di sviluppo sia nella fase documentale.
 
-La S034 non è ancora iniziata. Il suo obiettivo iniziale approvato rimane la progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
+La Sessione S034 è stata successivamente conclusa e documentata. Il relativo consuntivo storico è conservato nel capitolo S034 del presente Quaderno. La registrazione S035 seguente riporta esclusivamente i tempi di sviluppo.
 
 ---
+
+### Aggiornamento S035 — Solo tempi di sviluppo
+
+| Sessione | Data | Durata sviluppo | Progressivo sviluppo | Attività | Stato |
+|---|---|---:|---:|---|---|
+| S035 | 16/10/2026 | 2 h 23 min | 210 h 57 min | Integrazione Flutter della gestione delle Finalità di raccolta | Sviluppo concluso |
+
+Il progressivo deriva dalle 208 h 34 min di sviluppo consolidate alla chiusura della S034, incrementate di 2 h 23 min per la S035.
+
+I tempi della fase Manuali sono contabilizzati esclusivamente nel DOC-010 — Registro Tempi di Lavoro.
 
 # Indice
 
@@ -13011,3 +13022,140 @@ Restano da valutare nelle future sessioni operative:
 Queste attività non sono automaticamente approvate o autorizzate.
 
 Il loro eventuale inserimento nello sviluppo successivo dovrà essere deciso sulla base dello stato effettivo del progetto e delle decisioni operative approvate.
+
+# Sessione S035 — Integrazione Flutter della gestione delle Finalità di raccolta
+
+## Obiettivo della sessione
+
+La Sessione S035, svolta il **16/10/2026**, è stata dedicata all'implementazione dell'interfaccia Flutter per la gestione delle **Finalità di raccolta** nell'ambito del Catalogo Agronomico globale di Orto Smart.
+
+L'obiettivo operativo era rendere disponibili nell'applicazione le funzionalità di consultazione e manutenzione delle Finalità di raccolta, utilizzando il modello applicativo e i meccanismi di autorizzazione già previsti dall'architettura.
+
+La sessione ha riguardato il livello Flutter. **Non sono state apportate modifiche al database Supabase.**
+
+## Attività realizzate
+
+### Pagina di gestione delle Finalità di raccolta
+
+È stata implementata la pagina `HarvestPurposePage`, nel file:
+
+`lib/pages/harvest_purpose_page.dart`
+
+La pagina consente di:
+
+- Visualizzare le Finalità di raccolta presenti nel Catalogo, comprese quelle inattive.
+- Creare una nuova Finalità di raccolta, specificandone codice, nome e descrizione facoltativa.
+- Modificare nome e descrizione di una Finalità esistente.
+- Attivare o disattivare una Finalità di raccolta.
+- Ricaricare l'elenco dopo le operazioni completate.
+- Gestire gli stati di caricamento, gli errori e i tentativi di ripetizione delle letture.
+
+Il codice identificativo di una Finalità esistente è visualizzato in sola lettura durante la modifica.
+
+### Integrazione nella navigazione
+
+È stato aggiornato il file:
+
+`lib/pages/agronomic_catalog_page.dart`
+
+La nuova funzionalità è raggiungibile attraverso il percorso:
+
+**Impostazioni → Catalogo Agronomico → Finalità di raccolta**
+
+L'accesso alla pagina di consultazione è distinto dall'autorizzazione a eseguire operazioni di scrittura.
+
+### Autorizzazioni e controllo delle operazioni
+
+Le operazioni di creazione, modifica e attivazione/disattivazione sono subordinate alla capacità applicativa `canManageIdentity`.
+
+Il controllo nell'interfaccia non sostituisce l'autorizzazione autoritativa prevista sul backend.
+
+Sono stati inoltre gestiti:
+
+- Validazione dei campi obbligatori e normalizzazione degli spazi iniziali e finali.
+- Prevenzione degli invii multipli durante le operazioni in corso.
+- Esiti di duplicazione del codice.
+- Input non valido e operazioni non autorizzate.
+- Record non trovato.
+- Operazioni senza modifiche effettive.
+- Errori inattesi.
+- Conflitti di versione e presenza di dipendenze che impediscono una modifica di stato.
+
+### Concorrenza e versionamento
+
+Le modifiche e le operazioni di attivazione/disattivazione utilizzano il valore atteso di `row_version`, tramite il parametro applicativo `expectedRowVersion`.
+
+In presenza di un conflitto di versione, l'interfaccia non sovrascrive automaticamente i dati e non ripete silenziosamente l'operazione.
+
+Questa gestione mantiene la distinzione tra il dato precedentemente letto e quello che potrebbe essere stato modificato da un'altra operazione.
+
+## Verifiche e test
+
+Sono stati aggiornati o introdotti i seguenti file di test:
+
+- `test/pages/harvest_purpose_page_test.dart`
+- `test/pages/agronomic_catalog_page_test.dart`
+
+Il checkpoint di sviluppo attesta:
+
+| Verifica | Esito |
+|---|---|
+| Test della pagina Finalità di raccolta | 30 superati |
+| Test della pagina Catalogo Agronomico | 12 superati |
+| **Totale test Flutter** | **42 superati** |
+| `flutter analyze` | Nessun problema rilevato |
+
+Le verifiche comprendono i principali flussi di consultazione, creazione, modifica, attivazione/disattivazione, gestione degli errori, autorizzazioni, concorrenza e navigazione.
+
+**Limite della verifica:** il superamento dei test Flutter non equivale a un collaudo integrato completo con il database Supabase.
+
+## Stato del codice e versionamento Git
+
+La sessione è stata consolidata nel commit:
+
+`9024e2f0c5f30052371aa8264fa1a5b2ef283efe`
+
+Messaggio:
+
+`Implementa gestione finalità di raccolta`
+
+Data del commit: **16/10/2026, ore 23:32:06 (+02:00)**.
+
+Il commit comprende quattro file applicativi e di test, con **2.034 righe aggiunte e nessuna riga eliminata**.
+
+Il checkpoint di chiusura attesta la pubblicazione del commit sul repository remoto.
+
+## Timing dello sviluppo S035
+
+| Indicatore | Valore |
+|---|---|
+| Data | 16/10/2026 |
+| Inizio sviluppo | 21:16 |
+| Chiusura sviluppo | 23:39 |
+| Sospensioni | Nessuna |
+| **Durata netta dello sviluppo** | **2 h 23 min** |
+
+La durata dello sviluppo è definitiva.
+
+Il tempo dedicato all'aggiornamento della documentazione viene contabilizzato separatamente nel **DOC-010 — Registro Tempi di Lavoro** e non è incluso nel presente consuntivo tecnico.
+
+## Risultati e limiti
+
+Al termine della S035 risulta implementata e verificata a livello Flutter la gestione delle Finalità di raccolta nel Catalogo Agronomico.
+
+La sessione non ha introdotto nuove migrazioni SQL né modificato il database.
+
+Restano distinti i risultati ottenuti con i test dell'interfaccia dal collaudo integrato del comportamento applicativo con Supabase.
+
+## Continuità dello sviluppo
+
+Restano da valutare nelle future sessioni operative:
+
+- Il collaudo integrato Flutter–Supabase della gestione delle Finalità di raccolta.
+- Il test dinamico specifico della gestione di `SQLSTATE 55000`, rimasto aperto dalla S034.
+- L'eventuale applicazione al database remoto della migration correttiva già individuata.
+- La prosecuzione delle ulteriori funzionalità dei Registri Agronomici, in base alla baseline effettiva e alle priorità approvate.
+
+Queste attività costituiscono **questioni aperte o possibili sviluppi futuri**, non autorizzazioni automatiche a procedere.
+
+La scelta delle attività della sessione successiva rimane subordinata alla verifica dello stato reale del progetto e alle decisioni operative approvate.

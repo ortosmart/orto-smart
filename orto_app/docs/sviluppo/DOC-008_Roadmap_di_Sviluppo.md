@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 2.6
+**Versione:** 2.7
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 12/10/2026
+**Ultimo aggiornamento:** 17/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 2.6 |
+| Versione | 2.7 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 12/10/2026 |
+| Ultimo aggiornamento | 17/10/2026 |
 
 ---
 
@@ -59,6 +59,7 @@
 | 2.4 | 01/10/2026 | Aggiornamento dopo la Sessione S031: integrazione operativa Flutter del Catalogo Agronomico nelle Impostazioni, gestione dello stato e dell'inizializzazione controllata della Catalog Authority, esposizione delle capability autoritative, consultazione delle colture globali, navigazione gerarchica `Coltura → Cultivar`, caricamento on demand delle cultivar, gestione degli stati di caricamento/assenza dati/errore/retry ed eliminazione del precedente percorso autonomo `Impostazioni → Varietà`; verifica finale con 971 test superati e definizione della ricognizione tecnica delle funzioni, RPC e capability del Catalogo come primo passo della S032 |
 | 2.5 | 06/10/2026 | Aggiornamento dopo la Sessione S032: ricognizione e consolidamento del contratto backend del Catalogo Agronomico, verifica della tassonomia botanica globale con rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA` e `UNRANKED`, conferma della Cultivar come identità agronomica separata, integrazione Flutter dei Write Path di Tassonomia, Crop e Cultivar, collegamento opzionale `Crop → Taxon`, completamento della UI della Classificazione botanica, gestione della Catalog Authority, concorrenza ottimistica mediante `row_version`, rilettura autoritativa su `version_conflict` ed esiti incerti e verifica finale con `flutter analyze` senza problemi e 1077/1077 test superati; nessuna nuova migration S032 e riallineamento della roadmap futura allo stato effettivamente raggiunto |
 | 2.6 | 12/10/2026 | Aggiornamento dopo le Sessioni S033/S033B: completamento della Fase A Flutter dei Registri Agronomici, HUB e pagine dedicate a Classificazione botanica e Colture/Cultivar, verifica con 1107/1107 test Flutter superati e `flutter analyze` senza problemi; ricognizione statica di 21/21 RPC degli ulteriori Registri Agronomici e audit locale dei Write Path di `plantings`, favorevole nel perimetro esaminato e senza correzioni immediate; aggiornamento delle attività FUTURE e registrazione dell'obiettivo iniziale approvato per la S034, non ancora iniziata |
+| 2.7 | 17/10/2026 | Aggiornamento dopo S034 e S035: correzione locale SQLSTATE 55000 nel Catalog Registry, applicata al database locale e non al remoto; integrazione Flutter delle Finalità di raccolta, 42 test mirati superati e `flutter analyze` senza problemi; aggiornamento dello stato dei Registri Agronomici e delle verifiche aperte, senza assegnazioni automatiche alla sessione successiva |
 
 ---
 
@@ -141,7 +142,9 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | Pagina dedicata Colture e Cultivar | ✅ Completato |
 | Consolidamento Flutter Fase A Registri Agronomici | ✅ Completato |
 | Ricognizione statica delle 21 RPC degli ulteriori Registri Agronomici | ✅ Completato nel perimetro S033B |
-| Modelli, repository e UI Flutter degli ulteriori Registri Agronomici | 📋 Da progettare e implementare |
+| Gestione Flutter delle Finalità di raccolta (`harvest_purposes`) | ✅ Implementata e verificata con test Flutter S035; collaudo integrato da eseguire |
+| Modelli, repository e UI Flutter degli altri sei Registri Agronomici | 📋 Da valutare e progettare; implementazione subordinata a successiva approvazione |
+| Correzione `SQLSTATE 55000` delle tre RPC Catalog Registry | ✅ Implementata e applicata localmente in S034; test dinamico e remoto aperti |
 | Audit locale dei Write Path di `plantings` | ✅ Completato nel perimetro S033B |
 | Ulteriori verifiche runtime, concorrenza ed end-to-end | 📋 Da valutare |
 | UI operativa per alias, fonti, candidati, revisione e pubblicazione | 📋 Pianificato |
@@ -393,6 +396,23 @@ I dati esterni non possono sovrascrivere automaticamente il Catalogo approvato e
 
 ---
 
+### Aggiornamento tecnico S034 — Correzione del Catalog Registry
+
+La S034 ha realizzato un intervento circoscritto alle RPC `public.update_measurement_unit`, `public.update_agronomic_parameter` e `public.update_parameter_enum_value`, mediante la migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`.
+
+Le RPC restituiscono `semantics_frozen` per `SQLSTATE 55000` soltanto se `SQLERRM` coincide con il messaggio specifico del rispettivo trigger di congelamento semantico; altrimenti propagano l'eccezione. Non sono state introdotte nuove capability. La migration è stata applicata al database Supabase locale, non al remoto. Sono stati eseguiti controlli statici e autorizzativi (3/3); il test dinamico specifico del ramo `SQLSTATE 55000` rimane aperto.
+
+L'obiettivo Flutter inizialmente approvato per S034, riportato nelle sezioni storiche, non è stato realizzato in tale sessione. Commit tecnico S034: `a0f51fff735aefc75b0fd60f74e727f13d6984f0`.
+
+### Aggiornamento applicativo S035 — Finalità di raccolta
+
+La S035 ha implementato a livello Flutter la pagina `HarvestPurposePage` (`lib/pages/harvest_purpose_page.dart`), accessibile da **Impostazioni → Catalogo Agronomico → Finalità di raccolta**. La pagina consente consultazione anche dei record inattivi, creazione, modifica di nome e descrizione, attivazione/disattivazione, ricaricamento e gestione degli stati di errore. Il codice identificativo di una Finalità esistente rimane in sola lettura in modifica.
+
+Le operazioni di scrittura sono condizionate dalla capability applicativa `canManageIdentity`, senza sostituire i controlli autoritativi del backend. La concorrenza ottimistica utilizza `expectedRowVersion`/`row_version`, senza overwrite forzato o ripetizione silenziosa in caso di conflitto. La navigazione è integrata in `lib/pages/agronomic_catalog_page.dart`.
+
+Le verifiche S035 hanno superato **30 test** della pagina Finalità di raccolta e **12 test** della pagina Catalogo Agronomico, per **42 test Flutter mirati**, oltre a `flutter analyze` senza problemi. Non è stato eseguito un collaudo integrato completo Flutter–Supabase. Nessuna migration SQL o modifica del database è stata introdotta in S035. Commit tecnico: `9024e2f0c5f30052371aa8264fa1a5b2ef283efe`.
+
+I sei ulteriori Registri Agronomici diversi dalle Finalità di raccolta restano da valutare per l'integrazione Flutter. Le verifiche ancora aperte non sono assegnate automaticamente a una sessione futura.
 ## 3.2 Gestione orto
 
 | Funzionalità | Stato |
@@ -1467,13 +1487,13 @@ In particolare, i motori agronomici sviluppati nelle sessioni precedenti devono 
 
 Le nuove evoluzioni non devono introdurre ulteriori dipendenze dal modello legacy.
 
-Il completamento della gestione UI della tassonomia in S032 non equivale al completamento dell'intera UI amministrativa del Catalogo. Restano da completare, tra gli altri, i flussi applicativi completi di gestione delle Crop e delle Cultivar e le interfacce relative ad alias, fonti, dati candidati, revisione, pubblicazione e utilizzo operativo del Resolver.
+Il completamento della gestione UI della tassonomia in S032 non equivaleva, in quella fase, al completamento dell'intera UI amministrativa del Catalogo. Le UI di gestione Crop e Cultivar sono state successivamente completate in S033; restano da sviluppare le interfacce relative ad alias, fonti, dati candidati, revisione, pubblicazione e utilizzo operativo del Resolver.
 
 ---
 
 ## Altri blocchi futuri
 
-Alla conclusione dello sviluppo S033/S033B, le attività ancora aperte o classificate FUTURE vengono distinte dai risultati già completati nelle sessioni precedenti.
+Alla conclusione dello sviluppo S035, le attività ancora aperte o classificate FUTURE vengono distinte dai risultati completati nelle sessioni precedenti. Le descrizioni datate S033/S033B che seguono conservano valore storico nei rispettivi perimetri.
 
 L'inserimento di un'attività in questo elenco non ne determina automaticamente l'assegnazione alla sessione successiva.
 
@@ -1505,7 +1525,7 @@ training_contexts
 harvest_purposes
 ```
 
-Rimangono da progettare e successivamente valutare per l'implementazione:
+Per i sei registri diversi da `harvest_purposes`, rimangono da progettare e successivamente valutare per l'implementazione:
 
 - modelli Flutter dedicati agli ulteriori Registri Agronomici;
 - repository Flutter e contratti applicativi coerenti con le RPC autoritative;
@@ -1514,11 +1534,11 @@ Rimangono da progettare e successivamente valutare per l'implementazione:
 - gestione delle autorizzazioni e degli esiti applicativi;
 - verifiche specifiche e regressione.
 
-La disponibilità delle RPC backend non equivale al completamento della loro integrazione Flutter.
+La disponibilità delle RPC backend non equivale al completamento della loro integrazione Flutter. La S035 ha implementato la gestione Flutter di `harvest_purposes` (Finalità di raccolta), con 42 test mirati superati, ma non ha eseguito il collaudo integrato Flutter–Supabase. Per gli altri sei registri la corrispondente integrazione Flutter rimane aperta.
 
 Per la S034 è stato approvato esclusivamente l'obiettivo iniziale di progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
 
-La S034 non è ancora iniziata e il suo primo eventuale incremento implementativo dovrà essere valutato separatamente.
+Questa indicazione descrive la pianificazione storica precedente alla S034. La S034 ha invece realizzato la correzione SQL del Catalog Registry; la S035 ha poi implementato la gestione Flutter delle Finalità di raccolta.
 
 ### Catalogo Agronomico e workflow editoriale
 
@@ -1662,6 +1682,20 @@ La S033B ha completato, limitatamente al proprio perimetro:
 
 La S033B non ha introdotto modifiche persistenti a Flutter, SQL, migration o database.
 
+
+La S034 ha completato, nel proprio perimetro:
+
+- la correzione delle tre RPC del Catalog Registry per distinguere il congelamento semantico dagli altri errori `SQLSTATE 55000`;
+- la migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`, applicata al database locale;
+- le verifiche statiche e autorizzative previste, senza test dinamico specifico del ramo corretto.
+
+La S035 ha completato, nel proprio perimetro Flutter:
+
+- la pagina di gestione delle Finalità di raccolta e la navigazione dal Catalogo Agronomico;
+- consultazione, creazione, modifica e attivazione/disattivazione con capability e concorrenza ottimistica;
+- 42 test Flutter mirati superati e `flutter analyze` senza problemi.
+
+Il collaudo integrato Flutter–Supabase delle Finalità di raccolta, il test dinamico `SQLSTATE 55000` e l'eventuale applicazione della migration S034 al remoto rimangono aperti.
 ### Regole di pianificazione delle sessioni successive
 
 Le attività FUTURE non costituiscono un calendario vincolante.
@@ -1820,6 +1854,19 @@ La chiusura della fase Manuali S033/S033B rimane distinta dall'avvio della S034.
 
 Il completamento della documentazione non determina automaticamente l'inizio della nuova sessione di sviluppo.
 
+### Quadro operativo aggiornato dopo S035 — Nessuna assegnazione automatica
+
+Lo sviluppo S035 si è concluso il **16/10/2026**. La gestione Flutter delle Finalità di raccolta è implementata e verificata mediante test Flutter mirati; non risulta ancora collaudata end-to-end con Supabase.
+
+Restano questioni aperte da valutare in sede di sviluppo ufficiale, previa verifica della baseline effettiva:
+
+- collaudo integrato Flutter–Supabase della gestione delle Finalità di raccolta;
+- test dinamico specifico del ramo `SQLSTATE 55000` corretto nella S034;
+- eventuale applicazione al database remoto della migration S034, non eseguita durante quella sessione;
+- progettazione e integrazione progressiva degli altri sei Registri Agronomici Flutter;
+- ulteriori attività FUTURE del Catalogo e dell'orto già censite nelle sezioni precedenti.
+
+La S034 è conclusa e documentata; il testo relativo al suo obiettivo iniziale e alle condizioni di avvio, riportato sopra, costituisce una registrazione storica e non istruzioni operative correnti. Nessuna delle attività elencate è automaticamente approvata o assegnata alla S036. La nuova sessione richiederà apertura esplicita, CHECKPOINT DI RICEZIONE e decisioni autonome fondate sullo stato reale del progetto.
 ### Vincoli permanenti
 
 Rimangono validi i principi di sicurezza e coerenza progettuale:
