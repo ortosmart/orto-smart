@@ -5,14 +5,14 @@
 
 # Workflow Operativo
 
-**Versione:** 2.4
+**Versione:** 2.5
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 13/10/2026
+**Ultimo aggiornamento:** 17/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -24,12 +24,12 @@
 |--------|--------|
 | Documento | DOC-009 |
 | Titolo | Workflow Operativo |
-| Versione | 2.4 |
+| Versione | 2.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 13/10/2026 |
+| Ultimo aggiornamento | 17/10/2026 |
 
 ---
 
@@ -43,6 +43,7 @@
 | 2.2 | 08/08/2026 | Consolidamento del Workflow Operativo, introduzione della verifica incrociata, gestione dei tempi effettivi, revisione della sequenza Git e completamento degli allegati operativi |
 | 2.3 | 03/09/2026 | Manutenzione straordinaria del Workflow Operativo: correzione della data di prima emissione sulla base della prima registrazione verificata nella cronologia Git |
 | 2.4 | 13/10/2026 | Formalizzazione della separazione tra sviluppo e Manuali, dell'avvio dichiarato della fase documentale e del protocollo di passaggio e ricezione tra conversazioni; aggiornamento della Fase 6, della checklist e del diagramma operativo |
+| 2.5 | 17/10/2026 | Formalizzazione della procedura controllata di compilazione e revisione documentale tramite PowerShell, con approvazione preventiva, verifiche, backup e protezione dalle sostituzioni ambigue |
 
 ---
 
@@ -379,6 +380,28 @@ Tra i documenti che possono richiedere aggiornamento rientrano, a titolo esempli
 - Registro Storico dello Sviluppo (DOC-012);
 - CHANGELOG;
 - VERSION.
+
+### Procedura controllata di compilazione e revisione documentale
+
+Le modifiche ai documenti ufficiali di Orto Smart devono essere eseguite esclusivamente mediante comandi PowerShell predisposti dall'assistente e preventivamente approvati dall'utente. Non sono ammesse modifiche mediante copia-incolla manuale nel documento.
+
+Ogni intervento deve essere limitato al contenuto effettivamente interessato:
+
+- per revisioni sostanziali è ammessa la sostituzione controllata di capitoli o sottocapitoli completi;
+- per correzioni limitate si interviene esclusivamente sul paragrafo, sulla frase o sulle parole interessate;
+- non devono essere riscritte parti del documento estranee alla modifica.
+
+Prima dell'esecuzione, lo script deve verificare l'esistenza del documento, il contenuto atteso e l'univocità delle sostituzioni. In presenza di contenuti inattesi, riferimenti ambigui o controlli non superati, l'operazione deve interrompersi senza applicare modifiche.
+
+Quando necessario, deve essere creato un backup preventivo, con nome univoco e senza sovrascrivere backup esistenti.
+
+Le modifiche devono preservare la codifica del documento e le terminazioni di riga originali, evitando alterazioni involontarie.
+
+Dopo l'intervento devono essere verificati il contenuto aggiornato, le differenze Git, la coerenza dei metadati e l'assenza di modifiche estranee.
+
+Gli script devono essere predisposti in modo da evitare duplicazioni inutili del testo tra la conversazione e il codice PowerShell.
+
+L'approvazione della modifica documentale non costituisce automaticamente autorizzazione al commit o al push, che richiedono i controlli previsti dal workflow Git.
 
 ### Verifica incrociata
 

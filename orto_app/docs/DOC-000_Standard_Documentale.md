@@ -4,14 +4,14 @@
 
 # Standard Documentale
 
-**Versione:** 1.3
+**Versione:** 1.4
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 29/07/2026  
-**Ultimo aggiornamento:** 15/10/2026
+**Ultimo aggiornamento:** 17/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |--------|--------|
 | Documento | DOC-000 |
 | Titolo | Standard Documentale |
-| Versione | 1.3 |
+| Versione | 1.4 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 15/10/2026 |
+| Ultimo aggiornamento | 17/10/2026 |
 
 ---
 
@@ -40,6 +40,7 @@
 | 1.1 | 04/08/2026 | Allineamento della struttura del documento allo standard documentale ufficiale del progetto |
 | 1.2 | 03/09/2026 | Manutenzione straordinaria dello Standard Documentale: distinzione dei controlli applicabili in base alla natura del lavoro, rafforzamento della sicurezza dello staging Git, censimento dello stato effettivo dei documenti ufficiali e chiarimento relativo al codice DOC-010 non assegnato |
 | 1.3 | 15/10/2026 | Manuali S034: allineamento del Capitolo 2 al DOC-006 e al DOC-009; distinzione tra controlli Dart/Flutter e verifiche SQL, applicabilità dei controlli in base alle modifiche e tracciabilità dei test non eseguiti |
+| 1.4 | 17/10/2026 | Richiamo alla procedura controllata di compilazione e revisione documentale definita nel DOC-009 v2.5 |
 
 ---
 
@@ -390,6 +391,8 @@ A titolo di esempio:
 | DOC-008 | Completamento o pianificazione di nuove funzionalità |
 | DOC-011 | Nuove decisioni architetturali |
 | DOC-012 | Registrazione delle ore e delle milestone |
+
+La compilazione e la revisione dei documenti ufficiali devono seguire una procedura controllata, con approvazione preventiva delle modifiche, interventi circoscritti, salvaguardia dei contenuti originali e verifiche successive. Le modalità operative, compreso l'utilizzo di PowerShell, sono definite nella Fase 6 del DOC-009 – Workflow Operativo.
 
 ---
 
