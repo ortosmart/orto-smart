@@ -12,16 +12,16 @@
 |---|---|
 | Documento | DOC-010 |
 | Titolo | Registro Tempi di Lavoro |
-| Versione | 1.0 |
-| Stato | Approvato |
+| Versione | 1.1 |
+| Stato | Revisione approvata nel contenuto; verifica tecnica e pubblicazione in attesa |
 | Progetto | Orto Smart |
 | Repository | `ortosmart/orto-smart` |
 | Prima emissione | 17/10/2026 |
-| Ultimo aggiornamento | 17/10/2026 |
+| Ultimo aggiornamento | 18/10/2026 |
 | Sessione di predisposizione | Manuali S035 |
 | Baseline storica | S001–S034 |
 | Tempo netto storico consolidato | 280 h 07 min |
-| Ultimo progressivo consolidato | 280 h 07 min |
+| Ultimo progressivo consolidato | 288 h 38 min (comprende 20 min di regolarizzazione post-chiusura S035) |
 
 ---
 
@@ -30,6 +30,7 @@
 | Versione | Data | Descrizione |
 |---|---|---|
 | 1.0 | 17/10/2026 | Prima emissione ufficiale del Registro Tempi di Lavoro; consolidamento storico S001-S034 e documentazione delle limitazioni di riconciliazione |
+| 1.1 | 18/10/2026 | Registrazione S035 conclusa e integrazione documentale post-chiusura di 20 min; contenuto approvato, verifica tecnica e pubblicazione ancora da confermare |
 
 ---
 
@@ -39,7 +40,7 @@ La versione 1.0 del DOC-010 è stata approvata per l'emissione ufficiale durante
 
 Il presente documento costituisce il Registro Tempi di Lavoro ufficiale del progetto Orto Smart a partire dalla sua emissione.
 
-La sessione Manuali S035, ancora aperta durante la preparazione, non è inclusa nella baseline storica.
+La baseline storica S001–S034 resta invariata. La S035 è stata conclusa il 18/10/2026 alle 21:38 e viene riportata separatamente. La successiva regolarizzazione del DOC-010, svolta il 18/10/2026 dalle 21:47 alle 22:07, è registrata separatamente come attività Manuali post-chiusura, per 20 min netti in assenza di pause comunicate.
 
 ---
 
@@ -121,6 +122,8 @@ La sessione Manuali S035, ancora aperta durante la preparazione, non è inclusa 
   - 6.24 Quadro delle limitazioni documentali
   - 6.25 Quadratura conclusiva
   - 6.26 Chiusura della ricostruzione storica
+  - 6.27 Sessione S035
+  - 6.28 Regolarizzazione documentale successiva alla chiusura S035
 - 7. Registro delle correzioni e delle rettifiche
   - 7.1 Finalità
   - 7.2 Tipologie di correzione
@@ -221,9 +224,7 @@ Ogni eventuale correzione deve essere motivata e tracciabile.
 
 La prima baseline storica del DOC-010 comprende le sessioni **S001–S034**, con un tempo netto consolidato di **280 h 07 min**.
 
-La sessione documentale **S035**, ancora aperta durante la preparazione della presente bozza, non fa parte di tale baseline.
-
-I suoi tempi saranno consolidati esclusivamente dopo la dichiarazione ufficiale di chiusura, secondo la procedura prevista per l'aggiornamento del registro.
+La sessione **S035** non appartiene alla baseline storica S001–S034, ma è stata successivamente conclusa e viene registrata separatamente nei Capitoli 6 e 9. La regolarizzazione documentale successiva, conclusa il 18/10/2026 alle 22:07, è mantenuta distinta dal consuntivo S035 alla sua chiusura.
 
 ## 2. Regole di registrazione
 
@@ -819,13 +820,9 @@ Le informazioni mancanti, le approssimazioni e le limitazioni delle fonti devono
 
 ### 5.7 Sessioni successive
 
-La sessione Manuali S035 non è inclusa nel presente registro storico perché, alla data di preparazione della bozza, risulta ancora aperta.
+La baseline di questo capitolo rimane limitata alle sessioni S001–S034. La S035, conclusa, è registrata separatamente nei Capitoli 6 e 9.
 
-Il suo consuntivo sarà aggiunto soltanto dopo la chiusura ufficiale, secondo la procedura del Capitolo 8.
-
-Il progressivo iniziale per gli aggiornamenti successivi è:
-
-**280 h 07 min.**
+Il progressivo storico iniziale resta **280 h 07 min**; il progressivo successivo alla chiusura S035 è **288 h 18 min**, prima dell’aggiunta della regolarizzazione documentale, successivamente conclusa e registrata al paragrafo 6.28.
 
 ## 6. Registro cronologico dettagliato
 
@@ -1477,7 +1474,53 @@ Non sono previste ulteriori ricerche ripetitive sulle medesime fonti.
 
 Eventuali nuove evidenze documentali potranno essere valutate successivamente secondo le regole del Capitolo 7, senza alterare retroattivamente i dati privi di adeguato supporto.
 
-La sessione Manuali S035 non è inclusa nella baseline del presente capitolo, poiché ancora aperta alla data di redazione della bozza.
+La sessione S035 è successiva alla baseline storica ed è registrata separatamente nel paragrafo 6.27.
+
+### 6.27 Sessione S035
+
+#### 6.27.1 Sviluppo
+
+| Data | Intervallo | Tempo netto | Qualità |
+|---|---|---:|---|
+| 16/10/2026 | 21:16–23:39 | 2 h 23 min | A |
+
+Chiusura dello sviluppo: **16/10/2026 alle 23:39**. Non risultano sospensioni.
+
+#### 6.27.2 Manuali
+
+| Data | Intervallo | Tempo netto | Qualità |
+|---|---|---:|---|
+| 17/10/2026 | 09:45–13:38 | 3 h 53 min | Da verificare |
+| 17/10/2026 | 13:46–14:21 | 35 min | Da verificare |
+| 17/10/2026 | 17:35–18:54 | 1 h 19 min | Da verificare |
+| 18/10/2026 | 21:37–21:38 | 1 min | Da verificare |
+| **Totale Manuali** | | **5 h 48 min** | Consuntivo aggregato |
+
+Sospensioni riportate nella ricostruzione: 17/10 13:38–13:46 (8 min); 17/10 14:21–17:35 (3 h 14 min); 17/10 18:54–18/10 21:37 (26 h 43 min).
+
+**Nota di verifica:** gli estremi temporali intermedi e le sospensioni sopra riportati non sono ancora stati confrontati con le dichiarazioni originali. Non costituiscono pertanto registrazioni certificate di qualità A. Il consuntivo netto aggregato di 5 h 48 min resta invariato.
+
+Chiusura dichiarata della fase Manuali: **18/10/2026 alle 21:38**.
+
+#### 6.27.3 Consuntivo e regolarizzazione successiva
+
+| Fase | Tempo netto |
+|---|---:|
+| Sviluppo S035 | 2 h 23 min |
+| Manuali S035 fino alla chiusura dichiarata | 5 h 48 min |
+| **Totale S035 alla chiusura dichiarata** | **8 h 11 min** |
+
+Dopo tale chiusura è emersa l'omissione dell'aggiornamento finale del DOC-010. La regolarizzazione documentale è stata avviata il **18/10/2026 alle 21:47**. L’orario di conclusione è stato dichiarato il 18/10/2026 alle 22:07; l’intervallo di 20 min è registrato separatamente al paragrafo 6.28, senza alterare il totale S035 alla chiusura. L’intervento è contabilizzato separatamente come attività Manuali post-chiusura, senza attribuirgli un nuovo identificativo di sessione non dichiarato. Il suo impatto sui progressivi è riportato al paragrafo 9.6.
+
+### 6.28 Regolarizzazione documentale successiva alla chiusura S035
+
+| Data | Attività | Intervallo | Durata lorda | Pause comunicate | Tempo netto | Qualità |
+|---|---|---|---:|---|---:|---|
+| 18/10/2026 | Manuali — regolarizzazione DOC-010 post-chiusura S035 | 21:47–22:07 | 20 min | Nessuna comunicata | 20 min | A per gli estremi dichiarati; assenza di pause da confermare se necessario |
+
+L’attività è distinta dalla sessione S035, già chiusa alle 21:38. Non è attribuito un nuovo codice di sessione, non essendone stata dichiarata l’apertura. Il tempo è conteggiato una sola volta nel progressivo Manuali successivo alla chiusura S035. Il dato sulle pause corrisponde alle comunicazioni disponibili e resta rettificabile secondo il Capitolo 7.
+
+**Progressivo dopo la regolarizzazione:** Sviluppo 210 h 57 min; Manuali 77 h 41 min; totale 288 h 38 min.
 
 ## 7. Registro delle correzioni e delle rettifiche
 
@@ -1600,7 +1643,7 @@ A partire dall'emissione ufficiale del DOC-010, le rettifiche approvate devono e
 
 | ID | Data | Sessione | Categoria | Valore precedente | Valore corretto | Motivazione e fonte | Impatto | Stato |
 |---|---|---|---|---|---|---|---|---|
-| Nessuna rettifica successiva registrata nella bozza iniziale | | | | | | | | |
+| Nessuna rettifica ai tempi storici S001–S034 approvata | | | | | | | | |
 
 Le nuove righe devono essere aggiunte mantenendo la cronologia delle modifiche.
 
@@ -1693,7 +1736,7 @@ DOC-005 mantiene la funzione di Quaderno di Sviluppo.
 
 DOC-009 disciplina il workflow operativo.
 
-DOC-012 mantiene le funzioni documentali che saranno definite nell'allineamento conseguente all'emissione del DOC-010.
+DOC-012 mantiene le funzioni documentali definite dall’allineamento documentale approvato.
 
 DOC-010 è l'unica fonte autorevole dei consuntivi temporali dopo la sua emissione ufficiale.
 
@@ -1773,11 +1816,9 @@ In presenza di dati incompleti, il registro deve conservarne esplicitamente le l
 
 La sessione Manuali S035 è la prima sessione documentale durante la quale viene predisposto il DOC-010.
 
-Alla data della presente bozza, la sessione risulta ancora aperta.
+La fase Manuali S035 è stata dichiarata conclusa il **18/10/2026 alle 21:38**. Il consuntivo alla chiusura è riportato nei paragrafi 6.27 e 9.4.
 
-Il suo consuntivo non deve essere anticipato.
-
-L'eventuale emissione del DOC-010 e la contabilizzazione della S035 devono rispettare l'ordine operativo stabilito nel presente capitolo, senza considerare conclusa la fase Manuali prima della dichiarazione ufficiale di chiusura.
+L’omissione dell’aggiornamento finale del DOC-010 ha richiesto una regolarizzazione documentale successiva, avviata il **18/10/2026 alle 21:47**. L’attività è stata dichiarata conclusa alle **22:07**, per 20 min lordi e, in assenza di pause comunicate, 20 min netti. È registrata separatamente al paragrafo 6.28. La versione 1.1 ha ricevuto approvazione del contenuto, mentre restano da confermare la verifica tecnica e la pubblicazione.
 
 ## 9. Riepilogo cumulativo e stato del registro
 
@@ -1821,18 +1862,17 @@ Le pause e le sospensioni non sono comprese nei valori riportati.
 
 ### 9.4 Stato della sessione S035
 
-La sessione Manuali S035 è dedicata, tra le altre attività, alla predisposizione e revisione del DOC-010.
+La S035 è stata conclusa nelle sue fasi originarie: sviluppo il **16/10/2026 alle 23:39** e Manuali il **18/10/2026 alle 21:38**.
 
-Alla data di redazione della presente bozza, la sessione risulta aperta.
+| Indicatore | Durata |
+|---|---:|
+| Sviluppo S035 | 2 h 23 min |
+| Manuali S035 alla chiusura dichiarata | 5 h 48 min |
+| **Totale S035 alla chiusura dichiarata** | **8 h 11 min** |
 
-Il suo tempo netto definitivo non è ancora disponibile.
+Il progressivo corrispondente è **288 h 18 min** (sviluppo **210 h 57 min**, Manuali **77 h 21 min**).
 
-Pertanto:
-
-- la S035 non è inclusa nella baseline S001–S034;
-- il progressivo ufficiale resta pari a 280 h 07 min;
-- non viene attribuito alcun consuntivo provvisorio come dato definitivo;
-- la contabilizzazione avverrà soltanto dopo la dichiarazione esplicita di chiusura e la verifica dei tempi.
+La regolarizzazione successiva del DOC-010 è stata svolta il **18/10/2026 dalle 21:47 alle 22:07**. I 20 min netti, in assenza di pause comunicate, sono conteggiati separatamente come Manuali, portando il progressivo a **288 h 38 min** (Sviluppo **210 h 57 min**, Manuali **77 h 41 min**).
 
 ### 9.5 Aggiornamento dei progressivi futuri
 
@@ -1861,13 +1901,15 @@ Deve sempre risultare:
 
 ### 9.6 Tabella dei progressivi successivi
 
-La seguente tabella sarà popolata esclusivamente dopo la chiusura e il consolidamento delle nuove sessioni.
+La tabella conserva la baseline, il consuntivo della S035 alla chiusura e l’integrazione documentale successiva, senza attribuire a quest’ultima un nuovo codice di sessione non dichiarato.
 
 | Sessione | Sviluppo netto | Manuali netto | Totale sessione | Progressivo sviluppo | Progressivo Manuali | Progressivo totale |
 |---|---:|---:|---:|---:|---:|---:|
 | Baseline S001–S034 | 208 h 34 | 71 h 33 | 280 h 07 | 208 h 34 | 71 h 33 | 280 h 07 |
+| S035 — alla chiusura del 18/10 alle 21:38 | 2 h 23 | 5 h 48 | 8 h 11 | 210 h 57 | 77 h 21 | 288 h 18 |
+| Regolarizzazione DOC-010 post-chiusura S035 (senza nuovo codice sessione) | 0 h 00 | 0 h 20 | 0 h 20 | 210 h 57 | 77 h 41 | 288 h 38 |
 
-Ogni sessione successiva dovrà essere aggiunta in ordine cronologico.
+Le sessioni successive devono essere aggiunte in ordine cronologico. La riga di regolarizzazione rappresenta un’attività documentale distinta e non istituisce un identificativo di sessione.
 
 Non devono essere create righe definitive per sessioni ancora aperte.
 
@@ -1888,7 +1930,7 @@ Eventuali discrepanze devono essere risolte prima del consolidamento oppure dich
 
 Il DOC-010 assume la funzione di registro autorevole dei tempi di lavoro soltanto dopo la sua emissione ufficiale.
 
-Fino a tale momento, la presente stesura costituisce una proposta documentale in revisione.
+La versione 1.0 è stata emessa come registro ufficiale. Il contenuto della versione 1.1 è stato **approvato**. La sua sostituzione alla versione 1.0 nel repository rimane subordinata ai controlli tecnici finali e alla conferma di commit e push.
 
 Dopo l'emissione:
 
