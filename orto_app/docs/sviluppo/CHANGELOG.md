@@ -5,7 +5,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 3.1
+**Versione:** 3.2
 
 **Stato:** Approvato
 
@@ -15,7 +15,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 12/10/2026
+**Ultimo aggiornamento:** 21/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -28,12 +28,12 @@
 |-------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 3.1 |
+| Versione | 3.2 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 12/10/2026 |
+| Ultimo aggiornamento | 21/10/2026 |
 
 ---
 
@@ -66,6 +66,7 @@
 | 2.9 | 01/10/2026 | Aggiornamento del CHANGELOG per la Sessione S031: integrazione operativa Flutter del Catalogo Agronomico nel percorso `Impostazioni → Catalogo Agronomico → Colture → Cultivar`, gestione delle capability e dell'inizializzazione esplicita della Catalog Authority, consultazione delle colture globali, caricamento on demand delle cultivar e rimozione del precedente percorso autonomo `Impostazioni → Varietà`; versione pubblica e versione Flutter mantenute rispettivamente a `0.1.21-alpha` e `0.1.21-alpha+6`. |
 | 3.0 | 06/10/2026 | Aggiornamento del CHANGELOG per la Sessione S032: ricognizione del contratto autoritativo delle identità del Catalogo, integrazione Flutter dei Write Path di Taxon, Crop e Cultivar, consolidamento della tassonomia botanica globale e completamento della UI di gestione della Classificazione botanica con creazione, modifica, disattivazione, riattivazione, capability della Catalog Authority, concorrenza mediante `row_version` e rilettura autoritativa su conflitto o esito incerto; verifica finale con 1077/1077 test Flutter superati. Versione pubblica e versione Flutter mantenute rispettivamente a `0.1.21-alpha` e `0.1.21-alpha+6`. |
 | 3.1 | 12/10/2026 | Aggiornamento del CHANGELOG per S033/S033B: completamento della Fase A Registri Agronomici Flutter, HUB, gestione Classificazione botanica, Colture e Cultivar, estrazione delle pagine dedicate, consolidamento con 1107/1107 test Flutter superati; ricognizione statica di 21/21 RPC dei Registri Agronomici e audit autoritativo locale di `plantings` con esito favorevole nel perimetro esaminato, senza nuovi test runtime di scrittura o modifiche al backend. Registrazione del completamento dello sviluppo S033/S033B e dell'obiettivo iniziale approvato per la progettazione S034. Versione pubblica `0.1.21-alpha` e versione Flutter `0.1.21-alpha+6` invariate. |
+| 3.2 | 21/10/2026 | Aggiornamento del CHANGELOG con le Sessioni S034, S035 e S036: correzione SQL della gestione del congelamento semantico nelle tre RPC del Catalog Registry, integrazione Flutter delle Finalità di raccolta, protezione contro richieste RPC duplicate e regressione SQL locale con 6/6 verifiche superate; conferma di 1.292/1.292 test Flutter superati nella S036. Distinzione tra verifiche locali e collaudo remoto non completato. Versione pubblica `0.1.21-alpha` e versione Flutter `0.1.21-alpha+6` invariate. |
 
 ---
 
@@ -3124,6 +3125,68 @@ registrazione delle coltivazioni reali
 ```
 
 Il popolamento reale del Catalogo dovrà iniziare soltanto dopo la disponibilità di una baseline agronomica verificata e approvata.
+
+### Incremento tecnico S034 — Correzione del congelamento semantico nel Catalog Registry
+
+La Sessione S034, conclusa nello sviluppo il **15/10/2026 alle 13:58**, ha introdotto una correzione circoscritta alla gestione delle eccezioni PostgreSQL nelle RPC autoritative del Catalog Registry.
+**Modificato**
+
+- Corretta la gestione selettiva di `SQLSTATE 55000` nelle RPC `public.update_measurement_unit`, `public.update_agronomic_parameter` e `public.update_parameter_enum_value`.
+- Il trattamento dell'eccezione è subordinato al confronto esatto del messaggio `SQLERRM` con quello previsto dal rispettivo trigger di congelamento semantico.
+- La correzione è contenuta nella migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`, applicata esclusivamente al database Supabase locale.
+**Verifiche e limiti**
+
+- Superate le verifiche statiche delle tre RPC e dei trigger interessati, i controlli autorizzativi previsti e il controllo Git del contenuto predisposto.
+- Durante la S034 non è stato eseguito il test dinamico specifico del ramo `SQLSTATE 55000`; tale limite appartiene al consuntivo storico S034 ed è stato affrontato successivamente nella S036.
+- Nessuna nuova funzionalità Flutter introdotta. I 1.107 test Flutter della S033 non sono stati rieseguiti nella S034.
+- Nessuna applicazione della migration al database remoto.
+**Consuntivo:** sviluppo **5 h 11 min**; Manuali **3 h 42 min**; totale S034 **8 h 53 min**.
+
+L'obiettivo Flutter inizialmente approvato per la S034 rimane documentato come riferimento storico e non deve essere considerato completato dall'intervento SQL.
+
+### Incremento funzionale S035 — Gestione Flutter delle Finalità di raccolta
+
+La Sessione S035, svolta il **16/10/2026**, ha introdotto l'integrazione Flutter della gestione delle Finalità di raccolta (`harvest_purposes`) nel Catalogo Agronomico.
+
+**Aggiunto e modificato**
+
+- Consultazione delle Finalità di raccolta e gestione delle operazioni di creazione e modifica.
+- Attivazione e disattivazione tramite i percorsi applicativi previsti.
+- Gestione delle capability autorizzative e della concorrenza ottimistica, mantenendo il backend Supabase quale autorità delle operazioni di scrittura.
+- Nessuna modifica al database nella S035.
+**Verifiche e limiti**
+
+- **42 test Flutter specifici superati**.
+- `flutter analyze` completato senza problemi.
+- Le verifiche Flutter non costituiscono certificazione di un collaudo integrato di scrittura Flutter–Supabase remoto.
+
+**Commit:** `9024e2f`.
+
+**Consuntivo:** sviluppo **2 h 23 min**; Manuali **5 h 48 min**; totale S035 **8 h 11 min**. La fase sviluppo è stata conclusa il **16/10/2026 alle 23:39** e la fase Manuali il **18/10/2026 alle 21:38**.
+
+### Incremento tecnico S036 — Protezione RPC Flutter e regressione SQL locale
+
+La Sessione S036, svolta dal **18 al 21/10/2026**, ha consolidato il comportamento Flutter delle Finalità di raccolta e verificato localmente la correzione SQL introdotta nella S034.
+
+**Aggiunto e modificato**
+
+- Introdotta la protezione Flutter contro richieste RPC duplicate durante operazioni di attivazione e disattivazione già in corso.
+- Aggiunti test SQL di regressione del Catalog Registry per le RPC `public.update_measurement_unit`, `public.update_agronomic_parameter` e `public.update_parameter_enum_value`.
+- La regressione riguarda anche il comportamento della correzione selettiva di `SQLSTATE 55000` introdotta nella S034.
+**Verifiche e limiti**
+
+- **6/6 verifiche SQL locali superate**, con rollback e senza persistenza dei dati di prova.
+- **1.292/1.292 test Flutter superati**.
+- `flutter analyze` completato senza problemi.
+- Non è stato completato un collaudo integrato di scrittura Flutter–Supabase remoto.
+- La migration correttiva S034 risulta applicata localmente, ma non al database remoto; nessun deployment remoto viene attribuito alla S036.
+**Commit:** `b250b49` e `923c035`.
+
+**Consuntivo sviluppo:** **6 h 34 min**, concluso il **21/10/2026 alle 14:36**. Il progressivo dello sviluppo raggiunge **217 h 31 min**.
+
+La fase Manuali S036 è ancora in corso e il suo consuntivo definitivo sarà registrato soltanto dopo la chiusura ufficiale.
+
+Le attività FUTURE e gli eventuali interventi sul database remoto rimangono soggetti a verifica e approvazione specifiche. Le versioni applicative restano `0.1.21-alpha` e `0.1.21-alpha+6` per Flutter.
 
 # 4. Cronologia versioni
 

@@ -4,7 +4,7 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.12
+**Versione:** 2.13
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 15/10/2026
+**Ultimo aggiornamento:** 21/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -27,14 +27,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.12 |
+| Versione | 2.13 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 15/10/2026 |
+| Ultimo aggiornamento | 21/10/2026 |
 
 ---
 
@@ -68,6 +68,7 @@
 | 2.10 | 30/09/2026 | Aggiornamento con la Sessione S031: integrazione operativa del Catalogo Agronomico globale nella UI Flutter mediante accesso unico da Impostazioni, gestione dello stato della Catalog Authority e delle relative capability, lettura delle colture globali, navigazione Coltura → Cultivar con caricamento on demand, gestione degli stati vuoti, errore e retry, eliminazione del precedente percorso autonomo Varietà e riallineamento delle evoluzioni FUTURE al nuovo percorso applicativo |
 | 2.11 | 06/10/2026 | Aggiornamento con la Sessione S032: verifica del contratto autoritativo della tassonomia botanica globale; integrazione Flutter dei Write Path di tassonomia, colture e cultivar; collegamento Crop → Taxon; gestione UI della Classificazione botanica con lettura, creazione, modifica, attivazione e disattivazione; applicazione delle capability della Catalog Authority; concorrenza ottimistica mediante `row_version`; nessuna sovrascrittura automatica su `version_conflict`; nessun retry automatico dopo esito incerto; rilettura dello stato autoritativo; verifica finale con `flutter analyze` senza problemi e 1077/1077 test superati |
 | 2.12 | 15/10/2026 | Aggiornamento documentale delle Sessioni S033, S033B e S034: completamento della Fase A Flutter dei Registri Agronomici, con HUB di navigazione e gestione delle identità globali Crop e Cultivar, `flutter analyze` senza problemi e 1107/1107 test superati nella S033; audit statico S033B di 21/21 RPC dei sette registri agronomici aggiuntivi e verifica statica dei Write Path delle Planting, senza collaudi dinamici; correzione SQL S034 della gestione selettiva degli errori di congelamento semantico in tre RPC del Catalog Registry, migration applicata soltanto al database locale, verifiche statiche e controlli di autorizzazione 3/3, senza test dinamico specifico del ramo `SQLSTATE 55000`; aggiornamento delle sezioni architetturali, applicative, di verifica e di evoluzione futura, distinguendo le funzionalità implementate, i risultati storici dei test e gli elementi FUTURE. |
+| 2.13 | 21/10/2026 | Aggiornamento con le Sessioni S035-S036: documentazione dell'integrazione Flutter delle Finalità di raccolta, della protezione dalle richieste duplicate di attivazione e disattivazione, delle verifiche SQL locali di regressione del Catalog Registry e dei risultati dei test Flutter della S036; distinzione tra verifiche locali, test effettivamente eseguiti e collaudo remoto non completato. |
 
 ---
 
@@ -5079,11 +5080,40 @@ Non è stato eseguito il test dinamico del ramo `SQLSTATE 55000`.
 
 La S034 non ha modificato la navigazione Flutter né introdotto le interfacce dei sette registri aggiuntivi.
 
+### Consolidamento tecnico S035 e S036
+
+La S035 ha introdotto la gestione Flutter delle Finalità di raccolta mediante HarvestPurposePage, raggiungibile dal percorso:
+
+Impostazioni → Catalogo Agronomico → Finalità di raccolta
+
+La pagina consente consultazione, creazione, modifica del nome e della descrizione, attivazione e disattivazione. Le operazioni di scrittura sono subordinate alla capability applicativa canManageIdentity e ai controlli autoritativi del backend.
+
+Le modifiche e le operazioni di variazione dello stato utilizzano il valore atteso di row_version. La UI gestisce gli esiti applicativi previsti, impedisce gli invii multipli durante le operazioni in corso e non sostituisce i controlli del backend.
+
+La S035 ha superato 42 test Flutter e flutter analyze senza problemi rilevati. Il commit di riferimento è 9024e2f0c5f30052371aa8264fa1a5b2ef283efe. Non sono state introdotte migration SQL né modifiche al database.
+
+### Protezione delle operazioni e verifiche S036
+
+La S036 ha corretto la gestione Flutter delle operazioni di attivazione e disattivazione, impedendo l'invio di richieste RPC duplicate durante un'operazione già in corso. L'intervento è stato consolidato nel commit b250b49.
+
+Nella stessa sessione sono stati eseguiti test SQL di regressione locali relativi alla gestione di SQLSTATE 55000 nelle tre RPC interessate dalla correzione S034. Sono state superate 6 verifiche su 6, con rollback delle operazioni di test e senza residui rilevati.
+
+Le verifiche automatiche S036 hanno inoltre registrato flutter analyze senza problemi e 1.292 test Flutter superati. Questi risultati riguardano i test effettivamente eseguiti e non dimostrano il completamento del collaudo integrato remoto.
+
+La S036 è stata consolidata nel commit 923c035, pubblicato sul repository remoto secondo il checkpoint di chiusura della sessione.
+
+### Limiti del collaudo S035-S036
+
+Restano distinti i test automatici Flutter, i test SQL locali, l'applicazione della migration correttiva S034 al database remoto e il collaudo integrato delle scritture Flutter-Supabase remoto.
+
+Alla chiusura della S036, la migration 20261014200459_fix_catalog_registry_semantic_freeze_errors.sql non risultava applicata al database remoto. Non viene pertanto dichiarato completato il deployment remoto né il collaudo integrato completo.
+
+
 ### Funzionalità non ancora completate
 
-Il completamento della Fase A non implica che l'intero Catalogo Agronomico sia già operativo in tutte le sue componenti.
+Il completamento della Fase A e l'integrazione Flutter delle Finalità di raccolta nelle S035–S036 non implicano che l'intero Catalogo Agronomico sia già operativo in tutte le sue componenti.
 
-Rimangono distinti dai flussi UI completati:
+Rimangono da completare o verificare, secondo i rispettivi contratti e le priorità approvate:
 
 - gestione degli alias;
 - acquisizione e aggiornamento delle fonti;
@@ -5092,9 +5122,12 @@ Rimangono distinti dai flussi UI completati:
 - pubblicazione;
 - interazione completa con il Resolver;
 - popolamento iniziale reale e verificato del Catalogo;
-- interfacce operative dei sette registri agronomici aggiuntivi.
+- interfacce operative dei registri agronomici aggiuntivi non ancora integrati in Flutter;
+- collaudo integrato Flutter–Supabase remoto della gestione delle Finalità di raccolta;
+- verifica dell'applicazione della migration correttiva S034 al database remoto e del comportamento conseguente, da completare dopo il deployment autorizzato.
 
-Questi elementi descrivono funzionalità non ancora completate o ambiti di evoluzione e non costituiscono un'assegnazione automatica a una specifica sessione futura.
+I test Flutter e le verifiche SQL locali già superati non sostituiscono i collaudi remoti ancora aperti. Queste attività residue non costituiscono un'assegnazione automatica a una specifica sessione futura.
+
 
 ### Aggiornamento delle fonti
 

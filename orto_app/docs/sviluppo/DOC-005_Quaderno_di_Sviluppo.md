@@ -5,7 +5,7 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.23
+**Versione:** 0.24
 
 **Stato:** In sviluppo
 
@@ -15,7 +15,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 17/10/2026
+**Ultimo aggiornamento:** 21/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -27,12 +27,12 @@
 |-------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.23 |
+| Versione | 0.24 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 17/10/2026 |
+| Ultimo aggiornamento | 21/10/2026 |
 
 ---
 
@@ -63,6 +63,7 @@
 | 0.21 | 12/10/2026 | Aggiornamento del Quaderno con la Sessione S033/S033B: completamento della Fase A Registri Agronomici Flutter, HUB e pagine dedicate per Classificazione botanica, Colture e Cultivar; suite finale 1107/1107; ricognizione statica di 21/21 RPC dei Registri Agronomici e audit locale di `plantings` con esito favorevole nel perimetro esaminato, senza nuovi test runtime di scrittura né modifiche backend. Sviluppo concluso il 12/10/2026 alle 16:42, durata 22 h 43 min; sviluppo progressivo 203 h 23 min e totale progetto provvisorio 269 h 22 min, esclusa la documentazione S033/S033B ancora in corso. |
 | 0.22 | 13/10/2026 | Chiusura documentale definitiva della Sessione S033/S033B: fase Manuali conclusa il 13/10/2026 alle 21:34, con 1 h 52 min di documentazione; consuntivo complessivo della sessione 24 h 35 min, di cui 22 h 43 min di sviluppo; aggiornamento del Registro delle sessioni e consolidamento dei progressivi del progetto a 203 h 23 min di sviluppo, 67 h 51 min di documentazione e 271 h 14 min complessivi. |
 | 0.23 | 17/10/2026 | Aggiornamento del Quaderno con la Sessione S035: integrazione Flutter della gestione delle Finalità di raccolta nel Catalogo Agronomico, consultazione, creazione, modifica e attivazione/disattivazione, gestione delle capability e della concorrenza ottimistica; 42 test Flutter superati e `flutter analyze` senza problemi; commit `9024e2f`; sviluppo concluso il 16/10/2026 alle 23:39, durata netta 2 h 23 min; nessuna modifica al database. |
+| 0.24 | 21/10/2026 | Aggiornamento del Quaderno con la Sessione S036: protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta, test SQL di regressione del Catalog Registry con 6 verifiche superate su 6, `flutter analyze` senza problemi e 1.292 test Flutter superati; documentazione dei commit `b250b49` e `923c035`, dei limiti del collaudo remoto e delle attività ancora aperte. |
 
 ---
 
@@ -488,15 +489,20 @@ La Sessione S034 è stata successivamente conclusa e documentata. Il relativo co
 
 ---
 
-### Aggiornamento S035 — Solo tempi di sviluppo
+### Aggiornamenti S035–S036 — Solo tempi di sviluppo
 
 | Sessione | Data | Durata sviluppo | Progressivo sviluppo | Attività | Stato |
 |---|---|---:|---:|---|---|
 | S035 | 16/10/2026 | 2 h 23 min | 210 h 57 min | Integrazione Flutter della gestione delle Finalità di raccolta | Sviluppo concluso |
+| S036 | 18–21/10/2026 | 6 h 34 min | 217 h 31 min | Protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta; test SQL di regressione del Catalog Registry | Sviluppo concluso |
 
-Il progressivo deriva dalle 208 h 34 min di sviluppo consolidate alla chiusura della S034, incrementate di 2 h 23 min per la S035.
+Il progressivo S035 deriva dalle 208 h 34 min di sviluppo consolidate alla chiusura della S034, incrementate di 2 h 23 min.
 
-I tempi della fase Manuali sono contabilizzati esclusivamente nel DOC-010 — Registro Tempi di Lavoro.
+Il progressivo S036 deriva dalle 210 h 57 min di sviluppo consolidate alla chiusura della S035, incrementate di 6 h 34 min.
+
+La fase sviluppo S036 è stata dichiarata conclusa il **21/10/2026 alle 14:36**.
+
+I tempi delle fasi Manuali sono contabilizzati separatamente nel DOC-010 — Registro Tempi di Lavoro. La fase Manuali S036 è ancora in corso e non viene inclusa nel presente progressivo di sviluppo.
 
 # Indice
 
@@ -13159,3 +13165,126 @@ Restano da valutare nelle future sessioni operative:
 Queste attività costituiscono **questioni aperte o possibili sviluppi futuri**, non autorizzazioni automatiche a procedere.
 
 La scelta delle attività della sessione successiva rimane subordinata alla verifica dello stato reale del progetto e alle decisioni operative approvate.
+
+# Sessione S036 — Consolidamento tecnico e collaudo del Catalogo Agronomico
+
+## Obiettivo della sessione
+
+La Sessione S036 è stata avviata il **18/10/2026 alle 22:47** con l'obiettivo di consolidare tecnicamente e verificare il comportamento del Catalogo Agronomico di Orto Smart.
+
+L'attività è stata circoscritta alla correzione della gestione delle operazioni Flutter sulle Finalità di raccolta e all'esecuzione di verifiche di regressione del Catalog Registry.
+
+La sessione non ha introdotto una nuova funzionalità agronomica autonoma né ha autorizzato automaticamente ulteriori sviluppi. Gli interventi sono rimasti limitati agli obiettivi verificati durante la sessione.
+
+## Attività realizzate
+
+### Protezione Flutter dalle operazioni duplicate
+
+È stata corretta la gestione delle operazioni di attivazione e disattivazione delle Finalità di raccolta, per impedire l'invio di richieste RPC duplicate durante un'operazione già in corso.
+
+L'intervento riguarda il livello Flutter e mantiene la separazione tra la gestione dello stato dell'interfaccia e l'esecuzione autoritativa delle operazioni sul backend.
+
+La modifica è stata consolidata nel commit:
+
+`b250b49`
+
+L'intervento ha interessato la pagina di gestione delle Finalità di raccolta e i relativi test.
+
+La correzione riduce il rischio di invii ripetuti causati da interazioni multiple durante un'operazione in corso. Non sostituisce i controlli autoritativi del backend e non costituisce, da sola, un collaudo integrato completo con Supabase remoto.
+
+### Test SQL di regressione del Catalog Registry
+
+Sono stati eseguiti test SQL di regressione relativi alla gestione delle eccezioni `SQLSTATE 55000` nel Catalog Registry.
+
+Le verifiche hanno interessato le tre RPC coinvolte nella correzione introdotta durante la Sessione S034.
+
+Il risultato registrato è il seguente:
+
+- **6 verifiche su 6 superate**;
+- esecuzione nell'ambiente Supabase locale;
+- rollback delle operazioni di test;
+- nessun residuo delle operazioni di prova rilevato al termine delle verifiche.
+
+I test hanno verificato il comportamento previsto nel perimetro delle regressioni eseguite. Il risultato non dimostra automaticamente che la correzione sia stata applicata al database remoto.
+
+L'attività è stata consolidata nel commit:
+
+`923c035`
+
+## Verifiche Flutter
+
+Al termine delle modifiche sono state eseguite le verifiche automatiche Flutter.
+
+| Verifica | Risultato |
+|---|---|
+| `flutter analyze` | Nessun problema rilevato |
+| Suite automatica Flutter | 1.292 test superati |
+
+Gli esiti attestano il superamento dei controlli automatici eseguiti sulla versione verificata.
+
+Il numero complessivo dei test superati non equivale alla dimostrazione che ogni funzionalità dell'applicazione sia stata collaudata in tutte le condizioni operative, né sostituisce le verifiche d'integrazione con il backend remoto.
+
+## Stato del database e limiti del collaudo
+
+Durante la S036 sono state eseguite verifiche SQL nell'ambiente locale. Non è stato completato un collaudo integrato di scrittura Flutter–Supabase remoto.
+
+La migration correttiva relativa alla gestione di `SQLSTATE 55000`, individuata nella Sessione S034, **non risulta applicata al database remoto** al momento della chiusura della S036.
+
+Di conseguenza, restano distinti:
+
+- il risultato positivo dei test SQL locali;
+- il risultato positivo dei test automatici Flutter;
+- l'eventuale applicazione della correzione al database remoto;
+- il collaudo integrato delle operazioni applicative con Supabase remoto.
+
+Non vengono attribuiti alla S036 deployment remoti o modifiche al database remoto non effettuati.
+
+## Versionamento Git
+
+La Sessione S036 ha prodotto i seguenti commit:
+
+| Commit | Attività |
+|---|---|
+| `b250b49` | Protezione Flutter dalle richieste duplicate di attivazione e disattivazione delle Finalità di raccolta |
+| `923c035` | Test SQL di regressione del Catalog Registry |
+
+Il checkpoint di chiusura dello sviluppo attesta che il commit `923c035` è stato pubblicato sul repository remoto e che, alla verifica conclusiva dello sviluppo, il branch `main` risultava allineato a `origin/main`, con working tree pulito.
+
+Lo stato Git descritto si riferisce alla chiusura della fase di sviluppo S036 e precede le successive modifiche documentali della fase Manuali.
+
+## Timing dello sviluppo S036
+
+| Indicatore | Valore |
+|---|---|
+| Avvio della sessione | 18/10/2026, ore 22:47 |
+| Chiusura dello sviluppo | 21/10/2026, ore 14:36 |
+| Durata netta dello sviluppo | 6 h 34 min |
+
+La durata netta è quella registrata nel checkpoint di chiusura della sessione. Gli intervalli di sospensione non sono inclusi nel tempo effettivo di lavoro.
+
+Il tempo dedicato alla documentazione viene contabilizzato separatamente nel **DOC-010 — Registro Tempi di Lavoro** e non è incluso nel consuntivo dello sviluppo.
+
+## Risultati e limiti della sessione
+
+Al termine della S036 risultano documentati:
+
+- la correzione Flutter per impedire richieste duplicate durante le operazioni sulle Finalità di raccolta;
+- il superamento dei test SQL di regressione previsti per le tre RPC interessate;
+- il superamento di `flutter analyze`;
+- il superamento di 1.292 test Flutter;
+- la pubblicazione dei commit di sviluppo e la verifica del relativo stato Git alla chiusura.
+
+Restano esplicitamente esclusi dai risultati conseguiti il deployment della migration correttiva sul database remoto e il collaudo integrato completo delle scritture Flutter–Supabase remoto.
+
+## Continuità dello sviluppo
+
+Le seguenti attività restano da valutare nelle future sessioni operative:
+
+- il collaudo integrato Flutter–Supabase della gestione delle Finalità di raccolta;
+- l'eventuale applicazione al database remoto della migration correttiva relativa a `SQLSTATE 55000`;
+- la verifica del comportamento remoto dopo un'eventuale applicazione della migration;
+- la prosecuzione delle ulteriori funzionalità del Catalogo Agronomico, sulla base dello stato effettivo del progetto e delle priorità approvate.
+
+Queste attività costituiscono questioni aperte o possibili sviluppi futuri e non rappresentano autorizzazioni automatiche a intervenire sul codice o sul database.
+
+La selezione delle attività successive rimane subordinata alla verifica dello stato reale del progetto e alle decisioni operative approvate.

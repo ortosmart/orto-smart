@@ -4,7 +4,7 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 4.5
+**Versione:** 4.6
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 29/07/2026
 
-**Ultimo aggiornamento:** 17/10/2026
+**Ultimo aggiornamento:** 21/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 4.5 |
+| Versione | 4.6 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 17/10/2026 |
+| Ultimo aggiornamento | 21/10/2026 |
 
 ---
 
@@ -66,6 +66,7 @@
 | 4.3 | 13/10/2026 | Consolidamento definitivo della Sessione S033/S033B dopo la chiusura della fase Manuali alle 21:34 del 13/10/2026; aggiornamento coordinato degli indicatori storici ed evolutivi, della cronologia sintetica, dei progressivi e dello stato delle milestone. Consuntivo definitivo S033/S033B di 24 h 35 min, composto da 22 h 43 min di sviluppo e 1 h 52 min di documentazione; progressivo complessivo del progetto pari a 271 h 14 min, di cui 203 h 23 min di sviluppo e 67 h 51 min di documentazione. Confermata la conclusione integrale della S033/S033B, con S033B come prosecuzione tecnica non autonoma; S034 non ancora avviata. |
 | 4.4 | 15/10/2026 | Aggiornamento del Registro Storico con la Sessione S034: correzione della gestione delle eccezioni di congelamento semantico nelle RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value`; gestione selettiva di `SQLSTATE 55000` tramite confronto esatto di `SQLERRM`, con propagazione delle eccezioni non riconosciute. Migration applicata al database locale; verifiche statiche e autorizzative superate, test dinamico specifico non eseguito e migration remota non applicata. Sviluppo S034 concluso con 5 h 11 min; fase Manuali S034 ancora in corso, con progressivi complessivi definitivi da consolidare alla chiusura documentale. |
 | 4.5 | 17/10/2026 | S035: integrazione Flutter delle Finalità di raccolta, 42 test specifici superati, analisi Flutter senza problemi; sviluppo 2 h 23 min, progressivo sviluppo 210 h 57 min; Manuali in corso. |
+| 4.6 | 21/10/2026 | Aggiornamento del Registro Storico con il consolidamento documentale della Sessione S036: protezione Flutter dalle richieste duplicate di attivazione e disattivazione delle Finalità di raccolta, verifiche SQL locali di regressione con 6/6 controlli superati, flutter analyze senza problemi e 1.292/1.292 test Flutter superati; registrazione dei commit b250b49 e 923c035, dei limiti del collaudo remoto e delle attività ancora aperte, senza attribuire alla sessione modifiche al database remoto non effettuate. |
 
 ---
 
@@ -948,6 +949,35 @@ Nessuna modifica al database nella S035. Restano aperti i test integrati Flutter
 
 ---
 
+### S036 — Protezione RPC Flutter e regressione SQL locale
+
+Il **21/10/2026 alle 14:36** si è conclusa la fase sviluppo S036, con **6 h 34 min** di lavoro effettivo.
+
+La sessione ha consolidato la gestione Flutter delle Finalità di raccolta, introducendo una protezione contro l'invio di richieste RPC duplicate durante le operazioni di attivazione e disattivazione già in corso.
+
+È stata inoltre completata la verifica dinamica locale del comportamento `SQLSTATE 55000` introdotto dalla migration S034, mediante test SQL di regressione sulle tre RPC interessate.
+
+**Verifiche concluse:**
+
+- **6/6 test SQL locali** superati, con rollback e senza persistenza di dati di prova.
+- **1.292/1.292 test Flutter** superati.
+- `flutter analyze` completato senza problemi.
+
+**Commit di riferimento:**
+
+- `b250b49` — protezione Flutter contro le richieste RPC duplicate.
+- `923c035` — test SQL locali di regressione.
+
+**Stato database:** la migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql` risulta applicata nell'ambiente locale, ma non ancora nell'ambiente remoto.
+
+**Verifiche ancora aperte:** applicazione remota della migration S034 e test integrato del percorso di scrittura Flutter–Supabase remoto.
+
+**Sviluppo S036:** 6 h 34 min. **Progressivo sviluppo:** 217 h 31 min.
+
+La fase Manuali S036 è ancora in corso; il consuntivo complessivo definitivo sarà registrato alla sua chiusura.
+
+---
+
 ## 3.1 Lettura della cronologia
 
 La cronologia sintetica riportata nel presente capitolo costituisce uno strumento di consultazione rapida dell'evoluzione del progetto.
@@ -1009,6 +1039,8 @@ La registrazione di una milestone tecnica attesta il raggiungimento del traguard
 | **S033** | Fase A Registri Agronomici Flutter | Completati l'HUB Registri Agronomici e l'organizzazione delle pagine dedicate alla Classificazione botanica e alla gestione di Colture e Cultivar. Consolidati i flussi Flutter di consultazione e gestione autorizzata delle identità globali, preservando la Catalog Authority, le invarianti server-side, la concorrenza ottimistica e la gestione fail-safe degli esiti incerti. Completata la Fase A con 80/80 test nel relativo perimetro e 1107/1107 test nella suite Flutter complessiva; `flutter analyze` senza problemi. Nessun incremento della versione pubblica o Flutter. |
 | **S033B** | Ricognizione backend Registri Agronomici e audit locale di `plantings` | Censite 21/21 RPC dei Registri Agronomici relative a unità di misura, parametri agronomici, valori enumerati e contesti di produzione, protezione, allevamento e destinazione del raccolto. Eseguito audit locale delle RPC `create_planting`, `update_planting` e `set_planting_status`, dei privilegi, della RLS e dei controlli di Profile Write Authority. Esito favorevole limitatamente al perimetro esaminato, senza nuovi test runtime di scrittura, concorrenza o end-to-end e senza verifica del database remoto. Nessuna modifica Flutter, SQL, migration o persistente al database; nessuna correzione preventiva in assenza di difetti dimostrati. |
 | **S034** | Correzione della gestione del congelamento semantico nel Catalog Registry | Corrette le RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value` mediante gestione selettiva di `SQLSTATE 55000` e confronto esatto di `SQLERRM` con il messaggio del rispettivo trigger. Solo i casi riconosciuti restituiscono `semantics_frozen`; le altre eccezioni vengono propagate. Migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql` applicata al database locale, non al remoto. Verifiche statiche e autorizzative superate nel perimetro esaminato; test dinamico specifico del ramo `SQLSTATE 55000` non eseguito. Sviluppo concluso il 15/10/2026 alle 13:58 e Manuali conclusi ufficialmente il 15/10/2026 alle 23:45. Sessione completamente chiusa, per un totale di 8 h 53 min. |
+| **S035** | Gestione Flutter delle Finalità di raccolta | Integrata nel client Flutter la gestione delle Finalità di raccolta nei Registri Agronomici. Superati 42 test specifici e `flutter analyze` senza problemi. Sviluppo e Manuali conclusi; il funzionamento integrato Flutter–Supabase remoto resta da verificare. |
+| **S036** | Protezione RPC Flutter e regressione SQL locale | Introdotta la protezione contro richieste RPC duplicate durante l'attivazione e la disattivazione delle Finalità di raccolta. Superati 6/6 test SQL locali di regressione sul comportamento `SQLSTATE 55000`, con rollback, e 1.292/1.292 test Flutter; `flutter analyze` senza problemi. La migration S034 rimane non applicata al database remoto e il test integrato Flutter–Supabase remoto resta aperto. |
 
 ---
 
@@ -1238,9 +1270,74 @@ L'obiettivo inizialmente approvato per S034 riguardava la progettazione del sott
 
 ### S035 — Gestione Flutter delle Finalità di raccolta
 
-La milestone S035 riguarda l'integrazione Flutter delle Finalità di raccolta nei Registri Agronomici. Verifiche effettuate: 42 test specifici superati e `flutter analyze` senza problemi.
+La milestone S035 riguarda l'integrazione Flutter della gestione delle Finalità di raccolta (`harvest_purposes`) nell'ambito dei Registri Agronomici.
 
-La milestone non certifica ancora il funzionamento integrato Flutter–Supabase. La fase sviluppo è conclusa, la fase Manuali è in corso.
+L'intervento ha reso disponibile il relativo percorso applicativo, mantenendo il backend Supabase quale autorità per le operazioni di scrittura e per l'applicazione delle invarianti.
+
+Le verifiche della sessione hanno confermato:
+
+- 42 test Flutter specifici superati;
+- `flutter analyze` completato senza problemi.
+
+La milestone tecnica non costituisce una certificazione del funzionamento integrato Flutter–Supabase remoto, per il quale restano necessarie verifiche dedicate.
+
+La fase sviluppo S035 è stata completata in **2 h 23 min**.
+
+La fase Manuali S035 è stata dichiarata conclusa il **18/10/2026 alle 21:38**, con **5 h 48 min** di lavoro effettivo.
+
+Il consuntivo definitivo della sessione è:
+
+```text
+Sviluppo         2 h 23 min
+Documentazione   5 h 48 min
+--------------------------
+Totale           8 h 11 min
+```
+
+La Sessione S035 risulta pertanto completamente conclusa sotto il profilo dello sviluppo e della documentazione, nei rispettivi perimetri verificati.
+
+### S036 — Protezione RPC Flutter e regressione SQL locale
+
+La milestone tecnica S036 ha consolidato la gestione Flutter delle Finalità di raccolta, introducendo una protezione contro l'invio di richieste RPC duplicate durante le operazioni di attivazione e disattivazione già in corso.
+
+L'intervento riguarda il comportamento applicativo durante una richiesta pendente e non sostituisce le verifiche autoritative del backend Supabase.
+
+La sessione ha inoltre completato la verifica dinamica locale della gestione di `SQLSTATE 55000` introdotta nella S034 dalla migration:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+La regressione SQL ha interessato le tre RPC autoritative:
+
+```text
+public.update_measurement_unit
+public.update_agronomic_parameter
+public.update_parameter_enum_value
+```
+
+Le verifiche concluse nella S036 comprendono:
+
+- **6/6 test SQL locali** superati, con rollback e senza persistenza dei dati di prova;
+- **1.292/1.292 test Flutter** superati;
+- `flutter analyze` completato senza problemi.
+
+I commit di riferimento sono:
+
+```text
+b250b49  Protezione Flutter contro le richieste RPC duplicate
+923c035  Test SQL locali di regressione
+```
+
+La migration S034 risulta applicata al database Supabase locale, ma **non ancora al database remoto**.
+
+Rimangono pertanto aperte l'applicazione remota della migration, previa decisione operativa, e la verifica integrata del percorso di scrittura Flutter–Supabase remoto.
+
+La fase sviluppo S036 è stata conclusa il **21/10/2026 alle 14:36**, con **6 h 34 min** di lavoro effettivo.
+
+Il progressivo complessivo dello sviluppo raggiunge **217 h 31 min**.
+
+La fase Manuali S036 è ancora in corso. Il consuntivo definitivo della sessione e il progressivo complessivo del progetto saranno registrati dopo la sua chiusura ufficiale.
 
 ### Stato delle milestone e continuità
 
@@ -1250,7 +1347,9 @@ La relativa fase Manuali è stata conclusa il **13/10/2026 alle 21:34**, per un 
 
 La Sessione S033/S033B risulta pertanto **completamente conclusa**, sia sotto il profilo tecnico sia sotto quello documentale, con un consuntivo definitivo di **24 h 35 min**.
 
-La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58** e la fase Manuali S034 è stata conclusa ufficialmente il **15/10/2026 alle 23:45**.
+La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58**, con **5 h 11 min** di lavoro effettivo.
+
+La fase Manuali S034 è stata conclusa ufficialmente il **15/10/2026 alle 23:45**, con **3 h 42 min** di lavoro effettivo.
 
 La Sessione S034 risulta completamente conclusa, con un consuntivo definitivo di **8 h 53 min**.
 
@@ -1267,11 +1366,43 @@ Documentazione complessiva   71 h 33 min
 Totale progetto             280 h 07 min
 ```
 
+La fase sviluppo S035 è stata completata in **2 h 23 min**.
+
+La fase Manuali S035 è stata conclusa il **18/10/2026 alle 21:38**, con **5 h 48 min** di lavoro effettivo.
+
+La Sessione S035 risulta completamente conclusa, con un consuntivo definitivo di **8 h 11 min**.
+
+Alla chiusura definitiva della S035 il progressivo del progetto è **288 h 18 min**, ripartito in:
+
+```text
+Sviluppo complessivo        210 h 57 min
+Documentazione complessiva   77 h 21 min
+----------------------------------------
+Totale progetto             288 h 18 min
+```
+
+Il successivo intervento documentale sul DOC-010, effettuato il **18/10/2026 dalle 21:47 alle 22:07** per **20 min**, è distinto dal consuntivo definitivo S035 e non ne modifica la chiusura.
+
+Considerando separatamente i 20 minuti dell'intervento DOC-010 successivo alla chiusura S035, il progressivo storico raggiunge **288 h 38 min**: **210 h 57 min** di sviluppo e **77 h 41 min** di documentazione.
+
+La fase sviluppo S036 è stata conclusa il **21/10/2026 alle 14:36**, con **6 h 34 min** di lavoro effettivo.
+
+Il progressivo intermedio del progetto, dopo la conclusione dello sviluppo S036 e prima del consolidamento dei Manuali S036, è **295 h 12 min**, ripartito in:
+
+```text
+Sviluppo complessivo        217 h 31 min
+Documentazione precedente   77 h 41 min
+----------------------------------------
+Totale intermedio          295 h 12 min
+```
+
+La fase Manuali S036 è ancora aperta. Il relativo tempo effettivo sarà consolidato soltanto alla chiusura documentale dichiarata.
+
 Le milestone tecniche raggiunte nei rispettivi perimetri non implicano il completamento delle funzionalità ancora classificate FUTURE.
 
 Le attività ancora aperte comprendono, tra le altre:
 
-- implementazione del sottosistema Flutter dei Registri Agronomici oltre la Fase A;
+- prosecuzione del sottosistema Flutter dei Registri Agronomici oltre le funzionalità già implementate;
 - gestione applicativa degli alias;
 - acquisizione e aggiornamento delle fonti;
 - gestione dei dati candidati e revisione editoriale;
@@ -1280,8 +1411,8 @@ Le attività ancora aperte comprendono, tra le altre:
 - backend canonico delle consociazioni;
 - selezione esplicita della Cultivar nella creazione dei planting;
 - ulteriori verifiche runtime, di concorrenza ed end-to-end dei Write Path;
-- test dinamico specifico del ramo `SQLSTATE 55000` relativo alla correzione S034;
 - eventuale applicazione della migration S034 al database remoto, previa decisione operativa;
+- verifica integrata Flutter–Supabase remoto dei percorsi applicativi interessati;
 - eventuali interventi di hardening soltanto a seguito di evidenze tecniche verificate.
 
 L'obiettivo Flutter inizialmente approvato per la S034 rimane una registrazione storica:
@@ -1290,7 +1421,7 @@ L'obiettivo Flutter inizialmente approvato per la S034 rimane una registrazione 
 
 La sua eventuale prosecuzione dovrà essere valutata e approvata separatamente, sulla base dello stato effettivo del progetto.
 
-Nessuna attività FUTURE viene automaticamente autorizzata dalla conclusione della S034.
+Nessuna attività FUTURE viene automaticamente autorizzata dalla conclusione delle milestone S034, S035 e S036.
 
 ---
 

@@ -12,16 +12,16 @@
 |---|---|
 | Documento | DOC-010 |
 | Titolo | Registro Tempi di Lavoro |
-| Versione | 1.1 |
-| Stato | Revisione approvata nel contenuto; verifica tecnica e pubblicazione in attesa |
+| Versione | 1.2 |
+| Stato | Revisione S036 consolidata nel contenuto; verifica tecnica finale e pubblicazione in attesa |
 | Progetto | Orto Smart |
 | Repository | `ortosmart/orto-smart` |
 | Prima emissione | 17/10/2026 |
-| Ultimo aggiornamento | 18/10/2026 |
-| Sessione di predisposizione | Manuali S035 |
+| Ultimo aggiornamento | 21/10/2026 |
+| Sessione di predisposizione | Manuali S035; aggiornamento Manuali S036 |
 | Baseline storica | S001–S034 |
 | Tempo netto storico consolidato | 280 h 07 min |
-| Ultimo progressivo consolidato | 288 h 38 min (comprende 20 min di regolarizzazione post-chiusura S035) |
+| Ultimo progressivo consolidato | 301 h 41 min (comprende S035, regolarizzazione post-chiusura S035 e S036) |
 
 ---
 
@@ -29,8 +29,9 @@
 
 | Versione | Data | Descrizione |
 |---|---|---|
-| 1.0 | 17/10/2026 | Prima emissione ufficiale del Registro Tempi di Lavoro; consolidamento storico S001-S034 e documentazione delle limitazioni di riconciliazione |
-| 1.1 | 18/10/2026 | Registrazione S035 conclusa e integrazione documentale post-chiusura di 20 min; contenuto approvato, verifica tecnica e pubblicazione ancora da confermare |
+| 1.0 | 17/10/2026 | Prima emissione ufficiale del Registro Tempi di Lavoro; consolidamento storico S001–S034 e documentazione delle limitazioni di riconciliazione |
+| 1.1 | 18/10/2026 | Registrazione S035 conclusa e integrazione documentale post-chiusura di 20 min; versione registrata nel commit Git `358099b` |
+| 1.2 | 21/10/2026 | Registrazione del consuntivo S036, aggiornamento del progressivo complessivo a 301 h 41 min e allineamento delle regole operative al DOC-009 v2.7 |
 
 ---
 
@@ -40,7 +41,17 @@ La versione 1.0 del DOC-010 è stata approvata per l'emissione ufficiale durante
 
 Il presente documento costituisce il Registro Tempi di Lavoro ufficiale del progetto Orto Smart a partire dalla sua emissione.
 
-La baseline storica S001–S034 resta invariata. La S035 è stata conclusa il 18/10/2026 alle 21:38 e viene riportata separatamente. La successiva regolarizzazione del DOC-010, svolta il 18/10/2026 dalle 21:47 alle 22:07, è registrata separatamente come attività Manuali post-chiusura, per 20 min netti in assenza di pause comunicate.
+La baseline storica S001–S034 resta invariata.
+
+La sessione S035 è stata conclusa il 18/10/2026 alle 21:38. La successiva regolarizzazione documentale, svolta dalle 21:47 alle 22:07 dello stesso giorno, è registrata separatamente per 20 min netti, in assenza di pause comunicate. La versione 1.1 è stata registrata nel commit Git `358099b`.
+
+La sessione S036 è registrata al paragrafo 6.29, con 6 h 34 min di Sviluppo e 6 h 29 min di Manuali, per un totale di 13 h 03 min.
+
+Il tempo della fase Manuali S036 è stato consolidato il 21/10/2026 alle 22:39. Tale orario è distinto dalla successiva chiusura tecnica della sessione, disciplinata dal DOC-009 v2.7.
+
+Il progressivo complessivo consolidato del progetto è di **301 h 41 min**, ripartito in 217 h 31 min di Sviluppo e 84 h 10 min di Manuali.
+
+La versione 1.2 recepisce questi dati e l'allineamento procedurale al DOC-009 v2.7. La verifica tecnica finale, il commit, il push e la conferma della sincronizzazione con il repository remoto restano da completare nell'ambito della chiusura Manuali S036.
 
 ---
 
@@ -124,6 +135,7 @@ La baseline storica S001–S034 resta invariata. La S035 è stata conclusa il 18
   - 6.26 Chiusura della ricostruzione storica
   - 6.27 Sessione S035
   - 6.28 Regolarizzazione documentale successiva alla chiusura S035
+  - 6.29 Sessione S036
 - 7. Registro delle correzioni e delle rettifiche
   - 7.1 Finalità
   - 7.2 Tipologie di correzione
@@ -1522,6 +1534,56 @@ L’attività è distinta dalla sessione S035, già chiusa alle 21:38. Non è at
 
 **Progressivo dopo la regolarizzazione:** Sviluppo 210 h 57 min; Manuali 77 h 41 min; totale 288 h 38 min.
 
+### 6.29 Sessione S036
+
+#### 6.29.1 Sviluppo
+
+La fase di sviluppo S036 si è svolta dal 18/10/2026 al 21/10/2026 ed è stata dichiarata conclusa il **21/10/2026 alle 14:36**.
+
+Il tempo netto di sviluppo consolidato è di **6 h 34 min**, come registrato nel checkpoint ufficiale della sessione e nei documenti di sviluppo.
+
+Il progressivo dello sviluppo passa pertanto da **210 h 57 min** a **217 h 31 min**.
+
+#### 6.29.2 Manuali
+
+La fase Manuali S036 è iniziata il **21/10/2026 alle 14:53**. Il lavoro documentale è stato consolidato alle **22:39** dello stesso giorno.
+
+| Data | Intervallo | Tempo netto | Qualità |
+|---|---|---:|---|
+| 21/10/2026 | 14:53–17:45 | 2 h 52 min | A |
+| 21/10/2026 | 18:05–19:43 | 1 h 38 min | A |
+| 21/10/2026 | 20:40–22:39 | 1 h 59 min | A |
+| **Totale Manuali S036** | | **6 h 29 min** | **Consuntivo consolidato** |
+
+Sospensioni dichiarate:
+
+- 17:45–18:05: 20 min;
+- 19:43–20:40: 57 min.
+
+Il tempo complessivo delle sospensioni è di **1 h 17 min**, escluso dal consuntivo.
+
+È stata confermata l'assenza di ulteriori sospensioni dopo le 20:40.
+
+L'orario delle 22:39 rappresenta il consolidamento del tempo documentale ai sensi del DOC-009 v2.7. Le successive operazioni tecniche di chiusura sono tracciate mediante l'orario effettivo di conclusione della sessione, senza riaprire ciclicamente il consuntivo.
+
+#### 6.29.3 Consuntivo S036
+
+| Fase | Tempo netto |
+|---|---:|
+| Sviluppo S036 | 6 h 34 min |
+| Manuali S036 | 6 h 29 min |
+| **Totale S036** | **13 h 03 min** |
+
+Il progressivo complessivo del progetto passa da **288 h 38 min** a **301 h 41 min**, ripartito in:
+
+| Fase | Progressivo |
+|---|---:|
+| Sviluppo | 217 h 31 min |
+| Manuali | 84 h 10 min |
+| **Totale progetto** | **301 h 41 min** |
+
+La registrazione conserva integralmente la baseline storica S001–S034, il consuntivo della S035 e i 20 minuti della regolarizzazione documentale successiva alla sua chiusura.
+
 ## 7. Registro delle correzioni e delle rettifiche
 
 ### 7.1 Finalità
@@ -1734,17 +1796,19 @@ Durante la fase Manuali, gli aggiornamenti documentali devono rispettare il work
 
 DOC-005 mantiene la funzione di Quaderno di Sviluppo.
 
-DOC-009 disciplina il workflow operativo.
+DOC-009 disciplina il workflow operativo, comprese le verifiche documentali, il consolidamento dei tempi e le operazioni tecniche di chiusura.
 
-DOC-012 mantiene le funzioni documentali definite dall’allineamento documentale approvato.
+DOC-012 mantiene le funzioni documentali definite dall'allineamento documentale approvato.
 
 DOC-010 è l'unica fonte autorevole dei consuntivi temporali dopo la sua emissione ufficiale.
 
-**DOC-010 deve essere aggiornato per ultimo**, dopo il completamento degli altri aggiornamenti documentali e dopo la dichiarazione esplicita dell'orario di chiusura della fase Manuali.
+**DOC-010 deve essere aggiornato per ultimo**, dopo il completamento e la verifica degli altri aggiornamenti documentali e dopo la dichiarazione esplicita dell'orario di consolidamento della fase Manuali.
+
+Le successive operazioni tecniche di commit, push, verifica della sincronizzazione e checkpoint finale seguono il DOC-009 e non richiedono di riaprire ciclicamente il consuntivo documentale già consolidato.
 
 ### 8.8 Chiusura della fase Manuali
 
-La conclusione della fase Manuali deve essere dichiarata esplicitamente con data e orario.
+La conclusione delle attività documentali e il consolidamento del relativo tempo devono essere dichiarati esplicitamente con data e orario.
 
 Prima della contabilizzazione definitiva devono essere verificati:
 
@@ -1754,11 +1818,13 @@ Prima della contabilizzazione definitiva devono essere verificati:
 4. il consuntivo complessivo della sessione;
 5. la coerenza con il progressivo precedente.
 
-La chiusura non deve essere anticipata sulla base di una previsione.
+Il consolidamento non deve essere anticipato sulla base di una previsione.
+
+La successiva chiusura tecnica della sessione avviene secondo il DOC-009, dopo le operazioni documentali e Git previste. Il relativo orario effettivo è riportato nel checkpoint conclusivo e non sostituisce l'orario di consolidamento del tempo Manuali.
 
 ### 8.9 Consolidamento nel DOC-010
 
-Dopo la chiusura della fase Manuali e il completamento degli altri aggiornamenti documentali, devono essere inseriti nel DOC-010:
+Dopo il consolidamento esplicito del tempo Manuali e il completamento degli altri aggiornamenti documentali, devono essere inseriti nel DOC-010:
 
 - gli intervalli di sviluppo;
 - gli intervalli Manuali;
@@ -1771,6 +1837,8 @@ Dopo la chiusura della fase Manuali e il completamento degli altri aggiornamenti
 L'aggiornamento deve rispettare le regole di calcolo e quadratura definite nel Capitolo 3.
 
 Non devono essere duplicati dati già contabilizzati.
+
+Il consuntivo consolidato non viene modificato per includere automaticamente il tempo delle successive operazioni tecniche di chiusura. Eventuali attività aggiuntive o rettifiche devono essere gestite esplicitamente secondo le regole del presente registro e del workflow ufficiale.
 
 ### 8.10 Sessioni senza fase Manuali
 
@@ -1818,7 +1886,11 @@ La sessione Manuali S035 è la prima sessione documentale durante la quale viene
 
 La fase Manuali S035 è stata dichiarata conclusa il **18/10/2026 alle 21:38**. Il consuntivo alla chiusura è riportato nei paragrafi 6.27 e 9.4.
 
-L’omissione dell’aggiornamento finale del DOC-010 ha richiesto una regolarizzazione documentale successiva, avviata il **18/10/2026 alle 21:47**. L’attività è stata dichiarata conclusa alle **22:07**, per 20 min lordi e, in assenza di pause comunicate, 20 min netti. È registrata separatamente al paragrafo 6.28. La versione 1.1 ha ricevuto approvazione del contenuto, mentre restano da confermare la verifica tecnica e la pubblicazione.
+L'omissione dell'aggiornamento finale del DOC-010 ha richiesto una regolarizzazione documentale successiva, avviata il **18/10/2026 alle 21:47**. L'attività è stata dichiarata conclusa alle **22:07**, per 20 min lordi e, in assenza di pause comunicate, 20 min netti. È registrata separatamente al paragrafo 6.28.
+
+La versione 1.1 del DOC-010 è stata registrata nel commit Git `358099b` del 18/10/2026. Il commit risulta presente nella cronologia del riferimento `origin/main` conosciuto localmente, secondo la verifica effettuata durante Manuali S036. Tale controllo non costituisce una nuova verifica in tempo reale dello stato remoto di GitHub.
+
+La revisione 1.2 recepisce il consolidamento temporale della sessione S036 e l'allineamento delle disposizioni operative al DOC-009 v2.7.
 
 ## 9. Riepilogo cumulativo e stato del registro
 
@@ -1901,15 +1973,20 @@ Deve sempre risultare:
 
 ### 9.6 Tabella dei progressivi successivi
 
-La tabella conserva la baseline, il consuntivo della S035 alla chiusura e l’integrazione documentale successiva, senza attribuire a quest’ultima un nuovo codice di sessione non dichiarato.
+La tabella conserva la baseline storica S001–S034, il consuntivo della S035 alla chiusura, la regolarizzazione documentale successiva e il consuntivo consolidato della S036.
 
 | Sessione | Sviluppo netto | Manuali netto | Totale sessione | Progressivo sviluppo | Progressivo Manuali | Progressivo totale |
 |---|---:|---:|---:|---:|---:|---:|
 | Baseline S001–S034 | 208 h 34 | 71 h 33 | 280 h 07 | 208 h 34 | 71 h 33 | 280 h 07 |
 | S035 — alla chiusura del 18/10 alle 21:38 | 2 h 23 | 5 h 48 | 8 h 11 | 210 h 57 | 77 h 21 | 288 h 18 |
 | Regolarizzazione DOC-010 post-chiusura S035 (senza nuovo codice sessione) | 0 h 00 | 0 h 20 | 0 h 20 | 210 h 57 | 77 h 41 | 288 h 38 |
+| **S036 — consolidamento Manuali del 21/10 alle 22:39** | **6 h 34** | **6 h 29** | **13 h 03** | **217 h 31** | **84 h 10** | **301 h 41** |
 
-Le sessioni successive devono essere aggiunte in ordine cronologico. La riga di regolarizzazione rappresenta un’attività documentale distinta e non istituisce un identificativo di sessione.
+La regolarizzazione successiva alla S035 rappresenta un'attività documentale distinta e non istituisce un nuovo identificativo di sessione.
+
+Il consuntivo della S036 comprende esclusivamente i tempi consolidati delle fasi Sviluppo e Manuali. Le successive operazioni tecniche di chiusura sono tracciate secondo il DOC-009 v2.7.
+
+Le sessioni successive devono essere aggiunte in ordine cronologico.
 
 Non devono essere create righe definitive per sessioni ancora aperte.
 
@@ -1928,9 +2005,13 @@ Eventuali discrepanze devono essere risolte prima del consolidamento oppure dich
 
 ### 9.8 Stato di emissione e aggiornamento
 
-Il DOC-010 assume la funzione di registro autorevole dei tempi di lavoro soltanto dopo la sua emissione ufficiale.
+Il DOC-010 costituisce il registro ufficiale e autorevole dei tempi di lavoro del progetto Orto Smart a partire dalla sua emissione iniziale.
 
-La versione 1.0 è stata emessa come registro ufficiale. Il contenuto della versione 1.1 è stato **approvato**. La sua sostituzione alla versione 1.0 nel repository rimane subordinata ai controlli tecnici finali e alla conferma di commit e push.
+La versione 1.0 ha costituito la prima emissione ufficiale.
+
+La versione 1.1, comprendente il consuntivo S035 e la successiva regolarizzazione documentale di 20 minuti, è stata registrata nel commit Git `358099b` del 18/10/2026. La presenza del commit nella cronologia del riferimento `origin/main` è stata verificata localmente durante Manuali S036; ciò non equivale a una nuova verifica in tempo reale dello stato remoto.
+
+La versione 1.2 recepisce il consuntivo S036 e l'allineamento al DOC-009 v2.7. La sua verifica tecnica finale e la pubblicazione nel repository devono essere completate e confermate nell'ambito della chiusura documentale S036.
 
 Dopo l'emissione:
 

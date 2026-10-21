@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 2.5
+**Versione:** 2.6
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 15/10/2026
+**Ultimo aggiornamento:** 21/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 2.5 |
+| Versione | 2.6 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 15/10/2026 |
+| Ultimo aggiornamento | 21/10/2026 |
 
 ---
 
@@ -52,6 +52,7 @@
 | 2.3 | 01/10/2026 | Aggiornamento con la Sessione S031: integrazione Flutter operativa del Catalogo Agronomico globale nelle Impostazioni, gestione dello stato e dell'inizializzazione controllata della Catalog Authority, esposizione delle capability server-side, consultazione delle colture globali e delle cultivar con caricamento on demand, percorso gerarchico unico `Catalogo Agronomico → Coltura → Cultivar`, eliminazione del precedente accesso autonomo `Impostazioni → Varietà`, gestione degli stati di caricamento, vuoto, errore e retry, mantenimento dell'authority backend e definizione degli incrementi FUTURE verso la gestione operativa del Catalogo |
 | 2.4 | 06/10/2026 | Aggiornamento con la Sessione S032: verifica e consolidamento del contratto della tassonomia botanica globale con rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA` e `UNRANKED`, mantenimento della Cultivar come identità agronomica separata dalla tassonomia, supporto alla classificazione parziale mediante `parent_taxon_id`, integrazione Flutter dei Write Path autoritativi di Tassonomia, Crop e Cultivar, collegamento opzionale Crop → Taxon, applicazione delle capability della Catalog Authority, concorrenza ottimistica mediante `row_version`, gestione sicura di `version_conflict` ed esiti incerti mediante rilettura autoritativa, completamento della UI della Classificazione botanica e verifica finale con `flutter analyze` senza problemi e 1077/1077 test superati; nessuna nuova migration introdotta nella Sessione S032 |
 | 2.5 | 15/10/2026 | Aggiornamento con la Sessione S034: documentazione della correzione della gestione degli errori di congelamento semantico nelle RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value`, riconoscimento selettivo di `SQLSTATE 55000` mediante confronto esatto del messaggio del trigger, propagazione delle eccezioni non riconosciute; migration applicata esclusivamente al database locale, verifiche statiche e autorizzative superate, test dinamico specifico non eseguito e applicazione remota ancora aperta |
+| 2.6 | 21/10/2026 | Aggiornamento con la Sessione S036: documentazione delle verifiche SQL locali di regressione relative alla gestione selettiva di SQLSTATE 55000 nelle RPC del Catalog Registry; registrazione dei risultati effettivamente ottenuti, conservazione del limite storico dei test S034 e conferma che la migration correttiva non risulta applicata al database remoto. |
 
 ---
 
@@ -4594,6 +4595,34 @@ Non è stato eseguito un test dinamico specifico del ramo di eccezione `SQLSTATE
 La migration S034 non è stata applicata al progetto Supabase remoto durante la sessione.
 
 L'eventuale verifica dinamica e l'applicazione remota rimangono attività aperte, da valutare nelle successive sessioni di sviluppo; non devono essere considerate già completate o approvate.
+
+##### Verifiche successive S036 — Regressione SQL locale del Catalog Registry
+
+La Sessione S036, svolta dal **18 al 21/10/2026**, ha introdotto ed eseguito verifiche SQL locali di regressione relative alla correzione del congelamento semantico implementata nella S034.
+
+Le verifiche hanno interessato le tre RPC autoritative:
+
+- `public.update_measurement_unit`;
+- `public.update_agronomic_parameter`;
+- `public.update_parameter_enum_value`.
+
+La regressione ha riguardato anche il comportamento della gestione selettiva dell'eccezione PostgreSQL `SQLSTATE 55000`, introdotta dalla migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`.
+
+**Esito delle verifiche**
+
+- **6/6 verifiche SQL locali superate**.
+- Esecuzione con rollback, senza persistenza dei dati di prova.
+- La migration correttiva S034 risulta applicata al database Supabase locale.
+
+**Limiti e stato del database remoto**
+
+Le verifiche S036 non costituiscono un collaudo integrato di scrittura Flutter–Supabase remoto.
+
+La migration correttiva S034 non risulta applicata al database Supabase remoto. Nessun deployment remoto viene attribuito alla S036.
+
+L'eventuale applicazione remota e il relativo collaudo richiedono verifiche e approvazioni specifiche.
+
+Le informazioni riportate nella precedente sottosezione «Stato di implementazione e verifica S034» rimangono valide come consuntivo storico della S034: il test dinamico specifico non era stato eseguito durante quella sessione ed è stato affrontato successivamente nella S036.
 
 #### Ingestion
 

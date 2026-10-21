@@ -5,14 +5,14 @@
 
 # Workflow Operativo
 
-**Versione:** 2.5
+**Versione:** 2.7
 **Stato:** Approvato
 
 **Autore:** Renzo Siega  
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 17/10/2026
+**Ultimo aggiornamento:** 21/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -24,12 +24,12 @@
 |--------|--------|
 | Documento | DOC-009 |
 | Titolo | Workflow Operativo |
-| Versione | 2.5 |
+| Versione | 2.7 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 17/10/2026 |
+| Ultimo aggiornamento | 21/10/2026 |
 
 ---
 
@@ -44,6 +44,8 @@
 | 2.3 | 03/09/2026 | Manutenzione straordinaria del Workflow Operativo: correzione della data di prima emissione sulla base della prima registrazione verificata nella cronologia Git |
 | 2.4 | 13/10/2026 | Formalizzazione della separazione tra sviluppo e Manuali, dell'avvio dichiarato della fase documentale e del protocollo di passaggio e ricezione tra conversazioni; aggiornamento della Fase 6, della checklist e del diagramma operativo |
 | 2.5 | 17/10/2026 | Formalizzazione della procedura controllata di compilazione e revisione documentale tramite PowerShell, con approvazione preventiva, verifiche, backup e protezione dalle sostituzioni ambigue |
+| 2.6 | 21/10/2026 | Manuali S036: rafforzamento della procedura controllata di revisione documentale; obbligo di sostituzione integrale di capitoli, sottocapitoli o sotto-sottocapitoli, approvazione preventiva del testo completo e verifiche di integrità successive |
+| 2.7 | 21/10/2026 | Manuali S036: aggiornamento della procedura documentale con comandi PowerShell brevi e verificati progressivamente, preparazione su copia temporanea, controlli di sicurezza, backup e autorizzazione separata alla sostituzione definitiva. |
 
 ---
 
@@ -383,23 +385,131 @@ Tra i documenti che possono richiedere aggiornamento rientrano, a titolo esempli
 
 ### Procedura controllata di compilazione e revisione documentale
 
-Le modifiche ai documenti ufficiali di Orto Smart devono essere eseguite esclusivamente mediante comandi PowerShell predisposti dall'assistente e preventivamente approvati dall'utente. Non sono ammesse modifiche mediante copia-incolla manuale nel documento.
+Le modifiche ai documenti ufficiali di Orto Smart devono essere eseguite esclusivamente mediante comandi PowerShell predisposti dall'assistente e preventivamente approvati dall'utente. Non sono ammesse modifiche mediante copia-incolla manuale direttamente nel documento.
 
-Ogni intervento deve essere limitato al contenuto effettivamente interessato:
+Ogni intervento deve rispettare una procedura controllata, articolata nelle seguenti attività:
 
-- per revisioni sostanziali è ammessa la sostituzione controllata di capitoli o sottocapitoli completi;
-- per correzioni limitate si interviene esclusivamente sul paragrafo, sulla frase o sulle parole interessate;
-- non devono essere riscritte parti del documento estranee alla modifica.
+1. **Individuazione:** identificare il documento e la sezione strutturale interessata.
+2. **Lettura preventiva:** leggere integralmente la sezione esistente e verificare se le informazioni richieste siano già presenti e corrette.
+3. **Valutazione:** modificare esclusivamente ciò che risulta effettivamente necessario, evitando duplicazioni e revisioni non giustificate.
+4. **Preparazione:** predisporre il testo Markdown completo della sezione strutturale da sostituire, conservando tutti i contenuti ancora validi.
+5. **Approvazione:** presentare il testo completo all'utente e ottenere la sua approvazione esplicita prima di eseguire la modifica.
+6. **Verifica dello strumento:** esaminare il comando o lo script PowerShell destinato all'esecuzione, verificarne origine, contenuto, integrità e compatibilità con le protezioni Windows.
+7. **Simulazione:** eseguire un controllo preliminare di sola lettura, senza modificare documenti né creare backup, e verificare il risultato prima di autorizzare la scrittura.
+8. **Esecuzione:** applicare la sostituzione integrale della sezione approvata esclusivamente mediante un comando PowerShell controllato, dopo il superamento dei controlli preliminari.
+9. **Verifica:** rileggere la sezione aggiornata, controllare le differenze Git e accertare che nessun contenuto estraneo sia stato modificato.
+10. **Conferma:** considerare completato l'intervento soltanto dopo il superamento delle verifiche, prima di procedere alla modifica successiva.
 
-Prima dell'esecuzione, lo script deve verificare l'esistenza del documento, il contenuto atteso e l'univocità delle sostituzioni. In presenza di contenuti inattesi, riferimenti ambigui o controlli non superati, l'operazione deve interrompersi senza applicare modifiche.
+L'unità minima di sostituzione documentale è una **sezione strutturale completa**, identificata come capitolo, sottocapitolo o sotto-sottocapitolo.
 
-Quando necessario, deve essere creato un backup preventivo, con nome univoco e senza sovrascrivere backup esistenti.
+Non sono ammesse sostituzioni isolate di singole parole, frasi, righe o paragrafi, neppure per correzioni di lieve entità. In tali casi deve essere riscritta e sostituita integralmente la più piccola sezione strutturale completa che contiene il testo da correggere.
+
+La sostituzione di una sezione deve preservare tutti i contenuti validi al suo interno e lasciare invariati i capitoli, sottocapitoli e sotto-sottocapitoli estranei all'intervento.
+
+L'approvazione deve riferirsi al contenuto effettivo della sezione completa da inserire. L'approvazione generale del piano di aggiornamento non sostituisce l'approvazione del testo definitivo.
+
+**Sicurezza degli script PowerShell**
+
+La sicurezza del sistema operativo ha priorità rispetto alla comodità di esecuzione degli script.
+
+Non devono essere utilizzati automaticamente `Unblock-File`, modifiche alla Execution Policy, disattivazioni dei controlli antivirus o altre procedure volte a rimuovere o aggirare le protezioni Windows.
+
+L'eventuale necessità di una procedura eccezionale deve essere motivata, valutata e approvata esplicitamente prima dell'esecuzione. L'approvazione della modifica documentale non costituisce autorizzazione implicita a modificare le impostazioni di sicurezza.
+
+Quando viene utilizzato uno script scaricato, devono essere controllati, per quanto applicabile, il percorso effettivo, l'origine, il contenuto completo, l'integrità del file e l'eventuale firma digitale.
+
+Un hash crittografico consente di confrontare l'integrità di due copie rispetto a un riferimento attendibile, ma non dimostra da solo che il codice sia sicuro. Una firma digitale valida può attestare l'identità del firmatario e l'integrità del contenuto firmato, ma non garantisce l'assenza di comportamenti dannosi. Il superamento del controllo sintattico non equivale a una verifica di sicurezza.
+
+Devono essere privilegiate modalità operative compatibili con le protezioni Windows già attive. Prima di adottare una modalità alternativa, devono esserne verificati concretamente il funzionamento e le implicazioni di sicurezza nell'ambiente utilizzato.
+
+Se non è disponibile una modalità di esecuzione adeguatamente verificata, l'operazione deve essere sospesa senza ridurre le protezioni.
+
+**Individuazione dinamica delle sezioni**
+
+Le intestazioni Markdown costituiscono i riferimenti strutturali per individuare il punto di intervento e delimitare il contenuto da sostituire.
+
+Prima di ogni operazione di lettura, simulazione o scrittura che dipenda dalla posizione di una sezione, lo script deve individuare nuovamente le intestazioni nel file corrente.
+
+Non devono essere riutilizzati numeri di riga, indici o posizioni ricavati prima di una modifica precedente. L'inserimento o la rimozione di testo può infatti spostare le sezioni successive e rendere obsoleti i riferimenti precedentemente acquisiti.
+
+Per ogni sostituzione devono essere individuate le intestazioni che delimitano la sezione interessata, verificandone:
+
+- la presenza e l'univocità;
+- l'ordine strutturale corretto;
+- la corrispondenza con il documento e il contenuto effettivamente verificati;
+- l'assenza di ambiguità nella delimitazione.
+
+La lettura del blocco deve utilizzare i riferimenti appena verificati. Dopo ogni modifica, prima di procedere a un intervento successivo, le intestazioni devono essere individuate nuovamente.
+
+I numeri di riga possono essere utilizzati per agevolare la consultazione, ma non devono costituire riferimenti permanenti per operazioni successive.
+
+Se le intestazioni non vengono riconosciute, risultano duplicate oppure i diversi metodi di individuazione restituiscono risultati incoerenti, l'operazione deve interrompersi. Non è consentito compensare automaticamente l'anomalia utilizzando riferimenti precedenti o procedendo per tentativi senza aver prima verificato la causa.
+
+**Controlli preliminari e simulazione**
+
+Prima dell'esecuzione, lo script PowerShell deve verificare:
+
+- l'esistenza e il percorso esatto del documento interessato;
+- la presenza e l'univocità dei delimitatori della sezione;
+- la corrispondenza del contenuto originale con quello preventivamente verificato;
+- l'assenza di condizioni ambigue che possano determinare sostituzioni errate;
+- la codifica e le terminazioni di riga del documento originale;
+- la possibilità di produrre il contenuto finale previsto senza modificare sezioni estranee.
+
+Se uno qualsiasi dei controlli non viene superato, l'operazione deve interrompersi senza modificare il documento.
+
+Per gli interventi automatizzati di scrittura deve essere disponibile una modalità di simulazione esplicita, ad esempio `-CheckOnly`, che esegua i controlli e prepari il risultato senza scrivere file né creare backup.
+
+Il risultato della simulazione deve essere esaminato prima di autorizzare separatamente l'esecuzione effettiva. Il superamento della simulazione non autorizza automaticamente la scrittura.
+
+**Esecuzione mediante comandi PowerShell progressivi**
+
+Quando la complessità dell'intervento lo richiede, l'aggiornamento documentale deve essere suddiviso in comandi PowerShell brevi e verificabili singolarmente, eseguiti nel terminale integrato di Visual Studio Code.
+
+Il testo Markdown da inserire deve essere incorporato direttamente nei comandi PowerShell, preferibilmente mediante blocchi multilinea, senza richiedere il download di file esterni.
+
+Se necessario, la preparazione del testo può essere suddivisa in più comandi, purché la sostituzione della sezione strutturale avvenga in un'unica operazione completa.
+
+La suddivisione riguarda esclusivamente le operazioni tecniche: rimane obbligatoria la sostituzione integrale della più piccola sezione strutturale interessata, senza modifiche isolate a parole, frasi o paragrafi.
+
+I blocchi Markdown contenenti delimitatori interni, come i recinti di codice, devono essere gestiti in modo da non interrompere involontariamente il comando PowerShell che li contiene. Se il testo non viene acquisito integralmente, la preparazione deve essere interrotta e verificata prima di qualsiasi scrittura.
+
+Dopo ogni comando deve essere controllato il risultato effettivo prima di procedere al successivo. Non è consentito interpretare automaticamente un risultato inatteso come conferma di successo, né ripetere alla cieca un comando fallito.
+
+Le modifiche devono essere preparate preferibilmente su una copia temporanea del documento, mantenendo invariato l'originale durante la lavorazione.
+
+Una volta completate le modifiche sulla copia temporanea, devono essere verificati il contenuto complessivo, la corrispondenza con il testo approvato, la codifica, le terminazioni di riga e l'assenza di modifiche estranee.
+
+Soltanto dopo tali verifiche, la creazione di un backup preventivo univoco e l'autorizzazione esplicita dell'utente, la copia verificata può sostituire il documento originale.
+
+La preparazione della copia temporanea e il superamento dei controlli intermedi non costituiscono autorizzazione alla sostituzione definitiva.
+
+**Esecuzione e conservazione dei dati**
+
+Prima di ogni modifica effettiva deve essere creato un backup preventivo con nome univoco, senza sovrascrivere backup esistenti.
 
 Le modifiche devono preservare la codifica del documento e le terminazioni di riga originali, evitando alterazioni involontarie.
 
-Dopo l'intervento devono essere verificati il contenuto aggiornato, le differenze Git, la coerenza dei metadati e l'assenza di modifiche estranee.
+La scrittura deve essere limitata al documento e alle sezioni espressamente autorizzate. Non devono essere eseguite operazioni di rete, comandi Git di modifica o interventi su altri file se non separatamente previsti e approvati.
+
+Il completamento della scrittura deve essere seguito da una verifica del contenuto effettivamente salvato rispetto al risultato atteso.
+
+**Verifica indipendente e autorizzazioni Git**
+
+Dopo ogni intervento devono essere verificati:
+
+- il contenuto integrale della sezione aggiornata;
+- la corrispondenza con il testo approvato;
+- le differenze Git, mediante `git diff` e `git diff --check`;
+- l'integrità delle sezioni non interessate;
+- la coerenza di titoli, numerazione, riferimenti e metadati;
+- la presenza e la conservazione del backup previsto.
+
+La verifica successiva alla scrittura effettuata dallo script non sostituisce il controllo indipendente delle modifiche mediante Git.
 
 Gli script devono essere predisposti in modo da evitare duplicazioni inutili del testo tra la conversazione e il codice PowerShell.
+
+I backup devono essere conservati fino alla conclusione delle verifiche e alla decisione esplicita sulla loro eventuale gestione.
 
 L'approvazione della modifica documentale non costituisce automaticamente autorizzazione al commit o al push, che richiedono i controlli previsti dal workflow Git.
 
@@ -639,6 +749,14 @@ I controlli devono essere applicati in funzione delle attività effettivamente s
 - [ ] Distinte chiaramente attività completate, pianificate e future
 - [ ] Completata la verifica incrociata della documentazione
 - [ ] Verificati alla fonte i dati numerici e i riferimenti Git
+- [ ] Approvato il testo completo delle sezioni documentali da sostituire
+- [ ] Verificati origine, contenuto e integrità degli eventuali script PowerShell
+- [ ] Mantenute attive le protezioni Windows, senza sblocchi o modifiche automatiche alle impostazioni di sicurezza
+- [ ] Superata la simulazione di sola lettura prima della scrittura
+- [ ] Creati e conservati i backup preventivi
+- [ ] Verificate codifica e terminazioni di riga originali
+- [ ] Controllate indipendentemente le modifiche mediante `git diff` e `git diff --check`
+- [ ] Confermata l'assenza di modifiche estranee alle sezioni approvate
 
 ### Tempi
 

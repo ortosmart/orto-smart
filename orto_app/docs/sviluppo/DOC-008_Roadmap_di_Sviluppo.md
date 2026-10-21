@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 2.7
+**Versione:** 2.8
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 17/10/2026
+**Ultimo aggiornamento:** 21/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 2.7 |
+| Versione | 2.8 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 17/10/2026 |
+| Ultimo aggiornamento | 21/10/2026 |
 
 ---
 
@@ -60,6 +60,7 @@
 | 2.5 | 06/10/2026 | Aggiornamento dopo la Sessione S032: ricognizione e consolidamento del contratto backend del Catalogo Agronomico, verifica della tassonomia botanica globale con rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA` e `UNRANKED`, conferma della Cultivar come identità agronomica separata, integrazione Flutter dei Write Path di Tassonomia, Crop e Cultivar, collegamento opzionale `Crop → Taxon`, completamento della UI della Classificazione botanica, gestione della Catalog Authority, concorrenza ottimistica mediante `row_version`, rilettura autoritativa su `version_conflict` ed esiti incerti e verifica finale con `flutter analyze` senza problemi e 1077/1077 test superati; nessuna nuova migration S032 e riallineamento della roadmap futura allo stato effettivamente raggiunto |
 | 2.6 | 12/10/2026 | Aggiornamento dopo le Sessioni S033/S033B: completamento della Fase A Flutter dei Registri Agronomici, HUB e pagine dedicate a Classificazione botanica e Colture/Cultivar, verifica con 1107/1107 test Flutter superati e `flutter analyze` senza problemi; ricognizione statica di 21/21 RPC degli ulteriori Registri Agronomici e audit locale dei Write Path di `plantings`, favorevole nel perimetro esaminato e senza correzioni immediate; aggiornamento delle attività FUTURE e registrazione dell'obiettivo iniziale approvato per la S034, non ancora iniziata |
 | 2.7 | 17/10/2026 | Aggiornamento dopo S034 e S035: correzione locale SQLSTATE 55000 nel Catalog Registry, applicata al database locale e non al remoto; integrazione Flutter delle Finalità di raccolta, 42 test mirati superati e `flutter analyze` senza problemi; aggiornamento dello stato dei Registri Agronomici e delle verifiche aperte, senza assegnazioni automatiche alla sessione successiva |
+| 2.8 | 21/10/2026 | Aggiornamento dopo la Sessione S036: protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta; sei test SQL locali di regressione del Catalog Registry superati; `flutter analyze` senza problemi e 1.292 test Flutter superati; aggiornamento delle verifiche ancora aperte, senza assegnazioni automatiche alla sessione successiva. |
 
 ---
 
@@ -413,6 +414,26 @@ Le operazioni di scrittura sono condizionate dalla capability applicativa `canMa
 Le verifiche S035 hanno superato **30 test** della pagina Finalità di raccolta e **12 test** della pagina Catalogo Agronomico, per **42 test Flutter mirati**, oltre a `flutter analyze` senza problemi. Non è stato eseguito un collaudo integrato completo Flutter–Supabase. Nessuna migration SQL o modifica del database è stata introdotta in S035. Commit tecnico: `9024e2f0c5f30052371aa8264fa1a5b2ef283efe`.
 
 I sei ulteriori Registri Agronomici diversi dalle Finalità di raccolta restano da valutare per l'integrazione Flutter. Le verifiche ancora aperte non sono assegnate automaticamente a una sessione futura.
+
+### Consolidamento tecnico S036 — Finalità di raccolta e Catalog Registry
+
+La Sessione S036, conclusa nella fase di sviluppo il **21/10/2026 alle 14:36**, ha consolidato il comportamento Flutter delle Finalità di raccolta e verificato localmente la correzione SQL del Catalog Registry introdotta nella S034.
+
+A livello Flutter è stata introdotta una protezione contro le richieste duplicate di attivazione e disattivazione durante un'operazione già in corso. L'intervento riduce il rischio di invii ripetuti, senza sostituire i controlli autoritativi del backend. Commit: `b250b49`.
+
+Sono stati inoltre eseguiti test SQL di regressione relativi alla gestione di `SQLSTATE 55000` nelle tre RPC `public.update_measurement_unit`, `public.update_agronomic_parameter` e `public.update_parameter_enum_value`. Le **sei verifiche su sei sono state superate** nell'ambiente Supabase locale, con rollback delle operazioni di test e senza residui rilevati. Commit: `923c035`.
+
+Le verifiche Flutter finali hanno prodotto:
+
+| Verifica | Esito |
+|---|---|
+| `flutter analyze` | Nessun problema rilevato |
+| Suite automatica Flutter | 1.292 test superati |
+
+I risultati confermano il superamento dei controlli eseguiti nel rispettivo perimetro. **La migration correttiva S034 non risulta applicata al database remoto** e non è stato completato un collaudo integrato di scrittura Flutter–Supabase remoto.
+
+La S036 non ha assegnato automaticamente nuovi interventi alle sessioni successive.
+
 ## 3.2 Gestione orto
 
 | Funzionalità | Stato |
@@ -1854,19 +1875,28 @@ La chiusura della fase Manuali S033/S033B rimane distinta dall'avvio della S034.
 
 Il completamento della documentazione non determina automaticamente l'inizio della nuova sessione di sviluppo.
 
-### Quadro operativo aggiornato dopo S035 — Nessuna assegnazione automatica
+### Quadro operativo aggiornato dopo S036 — Nessuna assegnazione automatica
 
-Lo sviluppo S035 si è concluso il **16/10/2026**. La gestione Flutter delle Finalità di raccolta è implementata e verificata mediante test Flutter mirati; non risulta ancora collaudata end-to-end con Supabase.
+Lo sviluppo S036 si è concluso il **21/10/2026 alle 14:36**. La gestione Flutter delle Finalità di raccolta, introdotta nella S035, è stata consolidata mediante la protezione dalle richieste duplicate di attivazione/disattivazione.
 
-Restano questioni aperte da valutare in sede di sviluppo ufficiale, previa verifica della baseline effettiva:
+La S036 ha inoltre completato **sei test SQL locali di regressione su sei** per la gestione di `SQLSTATE 55000` nelle tre RPC del Catalog Registry interessate dalla correzione S034. Pertanto, il test dinamico specifico precedentemente indicato come aperto risulta eseguito e superato **nel perimetro locale verificato**.
 
-- collaudo integrato Flutter–Supabase della gestione delle Finalità di raccolta;
-- test dinamico specifico del ramo `SQLSTATE 55000` corretto nella S034;
-- eventuale applicazione al database remoto della migration S034, non eseguita durante quella sessione;
+Le verifiche Flutter finali hanno superato `flutter analyze` e **1.292 test automatici**.
+
+Restano questioni aperte, da valutare nelle future sessioni ufficiali previa verifica della baseline effettiva:
+
+- collaudo integrato Flutter–Supabase remoto della gestione delle Finalità di raccolta;
+- eventuale applicazione al database remoto della migration correttiva S034 relativa a `SQLSTATE 55000`;
+- verifica del comportamento remoto dopo un'eventuale applicazione della migration;
 - progettazione e integrazione progressiva degli altri sei Registri Agronomici Flutter;
-- ulteriori attività FUTURE del Catalogo e dell'orto già censite nelle sezioni precedenti.
+- ulteriori attività FUTURE del Catalogo Agronomico e della gestione dell'orto già censite nelle sezioni precedenti.
 
-La S034 è conclusa e documentata; il testo relativo al suo obiettivo iniziale e alle condizioni di avvio, riportato sopra, costituisce una registrazione storica e non istruzioni operative correnti. Nessuna delle attività elencate è automaticamente approvata o assegnata alla S036. La nuova sessione richiederà apertura esplicita, CHECKPOINT DI RICEZIONE e decisioni autonome fondate sullo stato reale del progetto.
+I risultati positivi dei test locali non costituiscono prova di deployment remoto né di collaudo integrato completo.
+
+Le sezioni storiche relative all'obiettivo iniziale e alle condizioni di avvio della S034 rimangono documentazione delle decisioni precedenti, non istruzioni operative correnti.
+
+**Nessuna attività è automaticamente approvata o assegnata alla S037.** L'eventuale nuova sessione di sviluppo richiederà apertura esplicita, CHECKPOINT DI RICEZIONE e decisioni autonome fondate sullo stato reale del progetto.
+
 ### Vincoli permanenti
 
 Rimangono validi i principi di sicurezza e coerenza progettuale:
