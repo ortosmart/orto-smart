@@ -47,6 +47,147 @@ Widget _testApp(
 
 void main() {
   group('HarvestPurposePage - attivazione stato', () {
+    testWidgets('impedisce richieste ripetute durante attivazione', (
+      tester,
+    ) async {
+      var rpcCalls = 0;
+      final pendingRpc = Completer<dynamic>();
+
+      final repository = HarvestPurposeRepository.withProviders(
+        ({bool activeOnly = true}) async {
+          expect(activeOnly, isFalse);
+
+          return [
+            _purpose(
+              id: 'purpose-2',
+              code: 'DONAZIONE',
+              name: 'Donazione',
+              isActive: false,
+            ),
+          ];
+        },
+        (functionName, parameters) {
+          rpcCalls++;
+          expect(functionName, 'set_harvest_purpose_active');
+          expect(parameters['target_harvest_purpose_id'], 'purpose-2');
+          expect(parameters['expected_row_version'], 1);
+          expect(parameters['context_is_active'], isTrue);
+
+          return pendingRpc.future;
+        },
+      );
+
+      await tester.pumpWidget(_testApp(repository));
+      await tester.pumpAndSettle();
+
+      final toggleFinder = find.byTooltip('Attiva finalità');
+
+      expect(toggleFinder, findsOneWidget);
+
+      await tester.tap(toggleFinder);
+      await tester.pump();
+
+      expect(rpcCalls, 1);
+
+      final disabledButton = tester.widget<IconButton>(
+        find.ancestor(of: toggleFinder, matching: find.byType(IconButton)),
+      );
+      expect(disabledButton.onPressed, isNull);
+
+      await tester.tap(toggleFinder, warnIfMissed: false);
+      await tester.pump();
+
+      expect(rpcCalls, 1);
+
+      pendingRpc.complete({
+        'status': 'active_changed',
+        'harvest_purpose_id': 'purpose-2',
+        'is_active': true,
+        'row_version': 2,
+        'updated_at': '2026-10-16T10:05:00Z',
+      });
+
+      await tester.pumpAndSettle();
+
+      expect(rpcCalls, 1);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('impedisce richieste ripetute durante disattivazione', (
+      tester,
+    ) async {
+      var rpcCalls = 0;
+      final pendingRpc = Completer<dynamic>();
+
+      final repository = HarvestPurposeRepository.withProviders(
+        ({bool activeOnly = true}) async {
+          expect(activeOnly, isFalse);
+
+          return [
+            _purpose(
+              id: 'purpose-1',
+              code: 'CONSUMO',
+              name: 'Consumo familiare',
+              isActive: true,
+            ),
+          ];
+        },
+        (functionName, parameters) {
+          rpcCalls++;
+          expect(functionName, 'set_harvest_purpose_active');
+          expect(parameters['target_harvest_purpose_id'], 'purpose-1');
+          expect(parameters['expected_row_version'], 1);
+          expect(parameters['context_is_active'], isFalse);
+
+          return pendingRpc.future;
+        },
+      );
+
+      await tester.pumpWidget(_testApp(repository));
+      await tester.pumpAndSettle();
+
+      final toggleFinder = find.byTooltip('Disattiva finalità');
+
+      expect(toggleFinder, findsOneWidget);
+
+      await tester.tap(toggleFinder);
+      await tester.pump();
+
+      expect(rpcCalls, 1);
+
+      final disabledButton = tester.widget<IconButton>(
+        find.ancestor(of: toggleFinder, matching: find.byType(IconButton)),
+      );
+      expect(disabledButton.onPressed, isNull);
+
+      await tester.tap(toggleFinder, warnIfMissed: false);
+      await tester.pump();
+
+      expect(rpcCalls, 1);
+
+      pendingRpc.complete({
+        'status': 'active_changed',
+        'harvest_purpose_id': 'purpose-1',
+        'is_active': false,
+        'row_version': 2,
+        'updated_at': '2026-10-16T10:05:00Z',
+      });
+
+      await tester.pumpAndSettle();
+
+      expect(rpcCalls, 1);
+
+      final enabledButton = tester.widget<IconButton>(
+        find.ancestor(
+          of: find.byTooltip('Disattiva finalità'),
+          matching: find.byType(IconButton),
+        ),
+      );
+      expect(enabledButton.onPressed, isNotNull);
+
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('attivazione riuscita aggiorna elenco e conferma', (
       tester,
     ) async {
@@ -151,49 +292,64 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets("errore tecnico mostra messaggio e mantiene la pagina utilizzabile", (
-      tester,
-    ) async {
-      var loadCalls = 0;
-      var rpcCalls = 0;
+    testWidgets(
+      "errore tecnico mostra messaggio e mantiene la pagina utilizzabile",
+      (tester) async {
+        var loadCalls = 0;
+        var rpcCalls = 0;
 
-      final repository = HarvestPurposeRepository.withProviders(
-        ({bool activeOnly = true}) async {
-          expect(activeOnly, isFalse);
-          loadCalls++;
+        final repository = HarvestPurposeRepository.withProviders(
+          ({bool activeOnly = true}) async {
+            expect(activeOnly, isFalse);
+            loadCalls++;
 
-          return [
-            _purpose(
-              id: 'purpose-1',
-              code: 'CONSUMO',
-              name: 'Consumo familiare',
-            ),
-          ];
-        },
-        (functionName, parameters) async {
-          rpcCalls++;
-          expect(functionName, 'set_harvest_purpose_active');
-          throw StateError('Errore RPC simulato');
-        },
-      );
+            return [
+              _purpose(
+                id: 'purpose-1',
+                code: 'CONSUMO',
+                name: 'Consumo familiare',
+              ),
+            ];
+          },
+          (functionName, parameters) async {
+            rpcCalls++;
+            expect(functionName, 'set_harvest_purpose_active');
+            throw StateError('Errore RPC simulato');
+          },
+        );
 
-      await tester.pumpWidget(_testApp(repository));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(_testApp(repository));
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Disattiva finalità'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Disattiva finalità'));
+        await tester.pumpAndSettle();
 
-      expect(rpcCalls, 1);
-      expect(loadCalls, 1);
-      expect(
-        find.text(
-          'Errore durante l’aggiornamento dello stato. Verificare e riprovare.',
-        ),
-        findsOneWidget,
-      );
-      expect(find.text('Consumo familiare'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
+        expect(rpcCalls, 1);
+        expect(loadCalls, 1);
+        expect(
+          find.text(
+            'Errore durante l’aggiornamento dello stato. Verificare e riprovare.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Consumo familiare'), findsOneWidget);
+
+        final toggleFinder = find.byTooltip('Disattiva finalità');
+
+        final enabledButton = tester.widget<IconButton>(
+          find.ancestor(of: toggleFinder, matching: find.byType(IconButton)),
+        );
+
+        expect(enabledButton.onPressed, isNotNull);
+
+        await tester.tap(toggleFinder);
+        await tester.pumpAndSettle();
+
+        expect(rpcCalls, 2);
+        expect(loadCalls, 1);
+        expect(tester.takeException(), isNull);
+      },
+    );
     testWidgets("active_dependents impedisce la disattivazione", (
       tester,
     ) async {
@@ -311,7 +467,10 @@ void main() {
 
       expect(rpcCalls, 1);
       expect(loadCalls, 1);
-      expect(find.text('I dati dell’operazione non sono validi.'), findsOneWidget);
+      expect(
+        find.text('I dati dell’operazione non sono validi.'),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     });
     testWidgets("forbidden non ricarica automaticamente l'elenco", (
@@ -418,10 +577,7 @@ void main() {
           expect(parameters['target_harvest_purpose_id'], 'purpose-1');
           expect(parameters['expected_row_version'], 1);
 
-          return {
-            'status': 'version_conflict',
-            'row_version': 2,
-          };
+          return {'status': 'version_conflict', 'row_version': 2};
         },
       );
 
@@ -562,9 +718,7 @@ void main() {
       expect(loadCalls, 1);
       expect(find.text('Modifica finalità di raccolta'), findsOneWidget);
       expect(
-        find.text(
-          'La finalità non è più disponibile. Aggiornare l’elenco.',
-        ),
+        find.text('La finalità non è più disponibile. Aggiornare l’elenco.'),
         findsOneWidget,
       );
       expect(find.text('Consumo familiare'), findsOneWidget);
@@ -750,9 +904,7 @@ void main() {
             _purpose(
               id: 'purpose-1',
               code: 'CONSUMO',
-              name: loadCalls == 1
-                  ? 'Consumo familiare'
-                  : 'Consumo domestico',
+              name: loadCalls == 1 ? 'Consumo familiare' : 'Consumo domestico',
               description: loadCalls == 1
                   ? 'Descrizione iniziale'
                   : 'Descrizione aggiornata',
@@ -1163,10 +1315,7 @@ void main() {
       );
       expect(createButton.onPressed, isNull);
 
-      expect(
-        find.byType(CircularProgressIndicator),
-        findsOneWidget,
-      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       pendingRpc.complete({'status': 'forbidden'});
       await tester.pumpAndSettle();
@@ -1220,60 +1369,56 @@ void main() {
     });
   });
   group('HarvestPurposePage - autorizzazioni gestione', () {
-    testWidgets(
-      'comandi di gestione visibili solo con autorizzazione',
-      (tester) async {
-        var rpcCalls = 0;
+    testWidgets('comandi di gestione visibili solo con autorizzazione', (
+      tester,
+    ) async {
+      var rpcCalls = 0;
 
-        final repository = HarvestPurposeRepository.withProviders(
-          ({bool activeOnly = true}) async {
-            expect(activeOnly, isFalse);
-            return [
-              _purpose(
-                id: 'purpose-1',
-                code: 'CONSUMO',
-                name: 'Consumo familiare',
-              ),
-            ];
-          },
-          (functionName, parameters) async {
-            rpcCalls++;
-            throw StateError('Scrittura RPC non prevista');
-          },
-        );
+      final repository = HarvestPurposeRepository.withProviders(
+        ({bool activeOnly = true}) async {
+          expect(activeOnly, isFalse);
+          return [
+            _purpose(
+              id: 'purpose-1',
+              code: 'CONSUMO',
+              name: 'Consumo familiare',
+            ),
+          ];
+        },
+        (functionName, parameters) async {
+          rpcCalls++;
+          throw StateError('Scrittura RPC non prevista');
+        },
+      );
 
-        await tester.pumpWidget(_testApp(repository));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(_testApp(repository));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Consumo familiare'), findsOneWidget);
-        expect(find.byTooltip('Modifica finalità'), findsOneWidget);
-        expect(find.byTooltip('Disattiva finalità'), findsOneWidget);
-        expect(rpcCalls, 0);
+      expect(find.text('Consumo familiare'), findsOneWidget);
+      expect(find.byTooltip('Modifica finalità'), findsOneWidget);
+      expect(find.byTooltip('Disattiva finalità'), findsOneWidget);
+      expect(rpcCalls, 0);
 
-        const readOnlyCapabilities = CatalogCapabilities(
-          canManageIdentity: false,
-          canIngest: true,
-          canReview: true,
-          canPublish: true,
-          rowVersion: 1,
-        );
+      const readOnlyCapabilities = CatalogCapabilities(
+        canManageIdentity: false,
+        canIngest: true,
+        canReview: true,
+        canPublish: true,
+        rowVersion: 1,
+      );
 
-        await tester.pumpWidget(
-          _testApp(
-            repository,
-            capabilities: readOnlyCapabilities,
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _testApp(repository, capabilities: readOnlyCapabilities),
+      );
+      await tester.pumpAndSettle();
 
-        expect(find.text('Consumo familiare'), findsOneWidget);
-        expect(find.byTooltip('Modifica finalità'), findsNothing);
-        expect(find.byTooltip('Disattiva finalità'), findsNothing);
-        expect(find.byTooltip('Attiva finalità'), findsNothing);
-        expect(rpcCalls, 0);
-        expect(tester.takeException(), isNull);
-      },
-    );
+      expect(find.text('Consumo familiare'), findsOneWidget);
+      expect(find.byTooltip('Modifica finalità'), findsNothing);
+      expect(find.byTooltip('Disattiva finalità'), findsNothing);
+      expect(find.byTooltip('Attiva finalità'), findsNothing);
+      expect(rpcCalls, 0);
+      expect(tester.takeException(), isNull);
+    });
   });
   group('HarvestPurposePage - lettura', () {
     testWidgets('mostra il caricamento iniziale', (tester) async {

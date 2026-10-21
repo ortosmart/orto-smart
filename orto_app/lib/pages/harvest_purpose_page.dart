@@ -22,6 +22,7 @@ class HarvestPurposePage extends StatefulWidget {
 class _HarvestPurposePageState extends State<HarvestPurposePage> {
   late final HarvestPurposeRepository _repository;
   late Future<List<HarvestPurpose>> _purposesFuture;
+  bool _changingActive = false;
 
   @override
   void initState() {
@@ -61,10 +62,8 @@ class _HarvestPurposePageState extends State<HarvestPurposePage> {
     final updated = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _EditHarvestPurposeDialog(
-        repository: _repository,
-        purpose: purpose,
-      ),
+      builder: (_) =>
+          _EditHarvestPurposeDialog(repository: _repository, purpose: purpose),
     );
 
     if (!mounted) return;
@@ -78,7 +77,11 @@ class _HarvestPurposePageState extends State<HarvestPurposePage> {
   }
 
   Future<void> _setPurposeActive(HarvestPurpose purpose) async {
-    if (!widget.capabilities.canManageIdentity) return;
+    if (!widget.capabilities.canManageIdentity || _changingActive) return;
+
+    setState(() {
+      _changingActive = true;
+    });
 
     try {
       final result = await _repository.setHarvestPurposeActive(
@@ -119,9 +122,9 @@ class _HarvestPurposePageState extends State<HarvestPurposePage> {
         _refresh();
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (_) {
       if (!mounted) return;
 
@@ -132,8 +135,15 @@ class _HarvestPurposePageState extends State<HarvestPurposePage> {
           ),
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _changingActive = false;
+        });
+      }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -214,7 +224,9 @@ class _HarvestPurposePageState extends State<HarvestPurposePage> {
                                     ? Icons.toggle_on_outlined
                                     : Icons.toggle_off_outlined,
                               ),
-                              onPressed: () => _setPurposeActive(purpose),
+                              onPressed: _changingActive
+                                  ? null
+                                  : () => _setPurposeActive(purpose),
                             ),
                           ],
                         )
@@ -306,8 +318,7 @@ class _CreateHarvestPurposeDialogState
       }
     } catch (_) {
       if (!mounted) return;
-      _errorMessage =
-          'Errore durante la creazione. Verificare e riprovare.';
+      _errorMessage = 'Errore durante la creazione. Verificare e riprovare.';
     } finally {
       if (mounted) {
         setState(() {
@@ -346,9 +357,7 @@ class _CreateHarvestPurposeDialogState
               const SizedBox(height: 12),
               Text(
                 _errorMessage!,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
             if (_saving) ...[
@@ -386,8 +395,7 @@ class _EditHarvestPurposeDialog extends StatefulWidget {
       _EditHarvestPurposeDialogState();
 }
 
-class _EditHarvestPurposeDialogState
-    extends State<_EditHarvestPurposeDialog> {
+class _EditHarvestPurposeDialogState extends State<_EditHarvestPurposeDialog> {
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
 
@@ -464,8 +472,7 @@ class _EditHarvestPurposeDialogState
       }
     } catch (_) {
       if (!mounted) return;
-      _errorMessage =
-          'Errore durante la modifica. Verificare e riprovare.';
+      _errorMessage = 'Errore durante la modifica. Verificare e riprovare.';
     } finally {
       if (mounted) {
         setState(() {
@@ -501,9 +508,7 @@ class _EditHarvestPurposeDialogState
               const SizedBox(height: 12),
               Text(
                 _errorMessage!,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
             if (_saving) ...[
