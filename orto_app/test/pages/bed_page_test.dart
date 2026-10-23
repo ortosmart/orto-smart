@@ -1389,6 +1389,192 @@ void main() {
       expect(switchTile.value, isTrue);
       expect(tester.takeException(), isNull);
     });
+    testWidgets(
+      'impedisce una seconda modifica dello stato durante una RPC in corso',
+      (tester) async {
+        final now = DateTime.utc(2026, 9, 2, 12);
+        final rpcCompleter = Completer<dynamic>();
+        var loadCount = 0;
+
+        final authority = ProfileWriteAuthorityController(
+          ProfileEditLockRepository.withRpcInvoker((
+            functionName,
+            parameters,
+          ) async {
+            expect(functionName, 'acquire_profile_edit_lock');
+
+            return {
+              'status': 'acquired',
+              'lock_token': 'token-bed-page-authority-fittizio',
+              'expires_at': '2026-09-02T12:02:00+00:00',
+              'row_version': 1,
+            };
+          }),
+          _Scheduler(),
+          utcNow: () => now,
+        );
+
+        addTearDown(authority.dispose);
+
+        await authority.initialize(
+          profileContext: const ProfileContext(
+            profileId: '44444444-4444-4444-8444-444444444444',
+            role: ProfileMemberRole.owner,
+          ),
+          identity: const AppSessionIdentity(
+            clientInstanceId: '55555555-5555-4555-8555-555555555555',
+            sessionId: '66666666-6666-4666-8666-666666666666',
+          ),
+        );
+
+        final harness = _WriteHarness(
+          loadBed: () async {
+            loadCount++;
+            return _bedMap(
+              isActive: loadCount == 1,
+              rowVersion: loadCount == 1 ? 1 : 2,
+            );
+          },
+          invokeRpc: (functionName, parameters) {
+            expect(functionName, 'set_bed_active');
+            expect(parameters['expected_row_version'], 1);
+            expect(parameters['bed_is_active'], isFalse);
+            return rpcCompleter.future;
+          },
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: BedPage(
+              bed: Bed.fromMap(_bedMap()),
+              authority: authority,
+              repository: harness.repository,
+              plantingRepository: harness.plantings,
+              cropRepository: harness.crops,
+              cropAssociationRepository: harness.associations,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(Switch));
+        await tester.pump();
+
+        expect(harness.rpcCalls, hasLength(1));
+
+        final switchTile = tester.widget<SwitchListTile>(
+          find.byType(SwitchListTile),
+        );
+
+        expect(switchTile.value, isTrue);
+        expect(switchTile.onChanged, isNull);
+
+        await tester.tap(find.byType(Switch));
+        await tester.pump();
+
+        expect(harness.rpcCalls, hasLength(1));
+
+        rpcCompleter.complete({
+          'status': 'updated',
+          'bed_id': _bedId,
+          'garden_id': _gardenId,
+          'is_active': false,
+          'row_version': 2,
+          'updated_at': '2026-09-02T12:01:00+00:00',
+        });
+
+        await tester.pumpAndSettle();
+
+        expect(harness.rpcCalls, hasLength(1));
+        expect(loadCount, 2);
+        expect(find.text('Disattivata'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+    testWidgets(
+      'impedisce una modifica dello stato mentre EditBedPage è aperta',
+      (tester) async {
+        final now = DateTime.utc(2026, 9, 2, 12);
+
+        final authority = ProfileWriteAuthorityController(
+          ProfileEditLockRepository.withRpcInvoker((
+            functionName,
+            parameters,
+          ) async {
+            expect(functionName, 'acquire_profile_edit_lock');
+
+            return {
+              'status': 'acquired',
+              'lock_token': 'token-bed-page-authority-fittizio',
+              'expires_at': '2026-09-02T12:02:00+00:00',
+              'row_version': 1,
+            };
+          }),
+          _Scheduler(),
+          utcNow: () => now,
+        );
+
+        addTearDown(authority.dispose);
+
+        await authority.initialize(
+          profileContext: const ProfileContext(
+            profileId: '44444444-4444-4444-8444-444444444444',
+            role: ProfileMemberRole.owner,
+          ),
+          identity: const AppSessionIdentity(
+            clientInstanceId: '55555555-5555-4555-8555-555555555555',
+            sessionId: '66666666-6666-4666-8666-666666666666',
+          ),
+        );
+
+        final harness = _WriteHarness(
+          loadBed: () async => _bedMap(isActive: true, rowVersion: 1),
+          invokeRpc: (functionName, parameters) async {
+            fail(
+              'Non deve partire una RPC mentre EditBedPage è aperta: '
+              '$functionName',
+            );
+          },
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: BedPage(
+              bed: Bed.fromMap(_bedMap()),
+              authority: authority,
+              repository: harness.repository,
+              plantingRepository: harness.plantings,
+              cropRepository: harness.crops,
+              cropAssociationRepository: harness.associations,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        final switchTile = tester.widget<SwitchListTile>(
+          find.byType(SwitchListTile),
+        );
+        final changeStatus = switchTile.onChanged;
+
+        expect(changeStatus, isNotNull);
+
+        await tester.tap(find.byTooltip('Modifica aiuola'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Modifica aiuola'), findsOneWidget);
+        expect(harness.rpcCalls, isEmpty);
+
+        // Simula un secondo percorso di scrittura sulla BedPage sottostante.
+        changeStatus!(false);
+        await tester.pumpAndSettle();
+
+        expect(harness.rpcCalls, isEmpty);
+        expect(find.text('Modifica aiuola'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
     testWidgets('mostra errore in caso di conflitto di versione sullo stato', (
       tester,
     ) async {

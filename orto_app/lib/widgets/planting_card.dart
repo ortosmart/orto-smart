@@ -15,6 +15,7 @@ enum PlantingCardAction {
 class PlantingCard extends StatelessWidget {
   final Planting planting;
   final Crop? crop;
+  final bool enabled;
   final VoidCallback onEdit;
   final ValueChanged<String>? onStatusChange;
 
@@ -22,6 +23,7 @@ class PlantingCard extends StatelessWidget {
     super.key,
     required this.planting,
     required this.crop,
+    this.enabled = true,
     required this.onEdit,
     this.onStatusChange,
   });
@@ -228,6 +230,7 @@ class PlantingCard extends StatelessWidget {
             subtitle: Text('Inizio: ${_formatDate(planting.startDate)}'),
             trailing: PopupMenuButton<PlantingCardAction>(
               tooltip: 'Azioni coltura',
+              enabled: enabled,
               onSelected: _handleAction,
               itemBuilder: (context) => _menuItems(),
             ),

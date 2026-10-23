@@ -58,6 +58,27 @@ class _BedPageState extends State<BedPage> {
   bool _bedLoadFailed = false;
   bool _bedAvailable = false;
   int _bedLoadGeneration = 0;
+  bool _isWriteFlowInProgress = false;
+
+  Future<void> _runExclusiveWriteFlow(Future<void> Function() operation) async {
+    if (_isWriteFlowInProgress || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isWriteFlowInProgress = true;
+    });
+
+    try {
+      await operation();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isWriteFlowInProgress = false;
+        });
+      }
+    }
+  }
 
   Bed get bed => _bed;
 
@@ -211,7 +232,7 @@ class _BedPageState extends State<BedPage> {
     await _bedPageDataFuture;
   }
 
-  Future<void> _openAddPlantingPage() async {
+  Future<void> _openAddPlantingPage() => _runExclusiveWriteFlow(() async {
     final authority = widget.authority;
 
     if (authority == null) {
@@ -231,38 +252,39 @@ class _BedPageState extends State<BedPage> {
     if (result == true && mounted) {
       await _refreshPlantings();
     }
-  }
+  });
 
-  Future<void> _editPlanting(Planting planting) async {
-    final authority = widget.authority;
+  Future<void> _editPlanting(Planting planting) =>
+      _runExclusiveWriteFlow(() async {
+        final authority = widget.authority;
 
-    if (authority == null) {
-      return;
-    }
+        if (authority == null) {
+          return;
+        }
 
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (context) => AddPlantingPage(
-          bed: bed,
-          planting: planting,
-          repository: _plantingRepository,
-          authority: authority,
-        ),
-      ),
-    );
+        final result = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(
+            builder: (context) => AddPlantingPage(
+              bed: bed,
+              planting: planting,
+              repository: _plantingRepository,
+              authority: authority,
+            ),
+          ),
+        );
 
-    if (result == true && mounted) {
-      await _refreshPlantings();
+        if (result == true && mounted) {
+          await _refreshPlantings();
 
-      if (!mounted) {
-        return;
-      }
+          if (!mounted) {
+            return;
+          }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Coltura modificata correttamente.')),
-      );
-    }
-  }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Coltura modificata correttamente.')),
+          );
+        }
+      });
 
   String _formatPlantingDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
@@ -379,7 +401,7 @@ class _BedPageState extends State<BedPage> {
     Planting planting,
     Crop? crop,
     String targetStatus,
-  ) async {
+  ) => _runExclusiveWriteFlow(() async {
     final authority = widget.authority;
 
     if (authority == null) {
@@ -524,7 +546,7 @@ class _BedPageState extends State<BedPage> {
         ),
       );
     }
-  }
+  });
 
   Future<void> _showCropSuggestions(_BedPageData data) async {
     final bedAnalysis = BedAnalysisService.analyzeSpace(
@@ -586,31 +608,45 @@ class _BedPageState extends State<BedPage> {
                               return _SuggestionCard(
                                 position: index + 1,
                                 suggestion: suggestions[index],
-                                onUseSuggestion: () async {
-                                  final authority = widget.authority;
+                                onUseSuggestion:
+                                    widget.authority == null ||
+                                        _isWriteFlowInProgress
+                                    ? null
+                                    : () {
+                                        _runExclusiveWriteFlow(() async {
+                                          final authority = widget.authority;
 
-                                  if (authority == null) {
-                                    return;
-                                  }
+                                          if (authority == null) {
+                                            return;
+                                          }
 
-                                  Navigator.of(sheetContext).pop();
+                                          final selectedSuggestion =
+                                              suggestions[index];
 
-                                  final result = await Navigator.of(context)
-                                      .push<bool>(
-                                        MaterialPageRoute(
-                                          builder: (_) => AddPlantingPage(
-                                            bed: bed,
-                                            suggestion: suggestions[index],
-                                            repository: _plantingRepository,
-                                            authority: authority,
-                                          ),
-                                        ),
-                                      );
+                                          Navigator.of(sheetContext).pop();
 
-                                  if (result == true && mounted) {
-                                    await _refreshPlantings();
-                                  }
-                                },
+                                          final result =
+                                              await Navigator.of(
+                                                context,
+                                              ).push<bool>(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      AddPlantingPage(
+                                                        bed: bed,
+                                                        suggestion:
+                                                            selectedSuggestion,
+                                                        repository:
+                                                            _plantingRepository,
+                                                        authority: authority,
+                                                      ),
+                                                ),
+                                              );
+
+                                          if (result == true && mounted) {
+                                            await _refreshPlantings();
+                                          }
+                                        });
+                                      },
                               );
                             },
                           ),
@@ -629,7 +665,7 @@ class _BedPageState extends State<BedPage> {
     );
   }
 
-  Future<void> _setBedActive(bool isActive) async {
+  Future<void> _setBedActive(bool isActive) => _runExclusiveWriteFlow(() async {
     final authority = widget.authority;
 
     if (authority == null) {
@@ -717,9 +753,9 @@ class _BedPageState extends State<BedPage> {
         ),
       );
     }
-  }
+  });
 
-  Future<void> _openEditBedPage() async {
+  Future<void> _openEditBedPage() => _runExclusiveWriteFlow(() async {
     final authority = widget.authority;
 
     if (authority == null) {
@@ -739,9 +775,9 @@ class _BedPageState extends State<BedPage> {
     if (result == true && mounted) {
       await _reloadBed();
     }
-  }
+  });
 
-  Future<void> _openChangeBedGeometryPage() async {
+  Future<void> _openChangeBedGeometryPage() => _runExclusiveWriteFlow(() async {
     final authority = widget.authority;
 
     if (authority == null) {
@@ -761,29 +797,30 @@ class _BedPageState extends State<BedPage> {
     if (result == true && mounted) {
       await _reloadBed();
     }
-  }
+  });
 
-  Future<void> _openCorrectBedGeometryPage() async {
-    final authority = widget.authority;
+  Future<void> _openCorrectBedGeometryPage() =>
+      _runExclusiveWriteFlow(() async {
+        final authority = widget.authority;
 
-    if (authority == null) {
-      return;
-    }
+        if (authority == null) {
+          return;
+        }
 
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => CorrectBedGeometryPage(
-          bed: bed,
-          repository: _bedRepository,
-          authority: authority,
-        ),
-      ),
-    );
+        final result = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(
+            builder: (_) => CorrectBedGeometryPage(
+              bed: bed,
+              repository: _bedRepository,
+              authority: authority,
+            ),
+          ),
+        );
 
-    if (result == true && mounted) {
-      await _reloadBed();
-    }
-  }
+        if (result == true && mounted) {
+          await _reloadBed();
+        }
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -822,7 +859,9 @@ class _BedPageState extends State<BedPage> {
         title: Text('${bed.code} - Aiuola ${bed.number}'),
         actions: [
           IconButton(
-            onPressed: widget.authority == null ? null : _openEditBedPage,
+            onPressed: widget.authority == null || _isWriteFlowInProgress
+                ? null
+                : _openEditBedPage,
             tooltip: 'Modifica aiuola',
             icon: const Icon(Icons.edit_outlined),
           ),
@@ -853,7 +892,7 @@ class _BedPageState extends State<BedPage> {
                 title: const Text('Dimensioni'),
                 subtitle: Text('${bed.widthCm} × ${bed.lengthCm} cm'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: widget.authority == null
+                onTap: widget.authority == null || _isWriteFlowInProgress
                     ? null
                     : _openChangeBedGeometryPage,
               ),
@@ -864,7 +903,7 @@ class _BedPageState extends State<BedPage> {
                 title: const Text('Correggi geometria'),
                 subtitle: const Text('Rettifica dati storici della geometria'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: widget.authority == null
+                onTap: widget.authority == null || _isWriteFlowInProgress
                     ? null
                     : _openCorrectBedGeometryPage,
               ),
@@ -879,7 +918,9 @@ class _BedPageState extends State<BedPage> {
                 title: const Text('Stato aiuola'),
                 subtitle: Text(bed.isActive ? 'Attiva' : 'Disattivata'),
                 value: bed.isActive,
-                onChanged: widget.authority == null ? null : _setBedActive,
+                onChanged: widget.authority == null || _isWriteFlowInProgress
+                    ? null
+                    : _setBedActive,
               ),
             ),
             if (bed.notes != null && bed.notes!.trim().isNotEmpty)
@@ -988,6 +1029,9 @@ class _BedPageState extends State<BedPage> {
                         return PlantingCard(
                           planting: planting,
                           crop: crop,
+                          enabled:
+                              widget.authority != null &&
+                              !_isWriteFlowInProgress,
                           onEdit: () => _editPlanting(planting),
                           onStatusChange: (targetStatus) =>
                               _changePlantingStatus(
@@ -1005,7 +1049,7 @@ class _BedPageState extends State<BedPage> {
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: widget.authority == null
+                onPressed: widget.authority == null || _isWriteFlowInProgress
                     ? null
                     : _openAddPlantingPage,
                 icon: const Icon(Icons.add),
@@ -1023,7 +1067,7 @@ class _BedPageState extends State<BedPage> {
 class _SuggestionCard extends StatelessWidget {
   final int position;
   final CropSuggestion suggestion;
-  final VoidCallback onUseSuggestion;
+  final VoidCallback? onUseSuggestion;
 
   const _SuggestionCard({
     required this.position,
