@@ -15,7 +15,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 21/10/2026
+**Ultimo aggiornamento:** 26/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -32,7 +32,7 @@
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 21/10/2026 |
+| Ultimo aggiornamento | 26/10/2026 |
 
 ---
 
@@ -13288,3 +13288,153 @@ Le seguenti attività restano da valutare nelle future sessioni operative:
 Queste attività costituiscono questioni aperte o possibili sviluppi futuri e non rappresentano autorizzazioni automatiche a intervenire sul codice o sul database.
 
 La selezione delle attività successive rimane subordinata alla verifica dello stato reale del progetto e alle decisioni operative approvate.
+
+# Sessione S037 — Verifiche di integrità del Catalogo e protezione delle scritture concorrenti
+
+## Obiettivo della sessione
+
+La Sessione S037 è stata avviata il **22/10/2026 alle ore 17:27** e conclusa il **24/10/2026 alle ore 00:31**.
+
+Le attività hanno riguardato tre ambiti:
+
+- Soluzione A: verifica della semantica di attivazione degli alias del Catalogo Agronomico.
+- Soluzione B: verifica dei vincoli di integrità storica relativi a Taxon e Crop.
+- Soluzione C: protezione dell'interfaccia Flutter dalle operazioni di scrittura concorrenti nella gestione delle aiuole.
+
+Le verifiche delle Soluzioni A e B sono rimaste nel perimetro dell'audit statico. La Soluzione C ha prodotto modifiche applicative e test di regressione.
+
+## Attività realizzate
+
+### Soluzione A — Alias del Catalogo Agronomico
+
+È stata esaminata la relazione tra lo stato `is_active` degli alias e quello delle rispettive entità principali.
+
+La regola esaminata prevede che lo stato di attivazione dell'alias sia indipendente da quello del suo riferimento, ma che l'alias possa essere utilizzato soltanto quando risultano attivi sia l'alias sia il Taxon o Crop associato.
+
+L'audit statico ha compreso il comportamento di `BotanicalTaxonRepository`, di `CropRepository` e della vista `public.crop_catalog_read`, oltre alla ricerca di utilizzi espliciti degli alias nel codice Flutter esaminato.
+
+Nel perimetro ispezionato non sono emerse violazioni dimostrate. Non sono stati eseguiti nuovi test funzionali dinamici completi sugli alias e non sono state autorizzate modifiche correttive.
+
+### Soluzione B — Integrità storica Taxon e Crop
+
+È stato eseguito un audit statico relativo a:
+
+- vincoli referenziali `ON DELETE RESTRICT`;
+- autorizzazioni delle RPC;
+- controllo della concorrenza mediante `row_version`;
+- validazione dei riferimenti alle entità principali.
+
+L'audit non ha evidenziato anomalie dimostrate nel perimetro esaminato.
+
+Non sono stati eseguiti nuovi test dinamici completi per tutte le condizioni di integrità e non sono state introdotte restrizioni aggiuntive.
+
+### Soluzione C — Scritture concorrenti nella gestione delle aiuole
+
+È stata introdotta in `BedPage` una gestione centralizzata dei flussi di scrittura tramite `_runExclusiveWriteFlow`.
+
+Il meccanismo impedisce l'avvio contemporaneo di operazioni incompatibili e disabilita i controlli interessati mentre è in corso un flusso di scrittura.
+
+L'intervento ha interessato:
+
+- `lib/pages/bed_page.dart`;
+- `lib/widgets/planting_card.dart`;
+- `test/pages/bed_page_test.dart`.
+
+Sono stati aggiunti due test di regressione dedicati alla protezione dalle operazioni concorrenti.
+
+La protezione dell'interfaccia integra, ma non sostituisce, le garanzie autoritative del backend.
+
+## Verifiche e test
+
+| Verifica | Risultato |
+|---|---|
+| `flutter test test/pages/bed_page_test.dart` | 32 test superati |
+| `flutter analyze` | Nessun problema rilevato |
+| `git diff --cached --check` | Superato |
+| Nuovi test di regressione | 2 aggiunti |
+| Audit Alias Catalogo | Statico, nessuna violazione dimostrata nel perimetro ispezionato |
+| Audit integrità Taxon/Crop | Statico, nessuna anomalia dimostrata nel perimetro ispezionato |
+
+Le sei verifiche SQL su sei relative a `SQLSTATE 55000` appartengono alla **S036**, non alla S037.
+
+La S037 non ha introdotto un nuovo collaudo completo delle RPC interessate da tale correzione.
+
+## Stato del database
+
+Non risultano dal checkpoint S037 nuove modifiche autorizzate allo schema o nuove migration prodotte durante la sessione.
+
+Resta aperta la verifica della riconciliazione tra migration locali e remote, compresa la correzione S034.
+
+Il superamento dei test Flutter non equivale al collaudo integrato delle scritture sul database remoto.
+
+## Versionamento Git
+
+L'intervento della Soluzione C è stato consolidato nel commit:
+
+`594e633` — `fix: impedisce scritture concorrenti nella gestione aiuole`
+
+Alla chiusura dello sviluppo il commit risultava pubblicato su `origin/main` e il working tree dei file tracciati risultava pulito.
+
+Era presente il file non tracciato:
+
+`supabase/snippets/Untitled query 788.sql`
+
+Il file contiene una query di sola lettura relativa agli indici univoci di `public.plantings` e deve essere preservato senza cancellazioni o inclusioni automatiche nei commit.
+
+## Timing dello sviluppo S037
+
+| Indicatore | Valore |
+|---|---|
+| Avvio | 22/10/2026, ore 17:27 |
+| Chiusura | 24/10/2026, ore 00:31 |
+| Durata complessiva trascorsa | 31 h 04 min |
+| Sospensioni complessive | 21 h 32 min |
+| **Tempo netto di sviluppo** | **9 h 32 min** |
+| Progressivo sviluppo alla S036 | 217 h 31 min |
+| **Progressivo sviluppo alla S037** | **227 h 03 min** |
+
+Il periodo dalle ore 22:21 del 23 ottobre alle ore 00:31 del 24 ottobre costituisce un unico intervallo continuativo di lavoro di 2 h 10 min.
+
+I tempi della fase Manuali S037 sono contabilizzati separatamente nel DOC-010.
+
+## Risultati e limiti della sessione
+
+La S037 ha completato la protezione Flutter dalle scritture concorrenti nella gestione delle aiuole e ha prodotto verifiche statiche sugli alias del Catalogo e sull'integrità storica Taxon/Crop.
+
+Non vengono dichiarati:
+
+- test dinamici completi per le Soluzioni A e B;
+- nuovi test SQL `55000` attribuibili alla S037;
+- deployment di migration sul database remoto;
+- collaudo integrato completo Flutter–Supabase remoto;
+- completamento dell'intero Catalogo Agronomico.
+
+## Continuità dello sviluppo
+
+Restano da valutare nelle sessioni successive:
+
+- ulteriori test funzionali degli alias;
+- ulteriori verifiche di integrità Taxon/Crop;
+- riesame della regressione `SQLSTATE 55000`;
+- collaudo integrato Flutter–Supabase delle Finalità di raccolta;
+- decisione sulla conferma delle operazioni di attivazione e disattivazione;
+- riconciliazione delle migration locali e remote;
+- successivi incrementi del Catalogo Agronomico.
+
+Nessuna di queste attività è automaticamente autorizzata per la S038.
+
+## Obiettivo operativo approvato dopo la chiusura S037
+
+In data **25/10/2026**, successivamente alla chiusura dello sviluppo S037, è stato approvato l'obiettivo di iniziare l'utilizzo reale di Orto Smart per la pianificazione dell'orto 2027 **entro il 15/11/2026**.
+
+L'obiettivo comprende la verifica della disponibilità del Catalogo Agronomico, la gestione delle 15 aiuole reali, il controllo dello stato del motore delle rotazioni e la pianificazione delle colture e varietà future.
+
+La pianificazione deve rimanere distinta dalle operazioni effettivamente eseguite di semina, trapianto e raccolta.
+
+La scadenza è un obiettivo approvato, non una dichiarazione di fattibilità già verificata.
+
+La prima attività proposta per la S038 consiste pertanto in una verifica di fattibilità basata sullo stato reale dell'applicazione e del database. L'ordine tecnico degli interventi dovrà essere valutato e approvato separatamente.
+
+Restano non bloccanti per questo primo utilizzo l'automazione dell'irrigazione, le integrazioni meteorologiche avanzate, la contabilità completa e le altre funzionalità non indispensabili alla pianificazione iniziale.
+
+Rimangono validi i principi **«Sicurezza prima di tutto»** e **«Presto e bene non conviene»**.

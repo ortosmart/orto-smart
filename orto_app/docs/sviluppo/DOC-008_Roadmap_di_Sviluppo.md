@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 2.8
+**Versione:** 2.9
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 21/10/2026
+**Ultimo aggiornamento:** 26/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 2.8 |
+| Versione | 2.9 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 21/10/2026 |
+| Ultimo aggiornamento | 26/10/2026 |
 
 ---
 
@@ -61,6 +61,7 @@
 | 2.6 | 12/10/2026 | Aggiornamento dopo le Sessioni S033/S033B: completamento della Fase A Flutter dei Registri Agronomici, HUB e pagine dedicate a Classificazione botanica e Colture/Cultivar, verifica con 1107/1107 test Flutter superati e `flutter analyze` senza problemi; ricognizione statica di 21/21 RPC degli ulteriori Registri Agronomici e audit locale dei Write Path di `plantings`, favorevole nel perimetro esaminato e senza correzioni immediate; aggiornamento delle attività FUTURE e registrazione dell'obiettivo iniziale approvato per la S034, non ancora iniziata |
 | 2.7 | 17/10/2026 | Aggiornamento dopo S034 e S035: correzione locale SQLSTATE 55000 nel Catalog Registry, applicata al database locale e non al remoto; integrazione Flutter delle Finalità di raccolta, 42 test mirati superati e `flutter analyze` senza problemi; aggiornamento dello stato dei Registri Agronomici e delle verifiche aperte, senza assegnazioni automatiche alla sessione successiva |
 | 2.8 | 21/10/2026 | Aggiornamento dopo la Sessione S036: protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta; sei test SQL locali di regressione del Catalog Registry superati; `flutter analyze` senza problemi e 1.292 test Flutter superati; aggiornamento delle verifiche ancora aperte, senza assegnazioni automatiche alla sessione successiva. |
+| 2.9 | 26/10/2026 | Aggiornamento dopo S037: audit statici Alias e integrità Taxon/Crop, protezione delle scritture concorrenti in BedPage, verifiche Flutter e definizione dell'obiettivo approvato di primo utilizzo reale per la pianificazione dell'orto 2027 entro il 15/11/2026, subordinato a verifica di fattibilità e senza assegnazioni automatiche alla S038. |
 
 ---
 
@@ -1896,6 +1897,55 @@ I risultati positivi dei test locali non costituiscono prova di deployment remot
 Le sezioni storiche relative all'obiettivo iniziale e alle condizioni di avvio della S034 rimangono documentazione delle decisioni precedenti, non istruzioni operative correnti.
 
 **Nessuna attività è automaticamente approvata o assegnata alla S037.** L'eventuale nuova sessione di sviluppo richiederà apertura esplicita, CHECKPOINT DI RICEZIONE e decisioni autonome fondate sullo stato reale del progetto.
+
+### Quadro operativo dopo S037 e obiettivo di primo utilizzo reale entro il 15/11/2026
+
+La fase di sviluppo della Sessione S037 si è conclusa il **24/10/2026 alle 00:31**, dopo **9 h 32 min** di lavoro effettivo.
+
+La sessione ha prodotto tre risultati distinti:
+
+- **Audit statico degli Alias del Catalogo Agronomico:** verificata la semantica di attivazione indipendente dell'Alias e dell'identità canonica associata, con utilizzabilità subordinata allo stato attivo di entrambi. Nessuna anomalia dimostrata nel perimetro esaminato.
+- **Audit statico dell'integrità Taxon/Crop:** esaminati i vincoli referenziali `ON DELETE RESTRICT`, le autorizzazioni RPC, la concorrenza ottimistica mediante `row_version` e la validazione dei riferimenti. Nessuna anomalia dimostrata nel perimetro esaminato.
+- **Protezione Flutter delle scritture concorrenti nelle aiuole:** introdotto in `BedPage` il coordinamento dei flussi di scrittura incompatibili tramite `_runExclusiveWriteFlow`, con disabilitazione dei controlli pertinenti durante le operazioni in corso.
+
+Per l'intervento Flutter sono stati superati **32/32 test mirati**, compresi due nuovi test di regressione, e `flutter analyze` non ha segnalato problemi.
+
+Il commit tecnico conclusivo è `594e633` — `fix: impedisce scritture concorrenti nella gestione aiuole`.
+
+La S037 non ha introdotto nuove migration né effettuato deployment remoto. Gli audit statici non sostituiscono test dinamici completi e la protezione applicativa di `BedPage` non sostituisce l'autorità del backend Supabase.
+
+#### Obiettivo approvato il 25/10/2026
+
+Il **25/10/2026** è stato approvato l'obiettivo operativo di **iniziare entro il 15/11/2026 l'utilizzo reale di Orto Smart per la pianificazione dell'orto 2027**.
+
+L'obiettivo non equivale a dichiarare già pronta l'applicazione per l'uso operativo.
+
+Prima dell'avvio effettivo dovrà essere verificata la fattibilità, considerando almeno:
+
+- disponibilità di un Catalogo Agronomico strutturato, verificato e sufficientemente completo per le colture e le varietà da pianificare;
+- gestione delle **15 aiuole reali**, con dimensioni di **90 × 700 cm** e vialetti di **50 cm**;
+- disponibilità e correttezza dei controlli agronomici pertinenti, comprese le rotazioni;
+- possibilità di distinguere la pianificazione delle semine e dei trapianti dagli eventi effettivamente eseguiti;
+- utilizzo di dati reali, evitando popolamenti dimostrativi o provvisori nel database operativo;
+- verifica dei percorsi applicativi e delle garanzie di sicurezza necessari al primo utilizzo.
+
+L'irrigazione automatizzata, le integrazioni meteorologiche avanzate e la contabilità completa non costituiscono, di per sé, condizioni bloccanti per il primo utilizzo limitato alla pianificazione dell'orto 2027.
+
+#### Verifiche ancora aperte
+
+Restano da valutare o completare, nei rispettivi perimetri:
+
+- test dinamici degli Alias e dei vincoli di integrità Taxon/Crop;
+- collaudi integrati dei percorsi di scrittura Flutter–Supabase, ove necessari;
+- riconciliazione dello stato delle migration tra ambiente locale e remoto, inclusa la correzione S034;
+- valutazione della completezza operativa del Catalogo Agronomico per l'utilizzo reale;
+- eventuali ulteriori incrementi indispensabili alla pianificazione dell'orto 2027.
+
+La **verifica di fattibilità dell'obiettivo del 15/11/2026** è individuata come possibile primo argomento di valutazione della S038, ma non costituisce un'attività automaticamente autorizzata.
+
+L'apertura della S038, il relativo perimetro e gli eventuali interventi saranno decisi autonomamente sulla base dello stato reale del progetto, secondo il workflow vigente.
+
+Rimangono prioritari i principi **«Sicurezza prima di tutto»** e **«Presto e bene non conviene»**.
 
 ### Vincoli permanenti
 

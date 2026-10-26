@@ -4,14 +4,14 @@
 
 # Test e Collaudo
 
-**Versione:** 1.0
+**Versione:** 1.1
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/10/2026
-**Ultimo aggiornamento:** 16/10/2026
+**Ultimo aggiornamento:** 26/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |-------|--------|
 | Documento | DOC-007 |
 | Titolo | Test e Collaudo |
-| Versione | 1.0 |
+| Versione | 1.1 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/10/2026 |
-| Ultimo aggiornamento | 16/10/2026 |
+| Ultimo aggiornamento | 26/10/2026 |
 
 ---
 
@@ -39,6 +39,7 @@
 | 1.0 (proposta) | 16/10/2026 | Avvio della redazione del documento Test e Collaudo; definizione della struttura iniziale |
 | 1.0 (proposta) | 16/10/2026 | Revisione preliminare: normalizzazione dei paragrafi, uniformazione dei riferimenti DOC-001 e DOC-004 e aggiornamento dei metadati; nessuna emissione ufficiale |
 | 1.0 | 16/10/2026 | Prima emissione ufficiale del DOC-007 — Test e Collaudo, versione 1.0 approvata |
+| 1.1 | 26/10/2026 | Inserimento delle evidenze S037: audit statici degli Alias e dell'integrità Taxon/Crop, protezione delle scritture concorrenti in BedPage, 32 test Flutter mirati superati e distinzione esplicita dalle evidenze S036. |
 
 ---
 
@@ -2954,6 +2955,83 @@ Non è necessario produrre evidenze ridondanti quando quelle disponibili sono su
 Non devono invece essere omesse informazioni indispensabili alla ricostruzione del risultato.
 
 Le registrazioni costituiscono il supporto documentale per le decisioni di accettazione definite nel Capitolo 10 e per il collaudo complessivo descritto nel Capitolo 13.
+
+## 12.19 Evidenze tecniche della Sessione S037
+
+La Sessione di sviluppo S037, conclusa il **24/10/2026 alle 00:31**, ha prodotto evidenze relative a due audit statici del Catalogo Agronomico e a un intervento Flutter sulla gestione delle scritture concorrenti nella pagina di dettaglio delle aiuole.
+
+Le evidenze sono distinte per natura, ambiente e livello di verifica, evitando di equiparare una ricognizione statica a un test dinamico o a un collaudo integrato.
+
+### 12.19.1 Audit statico della semantica degli Alias
+
+**Oggetto:** verifica della semantica di attivazione degli Alias collegati alle identità canoniche Taxon e Crop.
+
+**Perimetro esaminato:**
+
+- indipendenza dello stato `is_active` dell'Alias rispetto allo stato del padre;
+- utilizzabilità dell'Alias subordinata all'attivazione sia dell'Alias sia dell'identità canonica associata;
+- percorsi SQL e Flutter pertinenti, compresi i Repository interessati e `public.crop_catalog_read`.
+
+**Esito:** nessuna violazione dimostrata nel perimetro staticamente esaminato.
+
+**Limite:** non è stato eseguito un collaudo dinamico completo degli Alias.
+
+### 12.19.2 Audit statico dell'integrità Taxon/Crop
+
+**Oggetto:** verifica dei meccanismi di integrità delle identità canoniche e dei relativi riferimenti.
+
+**Perimetro esaminato:**
+
+- vincoli referenziali `ON DELETE RESTRICT`;
+- autorizzazioni dei Write Path RPC pertinenti;
+- controllo di concorrenza ottimistica mediante `row_version`;
+- validazione dei riferimenti alle identità padre.
+
+**Esito:** nessuna anomalia dimostrata nel perimetro staticamente esaminato.
+
+**Limite:** l'audit non equivale a una campagna di test dinamici di integrità e concorrenza.
+
+### 12.19.3 Regressione Flutter — BedPage
+
+**Oggetto:** prevenzione dell'avvio simultaneo di flussi di scrittura incompatibili nella stessa istanza della pagina `BedPage`.
+
+**Intervento:** coordinamento delle operazioni mediante `_runExclusiveWriteFlow`, con disabilitazione dei controlli pertinenti durante una scrittura in corso.
+
+**File interessati:**
+
+- `lib/pages/bed_page.dart`;
+- `lib/widgets/planting_card.dart`;
+- `test/pages/bed_page_test.dart`.
+
+**Verifiche eseguite:**
+
+| Verifica | Esito |
+|---|---|
+| `flutter test test/pages/bed_page_test.dart` | **32/32 test superati** |
+| Nuovi test di regressione | **2** |
+| `flutter analyze` | **Nessun problema** |
+| `git diff --cached --check` | **Superato** |
+
+**Limite:** la protezione opera nella pagina Flutter e non sostituisce i controlli autoritativi del backend né costituisce un lock distribuito tra client differenti.
+
+### 12.19.4 Tracciabilità e limiti complessivi
+
+**Commit tecnico S037:**
+
+```text
+594e633 — fix: impedisce scritture concorrenti nella gestione aiuole
+```
+
+La S037 non ha introdotto nuove migration SQL né effettuato deployment remoto.
+
+Le seguenti evidenze appartengono alla precedente **S036**, e non devono essere attribuite alla S037:
+
+- **6/6 test SQL locali** relativi alla gestione di `SQLSTATE 55000` nel Catalog Registry;
+- **1.292 test Flutter** superati nella verifica complessiva S036.
+
+Rimangono aperte, ove necessarie, le verifiche dinamiche degli Alias e dell'integrità Taxon/Crop, i collaudi integrati Flutter–Supabase e la riconciliazione delle migration tra database locale e remoto.
+
+Il superamento dei controlli S037 dimostra esclusivamente gli esiti registrati nei rispettivi perimetri. Non costituisce un'attestazione di collaudo complessivo dell'applicazione per il primo utilizzo reale.
 
 # 13. Collaudo complessivo dell'applicazione
 

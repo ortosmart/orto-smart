@@ -5,7 +5,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 3.2
+**Versione:** 3.3
 
 **Stato:** Approvato
 
@@ -15,7 +15,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 21/10/2026
+**Ultimo aggiornamento:** 26/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -28,12 +28,12 @@
 |-------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 3.2 |
+| Versione | 3.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 21/10/2026 |
+| Ultimo aggiornamento | 26/10/2026 |
 
 ---
 
@@ -67,6 +67,7 @@
 | 3.0 | 06/10/2026 | Aggiornamento del CHANGELOG per la Sessione S032: ricognizione del contratto autoritativo delle identità del Catalogo, integrazione Flutter dei Write Path di Taxon, Crop e Cultivar, consolidamento della tassonomia botanica globale e completamento della UI di gestione della Classificazione botanica con creazione, modifica, disattivazione, riattivazione, capability della Catalog Authority, concorrenza mediante `row_version` e rilettura autoritativa su conflitto o esito incerto; verifica finale con 1077/1077 test Flutter superati. Versione pubblica e versione Flutter mantenute rispettivamente a `0.1.21-alpha` e `0.1.21-alpha+6`. |
 | 3.1 | 12/10/2026 | Aggiornamento del CHANGELOG per S033/S033B: completamento della Fase A Registri Agronomici Flutter, HUB, gestione Classificazione botanica, Colture e Cultivar, estrazione delle pagine dedicate, consolidamento con 1107/1107 test Flutter superati; ricognizione statica di 21/21 RPC dei Registri Agronomici e audit autoritativo locale di `plantings` con esito favorevole nel perimetro esaminato, senza nuovi test runtime di scrittura o modifiche al backend. Registrazione del completamento dello sviluppo S033/S033B e dell'obiettivo iniziale approvato per la progettazione S034. Versione pubblica `0.1.21-alpha` e versione Flutter `0.1.21-alpha+6` invariate. |
 | 3.2 | 21/10/2026 | Aggiornamento del CHANGELOG con le Sessioni S034, S035 e S036: correzione SQL della gestione del congelamento semantico nelle tre RPC del Catalog Registry, integrazione Flutter delle Finalità di raccolta, protezione contro richieste RPC duplicate e regressione SQL locale con 6/6 verifiche superate; conferma di 1.292/1.292 test Flutter superati nella S036. Distinzione tra verifiche locali e collaudo remoto non completato. Versione pubblica `0.1.21-alpha` e versione Flutter `0.1.21-alpha+6` invariate. |
+| 3.3 | 26/10/2026 | Documentazione della S037: audit statici del Catalogo Agronomico, protezione delle scritture concorrenti in BedPage, verifiche e obiettivo operativo per l'orto 2027; consolidamento del consuntivo Manuali S036 |
 
 ---
 
@@ -3184,9 +3185,50 @@ La Sessione S036, svolta dal **18 al 21/10/2026**, ha consolidato il comportamen
 
 **Consuntivo sviluppo:** **6 h 34 min**, concluso il **21/10/2026 alle 14:36**. Il progressivo dello sviluppo raggiunge **217 h 31 min**.
 
-La fase Manuali S036 è ancora in corso e il suo consuntivo definitivo sarà registrato soltanto dopo la chiusura ufficiale.
+La fase Manuali S036 si è conclusa il 21/10/2026 alle 22:39, con un consuntivo di 6 h 29 min. Il totale della sessione S036 è 13 h 03 min.
 
 Le attività FUTURE e gli eventuali interventi sul database remoto rimangono soggetti a verifica e approvazione specifiche. Le versioni applicative restano `0.1.21-alpha` e `0.1.21-alpha+6` per Flutter.
+
+### Incremento tecnico S037 — Integrità del Catalogo e scritture concorrenti nelle aiuole
+
+La Sessione S037, svolta dal **22/10/2026 al 24/10/2026**, ha riguardato due audit statici del Catalogo Agronomico e un intervento applicativo di protezione delle scritture concorrenti nella gestione delle aiuole.
+
+**Verifiche statiche del Catalogo Agronomico**
+
+- Esaminata la semantica di attivazione degli Alias: lo stato `is_active` dell'alias è indipendente da quello dell'identità canonica associata, ma l'utilizzabilità richiede che entrambi siano attivi.
+- Verificati staticamente i percorsi pertinenti di `BotanicalTaxonRepository`, `CropRepository` e `public.crop_catalog_read`.
+- Esaminati i vincoli di integrità Taxon/Crop, comprese le relazioni `ON DELETE RESTRICT`, le autorizzazioni RPC, `row_version` e la validazione dei riferimenti.
+- Nessuna anomalia dimostrata nel perimetro ispezionato.
+- Nessun nuovo test dinamico completo o intervento correttivo SQL attribuito a questi audit.
+
+**Aggiunto e modificato — Flutter**
+
+- Introdotta in `BedPage` la gestione centralizzata dei flussi di scrittura mediante `_runExclusiveWriteFlow`.
+- Impedito l'avvio contemporaneo di operazioni incompatibili nella stessa pagina.
+- Disabilitati i controlli interessati durante le operazioni di scrittura in corso.
+- Aggiornati `lib/pages/bed_page.dart`, `lib/widgets/planting_card.dart` e `test/pages/bed_page_test.dart`.
+- Aggiunti due test di regressione.
+
+**Verifiche e limiti**
+
+- **32/32 test Flutter mirati superati** in `test/pages/bed_page_test.dart`.
+- `flutter analyze` completato senza problemi.
+- `git diff --cached --check` superato.
+- Nessuna nuova migration o modifica persistente al database nella S037.
+- Nessun nuovo deployment remoto.
+- Gli audit statici non costituiscono test dinamici completi.
+- La protezione Flutter locale non sostituisce le garanzie autoritative del backend e non dimostra da sola la protezione multi-client.
+- I **6/6 test SQL** relativi a `SQLSTATE 55000` e i **1.292 test Flutter** della suite complessiva appartengono alla **S036**, non alla S037.
+
+**Commit:** `594e633` — `fix: impedisce scritture concorrenti nella gestione aiuole`.
+
+**Consuntivo sviluppo:** **9 h 32 min**, dal **22/10/2026 alle 17:27** al **24/10/2026 alle 00:31**, escluse **21 h 32 min** di sospensioni. Il progressivo delle sole ore di sviluppo raggiunge **227 h 03 min**.
+
+**Obiettivo operativo successivo:** il **25/10/2026** è stato approvato l'obiettivo di iniziare l'utilizzo reale di Orto Smart per pianificare l'orto 2027 **entro il 15/11/2026**. La fattibilità deve ancora essere verificata e non sono stati approvati automaticamente gli interventi della S038.
+
+Restano aperti i test dinamici del Catalogo, il collaudo integrato Flutter–Supabase remoto, la verifica delle migration locali e remote e gli ulteriori incrementi necessari al primo utilizzo reale.
+
+Le versioni applicative rimangono `0.1.21-alpha` e `0.1.21-alpha+6` per Flutter.
 
 # 4. Cronologia versioni
 

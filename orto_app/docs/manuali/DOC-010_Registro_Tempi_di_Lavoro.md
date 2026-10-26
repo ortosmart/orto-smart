@@ -12,12 +12,12 @@
 |---|---|
 | Documento | DOC-010 |
 | Titolo | Registro Tempi di Lavoro |
-| Versione | 1.2 |
+| Versione | 1.3 |
 | Stato | Revisione S036 consolidata nel contenuto; verifica tecnica finale e pubblicazione in attesa |
 | Progetto | Orto Smart |
 | Repository | `ortosmart/orto-smart` |
 | Prima emissione | 17/10/2026 |
-| Ultimo aggiornamento | 21/10/2026 |
+| Ultimo aggiornamento | 26/10/2026 |
 | Sessione di predisposizione | Manuali S035; aggiornamento Manuali S036 |
 | Baseline storica | S001–S034 |
 | Tempo netto storico consolidato | 280 h 07 min |
@@ -32,6 +32,7 @@
 | 1.0 | 17/10/2026 | Prima emissione ufficiale del Registro Tempi di Lavoro; consolidamento storico S001–S034 e documentazione delle limitazioni di riconciliazione |
 | 1.1 | 18/10/2026 | Registrazione S035 conclusa e integrazione documentale post-chiusura di 20 min; versione registrata nel commit Git `358099b` |
 | 1.2 | 21/10/2026 | Registrazione del consuntivo S036, aggiornamento del progressivo complessivo a 301 h 41 min e allineamento delle regole operative al DOC-009 v2.7 |
+| 1.3 | 26/10/2026 | Consuntivo definitivo S037: sviluppo 9 h 32 min, Manuali 1 h 06 min, totale sessione 10 h 38 min e progressivo complessivo progetto 312 h 19 min. |
 
 ---
 
@@ -1583,6 +1584,62 @@ Il progressivo complessivo del progetto passa da **288 h 38 min** a **301 h 41 m
 | **Totale progetto** | **301 h 41 min** |
 
 La registrazione conserva integralmente la baseline storica S001–S034, il consuntivo della S035 e i 20 minuti della regolarizzazione documentale successiva alla sua chiusura.
+
+### 6.30 Sessione S037
+
+#### 6.30.1 Sviluppo
+
+La fase di sviluppo S037 è iniziata il **22/10/2026 alle 17:27** ed è stata dichiarata conclusa il **24/10/2026 alle 00:31**.
+
+| Voce | Durata |
+|---|---:|
+| Intervallo cronologico complessivo | 31 h 04 min |
+| Sospensioni complessive | 21 h 32 min |
+| **Tempo netto sviluppo S037** | **9 h 32 min** |
+
+Il tempo netto è quello consolidato nel checkpoint ufficiale della sessione S037. Le sospensioni sono escluse dal consuntivo.
+
+La sessione ha riguardato gli audit statici degli Alias e dell'integrità Taxon/Crop del Catalogo Agronomico, nonché la protezione Flutter delle scritture concorrenti nella gestione delle aiuole.
+
+Il progressivo dello sviluppo passa da **217 h 31 min** a **227 h 03 min**.
+
+#### 6.30.2 Manuali
+
+La fase Manuali S037 è iniziata il **26/10/2026 alle 11:25** ed è stata dichiarata conclusa il **26/10/2026 alle 14:50**.
+
+| Data | Intervallo | Tempo netto | Qualità |
+|---|---|---:|---|
+| 26/10/2026 | 11:25–11:57 | 32 min | A |
+| 26/10/2026 | 14:16–14:50 | 34 min | A |
+| **Totale Manuali S037** | | **1 h 06 min** | **Definitivo** |
+
+Sospensione dichiarata:
+
+- **11:57–14:16:** 2 h 19 min, esclusi dal tempo netto.
+
+L'intervallo cronologico complessivo della fase Manuali S037 è di **3 h 25 min**, dal quale sono escluse **2 h 19 min** di sospensione.
+
+Il tempo netto definitivo dei Manuali S037 è quindi di **1 h 06 min**.
+
+La sessione documentale ha aggiornato e verificato otto documenti: DOC-001, DOC-004, DOC-005, DOC-007, DOC-008, DOC-010, DOC-012 e CHANGELOG.
+
+#### 6.30.3 Consuntivo S037
+
+| Fase | Tempo netto |
+|---|---:|
+| Sviluppo S037 | 9 h 32 min |
+| Manuali S037 | 1 h 06 min |
+| **Totale S037** | **10 h 38 min** |
+
+Il progressivo complessivo del progetto, dopo la chiusura dello sviluppo e dei Manuali S037, raggiunge **312 h 19 min**, ripartito in:
+
+| Fase | Progressivo |
+|---|---:|
+| Sviluppo | 227 h 03 min |
+| Manuali | 85 h 16 min |
+| **Totale progetto consolidato alla S037** | **312 h 19 min** |
+
+Il consuntivo S037 è definitivo sulla base degli orari di apertura, sospensione, ripresa e chiusura comunicati.
 
 ## 7. Registro delle correzioni e delle rettifiche
 

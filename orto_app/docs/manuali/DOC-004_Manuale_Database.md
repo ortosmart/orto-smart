@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 2.6
+**Versione:** 2.7
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 21/10/2026
+**Ultimo aggiornamento:** 26/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 2.6 |
+| Versione | 2.7 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 21/10/2026 |
+| Ultimo aggiornamento | 26/10/2026 |
 
 ---
 
@@ -53,6 +53,7 @@
 | 2.4 | 06/10/2026 | Aggiornamento con la Sessione S032: verifica e consolidamento del contratto della tassonomia botanica globale con rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA` e `UNRANKED`, mantenimento della Cultivar come identità agronomica separata dalla tassonomia, supporto alla classificazione parziale mediante `parent_taxon_id`, integrazione Flutter dei Write Path autoritativi di Tassonomia, Crop e Cultivar, collegamento opzionale Crop → Taxon, applicazione delle capability della Catalog Authority, concorrenza ottimistica mediante `row_version`, gestione sicura di `version_conflict` ed esiti incerti mediante rilettura autoritativa, completamento della UI della Classificazione botanica e verifica finale con `flutter analyze` senza problemi e 1077/1077 test superati; nessuna nuova migration introdotta nella Sessione S032 |
 | 2.5 | 15/10/2026 | Aggiornamento con la Sessione S034: documentazione della correzione della gestione degli errori di congelamento semantico nelle RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value`, riconoscimento selettivo di `SQLSTATE 55000` mediante confronto esatto del messaggio del trigger, propagazione delle eccezioni non riconosciute; migration applicata esclusivamente al database locale, verifiche statiche e autorizzative superate, test dinamico specifico non eseguito e applicazione remota ancora aperta |
 | 2.6 | 21/10/2026 | Aggiornamento con la Sessione S036: documentazione delle verifiche SQL locali di regressione relative alla gestione selettiva di SQLSTATE 55000 nelle RPC del Catalog Registry; registrazione dei risultati effettivamente ottenuti, conservazione del limite storico dei test S034 e conferma che la migration correttiva non risulta applicata al database remoto. |
+| 2.7 | 26/10/2026 | Aggiornamento S037: audit statici della semantica di attivazione degli Alias e dell'integrità referenziale Taxon/Crop; conferma dei limiti delle verifiche, senza nuove migration SQL né deployment remoto. |
 
 ---
 
@@ -5599,6 +5600,62 @@ integrità persistente
 deve essere preservata l'integrità del database.
 
 Repository, servizi e mapping applicativi hanno il compito di adattare il dominio e l'interfaccia alla struttura persistente senza eliminare le garanzie definite dalla baseline.
+
+### Verifiche statiche del Catalogo Agronomico — Sessione S037
+
+La Sessione S037 ha eseguito due audit statici sui meccanismi di integrità del Catalogo Agronomico globale.
+
+Le verifiche hanno riguardato la semantica di attivazione degli Alias e la protezione dell'integrità referenziale delle identità canoniche Taxon/Crop.
+
+Non sono state introdotte nuove migration SQL né modifiche allo schema del database.
+
+#### Semantica di attivazione degli Alias
+
+L'audit ha esaminato la distinzione tra:
+
+- stato `is_active` dell'Alias;
+- stato di attivazione dell'identità canonica associata;
+- effettiva utilizzabilità dell'Alias.
+
+Lo stato dell'Alias è indipendente dallo stato del padre: l'attivazione o la disattivazione dell'uno non implica automaticamente la modifica dello stato dell'altro.
+
+Un Alias è utilizzabile soltanto quando risultano attivi **sia l'Alias sia l'identità canonica padre**, Taxon o Crop.
+
+Il controllo statico ha incluso i percorsi SQL e Flutter pertinenti, con particolare attenzione ai Repository interessati e al read model `public.crop_catalog_read`.
+
+**Esito:** nessuna violazione dimostrata nel perimetro esaminato.
+
+Questo esito non equivale al completamento dei test dinamici della semantica degli Alias.
+
+#### Integrità referenziale Taxon/Crop
+
+L'audit statico ha riguardato i meccanismi di protezione delle identità canoniche e dei relativi riferimenti.
+
+Sono stati esaminati:
+
+- vincoli referenziali con comportamento `ON DELETE RESTRICT`;
+- controlli di autorizzazione dei Write Path RPC pertinenti;
+- gestione della concorrenza ottimistica mediante `row_version`;
+- validazione dei riferimenti alle identità canoniche padre.
+
+**Esito:** nessuna anomalia dimostrata nel perimetro esaminato.
+
+Il risultato non costituisce una verifica dinamica esaustiva di tutti i casi di errore, delle operazioni concorrenti o delle possibili violazioni referenziali.
+
+#### Limiti delle verifiche e attività aperte
+
+Gli audit S037 sono stati svolti mediante analisi statica e non hanno comportato:
+
+- nuove migration;
+- modifiche ai contratti SQL;
+- deployment sul database remoto;
+- collaudo integrato completo Flutter–Supabase.
+
+Rimangono da valutare eventuali test dinamici degli Alias e dei vincoli Taxon/Crop.
+
+Resta inoltre aperta la riconciliazione tra lo stato delle migration del database locale e quello del database remoto, compresa la verifica dell'applicazione remota della correzione S034.
+
+Le verifiche S037 documentano esclusivamente gli esiti osservati nel rispettivo perimetro. Non autorizzano automaticamente nuove modifiche al database o l'avvio di attività nelle sessioni successive.
 
 ---
 

@@ -4,7 +4,7 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.13
+**Versione:** 2.14
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 21/10/2026
+**Ultimo aggiornamento:** 26/10/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -27,14 +27,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.13 |
+| Versione | 2.14 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 21/10/2026 |
+| Ultimo aggiornamento | 26/10/2026 |
 
 ---
 
@@ -69,6 +69,7 @@
 | 2.11 | 06/10/2026 | Aggiornamento con la Sessione S032: verifica del contratto autoritativo della tassonomia botanica globale; integrazione Flutter dei Write Path di tassonomia, colture e cultivar; collegamento Crop → Taxon; gestione UI della Classificazione botanica con lettura, creazione, modifica, attivazione e disattivazione; applicazione delle capability della Catalog Authority; concorrenza ottimistica mediante `row_version`; nessuna sovrascrittura automatica su `version_conflict`; nessun retry automatico dopo esito incerto; rilettura dello stato autoritativo; verifica finale con `flutter analyze` senza problemi e 1077/1077 test superati |
 | 2.12 | 15/10/2026 | Aggiornamento documentale delle Sessioni S033, S033B e S034: completamento della Fase A Flutter dei Registri Agronomici, con HUB di navigazione e gestione delle identità globali Crop e Cultivar, `flutter analyze` senza problemi e 1107/1107 test superati nella S033; audit statico S033B di 21/21 RPC dei sette registri agronomici aggiuntivi e verifica statica dei Write Path delle Planting, senza collaudi dinamici; correzione SQL S034 della gestione selettiva degli errori di congelamento semantico in tre RPC del Catalog Registry, migration applicata soltanto al database locale, verifiche statiche e controlli di autorizzazione 3/3, senza test dinamico specifico del ramo `SQLSTATE 55000`; aggiornamento delle sezioni architetturali, applicative, di verifica e di evoluzione futura, distinguendo le funzionalità implementate, i risultati storici dei test e gli elementi FUTURE. |
 | 2.13 | 21/10/2026 | Aggiornamento con le Sessioni S035-S036: documentazione dell'integrazione Flutter delle Finalità di raccolta, della protezione dalle richieste duplicate di attivazione e disattivazione, delle verifiche SQL locali di regressione del Catalog Registry e dei risultati dei test Flutter della S036; distinzione tra verifiche locali, test effettivamente eseguiti e collaudo remoto non completato. |
+| 2.14 | 26/10/2026 | Aggiornamento S037: protezione Flutter delle scritture concorrenti in BedPage mediante `_runExclusiveWriteFlow`, verifiche di regressione e audit statici sulla semantica di attivazione degli Alias e sull'integrità referenziale Taxon/Crop, con esplicitazione dei limiti delle verifiche. |
 
 ---
 
@@ -1673,6 +1674,58 @@ Durante la prosecuzione S033B è stata effettuata una ricognizione statica delle
 La successiva Sessione S034 ha corretto la gestione delle eccezioni di congelamento semantico in tre RPC del Catalog Registry, senza modificare il modello delle identità globali o introdurre nuove capability.
 
 Il dettaglio di questa correzione e lo stato di applicazione della relativa migration sono documentati nel Capitolo 5 e nel DOC-004.
+
+### Verifiche statiche di integrità del Catalogo — S037
+
+Durante la Sessione S037 sono state eseguite due verifiche statiche sul Catalogo Agronomico globale, senza modificare il modello dati o introdurre nuove migration SQL.
+
+#### Audit della semantica di attivazione degli Alias
+
+È stato esaminato il comportamento degli Alias associati alle identità canoniche del Catalogo, con riferimento ai percorsi SQL e Flutter interessati.
+
+La semantica verificata distingue:
+
+- lo stato `is_active` dell'Alias;
+- lo stato di attivazione dell'identità canonica padre, Taxon o Crop;
+- l'effettiva utilizzabilità dell'Alias.
+
+L'attivazione dell'Alias non determina automaticamente l'attivazione del padre e, viceversa, l'attivazione del padre non modifica automaticamente lo stato dell'Alias.
+
+L'Alias risulta utilizzabile soltanto quando **sia l'Alias sia l'identità canonica associata sono attivi**.
+
+La ricognizione ha incluso i percorsi pertinenti dei Repository Flutter e del read model SQL `public.crop_catalog_read`.
+
+**Esito:** nessuna violazione dimostrata della semantica prevista nel perimetro staticamente esaminato.
+
+L'esito non costituisce un collaudo dinamico completo degli Alias.
+
+#### Audit dell'integrità referenziale Taxon/Crop
+
+È stata effettuata una verifica statica dei meccanismi che proteggono le relazioni fra identità botaniche e agronomiche.
+
+Il perimetro ha compreso:
+
+- vincoli referenziali con comportamento `ON DELETE RESTRICT`;
+- controlli di autorizzazione nei Write Path RPC pertinenti;
+- gestione della concorrenza ottimistica tramite `row_version`;
+- validazione dei riferimenti alle identità canoniche padre.
+
+**Esito:** nessuna anomalia dimostrata nel perimetro esaminato.
+
+La verifica non sostituisce test dinamici specifici, né dimostra il corretto comportamento di ogni percorso applicativo o di ogni possibile condizione concorrente.
+
+#### Limiti e continuità
+
+Le verifiche S037 hanno natura **statica** e non hanno comportato:
+
+- modifiche allo schema del Catalogo;
+- nuove migration;
+- deployment sul database remoto;
+- completamento di un collaudo integrato Flutter–Supabase remoto.
+
+Restano distinti gli eventuali test dinamici di regressione sugli Alias, le verifiche di integrità Taxon/Crop e la riconciliazione dello stato delle migration tra database locale e remoto.
+
+Gli interventi futuri dovranno essere valutati e approvati nelle rispettive sessioni di sviluppo; gli audit S037 non autorizzano automaticamente modifiche successive.
 
 ## 4.5 Provenienza, ingestion e workflow editoriale
 
@@ -4490,6 +4543,48 @@ blocked_by_plantings
 ```
 
 La pagina non aggira tale vincolo.
+
+#### Protezione delle scritture concorrenti — S037
+
+La Sessione S037 ha introdotto una protezione applicativa per impedire l'avvio contemporaneo di operazioni di scrittura incompatibili all'interno della stessa istanza di `BedPage`.
+
+Il coordinamento dei flussi avviene mediante:
+
+```text
+_runExclusiveWriteFlow
+```
+
+Il meccanismo centralizza la gestione delle operazioni di scrittura interessate, evitando che un nuovo flusso incompatibile venga avviato mentre un altro è già in corso.
+
+Durante l'esecuzione di una scrittura, i controlli pertinenti vengono disabilitati per prevenire attivazioni concorrenti da parte dell'utente.
+
+L'intervento ha interessato:
+
+```text
+lib/pages/bed_page.dart
+lib/widgets/planting_card.dart
+test/pages/bed_page_test.dart
+```
+
+Sono stati aggiunti due test di regressione specifici.
+
+**Verifiche S037:**
+
+- `flutter test test/pages/bed_page_test.dart`: **32/32 test superati**;
+- `flutter analyze`: nessun problema;
+- `git diff --cached --check`: superato.
+
+**Limiti della protezione**
+
+Il coordinamento introdotto opera nel perimetro applicativo della pagina Flutter.
+
+Non costituisce un meccanismo di locking globale fra dispositivi o client diversi e non sostituisce le verifiche autoritative dei Write Path Supabase.
+
+Rimangono quindi necessarie le protezioni backend relative ad autorizzazione, integrità, concorrenza e validazione delle operazioni persistenti.
+
+La S037 non ha introdotto nuove migration SQL né effettuato deployment remoto.
+
+**Commit tecnico:** `594e633` — `fix: impedisce scritture concorrenti nella gestione aiuole`.
 
 ## 7.5 Inserimento e modifica delle coltivazioni
 
