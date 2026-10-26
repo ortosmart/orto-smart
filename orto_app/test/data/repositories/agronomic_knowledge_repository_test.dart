@@ -40,6 +40,31 @@ void main() {
     ...identifiers(withContexts: withContexts),
   };
 
+  Map<String, dynamic> metadata() => {
+    ...identifiers(),
+    'assertion_id': assertionId,
+    'revision_no': 1,
+    'parameter_code': 'PLANT_SPACING',
+    'kind': 'VALUE',
+    'value_schema': 'NUMERIC_SCALAR',
+  };
+
+  Map<String, dynamic> resolved() => {
+    'status': 'RESOLVED',
+    ...metadata(),
+    'value': {
+      'type': 'NUMERIC_SCALAR',
+      'numeric_value': 27.5,
+      'unit': {
+        'id': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        'code': 'cm',
+        'name': 'centimetro',
+        'symbol': 'cm',
+        'quantity_kind': 'LENGTH',
+      },
+    },
+  };
+
   AgronomicKnowledgeRepository repositoryFor(
     Future<dynamic> Function(String, Map<String, dynamic>) invoker,
   ) {
@@ -206,6 +231,85 @@ void main() {
       });
 
       await expectLater(repository.resolve(request()), throwsA(same(failure)));
+      expect(calls, 1);
+    });
+
+    test('restituisce RESOLVED con valore numerico e metadati', () async {
+      var calls = 0;
+      final repository = repositoryFor((name, parameters) async {
+        calls++;
+        return resolved();
+      });
+
+      final result = await repository.resolve(request());
+
+      expect(result, isA<AgronomicResolved>());
+      final resolvedResult = result as AgronomicResolved;
+      expect(resolvedResult.metadata.parameterCode, 'PLANT_SPACING');
+      expect(resolvedResult.value, isA<AgronomicNumericScalar>());
+      expect(
+        (resolvedResult.value as AgronomicNumericScalar).numericValue,
+        27.5,
+      );
+      expect(calls, 1);
+    });
+
+    test('rifiuta identificativi discordanti in RESOLVED', () async {
+      final payload = resolved()..['crop_id'] = otherId;
+      final repository = repositoryFor((name, parameters) async => payload);
+
+      await expectLater(
+        repository.resolve(request()),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('gestisce conflitto con metadati e verifica identita', () async {
+      var calls = 0;
+      final repository = repositoryFor((name, parameters) async {
+        calls++;
+        return {
+          'status': 'RESOLUTION_CONFLICT',
+          'conflict_reason': 'INACTIVE_CANONICAL_UNIT',
+          ...metadata(),
+        };
+      });
+
+      final result = await repository.resolve(request());
+
+      expect(result, isA<AgronomicResolutionConflict>());
+      final conflict = result as AgronomicResolutionConflict;
+      expect(conflict.reason, 'INACTIVE_CANONICAL_UNIT');
+      expect(conflict.metadata, isNotNull);
+      expect(calls, 1);
+
+      final invalidPayload = {
+        'status': 'RESOLUTION_CONFLICT',
+        'conflict_reason': 'INACTIVE_CANONICAL_UNIT',
+        ...metadata(),
+        'crop_id': otherId,
+      };
+      final invalidRepository = repositoryFor(
+        (name, parameters) async => invalidPayload,
+      );
+
+      await expectLater(
+        invalidRepository.resolve(request()),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('errore del resolver non provoca chiamate aggiuntive', () async {
+      var calls = 0;
+      final repository = repositoryFor((name, parameters) async {
+        calls++;
+        return {'status': 'crop_inactive'};
+      });
+
+      final result = await repository.resolve(request());
+
+      expect(result, isA<AgronomicResolverFailure>());
+      expect((result as AgronomicResolverFailure).status, 'crop_inactive');
       expect(calls, 1);
     });
   });
