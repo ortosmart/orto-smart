@@ -5,7 +5,7 @@
 
 # Decisioni Architetturali (ADR)
 
-**Versione:** 2.5
+**Versione:** 2.6
 
 **Stato:** In sviluppo
 
@@ -15,7 +15,7 @@
 
 **Data prima emissione:** 28/07/2026
 
-**Ultimo aggiornamento:** 13/10/2026
+**Ultimo aggiornamento:** 03/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -27,12 +27,12 @@
 |-------|--------|
 | Documento | DOC-011 |
 | Titolo | Decisioni Architetturali (ADR) |
-| Versione | 2.5 |
+| Versione | 2.6 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 13/10/2026 |
+| Ultimo aggiornamento | 03/11/2026 |
 
 ---
 
@@ -65,6 +65,7 @@
 | 2.3 | 23/09/2026 | Introduzione della DEC-015 dopo la Sessione S030: evoluzione del Catalogo DB V1 Profile-owned in Catalogo Agronomico V1 globale, multisorgente, tracciabile, versionabile, contestualizzabile ed editorialmente controllato; introduzione della Catalog Authority, separazione tra identità botaniche e Knowledge agronomica, workflow di ingestion/revisione/pubblicazione, Resolver e cutover finale `botanical_taxa` → `crops` → `crop_cultivars` con riallineamento di `plantings` e Flutter |
 | 2.4 | 06/10/2026 | Consolidamento della DEC-015 dopo la Sessione S032: riallineamento del contratto tassonomico ai rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA` e `UNRANKED`; esclusione di `CULTIVAR` dai rank tassonomici; conferma della Cultivar come identità agronomica separata; tassonomia parziale mediante `parent_taxon_id`; collegamento opzionale `Crop → Taxon`; integrazione Flutter dei Write Path di Taxon, Crop e Cultivar; concorrenza mediante `row_version`, rilettura autoritativa su `version_conflict` ed esiti incerti e completamento della UI della Classificazione botanica, senza introduzione di una nuova decisione architetturale |
 | 2.5 | 13/10/2026 | Aggiornamento della tracciabilità applicativa della DEC-015 dopo S033/S033B: completamento delle UI amministrative Crop e Cultivar e consolidamento dell'HUB dei Registri Agronomici; registrazione della ricognizione statica dei sette registri e dell'audit locale limitato dei Write Path di `plantings`, senza nuove decisioni architetturali né modifiche retroattive alle decisioni precedenti |
+| 2.6 | 03/11/2026 | Consolidamento applicativo della DEC-015 dopo S035–S038: integrazione Flutter di tre Registri Agronomici su sette, contratto tipizzato del Resolver Agronomico, tracciabilità del deployment correttivo S034 e limiti delle verifiche; nessuna nuova decisione architetturale |
 
 ---
 
@@ -4053,6 +4054,80 @@ In particolare vengono considerati parte del contratto corrente:
 - progressione applicativa Tassonomia → Crop → Cultivar.
 
 Questo consolidamento corregge il precedente elenco incompleto dei rank contenuto nella prima formulazione S030 della DEC-015 senza modificare retroattivamente DEC-013 o DEC-014.
+
+### Consolidamento applicativo S035–S038 della DEC-015
+
+Le Sessioni S035–S038 hanno proseguito l'integrazione applicativa del Catalogo Agronomico V1 secondo i contratti architetturali già stabiliti dalla DEC-015.
+
+Queste sessioni non introducono una nuova decisione architetturale indipendente e non modificano retroattivamente le decisioni precedenti.
+
+#### Progressione dei Registri Agronomici
+
+La ricognizione statica S033B aveva individuato sette Registri Agronomici da integrare progressivamente nel livello Flutter.
+
+La Sessione S035 ha integrato il registro `harvest_purposes`. La Sessione S038 ha successivamente integrato i registri `measurement_units` e `agronomic_parameters`.
+
+Alla chiusura dello sviluppo S038, lo stato applicativo verificato è:
+
+| Registro | Stato Flutter |
+|---|---|
+| `harvest_purposes` | Integrato in S035 |
+| `measurement_units` | Integrato in S038 |
+| `agronomic_parameters` | Integrato in S038 |
+| `parameter_enum_values` | FUTURE |
+| `production_contexts` | FUTURE |
+| `protection_contexts` | FUTURE |
+| `training_contexts` | FUTURE |
+
+Risultano pertanto integrati in Flutter tre dei sette registri censiti.
+
+Le operazioni amministrative integrate utilizzano i Write Path autoritativi previsti dal backend, le capability della Catalog Authority e i meccanismi di gestione della concorrenza applicabili.
+
+La presenza dei registri nel backend non equivale al completamento delle rispettive interfacce Flutter.
+
+#### Integrazione Flutter del Resolver Agronomico
+
+La Sessione S038 ha introdotto nel livello Flutter il contratto tipizzato del Resolver Agronomico, comprendente `AgronomicKnowledgeRequest`, `AgronomicKnowledgeResult` e `AgronomicKnowledgeRepository`.
+
+Il repository utilizza la RPC backend preesistente `resolve_agronomic_knowledge` e comprende la verifica dell'identità della Knowledge risolta mediante `verifyAgronomicKnowledgeIdentity`.
+
+Il Resolver mantiene la funzione di consultazione della Knowledge canonica applicabile, senza acquisire autorità sulla realtà operativa dell'orto.
+
+L'integrazione S038 non costituisce il completamento dell'utilizzo del Resolver nei flussi effettivi di pianificazione, inserimento o gestione delle coltivazioni.
+
+Tali integrazioni rimangono distinte e non vengono dichiarate completate.
+
+#### Autorità, concorrenza e invarianti
+
+L'integrazione applicativa S038 mantiene la separazione tra Catalog Authority e Profile Write Authority.
+
+Le operazioni amministrative dei registri rispettano le capability previste, i contratti RPC autoritativi e, quando applicabile, la concorrenza ottimistica mediante `row_version`.
+
+Le invarianti rimangono server-side.
+
+Flutter non introduce percorsi alternativi di scrittura diretta, overwrite forzati o retry automatici dopo esiti incerti.
+
+#### Consolidamento del backend e limiti delle verifiche
+
+Durante la Sessione S038 è stata distribuita sul database remoto la migration correttiva introdotta nella S034:
+
+`20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`
+
+La migration era già stata verificata localmente, con sei prove dinamiche di regressione superate nella S036.
+
+Alla chiusura dello sviluppo S038 risultavano allineate 34 migration locali e remote.
+
+Il deployment remoto e l'allineamento delle migration non costituiscono, da soli, una prova di integrazione applicativa end-to-end contro il backend remoto.
+
+Le verifiche Flutter integrative effettuate durante Manuali S038 hanno registrato 178 test superati su otto file mirati e `flutter analyze` senza problemi rilevati. Questi risultati non equivalgono all'esecuzione dell'intera suite di test né a un collaudo remoto end-to-end.
+
+#### Confine architetturale
+
+Il consolidamento S035–S038 documenta l'avanzamento dell'implementazione della DEC-015, senza modificarne le invarianti.
+
+Restano distinti e non completati i quattro registri Flutter FUTURE, le ulteriori funzionalità editoriali e multisorgente e l'integrazione operativa completa del Resolver Agronomico.
+
+Nessuna funzionalità FUTURE viene considerata automaticamente approvata per una successiva sessione di sviluppo.
 
 ### Motivazione
 

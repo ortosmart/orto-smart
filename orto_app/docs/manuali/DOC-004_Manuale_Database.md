@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 2.7
+**Versione:** 2.8
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 26/10/2026
+**Ultimo aggiornamento:** 03/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 2.7 |
+| Versione | 2.8 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 26/10/2026 |
+| Ultimo aggiornamento | 03/11/2026 |
 
 ---
 
@@ -54,6 +54,7 @@
 | 2.5 | 15/10/2026 | Aggiornamento con la Sessione S034: documentazione della correzione della gestione degli errori di congelamento semantico nelle RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value`, riconoscimento selettivo di `SQLSTATE 55000` mediante confronto esatto del messaggio del trigger, propagazione delle eccezioni non riconosciute; migration applicata esclusivamente al database locale, verifiche statiche e autorizzative superate, test dinamico specifico non eseguito e applicazione remota ancora aperta |
 | 2.6 | 21/10/2026 | Aggiornamento con la Sessione S036: documentazione delle verifiche SQL locali di regressione relative alla gestione selettiva di SQLSTATE 55000 nelle RPC del Catalog Registry; registrazione dei risultati effettivamente ottenuti, conservazione del limite storico dei test S034 e conferma che la migration correttiva non risulta applicata al database remoto. |
 | 2.7 | 26/10/2026 | Aggiornamento S037: audit statici della semantica di attivazione degli Alias e dell'integrità referenziale Taxon/Crop; conferma dei limiti delle verifiche, senza nuove migration SQL né deployment remoto. |
+| 2.8 | 03/11/2026 | Aggiornamento documentale con la Sessione S038: consolidamento dello stato del Catalogo Agronomico e dei sette registri S033B, integrazione amministrativa Flutter di `measurement_units` e `agronomic_parameters`, aggiornamento dei Write Path autoritativi e del contratto Flutter tipizzato del Resolver, registrazione dell'applicazione remota della migration correttiva S034 e dell'allineamento delle 34 migration locali e remote, documentazione dei backup SQL remoti e dei limiti del collaudo integrato e del ripristino logico. |
 
 ---
 
@@ -811,6 +812,66 @@ Un dato esterno non diventa automaticamente dato canonico.
 
 Nessuna fonte esterna può sovrascrivere automaticamente dati già approvati nel Catalogo.
 
+### Registri agronomici — Evoluzione S033B–S038
+
+L'architettura del Catalogo Agronomico comprende sette registri agronomici, introdotti nel perimetro backend della S033B:
+
+```text
+harvest_purposes
+measurement_units
+agronomic_parameters
+parameter_enum_values
+production_contexts
+protection_contexts
+training_contexts
+```
+
+Questi registri costituiscono strutture di riferimento per la rappresentazione controllata di parametri, unità di misura, valori enumerati e contesti agronomici.
+
+La loro presenza nello schema persistente non implica automaticamente la disponibilità di una gestione amministrativa completa nell'applicazione Flutter.
+
+Alla conclusione della S038, lo stato dell'integrazione amministrativa Flutter è il seguente:
+
+| Registro | Stato Flutter |
+|---|---|
+| `harvest_purposes` | Gestione integrata nella S035 |
+| `measurement_units` | Gestione integrata nella S038 |
+| `agronomic_parameters` | Gestione integrata nella S038 |
+| `parameter_enum_values` | Gestione amministrativa ancora da completare |
+| `production_contexts` | Gestione amministrativa ancora da completare |
+| `protection_contexts` | Gestione amministrativa ancora da completare |
+| `training_contexts` | Gestione amministrativa ancora da completare |
+
+Risultano pertanto **tre registri su sette integrati nella gestione amministrativa Flutter**, mentre quattro rimangono da completare.
+
+La S038 ha introdotto per `measurement_units` e `agronomic_parameters`:
+
+- modelli applicativi dedicati;
+- Repository Flutter dedicati;
+- pagine amministrative `MeasurementUnitsPage` e `AgronomicParametersPage`;
+- operazioni di creazione, aggiornamento e attivazione/disattivazione;
+- utilizzo di Write Path autoritativi mediante RPC;
+- gestione tipizzata degli esiti applicativi;
+- controllo della concorrenza ottimistica mediante `row_version`;
+- gestione delle dipendenze e dei vincoli imposti dal backend;
+- verifica delle capability pertinenti.
+
+Le RPC utilizzate per i due registri sono:
+
+```text
+create_measurement_unit
+update_measurement_unit
+set_measurement_unit_active
+
+create_agronomic_parameter
+update_agronomic_parameter
+set_agronomic_parameter_active
+```
+
+Le operazioni di scrittura rimangono subordinate all'autorità del backend. Il client Flutter non sostituisce i controlli di integrità, autorizzazione o concorrenza.
+
+L'integrazione amministrativa non equivale al popolamento reale e verificato dei registri né al completamento dell'intero workflow editoriale del Catalogo.
+
 ### Catalog Authority
 
 La gestione protetta del Catalogo globale utilizza:
@@ -842,9 +903,15 @@ Il claim iniziale:
 - è idempotente;
 - non consente di reclamare nuovamente una authority già inizializzata.
 
+La gestione Flutter della Catalog Authority comprende il Repository dedicato e un'interfaccia che distingue gli stati di inizializzazione, disponibilità delle capability, authority già assegnata, autorizzazione negata ed errore controllato.
+
+L'azione di inizializzazione è esplicita e non viene eseguita automaticamente dal client.
+
 Le operazioni protette del Catalogo sono eseguite mediante Write Path server-side autoritativi.
 
 Flutter è considerato client non fidato e non costituisce l'autorità per le invarianti del Catalogo.
+
+La disponibilità di un controllo nella UI non costituisce autorizzazione sufficiente per eseguire una scrittura.
 
 ### Normalizzazione delle identità
 
@@ -893,6 +960,47 @@ CropVarietyRepository
 ```
 
 non appartiene più al contratto applicativo corrente.
+
+Le integrazioni successive hanno esteso il livello applicativo ai registri amministrativi, senza modificare il principio secondo cui il backend rimane autoritativo per le operazioni persistenti.
+
+### Resolver della Knowledge agronomica — Stato S038
+
+Il Catalogo Agronomico prevede un Resolver per ottenere Knowledge agronomica in relazione a un'identità e al relativo contesto.
+
+Il backend espone la RPC:
+
+```text
+resolve_agronomic_knowledge
+```
+
+Nella S038 è stato integrato in Flutter un contratto tipizzato composto, tra gli altri, da:
+
+```text
+AgronomicKnowledgeRequest
+AgronomicKnowledgeResult
+AgronomicKnowledgeRepository
+```
+
+Il Repository applicativo gestisce la comunicazione con il backend e la rappresentazione degli esiti attraverso i tipi previsti dal contratto.
+
+È inoltre presente la verifica dell'identità agronomica mediante:
+
+```text
+verifyAgronomicKnowledgeIdentity
+```
+
+Questa integrazione costituisce un avanzamento tecnico del collegamento Flutter–Resolver.
+
+Non dimostra tuttavia il completamento del flusso operativo reale di pianificazione o creazione di una coltivazione basata su Knowledge approvata.
+
+In particolare:
+
+- la Knowledge canonica rimane distinta dalle identità agronomiche;
+- il Resolver non costituisce un meccanismo di sovrascrittura automatica dei dati operativi;
+- l'eventuale applicazione di valori a una coltivazione reale richiede il rispetto del contratto applicativo e delle conferme previste;
+- la disponibilità del Repository non equivale al completamento dell'intero workflow editoriale o al popolamento reale del Catalogo.
+
+Alla conclusione della S038 non risulta documentato un collaudo integrato completo Flutter–Supabase remoto del flusso operativo del Resolver.
 
 ### Plantings
 
@@ -946,7 +1054,7 @@ non appartiene più al contratto persistente corrente di `plantings`.
 
 I valori agronomici memorizzati nella coltivazione costituiscono snapshot operativi.
 
-Il Catalogo e il futuro utilizzo completo del Resolver possono proporre valori, ma non devono modificare automaticamente una coltivazione reale senza conferma dell'utente.
+Il Catalogo e il Resolver possono proporre valori, ma non devono modificare automaticamente una coltivazione reale senza conferma dell'utente.
 
 Il Write Path di `plantings` continua ad applicare:
 
@@ -971,22 +1079,98 @@ Sono quindi mantenuti:
 - refresh autoritativo in caso di `version_conflict`;
 - refresh autoritativo in caso di `invalid_transition`.
 
-### Stato applicativo del Catalogo
+### Migration e verifiche — Stato alla conclusione della S038
 
-La S030 ha completato l'architettura persistente, i Write Path autoritativi necessari, i read model e il riallineamento Flutter indispensabile al nuovo contratto.
+Alla conclusione dello sviluppo S038 risultano allineate **34 migration su 34** tra database locale e database Supabase remoto.
+
+La migration correttiva introdotta nella S034:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+è stata applicata anche al database remoto durante la S038.
+
+Questa informazione aggiorna lo stato corrente, senza modificare il consuntivo storico delle sessioni precedenti.
+
+In particolare:
+
+- nella S034 la migration era stata applicata soltanto localmente;
+- nella S036 sono state eseguite **6 verifiche SQL locali di regressione su 6**, con esito positivo, relative alla gestione selettiva di `SQLSTATE 55000`;
+- nella S037 la correzione remota risultava ancora da riconciliare;
+- nella S038 è stata verificata l'applicazione remota della migration e l'allineamento della sequenza locale/remota.
+
+La gestione selettiva delle eccezioni di congelamento semantico riguarda le RPC:
+
+```text
+update_measurement_unit
+update_agronomic_parameter
+update_parameter_enum_value
+```
+
+Il riconoscimento dell'errore applicativo previsto utilizza `SQLSTATE 55000` e il confronto esatto del messaggio pertinente. Le eccezioni non riconosciute non devono essere trasformate impropriamente in esiti applicativi attesi.
+
+Le verifiche SQL locali della S036 e l'allineamento delle migration nella S038 non equivalgono a un collaudo integrato remoto di tutti i flussi Flutter–Supabase.
+
+La S038 non ha introdotto nuove migration SQL.
+
+### Backup remoto — S038
+
+Prima delle attività sul database remoto sono stati predisposti backup SQL separati dello schema e dei dati.
+
+I file sono conservati al di fuori del repository Git nella directory:
+
+```text
+C:\Sviluppo\Backup-Orto-Smart\S038-20261026\
+```
+
+I backup comprendono:
+
+```text
+schema_remoto.sql
+dati_public_remoto.sql
+dati_auth_remoto.sql
+dati_storage_remoto.sql
+```
+
+Per tali file sono state effettuate verifiche di presenza, dimensione e impronta SHA-256.
+
+La disponibilità e la verifica dell'integrità dei file non costituiscono, da sole, una prova di ripristino funzionale.
+
+Alla conclusione della S038 non risulta documentato un test completo di ripristino logico dei backup.
+
+### Stato applicativo del Catalogo alla conclusione della S038
+
+La S030 ha completato l'architettura persistente del Catalogo globale, i Write Path autoritativi necessari al relativo perimetro, i read model e il riallineamento Flutter indispensabile al nuovo contratto.
+
+Le sessioni successive hanno esteso progressivamente l'integrazione amministrativa e applicativa.
+
+Alla conclusione della S038 risultano documentati:
+
+- gestione applicativa delle identità botaniche, Crop e Cultivar;
+- gestione esplicita dell'inizializzazione della Catalog Authority;
+- integrazione amministrativa Flutter di `harvest_purposes`;
+- integrazione amministrativa Flutter di `measurement_units` e `agronomic_parameters`;
+- contratti tipizzati Flutter per il Resolver della Knowledge agronomica;
+- applicazione remota della migration correttiva S034;
+- allineamento delle 34 migration locali e remote;
+- verifiche SQL locali di regressione S036 concluse positivamente.
 
 Non costituiscono invece ancora funzionalità operative complete:
 
-- UI editoriale/amministrativa completa del Catalogo;
+- gestione amministrativa Flutter dei quattro registri `parameter_enum_values`, `production_contexts`, `protection_contexts` e `training_contexts`;
+- UI editoriale/amministrativa completa dell'intero Catalogo;
 - workflow UI completo di ingestion, revisione e pubblicazione;
-- azione UI definitiva e sicura per `claim_initial_catalog_authority()`;
-- integrazione completa del Resolver nel flusso di pianificazione e creazione delle coltivazioni;
+- integrazione completa del Resolver nel flusso reale di pianificazione e creazione delle coltivazioni;
 - backend canonico delle associazioni colturali;
-- popolamento editoriale reale del Catalogo con dati agronomici verificati.
+- popolamento editoriale reale del Catalogo con dati agronomici verificati;
+- collaudo integrato remoto completo dei flussi applicativi interessati.
 
 Il Database V1 complessivo non coincide ancora con l'intera baseline delle 52 entità progettate nella S017: l'implementazione fisica continua incrementalmente.
 
-La presenza di una entità nella baseline Database V1 non implica automaticamente che tutte le strutture, relazioni, policy o funzionalità previste dalla baseline siano già implementate.
+La presenza di un'entità nella baseline Database V1 non implica automaticamente che tutte le strutture, relazioni, policy o funzionalità previste dalla baseline siano già implementate.
+
+Analogamente, la presenza di un contratto backend o di un Repository Flutter non dimostra, da sola, che la relativa funzionalità sia pronta per l'impiego operativo reale.
 
 ## 2.2 Database V1 progettato
 
@@ -2385,6 +2569,106 @@ quale valore è stato approvato e pubblicato
 
 Il registro costituisce quindi parte dell'infrastruttura semantica del Catalogo e permette successive estensioni senza trasformare ogni nuova informazione agronomica in una modifica strutturale delle identità `crops` o `crop_cultivars`.
 
+#### Evoluzione dei registri agronomici — S033B–S038
+
+La S033B ha consolidato nel backend sette registri agronomici:
+
+| Registro | Funzione |
+|---|---|
+| `harvest_purposes` | Classificazione delle finalità di raccolta |
+| `measurement_units` | Definizione delle unità di misura |
+| `agronomic_parameters` | Definizione dei parametri agronomici |
+| `parameter_enum_values` | Valori enumerati associati ai parametri |
+| `production_contexts` | Contesti di produzione |
+| `protection_contexts` | Contesti di protezione |
+| `training_contexts` | Contesti di allevamento e conduzione |
+
+I registri sono parte del modello persistente del Catalogo Agronomico globale.
+
+La loro gestione è soggetta ai vincoli di integrità, alle dipendenze e ai Write Path autoritativi previsti dal backend.
+
+La disponibilità delle tabelle nel database non implica automaticamente la disponibilità delle corrispondenti funzionalità amministrative Flutter.
+
+#### Integrazione amministrativa Flutter
+
+La S035 ha integrato la gestione amministrativa di `harvest_purposes`.
+
+La S038 ha esteso l'integrazione ai registri:
+
+```text
+measurement_units
+agronomic_parameters
+```
+
+Per questi due registri sono stati introdotti modelli, Repository e pagine Flutter dedicati:
+
+```text
+MeasurementUnit
+MeasurementUnitRepository
+MeasurementUnitsPage
+
+AgronomicParameter
+AgronomicParameterRepository
+AgronomicParametersPage
+```
+
+Le operazioni di scrittura utilizzano le RPC autoritative:
+
+```text
+create_measurement_unit
+update_measurement_unit
+set_measurement_unit_active
+
+create_agronomic_parameter
+update_agronomic_parameter
+set_agronomic_parameter_active
+```
+
+I contratti applicativi comprendono la gestione tipizzata degli esiti, il controllo della concorrenza ottimistica mediante `row_version`, la verifica delle capability pertinenti e il rispetto dei vincoli di dipendenza gestiti dal backend.
+
+Le operazioni di attivazione e disattivazione non devono aggirare le dipendenze persistenti né le invarianti server-side.
+
+Alla conclusione della S038 risultano integrati nella gestione amministrativa Flutter **tre registri su sette**.
+
+Rimangono da completare le interfacce amministrative dei registri:
+
+```text
+parameter_enum_values
+production_contexts
+protection_contexts
+training_contexts
+```
+
+Questo stato riguarda l'integrazione applicativa e non deve essere interpretato come assenza dei quattro registri dal database.
+
+#### Congelamento semantico e verifiche
+
+Le RPC di aggiornamento dei registri interessati dal congelamento semantico applicano il contratto backend previsto.
+
+La correzione introdotta nella S034 riguarda la gestione selettiva di `SQLSTATE 55000` nelle RPC:
+
+```text
+update_measurement_unit
+update_agronomic_parameter
+update_parameter_enum_value
+```
+
+L'errore viene tradotto nell'esito applicativo previsto soltanto quando corrisponde alla specifica condizione riconosciuta dal contratto. Le altre eccezioni devono essere propagate.
+
+La S036 ha eseguito con esito positivo **6/6 verifiche SQL locali di regressione**.
+
+La migration correttiva S034, inizialmente applicata soltanto localmente, è stata applicata anche al database remoto durante la S038.
+
+Queste verifiche non costituiscono un collaudo integrato remoto completo delle interfacce Flutter.
+
+#### Principio consolidato
+
+I registri agronomici definiscono le strutture semantiche utilizzate dal Catalogo; le osservazioni e la Knowledge canonica rappresentano invece le informazioni agronomiche associate alle identità e ai contesti.
+
+Il client Flutter può amministrare i registri per i quali è stata completata l'integrazione, ma non diventa autorità per i vincoli persistenti.
+
+Il popolamento editoriale reale, la revisione e la pubblicazione della Knowledge rimangono processi distinti dalla semplice disponibilità dei registri e delle rispettive interfacce amministrative.
+
 ### Contesto agronomico
 
 Un valore agronomico può dipendere dal contesto.
@@ -2599,9 +2883,67 @@ Knowledge risolta
 modifica automatica del Planting
 ```
 
-Nel flusso operativo il Resolver potrà proporre valori appropriati, ma l'applicazione non deve modificare automaticamente i dati reali della coltivazione senza conferma dell'utente.
+Nel flusso operativo il Resolver può proporre valori appropriati, ma l'applicazione non deve modificare automaticamente i dati reali della coltivazione senza conferma dell'utente.
 
-L'integrazione completa del Resolver nei flussi Flutter di pianificazione e creazione delle coltivazioni rimane un incremento successivo alla S030.
+#### Contratto backend e integrazione Flutter — S038
+
+Il backend del Catalogo Agronomico espone la RPC:
+
+```text
+resolve_agronomic_knowledge
+```
+
+La Sessione S038 ha introdotto l'integrazione Flutter del Resolver mediante un contratto applicativo tipizzato.
+
+I componenti principali sono:
+
+```text
+AgronomicKnowledgeRequest
+AgronomicKnowledgeResult
+AgronomicKnowledgeRepository
+```
+
+`AgronomicKnowledgeRequest` rappresenta la richiesta applicativa di risoluzione della Knowledge agronomica.
+
+`AgronomicKnowledgeResult` e le relative varianti tipizzate rappresentano gli esiti previsti dal contratto applicativo.
+
+`AgronomicKnowledgeRepository` costituisce il confine di accesso Flutter alla funzione autoritativa del backend.
+
+È inoltre prevista la verifica dell'identità agronomica mediante:
+
+```text
+verifyAgronomicKnowledgeIdentity
+```
+
+Il Repository non sostituisce le regole di selezione e validazione della Knowledge implementate nel backend.
+
+La rappresentazione tipizzata degli esiti permette al client di distinguere le condizioni previste dal contratto, senza assumere che ogni richiesta produca necessariamente un valore agronomico utilizzabile.
+
+#### Separazione tra Knowledge e stato operativo
+
+L'integrazione tecnica del Resolver non modifica il principio secondo cui la Knowledge agronomica e i dati reali di una coltivazione appartengono a domini distinti.
+
+In particolare:
+
+- l'identità agronomica deve essere verificata secondo il contratto applicabile;
+- la Knowledge risolta non costituisce automaticamente un valore operativo confermato;
+- l'eventuale utilizzo di un risultato nel Planting deve rispettare le regole del dominio operativo;
+- nessun risultato del Resolver autorizza una scrittura diretta che aggiri i Write Path autoritativi di `plantings`;
+- gli snapshot operativi già registrati non devono essere sovrascritti automaticamente a seguito di aggiornamenti del Catalogo.
+
+#### Stato di completamento alla S038
+
+La S038 ha completato l'integrazione tecnica del contratto Flutter tipizzato e del Repository del Resolver.
+
+Rimangono invece da completare o verificare:
+
+- l'integrazione operativa completa nei flussi di pianificazione e creazione delle coltivazioni;
+- l'utilizzo effettivo di Knowledge canonica approvata nei flussi reali dell'orto;
+- il collaudo integrato completo Flutter–Supabase remoto del flusso operativo.
+
+La presenza della RPC backend e del Repository Flutter non deve quindi essere interpretata come completamento dell'intero processo agronomico.
+
+Il Resolver rimane il livello incaricato di individuare la Knowledge applicabile, mentre l'applicazione conserva la responsabilità di gestire esplicitamente la proposta, la conferma e l'eventuale registrazione dei dati operativi mediante i Write Path previsti.
 
 ### Catalog Authority
 
@@ -4781,7 +5123,7 @@ L'esposizione di una tabella o funzione attraverso la Data API non equivale all'
 
 #### Stato corrente dei Write Path
 
-Alla conclusione della S032 risultano implementati e verificati Write Path autoritativi per i principali perimetri già sviluppati, tra cui:
+Alla conclusione della Sessione S038 risultano implementati Write Path autoritativi per i principali perimetri già sviluppati, tra cui:
 
 ```text
 gardens
@@ -4793,11 +5135,17 @@ Catalogo Agronomico globale
 
 `plantings`, introdotta nella S028 e integrata nel lifecycle Flutter nella S029, non costituisce più un incremento futuro.
 
-Per il Catalogo Agronomico globale, la S030 ha realizzato il backend autoritativo e i relativi Write Path server-side; le Sessioni S031 e S032 hanno progressivamente integrato tali contratti nel client Flutter senza introdurre nuove migration.
+Per il Catalogo Agronomico globale, la S030 ha realizzato il backend autoritativo e i relativi Write Path server-side. Le sessioni successive hanno progressivamente integrato tali contratti nel client Flutter, mantenendo il database come autorità per autorizzazioni, invarianti, dipendenze e concorrenza.
 
-La S031 ha integrato la gestione applicativa dello stato della Catalog Authority, la lettura delle capability mediante `CatalogAuthorityRepository` e l'inizializzazione esplicita e controllata dell'autorità iniziale prevista da `claim_initial_catalog_authority()`.
+##### Catalog Authority e identità globali
 
-La S032 ha integrato nel client Flutter i Write Path autoritativi relativi a:
+La S031 ha integrato la gestione applicativa della Catalog Authority, la lettura delle capability mediante `CatalogAuthorityRepository` e l'inizializzazione esplicita e controllata dell'autorità iniziale prevista da:
+
+```text
+claim_initial_catalog_authority()
+```
+
+La S032 ha integrato i Write Path Flutter relativi a:
 
 ```text
 tassonomia botanica
@@ -4805,7 +5153,7 @@ Crop
 Cultivar
 ```
 
-Per la tassonomia botanica sono utilizzate le RPC server-side:
+Per la tassonomia botanica sono utilizzate le RPC:
 
 ```text
 create_botanical_taxon
@@ -4813,32 +5161,128 @@ update_botanical_taxon
 set_botanical_taxon_active
 ```
 
-La relativa UI di gestione della **Classificazione botanica** supporta lettura, creazione, modifica, attivazione e disattivazione delle voci botaniche, subordinando l'esposizione delle operazioni alla capability prevista dalla Catalog Authority.
+La gestione applicativa delle identità botaniche, Crop e Cultivar è stata progressivamente completata nelle sessioni successive alla S032.
 
-I Write Path Flutter di Crop e Cultivar sono integrati con i rispettivi contratti autoritativi backend; le relative interfacce complete di gestione rimangono invece incrementi applicativi successivi.
+Le operazioni rimangono subordinate alle capability della Catalog Authority e ai controlli server-side.
 
-La concorrenza ottimistica continua a essere governata mediante `row_version` secondo il contratto della relativa entità. In presenza di `version_conflict` il client non forza la sovrascrittura e non ripete automaticamente la scrittura, ma ricarica lo stato autoritativo.
+##### Registri agronomici — S033B–S038
+
+Il backend del Catalogo comprende sette registri agronomici:
+
+```text
+harvest_purposes
+measurement_units
+agronomic_parameters
+parameter_enum_values
+production_contexts
+protection_contexts
+training_contexts
+```
+
+La S035 ha integrato la gestione amministrativa Flutter di `harvest_purposes`.
+
+La S038 ha integrato la gestione amministrativa Flutter di `measurement_units` e `agronomic_parameters`.
+
+Per questi ultimi due registri sono utilizzate le RPC autoritative:
+
+```text
+create_measurement_unit
+update_measurement_unit
+set_measurement_unit_active
+
+create_agronomic_parameter
+update_agronomic_parameter
+set_agronomic_parameter_active
+```
+
+Le operazioni comprendono la gestione tipizzata degli esiti, il controllo della concorrenza ottimistica mediante `row_version` e il rispetto delle dipendenze persistenti.
+
+Alla conclusione della S038 risultano quindi integrati nella gestione amministrativa Flutter **tre registri su sette**.
+
+La gestione amministrativa Flutter dei quattro registri rimanenti costituisce un incremento successivo.
+
+##### Congelamento semantico e migration correttiva S034
+
+La S034 ha introdotto una correzione della gestione selettiva di `SQLSTATE 55000` nelle RPC:
+
+```text
+update_measurement_unit
+update_agronomic_parameter
+update_parameter_enum_value
+```
+
+La S036 ha eseguito con esito positivo **6/6 verifiche SQL locali di regressione**, utilizzando rollback per evitare la persistenza dei dati di prova.
+
+Durante la S038 la migration:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+è stata applicata anche al database Supabase remoto.
+
+Alla conclusione della S038 risultano allineate **34 migration su 34** tra database locale e remoto.
+
+Questa informazione rappresenta lo stato corrente e non modifica i consuntivi storici delle sessioni S034, S036 e S037.
+
+L'allineamento delle migration non costituisce, da solo, un collaudo integrato remoto delle operazioni Flutter.
+
+##### Resolver e Knowledge agronomica
+
+Il backend espone il Resolver mediante:
+
+```text
+resolve_agronomic_knowledge
+```
+
+La S038 ha introdotto il contratto Flutter tipizzato e il relativo Repository applicativo:
+
+```text
+AgronomicKnowledgeRequest
+AgronomicKnowledgeResult
+AgronomicKnowledgeRepository
+```
+
+È inoltre presente la verifica dell'identità agronomica mediante `verifyAgronomicKnowledgeIdentity`.
+
+L'integrazione tecnica del Resolver non equivale al completamento del suo utilizzo operativo nella pianificazione e nella creazione delle coltivazioni.
+
+Il risultato del Resolver non costituisce autorizzazione a modificare automaticamente `plantings`.
+
+##### Concorrenza, sicurezza e riallineamento
+
+La concorrenza ottimistica continua a essere governata mediante `row_version`, secondo il contratto della relativa entità.
+
+In presenza di `version_conflict`, il client non forza la sovrascrittura e non ripete automaticamente la scrittura, ma ricarica lo stato autoritativo.
 
 Lo stesso principio si applica agli esiti incerti delle operazioni di scrittura: il client non effettua retry automatici che potrebbero duplicare un'operazione già accettata dal server, ma verifica lo stato autoritativo prima di consentire una nuova azione.
 
-Le invarianti relative alla gerarchia tassonomica, alle dipendenze e agli stati attivo/inattivo rimangono responsabilità del backend. Flutter non deve duplicare tali regole né introdurre vincoli autonomi più restrittivi del contratto server-side.
+Le invarianti relative alla gerarchia tassonomica, alle dipendenze e agli stati attivo/inattivo rimangono responsabilità del backend.
 
-Rimangono FUTURE, tra gli incrementi principali:
+Flutter non deve duplicare tali regole né introdurre vincoli autonomi più restrittivi del contratto server-side.
 
-- UI completa di gestione delle Crop;
-- UI completa di gestione delle Cultivar;
-- gestione applicativa degli alias;
-- workflow operativo UI di ingestion/importazione delle fonti;
+Le capability utilizzate dalla UI determinano quali operazioni possono essere presentate all'utente, ma l'autorizzazione effettiva rimane sempre server-side.
+
+##### Incrementi ancora aperti
+
+Rimangono da completare o verificare, tra gli incrementi principali:
+
+- gestione amministrativa Flutter di `parameter_enum_values`, `production_contexts`, `protection_contexts` e `training_contexts`;
+- workflow operativo UI di ingestion e importazione delle fonti;
 - gestione UI dei candidati, della revisione editoriale e della pubblicazione;
-- integrazione completa del Resolver nei flussi di pianificazione e creazione delle coltivazioni;
+- integrazione completa del Resolver nei flussi reali di pianificazione e creazione delle coltivazioni;
 - backend canonico delle associazioni colturali;
+- popolamento editoriale reale del Catalogo con dati agronomici verificati;
+- collaudo integrato remoto completo dei flussi applicativi interessati;
 - ulteriori Write Path delle entità Database V1 non ancora implementate.
 
 I test S030 hanno verificato i Write Path backend del Catalogo mediante acceptance test e fixture transazionali sottoposte a rollback, senza lasciare dati di prova persistenti.
 
-Le successive verifiche applicative S031 e S032 hanno mantenuto il backend come autorità effettiva. Alla chiusura dello sviluppo S032, `flutter analyze` non ha rilevato problemi e la suite completa ha superato **1077/1077 test**.
+Le verifiche applicative S031 e S032 hanno mantenuto il backend come autorità effettiva. Alla chiusura della S032, `flutter analyze` non ha rilevato problemi e la suite completa ha superato **1077/1077 test**.
 
-Il principio rimane:
+Nella S038, le verifiche Flutter finali hanno confermato l'assenza di problemi di analisi statica e il superamento della suite di test eseguita. Non viene attribuito un conteggio finale non verificato.
+
+Il principio consolidato rimane:
 
 ```text
 sicurezza applicativa
@@ -4854,7 +5298,7 @@ Write Path autoritativi
 invarianti server-side
 ```
 
-Nessuno di questi livelli deve essere sostituito da controlli affidati esclusivamente al client. Le capability utilizzate dalla UI determinano quali operazioni possono essere presentate all'utente, ma l'autorizzazione effettiva rimane sempre server-side.
+Nessuno di questi livelli deve essere sostituito da controlli affidati esclusivamente al client.
 
 ## 9.9 Identità tecnica per dispositivi futuri
 

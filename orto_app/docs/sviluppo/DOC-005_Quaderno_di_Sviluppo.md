@@ -5,7 +5,7 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.24
+**Versione:** 0.25
 
 **Stato:** In sviluppo
 
@@ -15,7 +15,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 26/10/2026
+**Ultimo aggiornamento:** 03/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -27,12 +27,12 @@
 |-------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.24 |
+| Versione | 0.25 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 26/10/2026 |
+| Ultimo aggiornamento | 03/11/2026 |
 
 ---
 
@@ -64,6 +64,7 @@
 | 0.22 | 13/10/2026 | Chiusura documentale definitiva della Sessione S033/S033B: fase Manuali conclusa il 13/10/2026 alle 21:34, con 1 h 52 min di documentazione; consuntivo complessivo della sessione 24 h 35 min, di cui 22 h 43 min di sviluppo; aggiornamento del Registro delle sessioni e consolidamento dei progressivi del progetto a 203 h 23 min di sviluppo, 67 h 51 min di documentazione e 271 h 14 min complessivi. |
 | 0.23 | 17/10/2026 | Aggiornamento del Quaderno con la Sessione S035: integrazione Flutter della gestione delle Finalità di raccolta nel Catalogo Agronomico, consultazione, creazione, modifica e attivazione/disattivazione, gestione delle capability e della concorrenza ottimistica; 42 test Flutter superati e `flutter analyze` senza problemi; commit `9024e2f`; sviluppo concluso il 16/10/2026 alle 23:39, durata netta 2 h 23 min; nessuna modifica al database. |
 | 0.24 | 21/10/2026 | Aggiornamento del Quaderno con la Sessione S036: protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta, test SQL di regressione del Catalog Registry con 6 verifiche superate su 6, `flutter analyze` senza problemi e 1.292 test Flutter superati; documentazione dei commit `b250b49` e `923c035`, dei limiti del collaudo remoto e delle attività ancora aperte. |
+| 0.25 | 03/11/2026 | Aggiornamento del Quaderno con la Sessione S038: contratto tipizzato del Resolver Agronomico, repository Flutter e integrazione delle pagine di gestione delle Unità di misura e dei Parametri agronomici; utilizzo delle RPC autoritative esistenti, capability server-side, Profile Write Authority e concorrenza ottimistica; documentazione dei cinque commit di sviluppo, delle verifiche integrative di 178/178 test Flutter e `flutter analyze` senza problemi, dei limiti del collaudo e del consuntivo di sviluppo di 13 h 27 min. Riallineamento dei registri delle sessioni S034–S038, con contabilizzazione separata della regolarizzazione documentale post-S035 di 20 minuti. Fase Manuali S038 ancora in corso. |
 
 ---
 
@@ -108,6 +109,14 @@ Per una sessione ancora in corso viene riportato soltanto il tempo già consolid
 | S031 | 28/09–01/10/2026 | 6 h 06 min | 235 h 09 min | Integrazione operativa Flutter del Catalogo Agronomico globale e navigazione Coltura → Cultivar | ✅ |
 | S032 | 01–06/10/2026 | 11 h 30 min | 246 h 39 min | Gestione operativa delle identità del Catalogo Agronomico e UI della tassonomia botanica | ✅ |
 | S033/S033B | 06–13/10/2026 | 24 h 35 min | 271 h 14 min | Fase A Flutter Registri Agronomici; ricognizione RPC e audit locale di `plantings`; consolidamento documentale | ✅ |
+| S034 | 13–15/10/2026 | 8 h 53 min | 280 h 07 min | Correzione SQL del congelamento semantico nel Catalog Registry e verifiche locali | ✅ |
+| S035 | 16–18/10/2026 | 8 h 11 min | 288 h 18 min | Gestione Flutter delle Finalità di raccolta | ✅ |
+| Regolarizzazione post-S035 | 18/10/2026 | 0 h 20 min | 288 h 38 min | Regolarizzazione documentale DOC-010 successiva alla chiusura S035; nessun nuovo codice di sessione | Registrazione integrativa |
+| S036 | 18–21/10/2026 | 13 h 03 min | 301 h 41 min | Protezione Flutter dalle RPC duplicate e regressione SQL locale del Catalog Registry | ✅ |
+| S037 | 22–26/10/2026 | 10 h 38 min | 312 h 19 min | Audit statici del Catalogo Agronomico e protezione delle scritture concorrenti nella gestione delle aiuole | ✅ |
+| S038 | 26/10–03/11/2026 | 13 h 27 min (solo sviluppo) | 325 h 46 min (provvisorio) | Resolver Agronomico tipizzato; integrazione Flutter di Unità di misura e Parametri agronomici | Manuali in corso |
+
+**Nota di quadratura S035–S038.** La regolarizzazione documentale post-S035 di **20 minuti** è contabilizzata separatamente, secondo il DOC-010, senza istituire una nuova sessione. Il progressivo consolidato alla chiusura S037 è di **312 h 19 min**. Il progressivo di **325 h 46 min** comprende anche lo sviluppo S038, ma non ancora il consuntivo dei Manuali S038. Sarà aggiornato alla chiusura della fase documentale.
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -489,20 +498,46 @@ La Sessione S034 è stata successivamente conclusa e documentata. Il relativo co
 
 ---
 
-### Aggiornamenti S035–S036 — Solo tempi di sviluppo
+### Aggiornamenti S035–S038 — Solo tempi di sviluppo
+
+Il presente registro integra i progressivi delle sole ore di sviluppo delle Sessioni S035, S036, S037 e S038.
+
+I tempi di documentazione sono contabilizzati separatamente nel DOC-010 — Registro Tempi di Lavoro. Le durate indicate nella tabella non rappresentano pertanto il totale complessivo delle rispettive sessioni.
 
 | Sessione | Data | Durata sviluppo | Progressivo sviluppo | Attività | Stato |
 |---|---|---:|---:|---|---|
 | S035 | 16/10/2026 | 2 h 23 min | 210 h 57 min | Integrazione Flutter della gestione delle Finalità di raccolta | Sviluppo concluso |
 | S036 | 18–21/10/2026 | 6 h 34 min | 217 h 31 min | Protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta; test SQL di regressione del Catalog Registry | Sviluppo concluso |
+| S037 | 22–24/10/2026 | 9 h 32 min | 227 h 03 min | Audit statici del Catalogo Agronomico e protezione delle scritture concorrenti nella gestione delle aiuole | Sviluppo concluso |
+| S038 | 26–29/10/2026 | 13 h 27 min | 240 h 30 min | Contratto tipizzato e repository del Resolver Agronomico; integrazione Flutter delle Unità di misura e dei Parametri agronomici | Sviluppo concluso; Manuali in corso |
 
-Il progressivo S035 deriva dalle 208 h 34 min di sviluppo consolidate alla chiusura della S034, incrementate di 2 h 23 min.
+**Progressivi consolidati dello sviluppo**
 
-Il progressivo S036 deriva dalle 210 h 57 min di sviluppo consolidate alla chiusura della S035, incrementate di 6 h 34 min.
+- Alla chiusura S034: **208 h 34 min**.
+- Alla chiusura S035: **210 h 57 min**.
+- Alla chiusura S036: **217 h 31 min**.
+- Alla chiusura S037: **227 h 03 min**.
+- Alla chiusura dello sviluppo S038: **240 h 30 min**.
 
-La fase sviluppo S036 è stata dichiarata conclusa il **21/10/2026 alle 14:36**.
+**Chiusure delle fasi**
 
-I tempi delle fasi Manuali sono contabilizzati separatamente nel DOC-010 — Registro Tempi di Lavoro. La fase Manuali S036 è ancora in corso e non viene inclusa nel presente progressivo di sviluppo.
+- S035: sviluppo concluso il 16/10/2026 alle 23:39; Manuali conclusi il 18/10/2026 alle 21:38.
+- S036: sviluppo concluso il 21/10/2026 alle 14:36; Manuali conclusi il 21/10/2026 alle 22:39.
+- S037: sviluppo concluso il 24/10/2026 alle 00:31; Manuali conclusi il 26/10/2026 alle 14:50.
+- S038: sviluppo concluso il 29/10/2026 alle 10:21; Manuali S038 ancora in corso.
+
+**Progressivo complessivo del progetto**
+
+Alla conclusione della S037 risultano consolidate **312 h 19 min**, suddivise in:
+
+- Sviluppo: **227 h 03 min**.
+- Documentazione: **85 h 16 min**.
+
+Aggiungendo le **13 h 27 min** di sviluppo della S038, il progressivo complessivo prima della contabilizzazione dei Manuali S038 raggiunge **325 h 46 min**.
+
+Questo valore non rappresenta il consuntivo definitivo della S038. Il totale sarà consolidato alla chiusura della fase Manuali e riportato nel DOC-010.
+
+Le verifiche integrative Flutter effettuate il 03/11/2026 durante i Manuali S038 sono documentate separatamente e non modificano retroattivamente il consuntivo dello sviluppo concluso il 29/10/2026.
 
 # Indice
 
@@ -13436,5 +13471,268 @@ La scadenza è un obiettivo approvato, non una dichiarazione di fattibilità gi�
 La prima attività proposta per la S038 consiste pertanto in una verifica di fattibilità basata sullo stato reale dell'applicazione e del database. L'ordine tecnico degli interventi dovrà essere valutato e approvato separatamente.
 
 Restano non bloccanti per questo primo utilizzo l'automazione dell'irrigazione, le integrazioni meteorologiche avanzate, la contabilità completa e le altre funzionalità non indispensabili alla pianificazione iniziale.
+
+Rimangono validi i principi **«Sicurezza prima di tutto»** e **«Presto e bene non conviene»**.
+
+---
+
+# Sessione S038 — Resolver Agronomico, Unità di misura e Parametri agronomici
+
+**Periodo sviluppo:** 26–29/10/2026
+**Chiusura sviluppo:** 29/10/2026, ore 10:21
+**Stato sviluppo:** concluso
+**Stato Manuali:** in corso al 03/11/2026
+**Versione applicazione:** `0.1.21-alpha`
+**Versione Flutter:** `0.1.21-alpha+6`
+
+## Contesto e obiettivi
+
+La Sessione S038 prosegue il consolidamento del Catalogo Agronomico V1, con particolare riferimento al Resolver Agronomico e ai registri amministrativi necessari alla gestione dei dati agronomici.
+
+La sessione ha interessato due ambiti principali:
+
+1. Introduzione nel client Flutter di un contratto tipizzato per il Resolver Agronomico e del relativo repository.
+2. Integrazione delle interfacce Flutter per la gestione delle Unità di misura e dei Parametri agronomici.
+
+Gli interventi utilizzano l'architettura autoritativa già presente nel backend, senza introdurre nuovi percorsi di scrittura diretta.
+
+Il completamento di queste componenti non equivale all'attivazione di un flusso operativo completo di pianificazione agronomica.
+
+## Contratto tipizzato del Resolver Agronomico
+
+È stato introdotto un modello applicativo per rappresentare in modo tipizzato le richieste e i risultati del Resolver Agronomico.
+
+I componenti comprendono:
+
+- `AgronomicKnowledgeRequest`, per la rappresentazione della richiesta;
+- `AgronomicKnowledgeResult`, con le relative varianti di risultato;
+- `AgronomicKnowledgeRepository`, per l'accesso alla funzione autoritativa del backend.
+
+Il repository utilizza la RPC esistente:
+
+`resolve_agronomic_knowledge`
+
+È inoltre presente il controllo:
+
+`verifyAgronomicKnowledgeIdentity`
+
+Il contratto tipizzato permette di distinguere i diversi esiti della risoluzione e di gestire i risultati senza affidarsi esclusivamente a strutture JSON non tipizzate nell'interfaccia applicativa.
+
+La verifica dell'identità agronomica costituisce un controllo applicativo specifico e non sostituisce le verifiche autoritative del database.
+
+L'intervento non introduce un nuovo algoritmo agronomico autonomo nel client Flutter.
+
+## Integrazione delle Unità di misura
+
+È stata realizzata l'integrazione Flutter del registro delle Unità di misura.
+
+L'intervento comprende:
+
+- modello dati dedicato;
+- repository applicativo;
+- pagina di gestione;
+- consultazione dei dati;
+- operazioni amministrative consentite dalle capability;
+- gestione degli stati di caricamento ed errore;
+- gestione della concorrenza ottimistica;
+- test del modello, del repository e della pagina.
+
+Le operazioni di modifica utilizzano le RPC autoritative già disponibili.
+
+La gestione delle Unità di misura rimane distinta dall'inserimento di misurazioni operative reali dell'orto.
+
+## Integrazione dei Parametri agronomici
+
+È stata realizzata l'integrazione Flutter del registro dei Parametri agronomici.
+
+L'intervento comprende:
+
+- modello tipizzato dei parametri;
+- repository dedicato;
+- pagina amministrativa;
+- consultazione e gestione delle informazioni;
+- operazioni consentite dalle capability server-side;
+- controllo delle versioni mediante `row_version`;
+- gestione degli esiti autoritativi;
+- test del modello, del repository e della pagina.
+
+Il registro costituisce una componente strutturale del Catalogo Agronomico.
+
+La sua disponibilità nell'interfaccia non implica che tutti i parametri necessari alla pianificazione reale siano già popolati, verificati o pubblicati.
+
+## Sicurezza e autorità delle scritture
+
+Le operazioni amministrative dei due registri rispettano i principi già adottati nel progetto:
+
+- utilizzo delle RPC autoritative esistenti;
+- controllo delle capability server-side;
+- applicazione della Profile Write Authority;
+- protezione fail-closed delle operazioni non autorizzate;
+- concorrenza ottimistica mediante `row_version`;
+- nessuna sovrascrittura automatica in caso di conflitto;
+- mantenimento dell'autorità finale nel backend.
+
+La sessione non introduce nuove migration per questi interventi.
+
+Le garanzie applicative non sostituiscono i controlli RLS e le validazioni server-side.
+
+## Stato dei registri agronomici
+
+Il modello backend consolidato nella S033B comprende sette registri:
+
+| Registro | Integrazione amministrativa Flutter |
+|---|---|
+| `harvest_purposes` | Disponibile dalla S035 |
+| `measurement_units` | Integrata nella S038 |
+| `agronomic_parameters` | Integrata nella S038 |
+| `parameter_enum_values` | Non completata nella S038 |
+| `production_contexts` | Non completata nella S038 |
+| `protection_contexts` | Non completata nella S038 |
+| `training_contexts` | Non completata nella S038 |
+
+Alla chiusura dello sviluppo S038 risultano quindi integrate le interfacce amministrative di **3 registri su 7**.
+
+La disponibilità dei registri backend non deve essere confusa con il completamento delle rispettive interfacce Flutter.
+
+## Stato delle migration e del database
+
+Durante la S038 è stata verificata la corrispondenza tra le migration locali e quelle remote:
+
+**34 migration su 34 allineate.**
+
+È stata inoltre applicata al database remoto la migration originata nella S034:
+
+`20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`
+
+Questa operazione risolve il precedente disallineamento relativo alla pubblicazione della correzione S034.
+
+La S038 non ha introdotto nuove migration.
+
+L'allineamento delle migration non costituisce, da solo, una prova di collaudo funzionale completo delle RPC in ambiente remoto.
+
+## Backup del database
+
+Nel corso della S038 sono stati prodotti quattro backup SQL, conservati esternamente al repository nella directory:
+
+`C:\Sviluppo\Backup-Orto-Smart\S038-20261026\`
+
+I backup riguardano:
+
+- schema;
+- dati dello schema `public`;
+- dati dello schema `auth`;
+- dati dello schema `storage`.
+
+Sono state eseguite verifiche degli hash dei file.
+
+Non risulta effettuato un test di ripristino.
+
+La presenza dei backup e la verifica della loro integrità non devono essere considerate equivalenti alla validazione di una procedura di disaster recovery.
+
+## Versionamento Git
+
+Lo sviluppo S038 è stato consolidato nei seguenti cinque commit:
+
+| Commit | Data | Descrizione |
+|---|---|---|
+| `3188d67` | 26/10/2026 | Modello tipizzato del Resolver Agronomico e test di contratto |
+| `7520147` | 26/10/2026 | Repository del Resolver Agronomico e test RPC |
+| `5b48583` | 26/10/2026 | Consolidamento dei test del repository Resolver Agronomico |
+| `909eec0` | 28/10/2026 | Repository delle Unità di misura e dei Parametri agronomici |
+| `7dc89e6` | 29/10/2026 | Integrazione delle pagine e dei widget test per Parametri agronomici e Unità di misura |
+
+Alla chiusura dello sviluppo S038, il commit HEAD risultava:
+
+`7dc89e636a90bc85c9e2ff5f4d04eb3377264921`
+
+Il riferimento locale `origin/main` risultava allineato al medesimo commit.
+
+Questo dato rappresenta lo stato verificato alla chiusura dello sviluppo e non una nuova verifica in tempo reale del repository remoto durante i Manuali.
+
+## Verifiche e test
+
+Durante lo sviluppo S038 sono stati introdotti e consolidati test per il contratto del Resolver, i repository, i modelli e le pagine amministrative.
+
+In data **03/11/2026**, durante la fase Manuali S038, è stata effettuata una verifica integrativa comprendente otto file di test Flutter:
+
+- `test/data/models/agronomic_knowledge_result_test.dart`
+- `test/data/models/agronomic_parameter_test.dart`
+- `test/data/models/measurement_unit_test.dart`
+- `test/data/repositories/agronomic_knowledge_repository_test.dart`
+- `test/data/repositories/agronomic_parameter_repository_test.dart`
+- `test/data/repositories/measurement_unit_repository_test.dart`
+- `test/pages/agronomic_parameters_page_test.dart`
+- `test/pages/measurement_units_page_test.dart`
+
+| Verifica | Risultato |
+|---|---|
+| Test Flutter mirati sugli otto file | **178/178 superati** |
+| `flutter analyze` | **No issues found** |
+| Migration locali e remote | **34/34 allineate** |
+| Nuove migration S038 | Nessuna |
+| Test di ripristino dei backup | Non eseguito |
+| Collaudo integrato Flutter–Supabase remoto | Non verificato |
+
+I 178 test costituiscono una suite mirata e non devono essere presentati come esecuzione della suite Flutter completa.
+
+La verifica integrativa del 03/11/2026 non modifica retroattivamente la data di chiusura dello sviluppo S038.
+
+## Timing dello sviluppo S038
+
+| Indicatore | Valore |
+|---|---|
+| Apertura sviluppo | 26/10/2026, ore 15:08 |
+| Chiusura sviluppo | 29/10/2026, ore 10:21 |
+| **Tempo netto di sviluppo** | **13 h 27 min** |
+| Progressivo sviluppo alla S037 | 227 h 03 min |
+| **Progressivo sviluppo alla S038** | **240 h 30 min** |
+| Totale progetto consolidato alla S037 | 312 h 19 min |
+| **Totale progetto prima dei Manuali S038** | **325 h 46 min** |
+
+La durata netta di sviluppo è quella consolidata nel checkpoint ufficiale S038.
+
+I tempi della fase Manuali S038 vengono registrati separatamente nel DOC-010 e saranno consolidati soltanto alla chiusura della relativa sessione documentale.
+
+Il totale di 325 h 46 min non costituisce quindi il consuntivo definitivo del progetto alla chiusura dei Manuali S038.
+
+## Risultati e limiti della sessione
+
+La S038 ha completato gli incrementi applicativi previsti nel perimetro effettivamente sviluppato:
+
+- contratto tipizzato e repository del Resolver Agronomico;
+- modelli, repository e interfacce amministrative delle Unità di misura;
+- modelli, repository e interfacce amministrative dei Parametri agronomici;
+- utilizzo delle RPC autoritative esistenti;
+- verifiche mirate Flutter;
+- allineamento delle migration locali e remote;
+- produzione e verifica degli hash dei backup SQL.
+
+Non vengono dichiarati:
+
+- completamento delle interfacce Flutter di tutti e sette i registri;
+- popolamento definitivo del Catalogo Agronomico con dati reali;
+- disponibilità di un flusso completo di pianificazione dell'orto 2027;
+- collaudo integrato Flutter–Supabase remoto;
+- esecuzione della suite Flutter completa durante la verifica integrativa del 03/11/2026;
+- ripristino verificato dei backup;
+- completamento generale del Motore Agronomico.
+
+## Continuità e questioni aperte
+
+Restano da valutare, sulla base dello stato reale del progetto:
+
+- completamento delle interfacce dei quattro registri agronomici non ancora integrati;
+- verifica operativa del Resolver Agronomico nel flusso applicativo;
+- collaudo integrato Flutter–Supabase remoto;
+- verifica della disponibilità di dati agronomici approvati e tracciabili;
+- verifica dei prerequisiti per la pianificazione dell'orto 2027;
+- verifica dello stato delle 15 aiuole reali e del motore delle rotazioni;
+- eventuale prova controllata di ripristino dei backup.
+
+L'obiettivo operativo del 15/11/2026, approvato il 25/10/2026, resta distinto dall'effettiva verifica di fattibilità e dal completamento delle funzionalità necessarie.
+
+Nessuna delle attività aperte costituisce automaticamente un incarico approvato per una sessione successiva.
+
+Le decisioni operative future dovranno essere assunte nelle rispettive sessioni ufficiali di sviluppo, sulla base delle evidenze tecniche disponibili.
 
 Rimangono validi i principi **«Sicurezza prima di tutto»** e **«Presto e bene non conviene»**.

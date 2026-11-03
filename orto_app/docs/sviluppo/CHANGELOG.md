@@ -1,11 +1,10 @@
-
 # ORTO SMART
 
 ### CHANGELOG
 
 # Registro delle modifiche
 
-**Versione:** 3.3
+**Versione:** 3.4
 
 **Stato:** Approvato
 
@@ -15,12 +14,11 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 26/10/2026
+**Ultimo aggiornamento:** 03/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
 ---
-
 
 # Informazioni sul documento
 
@@ -28,15 +26,14 @@
 |-------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 3.3 |
+| Versione | 3.4 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 26/10/2026 |
+| Ultimo aggiornamento | 03/11/2026 |
 
 ---
-
 
 # Cronologia delle revisioni
 
@@ -68,6 +65,7 @@
 | 3.1 | 12/10/2026 | Aggiornamento del CHANGELOG per S033/S033B: completamento della Fase A Registri Agronomici Flutter, HUB, gestione Classificazione botanica, Colture e Cultivar, estrazione delle pagine dedicate, consolidamento con 1107/1107 test Flutter superati; ricognizione statica di 21/21 RPC dei Registri Agronomici e audit autoritativo locale di `plantings` con esito favorevole nel perimetro esaminato, senza nuovi test runtime di scrittura o modifiche al backend. Registrazione del completamento dello sviluppo S033/S033B e dell'obiettivo iniziale approvato per la progettazione S034. Versione pubblica `0.1.21-alpha` e versione Flutter `0.1.21-alpha+6` invariate. |
 | 3.2 | 21/10/2026 | Aggiornamento del CHANGELOG con le Sessioni S034, S035 e S036: correzione SQL della gestione del congelamento semantico nelle tre RPC del Catalog Registry, integrazione Flutter delle Finalità di raccolta, protezione contro richieste RPC duplicate e regressione SQL locale con 6/6 verifiche superate; conferma di 1.292/1.292 test Flutter superati nella S036. Distinzione tra verifiche locali e collaudo remoto non completato. Versione pubblica `0.1.21-alpha` e versione Flutter `0.1.21-alpha+6` invariate. |
 | 3.3 | 26/10/2026 | Documentazione della S037: audit statici del Catalogo Agronomico, protezione delle scritture concorrenti in BedPage, verifiche e obiettivo operativo per l'orto 2027; consolidamento del consuntivo Manuali S036 |
+| 3.4 | 03/11/2026 | Documentazione della S038: contratto tipizzato e repository del Resolver Agronomico, integrazione Flutter delle Unità di misura e dei Parametri agronomici, cinque commit tecnici, allineamento delle 34 migration e applicazione remota della correzione S034; registrazione delle verifiche integrative Manuali del 03/11/2026 con 178/178 test Flutter superati e analisi statica senza anomalie. Versioni applicative invariate. |
 
 ---
 
@@ -3229,6 +3227,67 @@ La Sessione S037, svolta dal **22/10/2026 al 24/10/2026**, ha riguardato due aud
 Restano aperti i test dinamici del Catalogo, il collaudo integrato Flutter–Supabase remoto, la verifica delle migration locali e remote e gli ulteriori incrementi necessari al primo utilizzo reale.
 
 Le versioni applicative rimangono `0.1.21-alpha` e `0.1.21-alpha+6` per Flutter.
+
+### Incremento tecnico e funzionale S038 — Resolver Agronomico, unità di misura e parametri agronomici
+
+La Sessione S038, svolta dal **26/10/2026 al 29/10/2026**, ha introdotto l'integrazione Flutter del contratto tipizzato del Resolver Agronomico e ha esteso la gestione amministrativa del Catalogo Agronomico alle Unità di misura (`measurement_units`) e ai Parametri agronomici (`agronomic_parameters`).
+
+La fase di sviluppo è stata dichiarata conclusa il **29/10/2026 alle 10:21**, con un tempo netto consolidato di **13 h 27 min**.
+
+**Aggiunto — Resolver Agronomico**
+
+- Introdotti i modelli tipizzati `AgronomicKnowledgeRequest` e `AgronomicKnowledgeResult`, con le relative varianti di risultato.
+- Implementato `AgronomicKnowledgeRepository` per l'interazione con la RPC autoritativa `public.resolve_agronomic_knowledge`.
+- Introdotta la verifica dell'identità agronomica mediante `verifyAgronomicKnowledgeIdentity`.
+- Aggiunti test di contratto, serializzazione e comportamento del repository.
+- Mantenuta la distinzione tra disponibilità dell'infrastruttura tecnica del Resolver e utilizzo agronomico reale dell'applicazione.
+
+**Aggiunto — Unità di misura e Parametri agronomici**
+
+- Introdotti modelli, repository e pagine Flutter per la consultazione e la gestione amministrativa di `measurement_units` e `agronomic_parameters`.
+- Integrate le operazioni di creazione, aggiornamento, attivazione e disattivazione tramite le sei RPC autoritative previste per i due registri.
+- Gestiti gli esiti tipizzati delle operazioni, le capability autorizzative e la concorrenza ottimistica mediante `row_version`.
+- Integrati i nuovi percorsi nell'interfaccia amministrativa del Catalogo Agronomico.
+- Aggiunti test dei modelli, dei repository e delle pagine Flutter.
+
+Con questi incrementi, i registri amministrativi S033B integrati in Flutter risultano **3 su 7**: Finalità di raccolta, Unità di misura e Parametri agronomici. Gli altri quattro registri non risultano completati nell'interfaccia amministrativa.
+
+**Database e migration**
+
+- Nessuna nuova migration introdotta nella S038.
+- Verificato l'allineamento delle **34/34 migration** tra ambiente locale e remoto nel perimetro dei controlli effettuati.
+- Applicata al database remoto durante la S038 la migration correttiva S034 `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`, precedentemente presente soltanto nell'ambiente locale.
+- L'applicazione remota della migration non viene attribuita retroattivamente alle sessioni S034, S036 o S037.
+- Eseguiti e verificati quattro backup SQL separati di schema, `public`, `auth` e `storage`, conservati fuori dal repository. Non risulta eseguito un test di ripristino.
+
+**Tracciabilità Git**
+
+La S038 comprende i seguenti cinque commit tecnici:
+
+- `3188d67` — Modello tipizzato del Resolver Agronomico e test di contratto.
+- `7520147` — Repository del Resolver Agronomico e test RPC.
+- `5b48583` — Consolidamento dei test del repository Resolver.
+- `909eec0` — Repository delle Unità di misura e dei Parametri agronomici.
+- `7dc89e6` — Integrazione delle pagine e dei widget test per Parametri agronomici e Unità di misura.
+
+Il riferimento finale dello sviluppo S038 è `7dc89e636a90bc85c9e2ff5f4d04eb3377264921`.
+
+**Verifiche e limiti**
+
+- Durante la fase Manuali S038, il **03/11/2026**, è stata eseguita una verifica integrativa degli otto file di test Flutter introdotti nella S038: **178/178 test superati**.
+- Nella stessa data, `flutter analyze` è terminato senza anomalie.
+- Queste verifiche integrative appartengono alla fase Manuali S038 e non devono essere attribuite retroattivamente alla fase di sviluppo conclusa il 29/10/2026.
+- Non risulta documentata, nell'ambito di questa verifica integrativa, una nuova esecuzione dell'intera suite Flutter.
+- Non risulta completato un collaudo integrato di scrittura Flutter–Supabase remoto per le nuove funzionalità.
+- L'integrazione tecnica del Resolver non equivale alla disponibilità di un flusso agronomico reale completo e validato.
+- Non risultano completati tutti e sette i registri amministrativi Flutter.
+- Non risulta eseguito un collaudo di ripristino dei backup SQL.
+
+**Consuntivo sviluppo S038:** **13 h 27 min**. Il progressivo dello sviluppo raggiunge **240 h 30 min**, a partire dalle **227 h 03 min** consolidate alla S037.
+
+La fase Manuali S038 è ancora in corso; il suo consuntivo e il totale definitivo della sessione saranno registrati nel DOC-010 soltanto dopo il relativo consolidamento.
+
+Le versioni applicative rimangono `0.1.21-alpha` e `0.1.21-alpha+6` per Flutter. Non viene introdotta una nuova versione pubblica dell'applicazione con la S038.
 
 # 4. Cronologia versioni
 

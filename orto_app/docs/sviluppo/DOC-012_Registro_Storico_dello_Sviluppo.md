@@ -4,7 +4,7 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 4.7
+**Versione:** 4.8
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 29/07/2026
 
-**Ultimo aggiornamento:** 26/10/2026
+**Ultimo aggiornamento:** 03/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 4.7 |
+| Versione | 4.8 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 26/10/2026 |
+| Ultimo aggiornamento | 03/11/2026 |
 
 ---
 
@@ -68,6 +68,7 @@
 | 4.5 | 17/10/2026 | S035: integrazione Flutter delle Finalità di raccolta, 42 test specifici superati, analisi Flutter senza problemi; sviluppo 2 h 23 min, progressivo sviluppo 210 h 57 min; Manuali in corso. |
 | 4.6 | 21/10/2026 | Aggiornamento del Registro Storico con il consolidamento documentale della Sessione S036: protezione Flutter dalle richieste duplicate di attivazione e disattivazione delle Finalità di raccolta, verifiche SQL locali di regressione con 6/6 controlli superati, flutter analyze senza problemi e 1.292/1.292 test Flutter superati; registrazione dei commit b250b49 e 923c035, dei limiti del collaudo remoto e delle attività ancora aperte, senza attribuire alla sessione modifiche al database remoto non effettuate. |
 | 4.7 | 26/10/2026 | Aggiornamento storico S037: audit statici Alias e Taxon/Crop, protezione delle scritture concorrenti in BedPage, verifiche Flutter, consuntivo sviluppo e obiettivo di primo utilizzo reale per l'orto 2027 |
+| 4.8 | 03/11/2026 | Aggiornamento storico S038: integrazione Flutter dei Registri Agronomici Unità di misura e Parametri agronomici, introduzione del Resolver agronomico tipizzato, deployment remoto della correzione SQL S034, riallineamento delle migration locali e remote, consolidamento delle milestone S037–S038 e degli indicatori evolutivi; sviluppo S038 concluso, fase Manuali S038 in corso. |
 
 ---
 
@@ -119,40 +120,39 @@ Manuali S036 conclusi il 21/10/2026 alle 22:39, tempo 6 h 29 min, totale session
 
 ## 2.1 Stato attuale del progetto
 
-Alla data del **16/10/2026**, la Sessione S034 risulta definitivamente conclusa sia nella fase di sviluppo sia nella fase documentale.
+Alla data del **03/11/2026**, la Sessione **S037** costituisce l'ultima sessione completamente conclusa, sia nella fase sviluppo sia nella fase Manuali.
 
-La fase sviluppo S034 è stata conclusa il **15/10/2026 alle 13:58**, con **5 h 11 min** di lavoro effettivo.
+La fase sviluppo S037 è stata conclusa il **24/10/2026 alle 00:31**, con **9 h 32 min** di lavoro effettivo.
 
-La fase Manuali S034 è stata dichiarata conclusa il **15/10/2026 alle 23:45**, con **3 h 42 min** di lavoro documentale effettivo.
+La fase Manuali S037 è stata conclusa il **26/10/2026 alle 14:50**. Il totale definitivo del progetto alla chiusura S037 è **312 h 19 min**.
 
-Il tempo complessivo definitivo della S034 è **8 h 53 min**.
-
-La S034 costituisce pertanto l'ultima sessione completamente conclusa. Il totale definitivo del progetto è **280 h 07 min**.
+La fase sviluppo **S038** si è conclusa il **29/10/2026 alle 10:21**, con **13 h 27 min** di lavoro effettivo. La relativa fase Manuali, avviata il **03/11/2026**, è ancora in corso.
 
 ### Indicatori correnti
 
 | Indicatore | Valore |
 |------------|--------|
-| Sessioni completamente concluse | 34 — S001–S034, con S033B come prosecuzione della S033 |
-| Fasi sviluppo completate | 34 — S001–S034 |
-| Ore di sviluppo consolidate | 208 h 34 min |
-| Ore di documentazione consolidate | 71 h 33 min |
-| Totale definitivo progetto alla chiusura S033/S033B | 271 h 14 min |
-| Durata sviluppo S034 | 5 h 11 min |
-| Durata documentazione S034 | 3 h 42 min |
-| Durata complessiva definitiva S034 | 8 h 53 min |
-| Totale definitivo progetto alla chiusura S034 | 280 h 07 min |
-| Progressivo storico dopo il solo sviluppo S034 | 276 h 25 min |
-| Ultima sessione completamente conclusa | S034 |
-| Ultima fase sviluppo completata | S034 |
-| Ultima fase documentale completata | Manuali S034 |
-| Prossima sessione di sviluppo | Da definire secondo il workflow di sviluppo |
+| Sessioni completamente concluse | 37 — S001–S037, con S033B come prosecuzione della S033 |
+| Fasi sviluppo completate | 38 — S001–S038 |
+| Ore di sviluppo consolidate | 240 h 30 min |
+| Ore di documentazione consolidate fino a S037 | 85 h 16 min |
+| Totale definitivo progetto alla chiusura S037 | 312 h 19 min |
+| Durata sviluppo S037 | 9 h 32 min |
+| Durata sviluppo S038 | 13 h 27 min |
+| Progressivo intermedio dopo il solo sviluppo S038 | 325 h 46 min |
+| Ultima sessione completamente conclusa | S037 |
+| Ultima fase sviluppo completata | S038 |
+| Ultima fase documentale completata | Manuali S037 |
+| Stato Manuali S038 | In corso; consuntivo non ancora definitivo |
+| Prossima attività di sviluppo | Da definire secondo il workflow operativo |
 | Versione pubblica corrente | `0.1.21-alpha` |
 | Versione Flutter corrente | `0.1.21-alpha+6` |
 
-Il progressivo storico di **276 h 25 min** rappresenta lo stato raggiunto dopo il completamento dello sviluppo S034 e prima del consolidamento della relativa documentazione.
+Il progressivo di **325 h 46 min** comprende il totale definitivo alla chiusura S037 e le **13 h 27 min** dello sviluppo S038.
 
-Il valore corrente definitivo è invece **280 h 07 min**.
+Non comprende il tempo della fase Manuali S038, che sarà consolidato esclusivamente dopo la relativa dichiarazione ufficiale di chiusura.
+
+I consuntivi delle sessioni precedenti rimangono invariati. Le fotografie storiche riportate nelle sezioni successive conservano il proprio riferimento temporale.
 
 ### Chiusura storica S032
 
@@ -1004,11 +1004,50 @@ La sessione non ha prodotto nuove migration né effettuato deployment sul databa
 
 **Sviluppo S037:** 9 h 32 min. **Progressivo sviluppo:** 227 h 03 min.
 
-La fase Manuali S037 è iniziata il **26/10/2026 alle 11:25** e il suo consuntivo definitivo sarà registrato soltanto dopo la chiusura dichiarata.
+La fase Manuali S037 è iniziata il **26/10/2026 alle 11:25** ed è stata definitivamente conclusa il **26/10/2026 alle 14:50**, con documentazione verificata e pubblicata su GitHub.
+
+Il totale definitivo del progetto alla chiusura S037 è **312 h 19 min**, di cui **227 h 03 min** di sviluppo e **85 h 16 min** di documentazione.
 
 Il **25/10/2026** è stato approvato l'obiettivo di iniziare l'utilizzo reale di Orto Smart per la pianificazione dell'orto 2027 **entro il 15/11/2026**.
 
-La fattibilità dell'obiettivo deve ancora essere verificata. Nessuna attività tecnica della S038 è automaticamente autorizzata.
+La fattibilità dell'obiettivo resta da verificare. L'approvazione dell'obiettivo non costituisce autorizzazione automatica delle attività tecniche successive.
+
+---
+
+### S038 — Registri Agronomici Flutter, Resolver tipizzato e allineamento database remoto
+
+La fase sviluppo S038 è iniziata il **26/10/2026 alle 15:08** ed è stata conclusa il **29/10/2026 alle 10:21**, per un tempo netto di **13 h 27 min**.
+
+La sessione ha completato l'integrazione Flutter di due ulteriori Registri Agronomici:
+
+- `measurement_units` — Unità di misura.
+- `agronomic_parameters` — Parametri agronomici.
+
+Considerando `harvest_purposes`, integrato nella S035, risultano **3 registri su 7** integrati nel perimetro Flutter previsto. Restano FUTURE `parameter_enum_values`, `production_contexts`, `protection_contexts` e `training_contexts`.
+
+È stato inoltre introdotto il **Resolver agronomico tipizzato** nel client Flutter, mediante `AgronomicKnowledgeRequest`, `AgronomicKnowledgeResult` e `AgronomicKnowledgeRepository`, utilizzando la RPC backend già esistente `resolve_agronomic_knowledge` e la verifica `verifyAgronomicKnowledgeIdentity`.
+
+Questa integrazione non equivale al completamento del percorso operativo di pianificazione o inserimento delle coltivazioni reali.
+
+**Database e migration:**
+
+- La migration correttiva S034 `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql` è stata applicata al database remoto durante S038.
+- Le **34/34 migration** risultano allineate tra gli ambienti locale e remoto al termine dello sviluppo S038.
+- Non sono state introdotte nuove migration SQL nella S038.
+- Le **6/6 regressioni SQL dinamiche** erano già state eseguite nell'ambiente locale durante S036; non costituiscono una prova di collaudo remoto end-to-end.
+
+**Verifiche e limiti:**
+
+- Durante la fase Manuali S038 sono stati verificati **178/178 test Flutter mirati**, distribuiti su otto file.
+- `flutter analyze` è stato completato senza problemi.
+- Tali verifiche non rappresentano l'esecuzione dell'intera suite Flutter.
+- Il collaudo integrato end-to-end Flutter–Supabase remoto resta da effettuare.
+
+**Commit sviluppo S038:** `3188d67`, `7520147`, `5b48583`, `909eec0`, `7dc89e6`.
+
+**Sviluppo S038:** 13 h 27 min. **Progressivo sviluppo:** 240 h 30 min.
+
+**Progressivo progetto dopo il solo sviluppo S038:** 325 h 46 min. La fase Manuali S038, aperta il **03/11/2026**, è ancora in corso e non dispone di un consuntivo definitivo.
 
 ---
 
@@ -1075,6 +1114,8 @@ La registrazione di una milestone tecnica attesta il raggiungimento del traguard
 | **S034** | Correzione della gestione del congelamento semantico nel Catalog Registry | Corrette le RPC `update_measurement_unit`, `update_agronomic_parameter` e `update_parameter_enum_value` mediante gestione selettiva di `SQLSTATE 55000` e confronto esatto di `SQLERRM` con il messaggio del rispettivo trigger. Solo i casi riconosciuti restituiscono `semantics_frozen`; le altre eccezioni vengono propagate. Migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql` applicata al database locale, non al remoto. Verifiche statiche e autorizzative superate nel perimetro esaminato; test dinamico specifico del ramo `SQLSTATE 55000` non eseguito. Sviluppo concluso il 15/10/2026 alle 13:58 e Manuali conclusi ufficialmente il 15/10/2026 alle 23:45. Sessione completamente chiusa, per un totale di 8 h 53 min. |
 | **S035** | Gestione Flutter delle Finalità di raccolta | Integrata nel client Flutter la gestione delle Finalità di raccolta nei Registri Agronomici. Superati 42 test specifici e `flutter analyze` senza problemi. Sviluppo e Manuali conclusi; il funzionamento integrato Flutter–Supabase remoto resta da verificare. |
 | **S036** | Protezione RPC Flutter e regressione SQL locale | Introdotta la protezione contro richieste RPC duplicate durante l'attivazione e la disattivazione delle Finalità di raccolta. Superati 6/6 test SQL locali di regressione sul comportamento `SQLSTATE 55000`, con rollback, e 1.292/1.292 test Flutter; `flutter analyze` senza problemi. La migration S034 rimane non applicata al database remoto e il test integrato Flutter–Supabase remoto resta aperto. |
+| **S037** | Integrità del Catalogo e protezione delle scritture concorrenti | Completati gli audit statici sulla semantica di attivazione degli Alias e sui vincoli storici Taxon/Crop, senza anomalie dimostrate nel perimetro esaminato. Introdotta in BedPage la protezione `_runExclusiveWriteFlow` contro operazioni di scrittura concorrenti incompatibili; superati 32/32 test Flutter mirati e `flutter analyze`. Nessuna nuova migration o modifica al database remoto. Sviluppo e Manuali conclusi. |
+| **S038** | Registri Agronomici Flutter, Resolver tipizzato e allineamento database remoto | Integrati in Flutter `measurement_units` e `agronomic_parameters`, portando a 3/7 i Registri Agronomici integrati insieme a `harvest_purposes` della S035. Introdotto il Resolver agronomico tipizzato basato sulla RPC esistente `resolve_agronomic_knowledge`. Applicata al remoto la migration correttiva S034, con 34/34 migration locali e remote allineate; nessuna nuova migration S038. Verificati durante Manuali S038 178/178 test Flutter mirati e `flutter analyze`, senza attribuire tali risultati alla suite completa o al collaudo remoto end-to-end, ancora aperto. Sviluppo concluso; Manuali in corso. |
 
 ---
 
@@ -1528,7 +1569,46 @@ Documentazione precedente   77 h 41 min
 Totale intermedio          295 h 12 min
 ```
 
-La fase Manuali S036 è ancora aperta. Il relativo tempo effettivo sarà consolidato soltanto alla chiusura documentale dichiarata.
+La fase Manuali S036 è stata definitivamente conclusa il **21/10/2026 alle 22:39**, con **6 h 29 min** di lavoro effettivo.
+
+La Sessione S036 risulta completamente conclusa, con un consuntivo definitivo di **13 h 03 min**.
+
+### Consolidamento della Sessione S037
+
+La fase sviluppo S037 è stata conclusa il **24/10/2026 alle 00:31**, con **9 h 32 min** di lavoro effettivo.
+
+La fase Manuali S037, iniziata il **26/10/2026 alle 11:25**, è stata definitivamente conclusa il **26/10/2026 alle 14:50**, con documentazione verificata e pubblicata su GitHub.
+
+La Sessione S037 risulta completamente conclusa, sia sotto il profilo tecnico sia sotto quello documentale.
+
+Alla chiusura definitiva della S037, il progressivo del progetto è **312 h 19 min**, ripartito in:
+
+```text
+Sviluppo complessivo        227 h 03 min
+Documentazione complessiva   85 h 16 min
+----------------------------------------
+Totale progetto             312 h 19 min
+```
+### Consolidamento della Sessione S038
+
+La fase sviluppo S038 è iniziata il **26/10/2026 alle 15:08** ed è stata conclusa il **29/10/2026 alle 10:21**, con **13 h 27 min** di lavoro effettivo.
+
+La Sessione S038 ha portato il progressivo cumulativo dello sviluppo a **240 h 30 min**.
+
+Alla chiusura dello sviluppo S038, il progressivo intermedio del progetto è **325 h 46 min**, ripartito in:
+
+```text
+Sviluppo complessivo        240 h 30 min
+Documentazione precedente   85 h 16 min
+----------------------------------------
+Totale intermedio          325 h 46 min
+```
+
+La fase Manuali S038 è stata dichiarata aperta il **03/11/2026** ed è attualmente in corso.
+
+Il relativo tempo documentale sarà consolidato esclusivamente dopo la dichiarazione ufficiale di chiusura.
+
+Il progressivo di **325 h 46 min** non costituisce pertanto il totale definitivo del progetto alla chiusura S038.
 
 Le milestone tecniche raggiunte nei rispettivi perimetri non implicano il completamento delle funzionalità ancora classificate FUTURE.
 
@@ -1543,7 +1623,6 @@ Le attività ancora aperte comprendono, tra le altre:
 - backend canonico delle consociazioni;
 - selezione esplicita della Cultivar nella creazione dei planting;
 - ulteriori verifiche runtime, di concorrenza ed end-to-end dei Write Path;
-- eventuale applicazione della migration S034 al database remoto, previa decisione operativa;
 - verifica integrata Flutter–Supabase remoto dei percorsi applicativi interessati;
 - eventuali interventi di hardening soltanto a seguito di evidenze tecniche verificate.
 
@@ -1553,7 +1632,7 @@ L'obiettivo Flutter inizialmente approvato per la S034 rimane una registrazione 
 
 La sua eventuale prosecuzione dovrà essere valutata e approvata separatamente, sulla base dello stato effettivo del progetto.
 
-Nessuna attività FUTURE viene automaticamente autorizzata dalla conclusione delle milestone S034, S035 e S036.
+Nessuna attività FUTURE viene automaticamente autorizzata dalla conclusione delle milestone S034, S035, S036, S037 e S038. Le eventuali attività successive devono essere valutate e approvate nelle rispettive sessioni ufficiali di sviluppo, sulla base dello stato tecnico effettivamente verificato.
 
 ---
 
@@ -3400,6 +3479,39 @@ La sequenza operativa prevista per l'avvio reale rimane:
 
 Il popolamento reale del Catalogo dovrà avvenire soltanto su una baseline agronomica verificata e approvata.
 
+## Stato evolutivo S038 — 03/11/2026
+
+La presente sezione costituisce una fotografia evolutiva successiva alle registrazioni storiche precedenti. Non modifica retroattivamente gli stati, le decisioni o gli elementi FUTURE documentati nelle sessioni antecedenti.
+
+### Risultati tecnici consolidati
+
+- **S035:** integrazione Flutter del Registro Agronomico `harvest_purposes`.
+- **S036:** consolidamento delle protezioni RPC Flutter e superamento di 6/6 verifiche di regressione SQL in ambiente locale.
+- **S037:** completamento degli audit statici sulla semantica degli Alias e sui vincoli storici Taxon/Crop nel perimetro esaminato; introduzione in BedPage della protezione `_runExclusiveWriteFlow` contro flussi di scrittura concorrenti incompatibili.
+- **S038:** integrazione Flutter dei Registri `measurement_units` e `agronomic_parameters`; introduzione del Resolver agronomico tipizzato, basato sulla RPC esistente `resolve_agronomic_knowledge`.
+
+### Stato dei Registri Agronomici
+
+Alla conclusione dello sviluppo S038 risultano integrati in Flutter **3 Registri Agronomici su 7**: `harvest_purposes`, `measurement_units` e `agronomic_parameters`.
+
+Restano da integrare, come elementi FUTURE e non come attività operative automaticamente autorizzate, `parameter_enum_values`, `production_contexts`, `protection_contexts` e `training_contexts`.
+
+### Stato del database e delle verifiche
+
+Durante S038 è stata applicata al database remoto la migration correttiva risalente a S034. Lo storico delle migration risulta allineato tra locale e remoto, con **34/34 migration**. La sessione S038 non ha introdotto nuove migration SQL.
+
+Durante la fase Manuali S038 sono stati verificati **178/178 test Flutter mirati** e `flutter analyze` senza anomalie. Questi risultati non costituiscono esecuzione della suite Flutter completa né collaudo end-to-end del database remoto.
+
+Il Resolver tipizzato è stato introdotto a livello applicativo, ma non deve essere considerato già integrato in tutti i flussi operativi di pianificazione o registrazione delle coltivazioni.
+
+### Attività ancora aperte e FUTURE
+
+Restano distinti dai risultati consolidati: il collaudo integrato Flutter–Supabase remoto, l'integrazione dei quattro Registri Agronomici rimanenti, il completamento dei flussi operativi che utilizzeranno il Resolver e l'avvio della gestione reale dell'orto su dati verificati.
+
+L'obiettivo di avviare la pianificazione reale dell'orto 2027 entro il 15/11/2026 rimane un obiettivo precedentemente approvato, non un risultato conseguito né una garanzia temporale.
+
+Le attività FUTURE qui riepilogate non costituiscono una nuova pianificazione vincolante: la scelta delle attività operative successive resta subordinata alle decisioni assunte nelle sessioni ufficiali di sviluppo.
+
 ---
 
 # 6. Regole di aggiornamento
@@ -3458,7 +3570,7 @@ La registrazione delle ore deve utilizzare, ove applicabile, la seguente struttu
 |----------|------:|
 | Sviluppo software | Ore e minuti effettivi |
 | Documentazione | Ore e minuti effettivi |
-| Totale sessione | Somma dei due valori
+| Totale sessione | Somma dei due valori |
 
 # 7. Evoluzione futura
 

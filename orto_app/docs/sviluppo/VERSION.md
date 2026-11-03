@@ -1017,9 +1017,11 @@ planting.cultivarId
 
 La selezione esplicita della cultivar nella UI di creazione rimane FUTURE.
 
-La UI completa di gestione Crop rimane FUTURE.
+La gestione amministrativa Flutter delle Crop e delle Cultivar è stata completata nella Sessione S033, mediante l'interfaccia `CropsAndCultivarsPage`.
 
-La UI completa di gestione Cultivar rimane FUTURE.
+Sono disponibili consultazione, creazione, modifica, attivazione e disattivazione delle identità, con controllo delle capability della Catalog Authority, concorrenza ottimistica mediante `row_version` e rilettura autoritativa dopo conflitti o esiti di scrittura incerti.
+
+La selezione esplicita della Cultivar nel flusso operativo di creazione di un `Planting` rimane FUTURE.
 
 Il database continua a rimanere intenzionalmente privo di dati demo, di prova o provvisori.
 
@@ -1079,6 +1081,82 @@ Integra gestione stato tassonomia nel Catalogo Agronomico
 ```
 
 Al termine dello sviluppo S032 il repository risultava verificato, pulito e allineato al remoto dopo il push del commit tecnico conclusivo.
+
+### Verifiche successive — S033–S038
+
+Le verifiche riportate per S030 e S032 costituiscono risultati storici delle rispettive sessioni. Le sessioni successive hanno introdotto ulteriori sviluppi e verifiche.
+
+**S033 — Gestione Crop e Cultivar**
+
+La Fase A delle interfacce amministrative del Catalogo Agronomico è stata completata con i seguenti risultati:
+
+- 38/38 test della gestione Crop e Cultivar superati;
+- 11/11 test del HUB Registri Agronomici superati;
+- 80/80 test complessivi della Fase A superati;
+- 1.107/1.107 test della suite Flutter completa superati;
+- `flutter analyze`: nessun problema.
+
+**S034 — Correzione degli errori di freeze semantico**
+
+È stata introdotta la migration:
+
+`20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`
+
+La correzione riguarda la gestione degli errori SQLSTATE `55000` in tre RPC dei registri agronomici.
+
+La migration è stata successivamente applicata anche al database remoto durante la S038.
+
+**S035 — Registro delle finalità di raccolta**
+
+È stata completata l'interfaccia amministrativa `HarvestPurposePage`, con 42 test mirati superati.
+
+**S036 — Protezione dalle operazioni duplicate**
+
+Sono state consolidate le protezioni contro operazioni duplicate di attivazione e disattivazione.
+
+Le verifiche comprendono:
+
+- 6/6 regressioni SQL dinamiche superate sul database locale;
+- 1.292/1.292 test della suite Flutter completa superati;
+- `flutter analyze`: nessun problema.
+
+**S037 — Protezione delle scritture concorrenti in BedPage**
+
+È stato introdotto il controllo `_runExclusiveWriteFlow` per impedire l'esecuzione contemporanea di flussi di scrittura incompatibili.
+
+Le verifiche mirate comprendono 32/32 test superati.
+
+La S037 non ha introdotto nuove migration Supabase.
+
+**S038 — Resolver tipizzato e registri amministrativi**
+
+Sono stati introdotti:
+
+- `AgronomicKnowledgeRequest`;
+- `AgronomicKnowledgeResult`;
+- `AgronomicKnowledgeRepository`;
+- integrazione applicativa con la RPC `resolve_agronomic_knowledge`;
+- verifica delle identità tramite `verifyAgronomicKnowledgeIdentity`;
+- interfacce amministrative dei registri `measurement_units` e `agronomic_parameters`.
+
+Il Resolver tipizzato non è ancora integrato nei flussi operativi completi.
+
+Alla conclusione della S038 risultano disponibili tre delle sette interfacce amministrative dei registri agronomici, considerando anche `HarvestPurposePage` completata nella S035.
+
+Le verifiche documentate durante Manuali S038 comprendono:
+
+- 178/178 test mirati superati, distribuiti su otto file di test;
+- `flutter analyze`: nessun problema.
+
+Queste verifiche mirate non equivalgono all'esecuzione completa della suite Flutter nella S038.
+
+La S038 non ha introdotto nuove migration SQL. Alla sua conclusione risultavano allineate 34/34 migration tra database locale e remoto, compresa la migration introdotta nella S034.
+
+Sono stati inoltre effettuati backup esterni dei dati e degli schemi pertinenti, senza esecuzione di una prova di ripristino.
+
+**Limiti delle verifiche**
+
+I risultati riportati non costituiscono un collaudo integrato completo Flutter–Supabase remoto. Non deve essere considerata eseguita una verifica end-to-end remota non documentata.
 
 Il database rimane intenzionalmente privo di dati demo, di prova o provvisori.
 
@@ -1222,13 +1300,19 @@ Crop
 Cultivar
 ```
 
-Alla conclusione della S032:
+Alla conclusione della S032 era stata completata la gestione amministrativa della Classificazione botanica. La successiva Sessione S033 ha completato anche le interfacce amministrative di Crop e Cultivar.
+
+Lo stato aggiornato alla conclusione della S038 è:
 
 ```text
-Taxonomy management UI     completata
-Crop management UI         FUTURE
-Cultivar management UI     FUTURE
+Taxonomy management UI     completata S032
+Crop management UI         completata S033
+Cultivar management UI     completata S033
 ```
+
+La gestione di Crop e Cultivar comprende consultazione, creazione, modifica, attivazione e disattivazione mediante `CropsAndCultivarsPage`, nel rispetto delle capability della Catalog Authority e dei Write Path autoritativi.
+
+Rimane FUTURE la selezione esplicita della Cultivar nel flusso operativo di creazione di un `Planting`.
 
 `AddPlantingPage` non espone ancora un selettore operativo della cultivar.
 
@@ -1536,17 +1620,19 @@ Crop
 Cultivar
 ```
 
-Lo stato corrente è:
+Lo stato delle interfacce amministrative, aggiornato alla conclusione della S038, è:
 
 ```text
 Taxonomy Write Path        completato
 Crop Write Path            completato
 Cultivar Write Path        completato
 
-Taxonomy management UI     completata
-Crop management UI         FUTURE
-Cultivar management UI     FUTURE
+Taxonomy management UI     completata S032
+Crop management UI         completata S033
+Cultivar management UI     completata S033
 ```
+
+La gestione amministrativa delle identità Taxonomy, Crop e Cultivar è quindi completata. Rimangono distinte e non ancora completate la selezione operativa della Cultivar nei flussi di `Planting` e l'integrazione del Resolver Agronomico tipizzato nei flussi operativi completi.
 
 La S032 non ha introdotto nuove migration Supabase e non ha modificato il contratto persistente consolidato nella S030.
 
@@ -1613,6 +1699,55 @@ Il database rimane intenzionalmente privo di dati demo, di prova o provvisori.
 
 Il popolamento del Catalogo Agronomico dovrà iniziare soltanto con dati reali, verificabili e tracciabili, dopo la disponibilità di una baseline agronomica verificata e approvata.
 
+### Evoluzione tecnica del Catalogo Agronomico — S033–S038
+
+Le verifiche S030–S032 riportate sopra documentano la baseline storica del Catalogo Agronomico. Gli incrementi successivi sono stati i seguenti.
+
+**S033 — Completamento della Fase A**
+
+Sono state completate le interfacce amministrative Flutter di Crop e Cultivar mediante `CropsAndCultivarsPage`.
+
+Le verifiche hanno prodotto 80/80 test della Fase A superati, 1.107/1.107 test della suite Flutter completa superati e `flutter analyze` senza problemi.
+
+**S034 — Consolidamento delle RPC**
+
+La migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql` ha corretto la gestione degli errori di freeze semantico SQLSTATE `55000` in tre RPC dei registri agronomici.
+
+La migration è stata applicata anche al database remoto durante la S038.
+
+**S035 — Registro Harvest Purpose**
+
+È stata completata l'interfaccia amministrativa `HarvestPurposePage`, con 42 test mirati superati.
+
+**S036 — Protezione delle operazioni di stato**
+
+Sono state consolidate le protezioni contro operazioni duplicate di attivazione e disattivazione, con 6/6 regressioni SQL dinamiche locali superate.
+
+**S037 — Consolidamento applicativo**
+
+La protezione dei flussi concorrenti di scrittura in `BedPage` ha introdotto `_runExclusiveWriteFlow`, senza nuove migration Supabase.
+
+**S038 — Resolver Agronomico e registri**
+
+È stato introdotto il contratto applicativo tipizzato del Resolver Agronomico, composto da `AgronomicKnowledgeRequest`, `AgronomicKnowledgeResult` e `AgronomicKnowledgeRepository`, con utilizzo della RPC `resolve_agronomic_knowledge`.
+
+Sono state completate le interfacce amministrative dei registri `measurement_units` e `agronomic_parameters`.
+
+Alla conclusione della S038:
+
+- le interfacce amministrative Taxonomy, Crop e Cultivar risultano completate;
+- tre delle sette interfacce amministrative dei registri agronomici risultano disponibili;
+- quattro interfacce amministrative dei registri rimangono FUTURE;
+- il Resolver tipizzato non è ancora integrato nei flussi operativi completi;
+- 34/34 migration risultano allineate tra database locale e remoto;
+- le verifiche mirate di Manuali S038 hanno prodotto 178/178 test superati e `flutter analyze` senza problemi.
+
+Le verifiche mirate della S038 non equivalgono a una nuova esecuzione completa della suite Flutter.
+
+Non risulta documentato un collaudo integrato end-to-end Flutter–Supabase remoto per questi incrementi.
+
+Il Catalogo Agronomico V1 non deve pertanto essere considerato integralmente completato o pronto per un popolamento dimostrativo. Rimangono vincolanti l'utilizzo di dati reali, la tracciabilità delle fonti, la revisione editoriale e la separazione tra dati candidati e dati approvati.
+
 ## Documentazione
 
 - DOC-001 – Manuale Tecnico
@@ -1650,7 +1785,7 @@ La Sessione S032 ha successivamente completato:
 
 La S032 non ha introdotto nuove migration Supabase e non ha modificato il contratto persistente consolidato nella S030.
 
-Lo stato raggiunto nella gestione delle identità è:
+Lo stato raggiunto nella gestione delle identità alla conclusione della S032 era il seguente (situazione storica, successivamente aggiornata nella S033):
 
 ```text
 Taxonomy Write Path        completato
@@ -1686,43 +1821,50 @@ e la versione Flutter corrente rimane:
 
 La S032 costituisce un ulteriore incremento funzionale della versione corrente e non determina automaticamente l'assegnazione di una nuova versione pubblica.
 
-La direzione naturale proposta per il successivo incremento di sviluppo è il completamento progressivo della gestione Flutter delle identità del Catalogo:
+La direzione di sviluppo individuata alla conclusione della S032 prevedeva il completamento progressivo delle interfacce amministrative Crop e Cultivar.
 
-```text
-Crop management UI
-        ↓
-Cultivar management UI
-```
+Questa attività è stata effettivamente completata nella Sessione S033, senza introdurre percorsi di scrittura alternativi ai Write Path autoritativi.
 
-Questa direzione non costituisce tuttavia un'assegnazione automatica o vincolante dell'intero perimetro alla Sessione S033.
+Le sessioni successive S034–S038 hanno proseguito il consolidamento del Catalogo Agronomico e delle funzionalità applicative, comprendendo:
 
-La successiva sessione di sviluppo dovrà iniziare con un **CHECKPOINT DI RICEZIONE**, verificando la baseline tecnica effettiva, lo stato Git, il contratto corrente e il passaggio di consegne prima di introdurre modifiche.
+- correzione della gestione degli errori di freeze semantico nelle RPC dei registri agronomici (S034);
+- interfaccia amministrativa del registro delle finalità di raccolta (S035);
+- protezione contro operazioni duplicate di attivazione e disattivazione (S036);
+- protezione dei flussi di scrittura concorrenti in `BedPage` (S037);
+- introduzione del Resolver Agronomico tipizzato e delle interfacce amministrative dei registri delle unità di misura e dei parametri agronomici (S038).
 
-Soltanto dopo tale verifica verrà confermato il perimetro operativo della nuova sessione.
+Alla conclusione della S038 risultano quindi disponibili le interfacce amministrative di Taxonomy, Crop e Cultivar e di tre dei sette registri agronomici previsti.
 
-## Attività post-S032
+Il Resolver Agronomico tipizzato è stato introdotto a livello applicativo, ma non è ancora integrato nei flussi operativi completi di pianificazione e gestione delle coltivazioni.
 
-Restano da sviluppare o completare:
+La versione pubblica rimane `0.1.21-alpha` e la versione Flutter rimane `0.1.21-alpha+6`, senza attribuire automaticamente una nuova versione agli incrementi successivi alla S032.
 
-- UI completa di gestione delle colture globali;
-- UI completa di gestione delle cultivar globali;
-- gestione UI degli alias;
-- workflow operativo delle fonti e dell'acquisizione;
-- normalizzazione e importazione dei dati esterni;
-- gestione dei dati candidati;
-- schermate di review editoriale;
-- gestione della pubblicazione;
-- integrazione operativa del Resolver;
+Le attività future saranno definite sulla base dello stato tecnico effettivo e dei checkpoint ufficiali, senza considerare vincolanti le precedenti proiezioni esplorative.
+
+## Attività ancora aperte alla conclusione della S038
+
+Le attività seguenti rimangono da sviluppare, completare o verificare operativamente, senza assegnazione preventiva a specifiche sessioni future:
+
+- completamento delle interfacce amministrative dei quattro registri agronomici non ancora integrati nella UI;
+- gestione amministrativa degli alias delle identità agronomiche;
+- workflow operativo delle fonti e delle acquisizioni;
+- normalizzazione e importazione controllata dei dati esterni;
+- gestione dei dati candidati e relativa revisione editoriale;
+- interfacce e workflow di pubblicazione della Knowledge agronomica;
+- integrazione del Resolver Agronomico tipizzato nei flussi operativi di pianificazione e gestione delle coltivazioni;
 - backend canonico delle associazioni tra colture;
-- selezione esplicita della cultivar nel flusso di creazione di un `Planting`;
-- integrazione completa del Resolver nella creazione e pianificazione dei `Planting`;
+- selezione esplicita della Cultivar durante la creazione di un `Planting`;
 - popolamento editoriale del Catalogo con dati agronomici reali, verificabili e tracciabili;
-- smoke test con dati operativi reali;
+- verifiche integrate Flutter–Supabase con dati operativi reali, quando autorizzate;
 - manutenzione periodica dei codici ISO 3166-1 alpha-2 mediante migration e test verificati;
 - verifica e, se necessario, ripristino del percorso UI per la creazione del primo Garden;
 - ulteriori incrementi del Database V1 non ancora implementati.
 
-Per la gestione delle identità del Catalogo rimangono vincolanti i principi consolidati nella S032:
+Le interfacce amministrative Crop e Cultivar, completate nella S033, non rientrano più tra le attività FUTURE.
+
+Il completamento delle interfacce amministrative dei registri non implica automaticamente il completamento dei rispettivi workflow editoriali e operativi.
+
+Per la gestione delle identità del Catalogo rimangono vincolanti i principi architetturali consolidati nella S032 e confermati durante le successive sessioni S033–S038:
 
 - backend autoritativo;
 - Catalog Authority separata dalla Profile Write Authority;
@@ -1748,49 +1890,11 @@ I dati agronomici reali dovranno essere introdotti soltanto quando il relativo w
 
 La manutenzione dei codici ISO 3166-1 alpha-2 non dovrà essere automatica: gli aggiornamenti dovranno essere verificati e introdotti mediante migration e test controllati.
 
-## Gestione futura di Crop e Cultivar
+## Gestione Crop e Cultivar — completamento S033
 
-La direzione naturale successiva alla gestione completa della tassonomia è l'estensione della UI alle identità:
+La gestione amministrativa Flutter delle identità agronomiche **Crop** e **Cultivar**, prevista come attività FUTURE alla conclusione della S032, è stata completata durante la **S033**, nell'ambito della Fase A del Catalogo Agronomico.
 
-```text
-Crop
-    ↓
-Cultivar
-```
-
-Per Crop dovranno essere verificati e integrati progressivamente:
-
-- creazione;
-- modifica;
-- attivazione;
-- disattivazione;
-- collegamento opzionale al Taxon;
-- gestione di `row_version`;
-- `version_conflict`;
-- esiti di scrittura incerti;
-- rilettura autoritativa;
-- capability della Catalog Authority;
-- test specifici;
-- regressione globale.
-
-Successivamente, per Cultivar dovranno essere verificati e integrati progressivamente:
-
-- gestione nel contesto della relativa Crop;
-- creazione;
-- modifica;
-- attivazione;
-- disattivazione;
-- gestione di `row_version`;
-- conflitti concorrenti;
-- esiti di scrittura incerti;
-- rilettura autoritativa;
-- capability della Catalog Authority;
-- test specifici;
-- regressione globale.
-
-La presenza dei Write Path Flutter già integrati nella S032 non implica che le relative UI complete siano già disponibili.
-
-La progressione dovrà continuare a rispettare:
+La struttura delle identità rimane:
 
 ```text
 Taxonomy
@@ -1800,7 +1904,48 @@ Crop
 Cultivar
 ```
 
-senza introdurre percorsi di scrittura diretta alternativi al backend autoritativo.
+### Funzionalità completate nella S033
+
+L'interfaccia Flutter `CropsAndCultivarsPage` consente la consultazione e la gestione amministrativa delle Crop e delle relative Cultivar.
+
+Le funzionalità implementate comprendono:
+
+- consultazione delle Crop e delle Cultivar;
+- creazione di nuove identità;
+- modifica delle identità esistenti;
+- attivazione e disattivazione;
+- gestione delle Cultivar nel contesto della relativa Crop;
+- controllo della capability `canManageIdentity` della Catalog Authority;
+- gestione della concorrenza ottimistica tramite `row_version`;
+- trattamento dei conflitti di versione e degli esiti di scrittura incerti;
+- rilettura autoritativa dei dati persistenti dopo le operazioni.
+
+Le scritture continuano a utilizzare i Write Path autoritativi del backend, senza introdurre accessi diretti alternativi alle tabelle.
+
+### Verifiche della S033
+
+Il completamento della Fase A è stato accompagnato dai seguenti risultati:
+
+- **38/38 test** per la gestione Crop e Cultivar;
+- **11/11 test** per il HUB Registri Agronomici;
+- **80/80 test** complessivi della Fase A;
+- **1.107/1.107 test** della suite Flutter completa;
+- `flutter analyze` senza problemi.
+
+Questi risultati documentano le verifiche effettuate nella S033 e non costituiscono, da soli, un collaudo integrato Flutter–Supabase remoto.
+
+### Stato alla conclusione della S038
+
+Le interfacce amministrative di Taxonomy, Crop e Cultivar risultano completate.
+
+Rimangono invece distinti e non ancora completati:
+
+- l'integrazione operativa della selezione Cultivar nei flussi di gestione delle coltivazioni;
+- l'utilizzo del Resolver Agronomico tipizzato nei flussi operativi completi di pianificazione e gestione agronomica.
+
+Il completamento delle interfacce amministrative non deve essere interpretato come completamento dell'intero Catalogo Agronomico V1 o come autorizzazione all'inserimento di dati dimostrativi nel database.
+
+Le successive integrazioni dovranno preservare la Catalog Authority, i Write Path autoritativi, il controllo della concorrenza e l'integrità delle identità agronomiche.
 
 ## Aggiornamento delle fonti agronomiche
 
@@ -1908,7 +2053,7 @@ Non dovrà costituire un'azione ordinaria disponibile durante la normale gestion
 
 ## Ulteriori sviluppi FUTURE
 
-Rimangono inoltre fuori dal perimetro completato fino alla Sessione S032:
+Rimangono inoltre fuori dal perimetro completato fino alla Sessione S038:
 
 - correzioni amministrative avanzate;
 - statistiche di raccolto e rese effettive;
@@ -1919,19 +2064,23 @@ Rimangono inoltre fuori dal perimetro completato fino alla Sessione S032:
 
 L'ordine e l'assegnazione di questi sviluppi alle future sessioni saranno definiti progressivamente secondo il workflow del progetto.
 
-La conclusione della S032 non determina automaticamente il contenuto definitivo della sessione successiva.
+La conclusione della S032 e i successivi avanzamenti fino alla S038 non determinano automaticamente il contenuto definitivo della sessione successiva.
 
-La direzione naturale proposta è il completamento progressivo della gestione delle identità:
+Le interfacce amministrative Flutter di Crop e Cultivar, inizialmente previste come sviluppi successivi alla S032, sono state completate nella S033 attraverso `CropsAndCultivarsPage`.
+
+La struttura delle identità agronomiche rimane:
 
 ```text
-Taxonomy completata
-        ↓
+Taxonomy
+    ↓
 Crop
-        ↓
+    ↓
 Cultivar
 ```
 
-ma il perimetro effettivo della nuova sessione dovrà essere confermato soltanto dopo il relativo **CHECKPOINT DI RICEZIONE**.
+Alla conclusione della S038 rimangono invece FUTURE la selezione operativa della Cultivar nei flussi di `Planting` e l'integrazione del Resolver Agronomico tipizzato nei flussi operativi completi.
+
+Il perimetro effettivo delle successive sessioni di sviluppo dovrà essere definito soltanto dopo il relativo **CHECKPOINT DI RICEZIONE**, sulla base dello stato tecnico verificato e delle decisioni ufficiali.
 
 Gli incrementi relativi ad alias, fonti, acquisizione, candidati, review, pubblicazione e Resolver rimangono FUTURE e non vengono assegnati preventivamente alla sessione successiva.
 
@@ -1963,6 +2112,65 @@ Gli incrementi relativi ad alias, fonti, acquisizione, candidati, review, pubbli
 | 0.1.19-alpha | 17/09/2026 | Archiviata | Implementato nella S028 il modello e Write Path autoritativo di `plantings`, introdotto il lifecycle server-side, consolidati geometria, temporalità e overlap, protette le variazioni geometriche delle aiuole, riallineato il client Flutter e verificati 997/997 test; `pubspec.yaml` aggiornato a `0.1.19-alpha+4`. |
 | 0.1.20-alpha | 18/09/2026 | Archiviata | Completata nella S029 la UI del lifecycle di `plantings`, introdotte azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per `finished` e `removed`, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`; nessuna modifica al contratto persistente S028; suite completa finale verificata con 1011/1011 test passati, verifiche dedicate `BedPage` 30/30 e `PlantingCard` 9/9, `flutter analyze` finale pulito; `pubspec.yaml` aggiornato a `0.1.20-alpha+5`. |
 | 0.1.21-alpha | 27/09/2026 | Corrente | Completata nella S030 l'architettura globale del Catalogo Agronomico V1: tassonomia botanica globale, identità agronomiche globali, registro parametri, contesti, fonti, acquisizioni, osservazioni, alias, workflow editoriale, Knowledge canonica, pubblicazione e Resolver; completato il cutover a `botanical_taxa`, `crops` e `crop_cultivars`, migrato `plantings` da `variety_id` a `cultivar_id`, riallineato il client Flutter al contratto Cultivar e consolidato un perimetro di 26 tabelle; migration finale `20260923154831_finalize_global_catalog_cutover.sql`; `supabase db reset` riuscito, lint locale e remoto senza errori, acceptance Tranche 10 e 11 superate. Nella S031 la stessa versione corrente è stata estesa con l'integrazione operativa Flutter del Catalogo Agronomico in `Impostazioni → Catalogo Agronomico → Colture → Cultivar`, lettura delle capability, inizializzazione esplicita e confermata della Catalog Authority, consultazione delle colture globali, caricamento on demand delle cultivar, gestione degli stati UI e rimozione del precedente percorso autonomo `Impostazioni → Varietà`; nessuna nuova migration Supabase e nessuna modifica al contratto persistente; verifica finale S031 con `flutter analyze` pulito e 971 test passati. Nella S032 sono stati integrati nel client Flutter i Write Path autoritativi di Taxon, Crop e Cultivar ed è stata completata la UI di gestione della Classificazione botanica con lettura, creazione, modifica, disattivazione e riattivazione; consolidati tassonomia parziale mediante `parent_taxon_id`, rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA`, `UNRANKED`, Cultivar separata dai rank tassonomici, collegamento opzionale `Crop → Taxon`, capability `can_manage_identity`, concorrenza ottimistica mediante `row_version`, nessun overwrite forzato su `version_conflict`, nessun retry automatico dopo esiti incerti e rilettura autoritativa; nessuna nuova migration Supabase e nessuna modifica al contratto persistente S030; verifica finale S032 con Catalog page 61/61 test, `flutter analyze` pulito e suite globale 1077/1077 test; commit tecnico finale `842a6b6468964300d43d0edac1d8853c3a4bb908`; versione Flutter corrente `0.1.21-alpha+6`. |
+## Evoluzione della versione corrente — S033–S038
+
+La versione applicativa corrente rimane `0.1.21-alpha`, con versione Flutter `0.1.21-alpha+6`.
+
+Le sessioni S033–S038 hanno introdotto incrementi tecnici e funzionali documentati senza attribuzione di un nuovo numero di versione.
+
+### S033 — Completamento gestione Crop e Cultivar
+
+Completata la Fase A delle interfacce amministrative del Catalogo Agronomico mediante `CropsAndCultivarsPage` e consolidato il HUB Registri Agronomici.
+
+Verifiche: 38/38 test Crop e Cultivar, 11/11 test HUB, 80/80 test Fase A, 1.107/1.107 test Flutter complessivi e `flutter analyze` senza problemi.
+
+### S034 — Correzione freeze semantico
+
+Introdotta la migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql` per correggere la gestione degli errori SQLSTATE `55000` in tre RPC dei registri agronomici.
+
+La migration è stata successivamente applicata al database remoto durante la S038.
+
+### S035 — Gestione Harvest Purpose
+
+Completata l'interfaccia amministrativa `HarvestPurposePage` per il registro delle finalità di raccolta.
+
+Verifiche: 42 test mirati superati.
+
+### S036 — Consolidamento delle operazioni di stato
+
+Introdotte protezioni contro operazioni duplicate di attivazione e disattivazione.
+
+Verifiche: 6/6 regressioni SQL dinamiche locali, 1.292/1.292 test Flutter complessivi e `flutter analyze` senza problemi.
+
+### S037 — Protezione scritture concorrenti
+
+Introdotto in `BedPage` il controllo `_runExclusiveWriteFlow` per impedire la sovrapposizione di flussi di scrittura incompatibili.
+
+Verifiche: 32/32 test mirati superati. Nessuna nuova migration Supabase.
+
+### S038 — Resolver Agronomico tipizzato e registri
+
+Introdotti `AgronomicKnowledgeRequest`, `AgronomicKnowledgeResult` e `AgronomicKnowledgeRepository`, con integrazione della RPC `resolve_agronomic_knowledge` e verifica delle identità mediante `verifyAgronomicKnowledgeIdentity`.
+
+Completate le interfacce amministrative dei registri `measurement_units` e `agronomic_parameters`.
+
+Alla conclusione della S038 risultano disponibili tre delle sette interfacce amministrative dei registri agronomici.
+
+Il Resolver tipizzato non è ancora integrato nei flussi operativi completi.
+
+Verifiche documentate durante Manuali S038: 178/178 test mirati superati su otto file di test e `flutter analyze` senza problemi. Non è stata documentata una nuova esecuzione completa della suite Flutter nella S038.
+
+Nessuna nuova migration SQL introdotta nella S038. Allineamento locale/remoto verificato per 34/34 migration.
+
+Non risulta documentato un collaudo integrato end-to-end Flutter–Supabase remoto degli incrementi S033–S038.
+
+### Stato della versione
+
+La versione `0.1.21-alpha` rimane **Corrente**.
+
+Gli incrementi S033–S038 costituiscono evoluzioni della stessa baseline applicativa e non comportano automaticamente una nuova versione pubblicata.
+
+Un eventuale incremento di versione dovrà essere deciso e verificato separatamente nell'ambito del workflow ufficiale di sviluppo.
 
 ---
 

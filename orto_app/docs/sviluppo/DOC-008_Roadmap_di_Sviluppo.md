@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 2.9
+**Versione:** 3.0
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 26/10/2026
+**Ultimo aggiornamento:** 03/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 2.9 |
+| Versione | 3.0 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 26/10/2026 |
+| Ultimo aggiornamento | 03/11/2026 |
 
 ---
 
@@ -62,6 +62,7 @@
 | 2.7 | 17/10/2026 | Aggiornamento dopo S034 e S035: correzione locale SQLSTATE 55000 nel Catalog Registry, applicata al database locale e non al remoto; integrazione Flutter delle Finalità di raccolta, 42 test mirati superati e `flutter analyze` senza problemi; aggiornamento dello stato dei Registri Agronomici e delle verifiche aperte, senza assegnazioni automatiche alla sessione successiva |
 | 2.8 | 21/10/2026 | Aggiornamento dopo la Sessione S036: protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta; sei test SQL locali di regressione del Catalog Registry superati; `flutter analyze` senza problemi e 1.292 test Flutter superati; aggiornamento delle verifiche ancora aperte, senza assegnazioni automatiche alla sessione successiva. |
 | 2.9 | 26/10/2026 | Aggiornamento dopo S037: audit statici Alias e integrità Taxon/Crop, protezione delle scritture concorrenti in BedPage, verifiche Flutter e definizione dell'obiettivo approvato di primo utilizzo reale per la pianificazione dell'orto 2027 entro il 15/11/2026, subordinato a verifica di fattibilità e senza assegnazioni automatiche alla S038. |
+| 3.0 | 03/11/2026 | Aggiornamento dopo la Sessione S038: introduzione del contratto tipizzato e del repository Flutter del Resolver Agronomico; integrazione dei Registri Unità di misura e Parametri agronomici, con 3/7 Registri Agronomici Flutter implementati; applicazione remota della migration correttiva S034 e allineamento di 34/34 migration; verifiche integrative con 178/178 test Flutter mirati superati e `flutter analyze` senza problemi; aggiornamento delle attività FUTURE e dello stato dell'obiettivo di primo utilizzo reale entro il 15/11/2026, ancora subordinato a verifica di fattibilità. |
 
 ---
 
@@ -111,22 +112,27 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 
 ## 3.1 Architettura
 
+## 3.1 Architettura
+
 | Funzionalità | Stato |
-|--------------|:-----:|
+|---|---|
 | Struttura Flutter | ✅ Completato |
 | Supabase | ✅ Completato |
 | Repository Pattern | ✅ Completato |
 | Modelli | ✅ Completato |
 | Progettazione Database V1 | ✅ Completato |
-| Implementazione Database V1 in Supabase | 🚧 In sviluppo |
+| Implementazione Database V1 in Supabase | 🚧 In sviluppo, incrementale |
 | Architettura Catalogo Agronomico V1 globale | ✅ Completato |
 | Identità botaniche canoniche globali | ✅ Completato |
 | Catalog Authority e capability autoritative | ✅ Completato |
-| Fonti, acquisizioni e osservazioni agronomiche | ✅ Completato |
+| Fonti, acquisizioni e osservazioni agronomiche | ✅ Completato a livello backend |
 | Workflow editoriale agronomico backend | ✅ Completato |
 | Knowledge agronomica canonica | ✅ Completato |
 | Pubblicazione e versionamento della Knowledge | ✅ Completato |
-| Resolver del Catalogo Agronomico | ✅ Completato |
+| Resolver canonico del Catalogo Agronomico — backend S030 | ✅ Completato |
+| Contratto tipizzato del Resolver Agronomico Flutter — S038 | ✅ Implementato e verificato con test mirati |
+| Repository Flutter del Resolver Agronomico e RPC `resolve_agronomic_knowledge` — S038 | ✅ Implementato e verificato con test mirati |
+| Integrazione completa del Resolver nei flussi operativi di pianificazione e inserimento | 📋 FUTURE, non completata |
 | Cutover canonico `botanical_taxa` → `crops` → `crop_cultivars` | ✅ Completato |
 | Integrazione Flutter del Catalogo nelle Impostazioni | ✅ Completato |
 | Consultazione delle colture globali | ✅ Completato |
@@ -144,14 +150,22 @@ Le funzionalità sono organizzate in macro-aree e classificate in base al loro s
 | Pagina dedicata Colture e Cultivar | ✅ Completato |
 | Consolidamento Flutter Fase A Registri Agronomici | ✅ Completato |
 | Ricognizione statica delle 21 RPC degli ulteriori Registri Agronomici | ✅ Completato nel perimetro S033B |
-| Gestione Flutter delle Finalità di raccolta (`harvest_purposes`) | ✅ Implementata e verificata con test Flutter S035; collaudo integrato da eseguire |
-| Modelli, repository e UI Flutter degli altri sei Registri Agronomici | 📋 Da valutare e progettare; implementazione subordinata a successiva approvazione |
-| Correzione `SQLSTATE 55000` delle tre RPC Catalog Registry | ✅ Implementata e applicata localmente in S034; test dinamico e remoto aperti |
+| Gestione Flutter delle Finalità di raccolta (`harvest_purposes`) | ✅ Implementata in S035 e consolidata in S036; collaudo integrato ancora aperto |
+| Gestione Flutter delle Unità di misura (`measurement_units`) | ✅ Modelli, repository e pagina implementati in S038; verifiche Flutter mirate superate |
+| Gestione Flutter dei Parametri agronomici (`agronomic_parameters`) | ✅ Modelli, repository e pagina implementati in S038; verifiche Flutter mirate superate |
+| Integrazione amministrativa Flutter dei quattro registri rimanenti (`parameter_enum_values`, `production_contexts`, `protection_contexts`, `training_contexts`) | 📋 FUTURE, da valutare e approvare |
+| Correzione `SQLSTATE 55000` delle tre RPC Catalog Registry | ✅ Migration S034 applicata localmente; sei test SQL locali superati in S036; applicazione remota effettuata in S038 |
+| Verifica integrata Flutter–Supabase dei registri amministrativi | 📋 Ancora aperta |
+| Allineamento migration locali e remote alla chiusura S038 | ✅ 34/34 verificate |
 | Audit locale dei Write Path di `plantings` | ✅ Completato nel perimetro S033B |
-| Ulteriori verifiche runtime, concorrenza ed end-to-end | 📋 Da valutare |
+| Ulteriori verifiche runtime, concorrenza ed end-to-end | 📋 Da valutare secondo necessità |
 | UI operativa per alias, fonti, candidati, revisione e pubblicazione | 📋 Pianificato |
 | Workflow operativo di aggiornamento/importazione delle fonti | 📋 Pianificato |
 | Popolamento verificato del Catalogo Agronomico | 📋 Pianificato |
+
+La tabella distingue i risultati implementativi e le verifiche automatiche dalla validazione operativa integrata. Il superamento dei test Flutter mirati e l'allineamento delle migration non equivalgono a un collaudo completo dei percorsi applicativi con il backend Supabase.
+
+Alla conclusione della S038 risultano integrati a livello Flutter **tre dei sette Registri Agronomici** censiti nella S033B. I quattro rimanenti non sono automaticamente assegnati alla sessione successiva.
 
 ### Evoluzione architetturale S030
 
@@ -435,6 +449,123 @@ I risultati confermano il superamento dei controlli eseguiti nel rispettivo peri
 
 La S036 non ha assegnato automaticamente nuovi interventi alle sessioni successive.
 
+### Aggiornamento tecnico S038 — Resolver Agronomico e Registri Agronomici Flutter
+
+La Sessione S038 si è conclusa nella fase di sviluppo il **29/10/2026 alle ore 10:21**, dopo **13 h 27 min** di lavoro effettivo.
+
+La sessione ha consolidato l'integrazione applicativa del Catalogo Agronomico attraverso tre incrementi principali:
+
+- introduzione del contratto tipizzato Flutter del Resolver Agronomico;
+- integrazione Flutter della gestione delle Unità di misura;
+- integrazione Flutter della gestione dei Parametri agronomici.
+
+Sono state inoltre effettuate verifiche sul database Supabase e applicata al remoto la migration correttiva del Catalog Registry introdotta nella S034.
+
+#### Contratto tipizzato del Resolver Agronomico
+
+La S038 ha introdotto i modelli Flutter `AgronomicKnowledgeRequest` e `AgronomicKnowledgeResult`, con varianti tipizzate per rappresentare gli esiti del Resolver.
+
+È stato implementato `AgronomicKnowledgeRepository`, che utilizza la RPC backend già esistente:
+
+```text
+resolve_agronomic_knowledge
+```
+
+È stata inoltre introdotta la verifica dell'identità agronomica mediante `verifyAgronomicKnowledgeIdentity`.
+
+L'intervento non modifica il modello canonico del Catalogo Agronomico e non introduce un secondo Resolver indipendente.
+
+Il backend rimane autoritativo per la risoluzione della Knowledge agronomica.
+
+L'integrazione del Resolver nei flussi operativi di pianificazione e inserimento delle coltivazioni **non è ancora completata**.
+
+#### Gestione Flutter delle Unità di misura e dei Parametri agronomici
+
+La S038 ha introdotto modelli, repository e pagine Flutter dedicati ai registri:
+
+```text
+measurement_units
+agronomic_parameters
+```
+
+Le operazioni di gestione utilizzano le RPC autoritative già disponibili nel backend, senza introdurre scritture dirette alle tabelle.
+
+Sono mantenuti i principi di:
+
+- Catalog Authority e capability server-side;
+- Profile Write Authority;
+- concorrenza ottimistica mediante `row_version`;
+- gestione dei conflitti senza overwrite forzato;
+- assenza di retry automatici dopo esiti incerti;
+- rilettura dello stato autoritativo quando necessaria.
+
+Le nuove interfacce sono integrate nella navigazione del Catalogo Agronomico.
+
+Alla conclusione della S038, dei sette Registri Agronomici censiti nella S033B risultano integrati a livello Flutter:
+
+1. `harvest_purposes` — Finalità di raccolta, S035;
+2. `measurement_units` — Unità di misura, S038;
+3. `agronomic_parameters` — Parametri agronomici, S038.
+
+Rimangono senza integrazione amministrativa Flutter completa:
+
+```text
+parameter_enum_values
+production_contexts
+protection_contexts
+training_contexts
+```
+
+La disponibilità delle RPC backend non equivale al completamento delle relative interfacce applicative.
+
+#### Catalog Registry e allineamento delle migration
+
+Durante la S038 è stata applicata al database Supabase remoto la migration:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+La migration era stata introdotta e applicata localmente nella S034 e successivamente sottoposta a sei test SQL locali di regressione, tutti superati nella S036.
+
+Alla conclusione dello sviluppo S038 risultavano **34/34 migration allineate tra ambiente locale e remoto**.
+
+La S038 non ha introdotto nuove migration.
+
+L'applicazione remota della correzione non costituisce, da sola, un collaudo integrato dei percorsi Flutter–Supabase.
+
+#### Verifiche e limiti del collaudo
+
+Nel corso della fase Manuali S038, il **03/11/2026**, sono state eseguite verifiche integrative sul codice della sessione:
+
+| Verifica | Risultato |
+|---|---|
+| Otto file di test Flutter mirati | **178/178 test superati** |
+| `flutter analyze` | **No issues found!** |
+| Migration locali e remote alla chiusura dello sviluppo | **34/34 allineate** |
+
+Le verifiche Flutter riguardano i modelli, i repository e le pagine interessati dalla S038.
+
+Non è stata eseguita in tale verifica integrativa l'intera suite Flutter, né un collaudo completo dei flussi di scrittura Flutter–Supabase remoto.
+
+I risultati non autorizzano quindi a dichiarare completata l'integrazione operativa del Resolver, il popolamento del Catalogo Agronomico o la pianificazione reale dell'orto.
+
+#### Risultati e questioni aperte
+
+La S038 ha completato il perimetro implementativo e le verifiche sopra descritti, senza modificare automaticamente le priorità delle sessioni successive.
+
+Rimangono da valutare sulla base dello stato effettivo del progetto:
+
+- integrazione completa del Resolver canonico nei flussi operativi;
+- gestione Flutter dei quattro Registri Agronomici rimanenti;
+- collaudi integrati Flutter–Supabase pertinenti;
+- verifiche necessarie al primo utilizzo reale;
+- completezza e approvazione della baseline agronomica destinata alla pianificazione dell'orto 2027.
+
+L'obiettivo approvato il **25/10/2026** di iniziare l'utilizzo reale entro il **15/11/2026** rimane subordinato a una verifica di fattibilità.
+
+Nessuna attività FUTURE viene assegnata automaticamente alla sessione successiva.
+
 ## 3.2 Gestione orto
 
 | Funzionalità | Stato |
@@ -470,39 +601,72 @@ Dopo il cutover S030, `plantings` utilizza `crop_id` e l'eventuale `cultivar_id`
 
 ## 3.3 Motore Agronomico
 
-| Funzionalità                       |       Stato       | Note                                                                                                                                                                                       |
-| ---------------------------------- | :---------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| FreeSpaceEngine                    |   ✅ Completato    | Calcolo automatico degli spazi liberi nelle aiuole.                                                                                                                                        |
-| SuggestionEngine                   |   ✅ Completato    | Generazione dei candidati iniziali sulla base degli spazi disponibili.                                                                                                                     |
-| Companion Engine                   |   ✅ Completato    | Prima versione del motore delle consociazioni.                                                                                                                                             |
-| BedAnalysisService                 |   ✅ Completato    | Servizio di coordinamento delle analisi agronomiche delle aiuole.                                                                                                                          |
-| Bed Companion Analyzer             |   ✅ Completato    | Analisi automatica delle compatibilità tra le colture presenti in un'aiuola.                                                                                                               |
-| RecommendationPipeline             |   ✅ Completato    | Orchestrazione del processo di raccomandazione e coordinamento dei componenti specializzati.                                                                                               |
-| Decision Engine                    |   ✅ Completato    | Interpretazione delle valutazioni agronomiche e calcolo del punteggio finale delle raccomandazioni.                                                                                        |
-| DecisionWeights                    |   ✅ Completato    | Configurazione e validazione dei pesi applicati ai criteri spazio, rotazione e consociazione.                                                                                              |
-| Motore delle Rotazioni             |   ✅ Completato    | Prima versione operativa integrata nella RecommendationPipeline.                                                                                                                           |
-| Sistema di Punteggio Agronomico    |   ✅ Completato    | Prima versione operativa basata su spazio, rotazione e consociazione con pesi configurabili.                                                                                               |
-| FamilyNeedsEngine                  |    ✅ Integrato    | Prima versione completata nella S011 e integrata nella RecommendationPipeline nella S012 mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
-| FamilyConsumptionNeed              |   ✅ Completato    | Modello quantitativo introdotto nella S013 per rappresentare quantità, unità e periodicità del fabbisogno familiare.                                                                       |
-| FamilyConsumptionNeedValidator     |   ✅ Completato    | Validazione dei fabbisogni quantitativi familiari introdotta nella S013.                                                                                                                   |
-| PlannedPlantingBatch               |   ✅ Completato    | Modello introdotto nella S013 per rappresentare un lotto di coltivazione pianificato nel tempo.                                                                                            |
-| PlannedPlantingBatchValidator      |   ✅ Completato    | Validazione dei dati necessari alla rappresentazione dei lotti di coltivazione pianificati.                                                                                                |
-| SuccessionPlanningEngine           | ✅ V1 completata | Prima versione deterministica implementata nella S014: trasforma `FamilyConsumptionNeed` in una sequenza temporale validata di `PlannedPlantingBatch`, senza introdurre conversioni agronomiche non supportate. |
-| AgronomicWindow                    | ✅ Completato    | Modello annuale introdotto nella S015 per rappresentare finestre agronomiche associate a uno specifico metodo di avvio, con supporto degli intervalli che attraversano il cambio dell'anno. |
-| AgronomicWindowValidator           | ✅ Completato    | Validazione strutturale delle finestre agronomiche introdotta nella S015, comprese le combinazioni mese/giorno e il supporto del 29 febbraio. |
-| AgronomicWindowEngine              | ✅ V1 completata | Prima versione implementata nella S015 per verificare l'appartenenza temporale alle finestre e la compatibilità dei `PlannedPlantingBatch` in base a metodo di avvio e data. |
+| Funzionalità | Stato | Note |
+|---|---|---|
+| FreeSpaceEngine | ✅ Completato | Calcolo automatico degli spazi liberi nelle aiuole. |
+| SuggestionEngine | ✅ Completato | Generazione dei candidati iniziali sulla base degli spazi disponibili. |
+| Companion Engine | ✅ Completato | Prima versione del motore delle consociazioni. |
+| BedAnalysisService | ✅ Completato | Servizio di coordinamento delle analisi agronomiche delle aiuole. |
+| Bed Companion Analyzer | ✅ Completato | Analisi automatica delle compatibilità tra le colture presenti in un'aiuola. |
+| RecommendationPipeline | ✅ Completato | Orchestrazione del processo di raccomandazione e coordinamento dei componenti specializzati. |
+| Decision Engine | ✅ Completato | Interpretazione delle valutazioni agronomiche e calcolo del punteggio finale delle raccomandazioni. |
+| DecisionWeights | ✅ Completato | Configurazione e validazione dei pesi applicati ai criteri spazio, rotazione e consociazione. |
+| Motore delle Rotazioni | ✅ Completato | Prima versione operativa integrata nella RecommendationPipeline. |
+| Sistema di Punteggio Agronomico | ✅ Completato | Prima versione operativa basata su spazio, rotazione e consociazione con pesi configurabili. |
+| FamilyNeedsEngine | ✅ Integrato | Prima versione completata nella S011 e integrata nella RecommendationPipeline nella S012 mediante ordinamento gerarchico per fascia agronomica, priorità familiare e punteggio agronomico. |
+| FamilyConsumptionNeed | ✅ Completato | Modello quantitativo introdotto nella S013 per rappresentare quantità, unità e periodicità del fabbisogno familiare. |
+| FamilyConsumptionNeedValidator | ✅ Completato | Validazione dei fabbisogni quantitativi familiari introdotta nella S013. |
+| PlannedPlantingBatch | ✅ Completato | Modello introdotto nella S013 per rappresentare un lotto di coltivazione pianificato nel tempo. |
+| PlannedPlantingBatchValidator | ✅ Completato | Validazione dei dati necessari alla rappresentazione dei lotti di coltivazione pianificati. |
+| SuccessionPlanningEngine | ✅ V1 completata | Prima versione deterministica implementata nella S014: trasforma `FamilyConsumptionNeed` in una sequenza temporale validata di `PlannedPlantingBatch`, senza introdurre conversioni agronomiche non supportate. |
+| AgronomicWindow | ✅ Completato | Modello annuale introdotto nella S015 per rappresentare finestre agronomiche associate a uno specifico metodo di avvio, con supporto degli intervalli che attraversano il cambio dell'anno. |
+| AgronomicWindowValidator | ✅ Completato | Validazione strutturale delle finestre agronomiche introdotta nella S015, comprese le combinazioni mese/giorno e il supporto del 29 febbraio. |
+| AgronomicWindowEngine | ✅ V1 completata | Prima versione implementata nella S015 per verificare l'appartenenza temporale alle finestre e la compatibilità dei `PlannedPlantingBatch` in base a metodo di avvio e data. |
 | Stagionalità di colture e varietà | ✅ V1 completata | Obiettivo storico S016: le finestre agronomiche sono associabili a colture e varietà secondo il modello applicativo allora vigente. Il riallineamento completo al Catalogo Agronomico S030 resta evolutivo. |
 | CropAgronomicWindowRule | ✅ Completato | Modello storico S016 per associare una `AgronomicWindow` a una coltura e, opzionalmente, a una specifica varietà. Il modello precede il cutover canonico S030. |
-| AgronomicWindowResolver | ✅ V1 completata | Resolver storico S016 basato sul fallback varietà specifica → coltura generale → nessuna regola. È distinto dal Resolver del Catalogo Agronomico introdotto nella S030. |
+| AgronomicWindowResolver | ✅ V1 completata | Resolver storico S016 basato sul fallback varietà specifica → coltura generale → nessuna regola. È distinto dal Resolver canonico della Knowledge agronomica introdotto nella S030. |
 | AgronomicWindowEvaluation | ✅ Completato | Risultato strutturato introdotto nella S016 per distinguere gli stati `compatible`, `incompatible` e `unknown`, evitando di interpretare l'assenza di dati come incompatibilità. |
 | AgronomicWindowService | ✅ V1 completata | Servizio introdotto nella S016 per coordinare `AgronomicWindowResolver` e `AgronomicWindowEngine` nella valutazione stagionale dei `PlannedPlantingBatch`. |
 | Progettazione della persistenza delle regole agronomiche | ✅ Completato | Obiettivo S017 completato nell'ambito della progettazione Database V1. L'implementazione e il riallineamento delle regole persistenti al Catalogo Agronomico corrente restano incrementali. |
-| Integrazione completa del Resolver S030 nei flussi di pianificazione e inserimento | 📋 Pianificato | Il Resolver canonico è disponibile a livello di Catalogo; la sua integrazione completa nei flussi operativi rimane FUTURE. |
+| Resolver canonico della Knowledge agronomica — backend S030 | ✅ Completato | Resolver autoritativo del Catalogo Agronomico, accessibile tramite la RPC `resolve_agronomic_knowledge`. Non coincide con il Resolver storico delle finestre agronomiche S016. |
+| AgronomicKnowledgeRequest | ✅ Implementato in S038 | Contratto tipizzato Flutter per formulare richieste al Resolver canonico. Verificato con test mirati. |
+| AgronomicKnowledgeResult | ✅ Implementato in S038 | Modello Flutter degli esiti del Resolver, con varianti tipizzate. Verificato con test mirati. |
+| AgronomicKnowledgeRepository | ✅ Implementato in S038 | Repository Flutter che richiama la RPC backend esistente `resolve_agronomic_knowledge`. Verificato con test mirati. |
+| verifyAgronomicKnowledgeIdentity | ✅ Implementato in S038 | Verifica applicativa dell'identità agronomica nel perimetro del contratto Flutter del Resolver. |
+| Integrazione completa del Resolver S030/S038 nei flussi di pianificazione e inserimento | 📋 FUTURE | Il backend canonico e il relativo contratto Flutter sono disponibili, ma non risulta completato il collegamento operativo con tutti i flussi di pianificazione e inserimento delle coltivazioni. |
+| Riallineamento dei motori agronomici storici al Catalogo canonico | 📋 FUTURE | Da valutare progressivamente rispetto a `botanical_taxa`, `crops`, `crop_cultivars`, Knowledge pubblicata e Resolver, evitando nuove dipendenze legacy. |
 | Backend canonico delle consociazioni | 📋 Pianificato | Il motore applicativo esiste, ma il backend canonico del Catalogo per le associazioni tra colture non è ancora implementato. |
+
+### Distinzione tra i Resolver agronomici
+
+Il progetto comprende due componenti con finalità differenti.
+
+**Resolver storico delle finestre agronomiche — S016**
+
+`AgronomicWindowResolver` appartiene al modello applicativo storico delle finestre agronomiche. Determina la regola applicabile secondo il fallback varietà specifica → coltura generale → nessuna regola e collabora con `AgronomicWindowEngine` e `AgronomicWindowService`.
+
+**Resolver canonico della Knowledge agronomica — S030/S038**
+
+Il Resolver introdotto nella S030 opera sul Catalogo Agronomico canonico e sulla Knowledge pubblicata. Il backend mantiene la responsabilità autoritativa della risoluzione.
+
+La S038 ha aggiunto il contratto tipizzato Flutter, i modelli degli esiti e il repository di accesso alla RPC esistente, senza creare un secondo motore di risoluzione indipendente.
+
+Questa integrazione tecnica non dimostra ancora il completamento dei flussi operativi di pianificazione e inserimento delle coltivazioni.
+
+### Evoluzione e vincoli
 
 I componenti agronomici realizzati nelle sessioni precedenti alla S030 restano risultati tecnici validi delle rispettive fasi di sviluppo. La loro terminologia storica non viene riscritta retroattivamente.
 
-Il Catalogo Agronomico S030 introduce tuttavia un nuovo contratto canonico globale. L'integrazione progressiva dei motori agronomici con `botanical_taxa`, `crops`, `crop_cultivars`, Knowledge pubblicata e Resolver costituisce quindi un'evoluzione successiva e deve evitare nuove dipendenze dal modello legacy.
+Il Catalogo Agronomico S030 introduce tuttavia un contratto canonico globale. L'integrazione progressiva dei motori agronomici con `botanical_taxa`, `crops`, `crop_cultivars`, Knowledge pubblicata e Resolver costituisce quindi un'evoluzione successiva e deve evitare nuove dipendenze dal modello legacy.
+
+Alla conclusione della S038:
+
+- il Resolver canonico backend risulta disponibile;
+- il contratto e il repository Flutter risultano implementati e verificati nel perimetro dei test mirati;
+- il collaudo integrato dei flussi operativi Flutter–Supabase non risulta completato;
+- la pianificazione reale dell'orto 2027 non può essere considerata operativa sulla sola base di questi risultati.
+
+Le attività FUTURE restano soggette a valutazione e approvazione nelle sessioni di sviluppo competenti. La presente roadmap non determina automaticamente le attività della sessione successiva.
 
 ---
 
@@ -1515,7 +1679,9 @@ Il completamento della gestione UI della tassonomia in S032 non equivaleva, in q
 
 ## Altri blocchi futuri
 
-Alla conclusione dello sviluppo S035, le attività ancora aperte o classificate FUTURE vengono distinte dai risultati completati nelle sessioni precedenti. Le descrizioni datate S033/S033B che seguono conservano valore storico nei rispettivi perimetri.
+Alla conclusione dello sviluppo S038, le attività ancora aperte o classificate FUTURE vengono distinte dai risultati effettivamente completati nelle sessioni precedenti.
+
+Le descrizioni storiche S033/S033B, S034, S035, S036 e S038 conservano valore nei rispettivi perimetri.
 
 L'inserimento di un'attività in questo elenco non ne determina automaticamente l'assegnazione alla sessione successiva.
 
@@ -1535,7 +1701,7 @@ Sono disponibili, nel perimetro implementato e verificato:
 
 Non rimangono pertanto FUTURE le UI di gestione delle Crop e delle Cultivar già completate nella Fase A S033.
 
-La S033B ha censito staticamente 21/21 RPC relative ai seguenti ulteriori Registri Agronomici:
+La S033B ha censito staticamente 21/21 RPC relative ai sette ulteriori Registri Agronomici:
 
 ```text
 measurement_units
@@ -1547,20 +1713,32 @@ training_contexts
 harvest_purposes
 ```
 
-Per i sei registri diversi da `harvest_purposes`, rimangono da progettare e successivamente valutare per l'implementazione:
+Alla conclusione della S038, **tre dei sette registri** risultano integrati a livello Flutter:
 
-- modelli Flutter dedicati agli ulteriori Registri Agronomici;
+| Registro | Sessione | Stato |
+|---|---|---|
+| `harvest_purposes` | S035, consolidamento S036 | ✅ Modelli, repository e UI implementati; verifiche Flutter superate |
+| `measurement_units` | S038 | ✅ Modelli, repository e UI implementati; verifiche Flutter mirate superate |
+| `agronomic_parameters` | S038 | ✅ Modelli, repository e UI implementati; verifiche Flutter mirate superate |
+| `parameter_enum_values` | — | 📋 Integrazione Flutter FUTURE |
+| `production_contexts` | — | 📋 Integrazione Flutter FUTURE |
+| `protection_contexts` | — | 📋 Integrazione Flutter FUTURE |
+| `training_contexts` | — | 📋 Integrazione Flutter FUTURE |
+
+Per i quattro registri ancora FUTURE rimangono da valutare e, soltanto dopo approvazione, eventualmente realizzare:
+
+- modelli Flutter dedicati;
 - repository Flutter e contratti applicativi coerenti con le RPC autoritative;
 - interfacce di consultazione e gestione;
 - navigazione e integrazione con l'HUB;
 - gestione delle autorizzazioni e degli esiti applicativi;
 - verifiche specifiche e regressione.
 
-La disponibilità delle RPC backend non equivale al completamento della loro integrazione Flutter. La S035 ha implementato la gestione Flutter di `harvest_purposes` (Finalità di raccolta), con 42 test mirati superati, ma non ha eseguito il collaudo integrato Flutter–Supabase. Per gli altri sei registri la corrispondente integrazione Flutter rimane aperta.
+La disponibilità delle RPC backend non equivale al completamento della loro integrazione Flutter.
 
-Per la S034 è stato approvato esclusivamente l'obiettivo iniziale di progettazione del sottosistema Flutter dei Registri Agronomici, previa verifica della baseline backend effettivamente disponibile.
+Per i tre registri implementati rimane distinta la verifica automatica Flutter dal collaudo integrato dei percorsi di scrittura Flutter–Supabase.
 
-Questa indicazione descrive la pianificazione storica precedente alla S034. La S034 ha invece realizzato la correzione SQL del Catalog Registry; la S035 ha poi implementato la gestione Flutter delle Finalità di raccolta.
+La pianificazione iniziale della S034 relativa ai Registri Agronomici rimane un riferimento storico: la S034 ha realizzato la correzione SQL del Catalog Registry; la S035 ha implementato le Finalità di raccolta; la S038 ha aggiunto Unità di misura e Parametri agronomici.
 
 ### Catalogo Agronomico e workflow editoriale
 
@@ -1575,6 +1753,10 @@ Rimangono FUTURE:
 - popolamento editoriale del Catalogo con dati agronomici reali, verificabili e tracciabili;
 - riallineamento progressivo dei motori agronomici storici al Catalogo canonico S030;
 - backend canonico delle consociazioni tra colture.
+
+La S038 ha implementato il contratto tipizzato Flutter e il repository di accesso al Resolver canonico già esistente nel backend.
+
+Questo risultato non equivale al completamento dell'integrazione operativa del Resolver nei flussi di pianificazione.
 
 Il workflow delle fonti esterne rimane:
 
@@ -1612,6 +1794,8 @@ Rimangono aperte o FUTURE:
 
 L'avvio operativo dovrà rispettare la sequenza definita nella sezione successiva.
 
+L'obiettivo approvato il **25/10/2026** di iniziare a utilizzare Orto Smart per la pianificazione dell'orto 2027 entro il **15/11/2026** non costituisce una conferma di fattibilità né una dichiarazione di disponibilità operativa.
+
 ### Sicurezza, backend e verifiche
 
 La S033B ha effettuato un audit locale dei Write Path di `plantings`:
@@ -1626,15 +1810,36 @@ L'esito è stato favorevole nel perimetro effettivamente esaminato.
 
 Non sono stati dimostrati difetti tali da giustificare correzioni immediate.
 
-Rimangono possibili verifiche successive, da valutare secondo necessità:
+La S034 ha introdotto la migration:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+La correzione riguarda la distinzione degli errori semantici `SQLSTATE 55000` nelle tre RPC:
+
+```text
+public.update_measurement_unit
+public.update_agronomic_parameter
+public.update_parameter_enum_value
+```
+
+La S036 ha completato **6/6 test SQL locali di regressione**, mentre la S038 ha applicato la migration al database remoto.
+
+Alla conclusione dello sviluppo S038, le migration locali e remote risultavano **34/34 allineate**.
+
+Pertanto non rimangono FUTURE né l'esecuzione dei sei test SQL locali già superati né la prima applicazione remota della migration S034.
+
+Rimangono invece da valutare, secondo necessità:
 
 - test runtime delle operazioni di scrittura;
+- collaudi integrati Flutter–Supabase dei Registri Agronomici;
 - verifiche della concorrenza e della Profile Write Authority;
 - test end-to-end Flutter/Supabase;
-- verifiche del database remoto;
+- verifiche funzionali del database remoto;
 - approfondimenti sui casi limite della geometria e delle validazioni numeriche.
 
-L'esito dell'audit locale non costituisce una certificazione generale della sicurezza dell'applicazione.
+L'esito dell'audit locale e l'allineamento delle migration non costituiscono una certificazione generale della sicurezza dell'applicazione.
 
 Rimangono inoltre FUTURE:
 
@@ -1704,12 +1909,11 @@ La S033B ha completato, limitatamente al proprio perimetro:
 
 La S033B non ha introdotto modifiche persistenti a Flutter, SQL, migration o database.
 
-
 La S034 ha completato, nel proprio perimetro:
 
 - la correzione delle tre RPC del Catalog Registry per distinguere il congelamento semantico dagli altri errori `SQLSTATE 55000`;
 - la migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql`, applicata al database locale;
-- le verifiche statiche e autorizzative previste, senza test dinamico specifico del ramo corretto.
+- le verifiche statiche e autorizzative previste, senza test dinamico specifico del ramo corretto durante la S034.
 
 La S035 ha completato, nel proprio perimetro Flutter:
 
@@ -1717,7 +1921,26 @@ La S035 ha completato, nel proprio perimetro Flutter:
 - consultazione, creazione, modifica e attivazione/disattivazione con capability e concorrenza ottimistica;
 - 42 test Flutter mirati superati e `flutter analyze` senza problemi.
 
-Il collaudo integrato Flutter–Supabase delle Finalità di raccolta, il test dinamico `SQLSTATE 55000` e l'eventuale applicazione della migration S034 al remoto rimangono aperti.
+La S036 ha completato:
+
+- protezione Flutter contro richieste duplicate di attivazione e disattivazione delle Finalità di raccolta;
+- sei test SQL locali di regressione sulla correzione `SQLSTATE 55000`, tutti superati;
+- suite Flutter conclusiva con 1.292 test superati;
+- `flutter analyze` senza problemi.
+
+La S038 ha completato, nel proprio perimetro:
+
+- modelli tipizzati `AgronomicKnowledgeRequest` e `AgronomicKnowledgeResult`;
+- repository Flutter `AgronomicKnowledgeRepository` e accesso alla RPC `resolve_agronomic_knowledge`;
+- verifica dell'identità agronomica mediante `verifyAgronomicKnowledgeIdentity`;
+- modelli, repository e pagine Flutter di `measurement_units` e `agronomic_parameters`;
+- integrazione con le RPC autoritative, le capability e i meccanismi di concorrenza previsti;
+- applicazione remota della migration correttiva S034;
+- verifica di allineamento delle 34/34 migration locali e remote;
+- verifiche Flutter mirate, integrate durante Manuali S038 con 178/178 test superati su otto file e `flutter analyze` senza problemi.
+
+Il collaudo integrato Flutter–Supabase dei registri implementati e l'integrazione completa del Resolver nei flussi operativi rimangono aperti.
+
 ### Regole di pianificazione delle sessioni successive
 
 Le attività FUTURE non costituiscono un calendario vincolante.
@@ -1946,6 +2169,90 @@ La **verifica di fattibilità dell'obiettivo del 15/11/2026** è individuata com
 L'apertura della S038, il relativo perimetro e gli eventuali interventi saranno decisi autonomamente sulla base dello stato reale del progetto, secondo il workflow vigente.
 
 Rimangono prioritari i principi **«Sicurezza prima di tutto»** e **«Presto e bene non conviene»**.
+
+### Quadro operativo dopo S038 — Resolver Agronomico, Registri Flutter e preparazione all'utilizzo reale
+
+La fase di sviluppo della **Sessione S038** si è conclusa il **29/10/2026 alle ore 10:21**, dopo **13 h 27 min** di lavoro effettivo.
+
+La sessione ha prodotto tre risultati applicativi principali:
+
+1. **Resolver Agronomico Flutter:** introduzione dei modelli tipizzati `AgronomicKnowledgeRequest` e `AgronomicKnowledgeResult`, del repository `AgronomicKnowledgeRepository` e dell'accesso alla RPC backend esistente `resolve_agronomic_knowledge`, con verifica dell'identità agronomica.
+2. **Unità di misura:** implementazione dei modelli, repository e interfaccia Flutter del registro `measurement_units`, utilizzando i Write Path autoritativi esistenti.
+3. **Parametri agronomici:** implementazione dei modelli, repository e interfaccia Flutter del registro `agronomic_parameters`, utilizzando i Write Path autoritativi esistenti.
+
+Le implementazioni rispettano, nei rispettivi perimetri, le capability della Catalog Authority, la Profile Write Authority, la concorrenza ottimistica mediante `row_version` e la gestione controllata degli esiti incerti.
+
+Alla conclusione della S038 risultano integrati a livello Flutter **3 dei 7 Registri Agronomici** censiti nella S033B:
+
+- `harvest_purposes`, implementato nella S035;
+- `measurement_units`, implementato nella S038;
+- `agronomic_parameters`, implementato nella S038.
+
+Rimangono FUTURE le integrazioni amministrative Flutter di `parameter_enum_values`, `production_contexts`, `protection_contexts` e `training_contexts`.
+
+#### Stato delle migration e del backend
+
+Durante la S038 è stata applicata al database Supabase remoto la migration correttiva S034:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+La migration era già stata applicata localmente nella S034 e verificata mediante **6/6 test SQL locali di regressione superati** nella S036.
+
+Alla conclusione dello sviluppo S038 risultavano **34/34 migration allineate tra locale e remoto**.
+
+La S038 non ha introdotto nuove migration.
+
+Il deployment remoto non dimostra, da solo, il corretto completamento dei flussi integrati di scrittura Flutter–Supabase.
+
+#### Verifiche tecniche
+
+Nel corso della fase Manuali S038, il **03/11/2026**, sono stati eseguiti controlli integrativi sul codice:
+
+| Verifica | Esito |
+|---|---|
+| Otto file di test Flutter mirati | 178/178 superati |
+| `flutter analyze` | No issues found! |
+| Allineamento migration alla chiusura dello sviluppo | 34/34 |
+
+Queste verifiche non costituiscono l'esecuzione dell'intera suite Flutter né un collaudo end-to-end sul database remoto.
+
+Il Resolver canonico è disponibile a livello backend e il relativo contratto Flutter è stato implementato. Rimane aperta la sua integrazione completa nei flussi operativi di pianificazione e inserimento delle coltivazioni.
+
+#### Obiettivo di utilizzo reale entro il 15/11/2026
+
+Rimane valido l'obiettivo approvato il **25/10/2026** di iniziare entro il **15/11/2026** l'utilizzo reale di Orto Smart per pianificare l'orto 2027.
+
+La S038 non ha dimostrato il completamento di tutte le condizioni necessarie per tale utilizzo.
+
+La fattibilità deve ancora essere verificata sulla baseline effettiva, considerando almeno:
+
+- disponibilità di un Catalogo Agronomico verificato e sufficientemente completo;
+- gestione delle 15 aiuole reali;
+- disponibilità dei controlli agronomici necessari, comprese le rotazioni;
+- distinzione tra pianificazione ed esecuzione effettiva di semine e trapianti;
+- percorsi applicativi e garanzie di sicurezza pertinenti;
+- assenza di dati dimostrativi o provvisori nel database operativo.
+
+L'obiettivo temporale non autorizza scorciatoie sulla sicurezza, sull'integrità dei dati o sulla verifica del Catalogo Agronomico.
+
+#### Questioni aperte e sessioni successive
+
+Rimangono da valutare:
+
+- collaudi integrati Flutter–Supabase dei Registri Agronomici implementati;
+- integrazione operativa del Resolver nei flussi di pianificazione;
+- eventuale implementazione dei quattro Registri Agronomici Flutter rimanenti;
+- verifiche dinamiche pertinenti sugli Alias e sull'integrità Taxon/Crop;
+- verifica della fattibilità del primo utilizzo reale per la pianificazione 2027;
+- ulteriori interventi eventualmente indispensabili, da individuare soltanto dopo la verifica della baseline.
+
+La conclusione della S038 non assegna automaticamente alcuna di queste attività alla sessione successiva.
+
+Ogni nuova sessione richiede apertura esplicita, CHECKPOINT DI RICEZIONE, verifica dello stato reale e approvazione del proprio perimetro.
+
+Restano validi i principi **«Sicurezza prima di tutto»** e **«Presto e bene non conviene»**.
 
 ### Vincoli permanenti
 

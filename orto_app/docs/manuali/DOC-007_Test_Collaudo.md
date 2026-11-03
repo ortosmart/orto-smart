@@ -4,14 +4,14 @@
 
 # Test e Collaudo
 
-**Versione:** 1.1
+**Versione:** 1.2
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/10/2026
-**Ultimo aggiornamento:** 26/10/2026
+**Ultimo aggiornamento:** 03/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |-------|--------|
 | Documento | DOC-007 |
 | Titolo | Test e Collaudo |
-| Versione | 1.1 |
+| Versione | 1.2 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/10/2026 |
-| Ultimo aggiornamento | 26/10/2026 |
+| Ultimo aggiornamento | 03/11/2026 |
 
 ---
 
@@ -40,6 +40,7 @@
 | 1.0 (proposta) | 16/10/2026 | Revisione preliminare: normalizzazione dei paragrafi, uniformazione dei riferimenti DOC-001 e DOC-004 e aggiornamento dei metadati; nessuna emissione ufficiale |
 | 1.0 | 16/10/2026 | Prima emissione ufficiale del DOC-007 — Test e Collaudo, versione 1.0 approvata |
 | 1.1 | 26/10/2026 | Inserimento delle evidenze S037: audit statici degli Alias e dell'integrità Taxon/Crop, protezione delle scritture concorrenti in BedPage, 32 test Flutter mirati superati e distinzione esplicita dalle evidenze S036. |
+| 1.2 | 03/11/2026 | Inserimento del §12.20 relativo alla S038: perimetro tecnico del Resolver Agronomico, unità di misura e parametri agronomici; tracciabilità degli otto file di test introdotti; verifica integrativa del 03/11/2026 con 178/178 test Flutter superati e analisi statica senza anomalie; precisazione dei limiti dei collaudi. |
 
 ---
 
@@ -3032,6 +3033,156 @@ Le seguenti evidenze appartengono alla precedente **S036**, e non devono essere 
 Rimangono aperte, ove necessarie, le verifiche dinamiche degli Alias e dell'integrità Taxon/Crop, i collaudi integrati Flutter–Supabase e la riconciliazione delle migration tra database locale e remoto.
 
 Il superamento dei controlli S037 dimostra esclusivamente gli esiti registrati nei rispettivi perimetri. Non costituisce un'attestazione di collaudo complessivo dell'applicazione per il primo utilizzo reale.
+
+## 12.20 Evidenze tecniche della Sessione S038
+
+La Sessione di sviluppo S038, conclusa il **29/10/2026 alle ore 10:21**, ha introdotto componenti Flutter per il Resolver Agronomico e per la gestione amministrativa delle unità di misura e dei parametri agronomici.
+
+Le evidenze riguardano l'implementazione dei contratti applicativi, i test automatizzati dei componenti introdotti e le verifiche integrative effettuate durante la successiva sessione Manuali S038.
+
+Le verifiche sono distinte per data, perimetro e ambiente. I risultati acquisiti durante l'aggiornamento della documentazione non sono attribuiti retroattivamente alla sessione di sviluppo.
+
+### 12.20.1 Perimetro tecnico della S038
+
+**Resolver Agronomico:**
+
+- introduzione del modello tipizzato `AgronomicKnowledgeRequest`;
+- rappresentazione tipizzata dei risultati mediante `AgronomicKnowledgeResult` e relative varianti;
+- implementazione di `AgronomicKnowledgeRepository`;
+- integrazione con la RPC `resolve_agronomic_knowledge`;
+- verifica della corrispondenza degli identificativi mediante `verifyAgronomicKnowledgeIdentity`;
+- distinzione tra valori risolti, assenza di valori approvati, non applicabilità, conflitti ed errori.
+
+**Unità di misura e parametri agronomici:**
+
+- introduzione dei modelli Flutter `MeasurementUnit` e `AgronomicParameter`;
+- implementazione dei rispettivi Repository;
+- integrazione delle operazioni amministrative con sei RPC di creazione, aggiornamento e attivazione/disattivazione;
+- gestione dei risultati tipizzati delle operazioni;
+- controllo della concorrenza ottimistica mediante `row_version`;
+- introduzione delle pagine Flutter di amministrazione delle unità di misura e dei parametri agronomici;
+- introduzione dei relativi widget test.
+
+La S038 ha completato l'integrazione amministrativa Flutter di **3 dei 7 registri** introdotti nella precedente S033B, considerando anche il registro delle finalità di raccolta già integrato nella S035.
+
+L'integrazione tecnica del Resolver non equivale al completamento di un flusso agronomico operativo destinato all'utilizzo reale.
+
+### 12.20.2 File di test introdotti
+
+La S038 ha introdotto otto file di test automatizzati:
+
+**Modelli:**
+
+- `test/data/models/agronomic_knowledge_result_test.dart`;
+- `test/data/models/agronomic_parameter_test.dart`;
+- `test/data/models/measurement_unit_test.dart`.
+
+**Repository:**
+
+- `test/data/repositories/agronomic_knowledge_repository_test.dart`;
+- `test/data/repositories/agronomic_parameter_repository_test.dart`;
+- `test/data/repositories/measurement_unit_repository_test.dart`.
+
+**Pagine Flutter:**
+
+- `test/pages/agronomic_parameters_page_test.dart`;
+- `test/pages/measurement_units_page_test.dart`.
+
+Una ricognizione statica del codice ha individuato **154 dichiarazioni** `test()` e `testWidgets()`.
+
+Il numero delle dichiarazioni non coincide con quello dei casi effettivamente eseguiti, poiché alcuni cicli generano test distinti.
+
+### 12.20.3 Verifica integrativa Flutter del 03/11/2026
+
+Durante la sessione **Manuali S038 del 03/11/2026** è stata eseguita una verifica integrativa degli otto file di test introdotti nello sviluppo S038.
+
+**Comando utilizzato:**
+
+```powershell
+flutter test test/data/models/agronomic_knowledge_result_test.dart test/data/models/agronomic_parameter_test.dart test/data/models/measurement_unit_test.dart test/data/repositories/agronomic_knowledge_repository_test.dart test/data/repositories/agronomic_parameter_repository_test.dart test/data/repositories/measurement_unit_repository_test.dart test/pages/agronomic_parameters_page_test.dart test/pages/measurement_units_page_test.dart --reporter expanded
+```
+
+**Risultato:**
+
+```text
+00:08 +178: All tests passed!
+```
+
+| Verifica | Esito |
+|---|---|
+| File di test eseguiti | 8 |
+| Test eseguiti | 178 |
+| Test superati | 178 |
+| Test falliti | 0 |
+| Durata riportata | Circa 8 secondi |
+
+I test hanno interessato la validazione e la deserializzazione dei modelli, la gestione degli stati e degli errori del Resolver, i contratti RPC dei Repository e i comportamenti delle pagine Flutter.
+
+La verifica ha confermato il superamento dei test automatizzati selezionati nell'ambiente locale al momento dell'esecuzione.
+
+**Limite:** il comando non ha eseguito l'intera suite Flutter e non ha costituito un test di integrazione reale con il progetto Supabase remoto.
+
+### 12.20.4 Analisi statica Flutter del 03/11/2026
+
+Durante la medesima sessione Manuali S038 è stata eseguita l'analisi statica dell'applicazione.
+
+**Comando:**
+
+```powershell
+flutter analyze
+```
+
+**Risultato:**
+
+```text
+No issues found! (ran in 11.8s)
+```
+
+L'analisi statica si è conclusa senza problemi segnalati.
+
+Anche questa verifica costituisce un'evidenza integrativa del **03/11/2026**, distinta dalle verifiche eventualmente eseguite durante lo sviluppo S038.
+
+### 12.20.5 Tracciabilità tecnica e database
+
+La S038 comprende cinque commit tecnici:
+
+| Commit | Oggetto |
+|---|---|
+| `3188d67` | Modello tipizzato del Resolver Agronomico e test di contratto |
+| `7520147` | Repository del Resolver Agronomico e test RPC |
+| `5b48583` | Consolidamento dei test del Repository del Resolver |
+| `909eec0` | Repository delle unità di misura e dei parametri agronomici |
+| `7dc89e6` | Integrazione delle pagine e dei widget test |
+
+**Commit conclusivo dello sviluppo S038:**
+
+```text
+7dc89e636a90bc85c9e2ff5f4d04eb3377264921
+```
+
+La S038 non ha introdotto nuove migration SQL.
+
+Durante lo sviluppo è stata verificata la corrispondenza delle **34 migration** tra database locale e remoto ed è stata applicata al progetto remoto la migration già esistente:
+
+```text
+20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
+```
+
+Le verifiche integrative Flutter del 03/11/2026 non costituiscono una nuova attestazione dello stato del database remoto.
+
+### 12.20.6 Limiti e verifiche ancora necessarie
+
+Le evidenze documentate consentono di attestare il superamento dei test Flutter selezionati e dell'analisi statica eseguiti durante Manuali S038.
+
+Non consentono invece di attestare:
+
+- il superamento dell'intera suite Flutter nella verifica integrativa del 03/11/2026;
+- il completamento di un collaudo integrato Flutter–Supabase remoto;
+- la validazione operativa del Resolver Agronomico con dati reali approvati;
+- il completamento delle interfacce amministrative per tutti e sette i registri S033B;
+- il collaudo complessivo dell'applicazione per il primo utilizzo reale.
+
+Le verifiche della S038 si inseriscono nel processo progressivo di validazione del progetto e non sostituiscono i controlli autoritativi del database, i test di integrazione e il collaudo complessivo previsto dal Capitolo 13.
 
 # 13. Collaudo complessivo dell'applicazione
 

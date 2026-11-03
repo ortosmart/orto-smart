@@ -6,24 +6,26 @@
 
 ---
 
+
 # Informazioni sul documento
 
 | Campo | Valore |
 |---|---|
 | Documento | DOC-010 |
 | Titolo | Registro Tempi di Lavoro |
-| Versione | 1.3 |
-| Stato | Revisione S036 consolidata nel contenuto; verifica tecnica finale e pubblicazione in attesa |
+| Versione | 1.4 |
+| Stato | Consuntivi S001–S038 consolidati; pubblicazione tecnica S038 da completare |
 | Progetto | Orto Smart |
 | Repository | `ortosmart/orto-smart` |
 | Prima emissione | 17/10/2026 |
-| Ultimo aggiornamento | 26/10/2026 |
-| Sessione di predisposizione | Manuali S035; aggiornamento Manuali S036 |
+| Ultimo aggiornamento | 03/11/2026 |
+| Sessione di predisposizione | Manuali S035; aggiornamenti successivi fino a Manuali S038 |
 | Baseline storica | S001–S034 |
 | Tempo netto storico consolidato | 280 h 07 min |
-| Ultimo progressivo consolidato | 301 h 41 min (comprende S035, regolarizzazione post-chiusura S035 e S036) |
+| Ultimo progressivo consolidato | 330 h 56 min (comprende S035–S038 e la regolarizzazione post-chiusura S035) |
 
 ---
+
 
 # Cronologia delle revisioni
 
@@ -32,9 +34,11 @@
 | 1.0 | 17/10/2026 | Prima emissione ufficiale del Registro Tempi di Lavoro; consolidamento storico S001–S034 e documentazione delle limitazioni di riconciliazione |
 | 1.1 | 18/10/2026 | Registrazione S035 conclusa e integrazione documentale post-chiusura di 20 min; versione registrata nel commit Git `358099b` |
 | 1.2 | 21/10/2026 | Registrazione del consuntivo S036, aggiornamento del progressivo complessivo a 301 h 41 min e allineamento delle regole operative al DOC-009 v2.7 |
-| 1.3 | 26/10/2026 | Consuntivo definitivo S037: sviluppo 9 h 32 min, Manuali 1 h 06 min, totale sessione 10 h 38 min e progressivo complessivo progetto 312 h 19 min. |
+| 1.3 | 26/10/2026 | Consuntivo definitivo S037: sviluppo 9 h 32 min, Manuali 1 h 06 min, totale sessione 10 h 38 min e progressivo complessivo progetto 312 h 19 min |
+| 1.4 | 03/11/2026 | Consuntivo definitivo S038: sviluppo 13 h 27 min, Manuali 5 h 10 min, totale sessione 18 h 37 min; progressivo complessivo progetto 330 h 56 min; aggiornamento e riconciliazione dei riepiloghi cumulativi |
 
 ---
+
 
 # Nota sullo stato del documento
 
@@ -42,17 +46,32 @@ La versione 1.0 del DOC-010 è stata approvata per l'emissione ufficiale durante
 
 Il presente documento costituisce il Registro Tempi di Lavoro ufficiale del progetto Orto Smart a partire dalla sua emissione.
 
-La baseline storica S001–S034 resta invariata.
+La baseline storica S001–S034 resta invariata, con un tempo netto complessivo consolidato di **280 h 07 min**. Rimangono documentate le limitazioni di riconciliazione della ripartizione storica tra Sviluppo e Manuali.
 
-La sessione S035 è stata conclusa il 18/10/2026 alle 21:38. La successiva regolarizzazione documentale, svolta dalle 21:47 alle 22:07 dello stesso giorno, è registrata separatamente per 20 min netti, in assenza di pause comunicate. La versione 1.1 è stata registrata nel commit Git `358099b`.
+La sessione S035 è stata conclusa il 18/10/2026 alle 21:38. La successiva regolarizzazione documentale, svolta dalle 21:47 alle 22:07 dello stesso giorno, è registrata separatamente per **20 min netti**, in assenza di pause comunicate. La versione 1.1 è stata registrata nel commit Git `358099b`.
 
-La sessione S036 è registrata al paragrafo 6.29, con 6 h 34 min di Sviluppo e 6 h 29 min di Manuali, per un totale di 13 h 03 min.
+La sessione S036 è registrata al paragrafo 6.29, con **6 h 34 min di Sviluppo** e **6 h 29 min di Manuali**, per un totale di **13 h 03 min**. Il relativo progressivo complessivo è di **301 h 41 min**.
 
-Il tempo della fase Manuali S036 è stato consolidato il 21/10/2026 alle 22:39. Tale orario è distinto dalla successiva chiusura tecnica della sessione, disciplinata dal DOC-009 v2.7.
+La sessione S037 è registrata al paragrafo 6.30, con **9 h 32 min di Sviluppo** e **1 h 06 min di Manuali**, per un totale di **10 h 38 min**. Il relativo progressivo complessivo è di **312 h 19 min**.
 
-Il progressivo complessivo consolidato del progetto è di **301 h 41 min**, ripartito in 217 h 31 min di Sviluppo e 84 h 10 min di Manuali.
+La fase di Sviluppo S038 è stata dichiarata conclusa il **29/10/2026 alle 10:21**, con un tempo netto definitivo di **13 h 27 min**.
 
-La versione 1.2 recepisce questi dati e l'allineamento procedurale al DOC-009 v2.7. La verifica tecnica finale, il commit, il push e la conferma della sincronizzazione con il repository remoto restano da completare nell'ambito della chiusura Manuali S036.
+La fase Manuali S038 è iniziata il **03/11/2026 alle 15:38** ed è stata dichiarata conclusa il **03/11/2026 alle 22:50**. Le sospensioni dichiarate sono state escluse dal calcolo, determinando un tempo netto definitivo di **5 h 10 min**.
+
+Il consuntivo complessivo della sessione S038 è pertanto di **18 h 37 min**.
+
+Il progressivo complessivo consolidato del progetto, alla conclusione delle fasi Sviluppo e Manuali S038, raggiunge **330 h 56 min**, ripartito in:
+
+- **240 h 30 min** di Sviluppo;
+- **90 h 26 min** di Manuali.
+
+La quadratura dei progressivi è verificata.
+
+La versione 1.4 recepisce il consuntivo S038, aggiorna i progressivi cumulativi e mantiene la continuità con le registrazioni ufficiali delle sessioni precedenti.
+
+La chiusura temporale della fase Manuali S038 è distinta dalle successive operazioni tecniche di aggiornamento del registro, verifica finale, commit, push e conferma dell'allineamento con GitHub, secondo il workflow disciplinato dal DOC-009 v2.7.
+
+Alla data di predisposizione della presente revisione, tali operazioni tecniche di pubblicazione S038 non risultano ancora completate.
 
 ---
 
@@ -1641,6 +1660,79 @@ Il progressivo complessivo del progetto, dopo la chiusura dello sviluppo e dei M
 
 Il consuntivo S037 è definitivo sulla base degli orari di apertura, sospensione, ripresa e chiusura comunicati.
 
+
+### 6.31 Sessione S038
+
+#### 6.31.1 Sviluppo
+
+La fase di Sviluppo S038 è stata dichiarata conclusa il **29/10/2026 alle 10:21**.
+
+Il tempo netto definitivo, consolidato nel checkpoint ufficiale della sessione di sviluppo, è di **13 h 27 min**.
+
+| Voce | Durata |
+|---|---:|
+| **Tempo netto sviluppo S038** | **13 h 27 min** |
+
+Il consuntivo esclude le sospensioni già considerate nel checkpoint di sviluppo S038. Gli intervalli analitici di questa fase rimangono quelli documentati nelle evidenze ufficiali della sessione; non vengono ricostruiti orari non verificati.
+
+La sessione ha riguardato l'introduzione del contratto tipizzato Flutter per la risoluzione della conoscenza agronomica, con `AgronomicKnowledgeRequest`, `AgronomicKnowledgeResult` e `AgronomicKnowledgeRepository`, e l'avanzamento delle interfacce amministrative dei registri `measurement_units` e `agronomic_parameters`.
+
+La disponibilità del contratto tipizzato non equivale alla sua integrazione operativa nei flussi di coltivazione.
+
+Il progressivo dello Sviluppo passa da **227 h 03 min** a **240 h 30 min**.
+
+#### 6.31.2 Manuali
+
+La fase Manuali S038 è iniziata il **03/11/2026 alle 15:38** ed è stata dichiarata conclusa il **03/11/2026 alle 22:50**.
+
+| Data | Intervallo | Tempo netto | Qualità |
+|---|---|---:|---|
+| 03/11/2026 | 15:38–16:41 | 1 h 03 min | A |
+| 03/11/2026 | 18:04–20:16 | 2 h 12 min | A |
+| 03/11/2026 | 20:55–22:50 | 1 h 55 min | A |
+| **Totale Manuali S038** | | **5 h 10 min** | **Definitivo** |
+
+Sospensioni dichiarate:
+
+- **16:41–18:04:** 1 h 23 min;
+- **20:16–20:55:** 39 min.
+
+Le sospensioni complessive ammontano a **2 h 02 min**, escluse dal tempo netto.
+
+L'intervallo cronologico complessivo della fase Manuali S038 è di **7 h 12 min**, dal quale sono escluse **2 h 02 min** di sospensione.
+
+Il tempo netto definitivo dei Manuali S038 è quindi di **5 h 10 min**.
+
+La sessione documentale ha interessato la revisione dei 14 documenti previsti, con aggiornamenti di nove documenti: DOC-001, DOC-004, DOC-005, DOC-007, DOC-008, DOC-011, DOC-012, CHANGELOG e VERSION.
+
+Le verifiche preliminari hanno incluso il controllo dello stato Git, `git diff --check` e l'assenza di conflitti Git irrisolti.
+
+Il consolidamento temporale delle attività Manuali è distinto dalle successive operazioni tecniche di aggiornamento del DOC-010, verifica finale e pubblicazione, secondo il DOC-009 v2.7.
+
+#### 6.31.3 Consuntivo S038
+
+| Fase | Tempo netto |
+|---|---:|
+| Sviluppo S038 | 13 h 27 min |
+| Manuali S038 | 5 h 10 min |
+| **Totale S038** | **18 h 37 min** |
+
+Il progressivo complessivo del progetto, dopo la chiusura delle fasi Sviluppo e Manuali S038, raggiunge **330 h 56 min**, ripartito in:
+
+| Fase | Progressivo |
+|---|---:|
+| Sviluppo | 240 h 30 min |
+| Manuali | 90 h 26 min |
+| **Totale progetto consolidato alla S038** | **330 h 56 min** |
+
+Il consuntivo S038 è definitivo sulla base degli orari di apertura, sospensione, ripresa e chiusura comunicati.
+
+La quadratura è verificata:
+
+**240 h 30 min + 90 h 26 min = 330 h 56 min.**
+
+Le successive operazioni tecniche di pubblicazione non modificano automaticamente il consuntivo della fase Manuali già dichiarato concluso.
+
 ## 7. Registro delle correzioni e delle rettifiche
 
 ### 7.1 Finalità
@@ -2028,20 +2120,32 @@ Deve sempre risultare:
 
 **Progressivo sviluppo + Progressivo Manuali = Progressivo complessivo**
 
+
 ### 9.6 Tabella dei progressivi successivi
 
-La tabella conserva la baseline storica S001–S034, il consuntivo della S035 alla chiusura, la regolarizzazione documentale successiva e il consuntivo consolidato della S036.
+La tabella conserva la baseline storica S001–S034, i consuntivi definitivi delle sessioni S035–S038 e la regolarizzazione documentale successiva alla chiusura della S035.
 
 | Sessione | Sviluppo netto | Manuali netto | Totale sessione | Progressivo sviluppo | Progressivo Manuali | Progressivo totale |
 |---|---:|---:|---:|---:|---:|---:|
 | Baseline S001–S034 | 208 h 34 | 71 h 33 | 280 h 07 | 208 h 34 | 71 h 33 | 280 h 07 |
 | S035 — alla chiusura del 18/10 alle 21:38 | 2 h 23 | 5 h 48 | 8 h 11 | 210 h 57 | 77 h 21 | 288 h 18 |
 | Regolarizzazione DOC-010 post-chiusura S035 (senza nuovo codice sessione) | 0 h 00 | 0 h 20 | 0 h 20 | 210 h 57 | 77 h 41 | 288 h 38 |
-| **S036 — consolidamento Manuali del 21/10 alle 22:39** | **6 h 34** | **6 h 29** | **13 h 03** | **217 h 31** | **84 h 10** | **301 h 41** |
+| S036 — consolidamento Manuali del 21/10 alle 22:39 | 6 h 34 | 6 h 29 | 13 h 03 | 217 h 31 | 84 h 10 | 301 h 41 |
+| S037 — chiusura Manuali del 26/10 alle 14:50 | 9 h 32 | 1 h 06 | 10 h 38 | 227 h 03 | 85 h 16 | 312 h 19 |
+| **S038 — chiusura Manuali del 03/11 alle 22:50** | **13 h 27** | **5 h 10** | **18 h 37** | **240 h 30** | **90 h 26** | **330 h 56** |
 
 La regolarizzazione successiva alla S035 rappresenta un'attività documentale distinta e non istituisce un nuovo identificativo di sessione.
 
-Il consuntivo della S036 comprende esclusivamente i tempi consolidati delle fasi Sviluppo e Manuali. Le successive operazioni tecniche di chiusura sono tracciate secondo il DOC-009 v2.7.
+I consuntivi delle sessioni S036, S037 e S038 comprendono esclusivamente i tempi consolidati delle rispettive fasi Sviluppo e Manuali.
+
+Le operazioni tecniche successive alla dichiarazione di chiusura temporale della fase Manuali sono distinte dal relativo consuntivo e disciplinate dal DOC-009 v2.7.
+
+Alla chiusura temporale della S038, il progressivo complessivo del progetto è di **330 h 56 min**, ripartito in:
+
+- **240 h 30 min** di Sviluppo;
+- **90 h 26 min** di Manuali.
+
+La quadratura dei progressivi è verificata.
 
 Le sessioni successive devono essere aggiunte in ordine cronologico.
 
