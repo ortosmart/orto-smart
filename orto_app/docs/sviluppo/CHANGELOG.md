@@ -4,7 +4,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 3.4
+**Versione:** 3.5
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 03/11/2026
+**Ultimo aggiornamento:** 05/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |-------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 3.4 |
+| Versione | 3.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 03/11/2026 |
+| Ultimo aggiornamento | 05/11/2026 |
 
 ---
 
@@ -66,6 +66,7 @@
 | 3.2 | 21/10/2026 | Aggiornamento del CHANGELOG con le Sessioni S034, S035 e S036: correzione SQL della gestione del congelamento semantico nelle tre RPC del Catalog Registry, integrazione Flutter delle Finalità di raccolta, protezione contro richieste RPC duplicate e regressione SQL locale con 6/6 verifiche superate; conferma di 1.292/1.292 test Flutter superati nella S036. Distinzione tra verifiche locali e collaudo remoto non completato. Versione pubblica `0.1.21-alpha` e versione Flutter `0.1.21-alpha+6` invariate. |
 | 3.3 | 26/10/2026 | Documentazione della S037: audit statici del Catalogo Agronomico, protezione delle scritture concorrenti in BedPage, verifiche e obiettivo operativo per l'orto 2027; consolidamento del consuntivo Manuali S036 |
 | 3.4 | 03/11/2026 | Documentazione della S038: contratto tipizzato e repository del Resolver Agronomico, integrazione Flutter delle Unità di misura e dei Parametri agronomici, cinque commit tecnici, allineamento delle 34 migration e applicazione remota della correzione S034; registrazione delle verifiche integrative Manuali del 03/11/2026 con 178/178 test Flutter superati e analisi statica senza anomalie. Versioni applicative invariate. |
+| 3.5 | 05/11/2026 | Documentazione della Sessione S039: implementazione del modello autoritativo di pianificazione stagionale mediante `season_plans` e `planned_plantings`, introduzione di cinque RPC per creazione, modifica, conferma, annullamento ed esecuzione atomica delle coltivazioni pianificate, protezioni geometriche e temporali e collegamento alle coltivazioni reali; undici migration SQL applicate esclusivamente al database locale, verifiche statiche SQL, `flutter analyze` senza problemi e 1472/1472 test Flutter superati. Registrazione del commit tecnico `5527aa8`, del consuntivo sviluppo di 3 h 35 min e delle attività ancora aperte relative ai collaudi SQL dinamici, al deployment remoto e all'integrazione Flutter. Versione pubblica `0.1.21-alpha` e versione Flutter `0.1.21-alpha+6` invariate. |
 
 ---
 
@@ -3288,6 +3289,90 @@ Il riferimento finale dello sviluppo S038 è `7dc89e636a90bc85c9e2ff5f4d04eb3377
 La fase Manuali S038 è ancora in corso; il suo consuntivo e il totale definitivo della sessione saranno registrati nel DOC-010 soltanto dopo il relativo consolidamento.
 
 Le versioni applicative rimangono `0.1.21-alpha` e `0.1.21-alpha+6` per Flutter. Non viene introdotta una nuova versione pubblica dell'applicazione con la S038.
+
+### Incremento tecnico S039 — Pianificazione stagionale ed esecuzione atomica delle coltivazioni
+
+La Sessione di Sviluppo S039, svolta tra il **04/11/2026 e il 05/11/2026**, ha introdotto il modello autoritativo della pianificazione stagionale delle coltivazioni nel database Supabase locale.
+
+La fase di sviluppo è stata dichiarata conclusa il **05/11/2026 alle ore 00:02**, con un tempo netto consolidato di **3 h 35 min**.
+
+**Aggiunto — Modello dati della pianificazione stagionale**
+
+- Introdotta la tabella `season_plans`, con un piano associato alla stagione.
+- Introdotta la tabella `planned_plantings`, per rappresentare le coltivazioni pianificate, distinte dalle coltivazioni reali.
+- Previsti riferimenti a profilo, orto, stagione, aiuola, coltura ed eventuale varietà.
+- Introdotti i dati temporali, geometrici e quantitativi della pianificazione.
+- Introdotti gli stati `draft`, `confirmed`, `executed` e `cancelled`, con controllo di versione mediante `row_version`.
+- Previsto il collegamento tra pianificazione eseguita e coltivazione reale generata.
+
+**Aggiunto — Write Path autoritativo**
+
+Introdotte le seguenti RPC:
+
+- `create_planned_planting`;
+- `update_planned_planting`;
+- `confirm_planned_planting`;
+- `cancel_planned_planting`;
+- `execute_planned_planting`.
+
+Le operazioni rispettano il modello di autorità delle scritture del profilo, le verifiche autorizzative e il controllo di concorrenza ottimistica.
+
+Le scritture dirette sulle entità della pianificazione non costituiscono il percorso applicativo autorizzato.
+
+**Modificato — Compatibilità geometrica e protezione delle coltivazioni**
+
+- La pianificazione in stato `draft` non prenota autoritativamente lo spazio dell'aiuola.
+- La pianificazione in stato `confirmed` introduce la prenotazione dello spazio e le relative verifiche di compatibilità.
+- Introdotte protezioni contro sovrapposizioni incompatibili tra pianificazioni confermate e coltivazioni reali.
+- Introdotte verifiche sulla copertura temporale delle geometrie storicizzate delle aiuole.
+- Protette le modifiche geometriche incompatibili con pianificazioni confermate.
+- Rafforzati i percorsi di creazione e aggiornamento delle coltivazioni reali rispetto ai vincoli introdotti dalla pianificazione.
+
+**Aggiunto — Esecuzione atomica**
+
+- Introdotta la RPC `execute_planned_planting`.
+- L'esecuzione richiede una pianificazione confermata e il rispetto delle condizioni autoritative e della versione attesa.
+- La coltivazione reale viene creata attraverso il percorso interno protetto `private.create_planting_internal`.
+- La pianificazione viene collegata alla coltivazione generata e passa allo stato `executed`.
+- Le operazioni appartengono a un unico percorso transazionale, progettato per evitare risultati parziali in caso di errore.
+
+**Sicurezza e database**
+
+- Introdotte **11 migration SQL** relative al modello di pianificazione, alle RPC, alle protezioni geometriche e all'esecuzione atomica.
+- Le migration risultano applicate **esclusivamente all'ambiente Supabase locale** alla conclusione della S039.
+- Nessuna applicazione delle nuove migration al database remoto viene attribuita alla S039.
+- Mantenuto il principio delle scritture autoritative tramite RPC protette.
+- Conservate le verifiche di autorizzazione, le protezioni delle operazioni e la gestione della concorrenza ottimistica.
+
+**Verifiche e test**
+
+- `flutter analyze`: superato senza anomalie.
+- `flutter test`: **1472/1472 test superati**.
+- Eseguiti controlli statici del codice SQL e dei contratti di sicurezza nel perimetro verificato.
+- Non risultano completati i test dinamici SQL end-to-end dell'intero ciclo di vita.
+- Non risultano completate le verifiche dinamiche di concorrenza, incompatibilità geometrica e rollback.
+- Non risulta completata la validazione delle nuove migration sul database remoto.
+- Non risulta ancora integrato un flusso operativo Flutter completo per la pianificazione stagionale.
+
+**Tracciabilità Git**
+
+Il riferimento conclusivo dello sviluppo S039 è:
+
+`5527aa84582a6ecbe6c78c5c9862c315dbbe11e8`
+
+**Consuntivo sviluppo S039:** **3 h 35 min**.
+
+Il progressivo delle sole ore di sviluppo raggiunge **244 h 05 min**, a partire dalle **240 h 30 min** consolidate alla S038.
+
+La fase Manuali S039 è distinta dallo sviluppo e il relativo consuntivo sarà registrato soltanto alla sua chiusura dichiarata.
+
+**Limiti e attività ancora aperte**
+
+Restano da verificare o completare i collaudi SQL dinamici, le verifiche di concorrenza e rollback, l'applicazione controllata delle migration sul database remoto, l'integrazione Flutter della pianificazione e il collaudo integrato Flutter–Supabase.
+
+Tali attività non devono essere considerate risultati conseguiti né impegni operativi automaticamente autorizzati per le sessioni successive.
+
+Le versioni applicative rimangono `0.1.21-alpha` e `0.1.21-alpha+6` per Flutter. La S039 non introduce una nuova versione pubblica dell'applicazione.
 
 # 4. Cronologia versioni
 

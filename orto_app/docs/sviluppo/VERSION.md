@@ -2112,11 +2112,12 @@ Gli incrementi relativi ad alias, fonti, acquisizione, candidati, review, pubbli
 | 0.1.19-alpha | 17/09/2026 | Archiviata | Implementato nella S028 il modello e Write Path autoritativo di `plantings`, introdotto il lifecycle server-side, consolidati geometria, temporalità e overlap, protette le variazioni geometriche delle aiuole, riallineato il client Flutter e verificati 997/997 test; `pubspec.yaml` aggiornato a `0.1.19-alpha+4`. |
 | 0.1.20-alpha | 18/09/2026 | Archiviata | Completata nella S029 la UI del lifecycle di `plantings`, introdotte azioni contestuali in `PlantingCard`, gestione esplicita di `end_date` per `finished` e `removed`, mantenimento dell'occupazione nello stato `harvested`, refresh autoritativo su `version_conflict` e `invalid_transition`; nessuna modifica al contratto persistente S028; suite completa finale verificata con 1011/1011 test passati, verifiche dedicate `BedPage` 30/30 e `PlantingCard` 9/9, `flutter analyze` finale pulito; `pubspec.yaml` aggiornato a `0.1.20-alpha+5`. |
 | 0.1.21-alpha | 27/09/2026 | Corrente | Completata nella S030 l'architettura globale del Catalogo Agronomico V1: tassonomia botanica globale, identità agronomiche globali, registro parametri, contesti, fonti, acquisizioni, osservazioni, alias, workflow editoriale, Knowledge canonica, pubblicazione e Resolver; completato il cutover a `botanical_taxa`, `crops` e `crop_cultivars`, migrato `plantings` da `variety_id` a `cultivar_id`, riallineato il client Flutter al contratto Cultivar e consolidato un perimetro di 26 tabelle; migration finale `20260923154831_finalize_global_catalog_cutover.sql`; `supabase db reset` riuscito, lint locale e remoto senza errori, acceptance Tranche 10 e 11 superate. Nella S031 la stessa versione corrente è stata estesa con l'integrazione operativa Flutter del Catalogo Agronomico in `Impostazioni → Catalogo Agronomico → Colture → Cultivar`, lettura delle capability, inizializzazione esplicita e confermata della Catalog Authority, consultazione delle colture globali, caricamento on demand delle cultivar, gestione degli stati UI e rimozione del precedente percorso autonomo `Impostazioni → Varietà`; nessuna nuova migration Supabase e nessuna modifica al contratto persistente; verifica finale S031 con `flutter analyze` pulito e 971 test passati. Nella S032 sono stati integrati nel client Flutter i Write Path autoritativi di Taxon, Crop e Cultivar ed è stata completata la UI di gestione della Classificazione botanica con lettura, creazione, modifica, disattivazione e riattivazione; consolidati tassonomia parziale mediante `parent_taxon_id`, rank `ORDER`, `FAMILY`, `GENUS`, `SPECIES`, `SUBSPECIES`, `VARIETY`, `FORMA`, `UNRANKED`, Cultivar separata dai rank tassonomici, collegamento opzionale `Crop → Taxon`, capability `can_manage_identity`, concorrenza ottimistica mediante `row_version`, nessun overwrite forzato su `version_conflict`, nessun retry automatico dopo esiti incerti e rilettura autoritativa; nessuna nuova migration Supabase e nessuna modifica al contratto persistente S030; verifica finale S032 con Catalog page 61/61 test, `flutter analyze` pulito e suite globale 1077/1077 test; commit tecnico finale `842a6b6468964300d43d0edac1d8853c3a4bb908`; versione Flutter corrente `0.1.21-alpha+6`. |
-## Evoluzione della versione corrente — S033–S038
+
+## Evoluzione della versione corrente — S033–S039
 
 La versione applicativa corrente rimane `0.1.21-alpha`, con versione Flutter `0.1.21-alpha+6`.
 
-Le sessioni S033–S038 hanno introdotto incrementi tecnici e funzionali documentati senza attribuzione di un nuovo numero di versione.
+Le sessioni S033–S039 hanno introdotto incrementi tecnici e funzionali documentati senza attribuzione di un nuovo numero di versione.
 
 ### S033 — Completamento gestione Crop e Cultivar
 
@@ -2164,11 +2165,29 @@ Nessuna nuova migration SQL introdotta nella S038. Allineamento locale/remoto ve
 
 Non risulta documentato un collaudo integrato end-to-end Flutter–Supabase remoto degli incrementi S033–S038.
 
+### S039 — Pianificazione stagionale ed esecuzione atomica delle coltivazioni
+
+Introdotto nel database Supabase locale il modello autoritativo della pianificazione stagionale, basato sulle tabelle `season_plans` e `planned_plantings`.
+
+Implementato il ciclo di vita delle coltivazioni pianificate attraverso gli stati `draft`, `confirmed`, `executed` e `cancelled`, con le RPC autoritative `create_planned_planting`, `update_planned_planting`, `confirm_planned_planting`, `cancel_planned_planting` ed `execute_planned_planting`.
+
+Consolidati i controlli di compatibilità geometrica e temporale, la protezione degli spazi riservati dalle pianificazioni confermate e l'esecuzione atomica che collega la pianificazione alla coltivazione reale.
+
+Introdotte 11 migration SQL, applicate esclusivamente all'ambiente Supabase locale. L'applicazione al database remoto non è stata effettuata.
+
+Verifiche Flutter: `flutter analyze` senza problemi e 1.472/1.472 test superati.
+
+Restano da completare i test SQL dinamici integrati, le verifiche di concorrenza e rollback, l'applicazione delle migration al database remoto e l'integrazione operativa della pianificazione nell'interfaccia Flutter.
+
+Sviluppo S039 concluso il 05/11/2026 alle 00:02, con tempo netto definitivo di 3 h 35 min e commit `5527aa84582a6ecbe6c78c5c9862c315dbbe11e8`.
+
+Nessun incremento della versione applicativa: rimangono correnti `0.1.21-alpha` e `0.1.21-alpha+6`.
+
 ### Stato della versione
 
 La versione `0.1.21-alpha` rimane **Corrente**.
 
-Gli incrementi S033–S038 costituiscono evoluzioni della stessa baseline applicativa e non comportano automaticamente una nuova versione pubblicata.
+Gli incrementi S033–S039 costituiscono evoluzioni della stessa baseline applicativa e non comportano automaticamente una nuova versione pubblicata.
 
 Un eventuale incremento di versione dovrà essere deciso e verificato separatamente nell'ambito del workflow ufficiale di sviluppo.
 

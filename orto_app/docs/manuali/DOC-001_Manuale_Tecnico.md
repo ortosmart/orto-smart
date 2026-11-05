@@ -4,7 +4,7 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.15
+**Versione:** 2.16
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 03/11/2026
+**Ultimo aggiornamento:** 05/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -27,14 +27,14 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.15 |
+| Versione | 2.16 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
 | Backend | Supabase / PostgreSQL |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 03/11/2026 |
+| Ultimo aggiornamento | 05/11/2026 |
 
 ---
 
@@ -71,6 +71,7 @@
 | 2.13 | 21/10/2026 | Aggiornamento con le Sessioni S035-S036: documentazione dell'integrazione Flutter delle Finalità di raccolta, della protezione dalle richieste duplicate di attivazione e disattivazione, delle verifiche SQL locali di regressione del Catalog Registry e dei risultati dei test Flutter della S036; distinzione tra verifiche locali, test effettivamente eseguiti e collaudo remoto non completato. |
 | 2.14 | 26/10/2026 | Aggiornamento S037: protezione Flutter delle scritture concorrenti in BedPage mediante `_runExclusiveWriteFlow`, verifiche di regressione e audit statici sulla semantica di attivazione degli Alias e sull'integrità referenziale Taxon/Crop, con esplicitazione dei limiti delle verifiche. |
 | 2.15 | 03/11/2026 | Aggiornamento documentale con la Sessione S038: consolidamento dell'architettura del Catalogo Agronomico e dei sette registri S033B; integrazione amministrativa Flutter di `measurement_units` e `agronomic_parameters`, con Repository, modelli tipizzati, pagine di gestione, sei RPC autoritative, controllo `row_version` e gestione delle dipendenze; integrazione tecnica Flutter del Resolver mediante `AgronomicKnowledgeRequest`, `AgronomicKnowledgeResult` e `AgronomicKnowledgeRepository`; registrazione dell'applicazione remota della migration correttiva S034, dell'allineamento delle 34 migration locali e remote e dei backup SQL remoti; distinzione tra integrazione tecnica completata, funzionalità operative ancora aperte e collaudo integrato remoto non documentato. |
+| 2.16 | 05/11/2026 | Aggiornamento documentale della Sessione S039: introduzione del modello autoritativo di pianificazione stagionale `season_plans` e `planned_plantings`, cinque RPC per il ciclo di vita e l'esecuzione atomica, protezioni geometriche e temporali, undici migration SQL applicate esclusivamente in locale, verifiche Flutter con 1472/1472 test superati e distinzione dei collaudi SQL dinamici, del deployment remoto e dell'integrazione Flutter ancora non completati. |
 
 ---
 
@@ -1373,11 +1374,15 @@ Le informazioni esterne che possono essere mantenute nelle relative fonti non de
 
 Il modello dati corrente comprende più domini collegati ma distinti.
 
+Con la Sessione S039 il dominio delle coltivazioni comprende anche la pianificazione stagionale, mantenuta separata dalla registrazione delle coltivazioni reali.
+
 ### Profile
 
 Rappresenta il contesto proprietario dei dati operativi personali dell'applicazione.
 
 Il Profile rimane centrale per i dati dell'orto e per la relativa Profile Write Authority, ma **non costituisce il proprietario del Catalogo Agronomico globale** introdotto con S030.
+
+Anche i piani stagionali e le coltivazioni pianificate appartengono al contesto operativo del Profile e sono soggetti ai relativi controlli di autorizzazione.
 
 ### Garden
 
@@ -1385,11 +1390,15 @@ Rappresenta un orto gestito dall'applicazione.
 
 Contiene le informazioni generali dell'orto ed è il riferimento per le relative aiuole.
 
+Il Garden costituisce inoltre il contesto territoriale delle stagioni agricole e delle relative pianificazioni.
+
 ### Bed
 
 Rappresenta l'identità stabile di una singola aiuola appartenente a un Garden.
 
 I dati identificativi vengono mantenuti separati dalla geometria storicizzata.
+
+Con S039 l'aiuola costituisce anche il riferimento spaziale delle coltivazioni pianificate. Le prenotazioni confermate sono considerate nei controlli di compatibilità delle operazioni che modificano l'occupazione dell'aiuola.
 
 ### BedGeometry
 
@@ -1399,11 +1408,124 @@ Comprende dimensioni, decorrenza `validFrom`, eventuale termine `validTo` e info
 
 La separazione tra `Bed` e `BedGeometry` consente di modificare nel tempo la configurazione fisica dell'aiuola senza riscriverne retroattivamente la storia.
 
+Con S039 la validazione di una coltivazione pianificata considera l'intero periodo previsto e tutte le geometrie interessate.
+
+Le date delle pianificazioni sono inclusive, mentre `valid_to` delle geometrie è esclusiva. Una data finale pianificata assente rappresenta un intervallo senza limite superiore.
+
+La funzione di creazione della pianificazione verifica:
+
+- la copertura temporale continua del periodo pianificato mediante le geometrie disponibili;
+- la compatibilità tra posizione iniziale, lunghezza occupata e lunghezza dell'aiuola;
+- la compatibilità tra larghezza occupata e larghezza dell'aiuola.
+
+In caso di copertura geometrica insufficiente può restituire `missing_bed_geometry`. In caso di incompatibilità dimensionale può restituire `outside_bed_geometry`.
+
+La modifica della geometria mediante il Write Path autoritativo `change_bed_geometry` considera inoltre le pianificazioni confermate.
+
+Una modifica geometrica non è bloccata per la sola presenza di una pianificazione confermata: viene impedita quando interessa temporalmente una prenotazione confermata e rende insufficiente la nuova geometria rispetto allo spazio riservato.
+
+In tale situazione la funzione può restituire `blocked_by_confirmed_plans`.
+
 ### Season
 
 Rappresenta una stagione agricola.
 
 Consente di organizzare le coltivazioni e gli eventi operativi nel relativo contesto temporale.
+
+Con S039 la Season costituisce anche il riferimento del piano stagionale delle coltivazioni.
+
+### SeasonPlan
+
+Rappresenta il piano di coltivazione associato a una specifica stagione agricola.
+
+La tabella persistente introdotta con S039 è:
+
+`season_plans`
+
+Il piano appartiene al contesto operativo di un Profile, Garden e Season.
+
+Il contratto persistente prevede un solo piano per ciascuna stagione, mediante un vincolo di unicità su `season_id`.
+
+Il piano comprende un'identità stabile, riferimenti al contesto proprietario, eventuali note, informazioni temporali di creazione e aggiornamento e `row_version` per la concorrenza ottimistica.
+
+Il piano raccoglie le coltivazioni previste per la stagione, senza trasformarle automaticamente in coltivazioni reali.
+
+La creazione di una coltivazione pianificata utilizza il piano stagionale esistente oppure ne determina la creazione attraverso il Write Path autoritativo previsto dal backend.
+
+### PlannedPlanting
+
+Rappresenta una coltivazione prevista all'interno di un piano stagionale, non ancora necessariamente eseguita.
+
+La tabella persistente introdotta con S039 è:
+
+`planned_plantings`
+
+Ogni PlannedPlanting è collegata a:
+
+- un `SeasonPlan`;
+- un `Profile`;
+- un `Garden`;
+- una `Season`;
+- una `Bed`;
+- una `Crop`;
+- opzionalmente una `CropCultivar`.
+
+Il contratto comprende inoltre il metodo di avvio, le date previste, la geometria di occupazione, le quantità previste, eventuali note e le informazioni di concorrenza.
+
+La coerenza tra coltura e cultivar è protetta mediante il collegamento composito al Catalogo Agronomico.
+
+#### Lifecycle della pianificazione
+
+Il contratto persistente distingue quattro stati:
+
+| Stato | Significato |
+|---|---|
+| `draft` | Pianificazione in bozza, modificabile e priva di prenotazione vincolante dello spazio. |
+| `confirmed` | Pianificazione confermata, che riserva lo spazio previsto nell'aiuola. |
+| `executed` | Pianificazione eseguita, collegata a una coltivazione reale. |
+| `cancelled` | Pianificazione annullata, non più eseguibile nel normale lifecycle. |
+
+La creazione produce una pianificazione nello stato `draft`.
+
+La conferma consente la transizione `draft` → `confirmed`, subordinatamente alle verifiche previste dal backend.
+
+La modifica è consentita negli stati `draft` e `confirmed`, con controlli aggiuntivi sulle prenotazioni confermate. Le pianificazioni `executed` e `cancelled` non sono modificabili mediante il normale Write Path di aggiornamento.
+
+L'annullamento consente le transizioni `draft` → `cancelled` e `confirmed` → `cancelled`.
+
+L'esecuzione consente la transizione `confirmed` → `executed`.
+
+Le operazioni autoritative utilizzano i controlli di autorizzazione, Profile Write Authority e concorrenza previsti dal contratto. In particolare, `expected_row_version` permette di rilevare modifiche concorrenti.
+
+#### Prenotazione dello spazio
+
+Soltanto le pianificazioni nello stato `confirmed` riservano spazio.
+
+Le pianificazioni `draft` possono sovrapporsi e non impediscono di per sé altre occupazioni.
+
+Le prenotazioni confermate sono considerate nei controlli di compatibilità temporale e spaziale delle altre pianificazioni e delle coltivazioni reali.
+
+I Write Path di creazione e aggiornamento delle coltivazioni reali possono restituire `blocked_by_confirmed_plans` quando un'operazione interferisce con una prenotazione confermata.
+
+Questo esito è distinto da `overlap`, utilizzato per i conflitti di occupazione tra coltivazioni reali.
+
+#### Esecuzione atomica
+
+La RPC `execute_planned_planting` consente di trasformare una pianificazione confermata in una coltivazione reale.
+
+L'operazione verifica l'identità del contesto, le autorizzazioni, la versione attesa, lo stato `confirmed` e i vincoli applicabili.
+
+La creazione della coltivazione reale utilizza la funzione interna `private.create_planting_internal`, condivisa con il Write Path ordinario `create_planting`.
+
+Durante l'esecuzione viene esclusa dal controllo delle prenotazioni soltanto la pianificazione che si sta eseguendo. Tutte le altre prenotazioni confermate rimangono protette.
+
+Se la creazione della coltivazione reale riesce, il backend aggiorna la pianificazione a `executed`, valorizza `executed_planting_id` e incrementa `row_version`.
+
+Il collegamento alla coltivazione reale è protetto da vincoli di integrità referenziale e di coerenza del contesto.
+
+Le operazioni fanno parte della stessa esecuzione transazionale: il codice prevede un'eccezione per impedire che una coltivazione reale rimanga creata quando il successivo aggiornamento della pianificazione non riesce.
+
+Questa descrizione rappresenta il contratto SQL implementato in S039. Le verifiche statiche non equivalgono a una prova funzionale completa di rollback o concorrenza.
 
 ### BotanicalTaxon
 
@@ -1449,18 +1571,15 @@ Dopo il cutover S030 `crops` non costituisce più una tabella Profile-owned del 
 
 Le letture applicative canoniche vengono esposte attraverso:
 
-```text
-crop_catalog_read
-```
+`crop_catalog_read`
 
 Il modello Dart `Crop` rappresenta la coltura utilizzata dal client.
 
 Con S032 il modello applicativo supporta inoltre il collegamento opzionale alla classificazione botanica mediante:
 
-```text
-taxonId
-taxonRank
-```
+`taxonId`
+
+`taxonRank`
 
 Il collegamento Crop → Taxon rimane opzionale e consente di associare la coltura alla classificazione botanica canonica disponibile senza trasformare la Crop in un'entità tassonomica.
 
@@ -1472,23 +1591,15 @@ Rappresenta una cultivar appartenente a una specifica coltura.
 
 La relazione canonica è:
 
-```text
-Crop
-  ↓
-CropCultivar
-```
+`Crop → CropCultivar`
 
 Nel database la tabella corrente è:
 
-```text
-crop_cultivars
-```
+`crop_cultivars`
 
 mentre il client utilizza il modello:
 
-```text
-CropCultivar
-```
+`CropCultivar`
 
 La cultivar è un'identità agronomica globale distinta dalla tassonomia botanica e non deve essere interpretata come un rank di `botanical_taxa`.
 
@@ -1498,9 +1609,7 @@ Nell'interfaccia italiana può continuare a essere utilizzato il termine **Varie
 
 Le letture canoniche vengono esposte attraverso:
 
-```text
-crop_cultivar_catalog_read
-```
+`crop_cultivar_catalog_read`
 
 Con S032 anche le operazioni di scrittura delle identità Cultivar sono integrate nel Repository Flutter attraverso i Write Path autoritativi del Catalogo.
 
@@ -1532,11 +1641,7 @@ Il contratto persistente corrente associa una `Planting` a:
 
 La relazione coltura/cultivar viene protetta anche mediante il vincolo composito:
 
-```text
-(cultivar_id, crop_id)
-        ↓
-crop_cultivars(id, crop_id)
-```
+`(cultivar_id, crop_id) → crop_cultivars(id, crop_id)`
 
 In questo modo una cultivar non può essere associata a una coltura diversa da quella alla quale appartiene.
 
@@ -1545,6 +1650,17 @@ Il precedente campo `variety_id` è stato rimosso durante il cutover S030.
 La `Planting` mantiene inoltre i dati necessari alla gestione operativa, tra cui geometria di occupazione, intervallo temporale, lifecycle e snapshot agronomici previsti dal contratto persistente.
 
 Gli snapshot appartengono alla decisione operativa confermata e non vengono aggiornati automaticamente quando cambia il Catalogo.
+
+Con S039 una Planting può essere creata attraverso il Write Path ordinario oppure mediante l'esecuzione atomica di una PlannedPlanting confermata.
+
+La distinzione tra le due entità rimane fondamentale:
+
+- `PlannedPlanting` descrive ciò che è previsto per una stagione;
+- `Planting` descrive una coltivazione realmente registrata.
+
+L'esecuzione della pianificazione non elimina il record pianificato: ne aggiorna lo stato a `executed` e mantiene il riferimento alla coltivazione reale creata.
+
+Il database protegge l'unicità e la coerenza del collegamento tra pianificazione eseguita e coltivazione reale.
 
 ## 4.4 Catalogo Agronomico globale
 
@@ -2320,6 +2436,104 @@ nei punti previsti dal contratto.
 Soltanto gli stati terminali previsti dal contratto chiudono l'occupazione temporale.
 
 La cancellazione fisica non appartiene al normale lifecycle utente. Un eventuale hard delete rimane riservato a un futuro strumento amministrativo o tecnico per correzioni eccezionali.
+
+### Pianificazione stagionale delle coltivazioni — S039
+
+La Sessione S039 ha introdotto nel database locale il modello autoritativo della **pianificazione stagionale delle coltivazioni**, distinto dalle coltivazioni effettivamente eseguite e registrate in `plantings`.
+
+L'incremento è composto da **11 migration SQL**, dalla `20261104190000_add_seasonal_planting_plans.sql` alla `20261105000000_add_atomic_planned_planting_execution.sql`. Le migration risultano applicate al **database Supabase locale**; l'applicazione al database remoto non risulta eseguita nella chiusura di S039.
+
+#### Modello persistente
+
+Le nuove tabelle sono:
+
+```text
+season_plans
+planned_plantings
+```
+
+`season_plans` rappresenta il piano di una stagione. È collegata a Profile, Garden e Season; il vincolo di unicità su `season_id` consente un solo piano per stagione. Comprende note, timestamp e `row_version`.
+
+`planned_plantings` rappresenta le singole coltivazioni previste. Ogni record appartiene a un piano stagionale e conserva i riferimenti coerenti a Profile, Garden, Season, Bed, Crop e, opzionalmente, CropCultivar. Comprende metodo di avvio, date pianificate, posizione e dimensioni occupate, spaziature, numero di file e piante, quantità di seme, note, stato, timestamp e `row_version`.
+
+Il metodo di avvio ammette i valori:
+
+```text
+purchased_seedlings
+nursery_then_transplant
+direct_rows
+direct_broadcast
+```
+
+Il modello mantiene la distinzione tra intenzione di coltivazione e fatto operativo: la sola presenza di una `planned_plantings` non crea una `plantings` reale.
+
+#### Lifecycle delle coltivazioni pianificate
+
+Gli stati persistenti previsti sono:
+
+```text
+draft
+confirmed
+executed
+cancelled
+```
+
+La creazione produce una pianificazione `draft`. La conferma porta da `draft` a `confirmed` dopo le verifiche autoritative. L'annullamento è previsto per pianificazioni `draft` o `confirmed` e produce `cancelled`. L'esecuzione è ammessa per una pianificazione `confirmed` e produce `executed` soltanto insieme alla creazione riuscita della coltivazione reale.
+
+Le pianificazioni `executed` e `cancelled` non vengono riaperte dal normale percorso di modifica. La concorrenza ottimistica utilizza `row_version` ed `expected_row_version`; un conflitto non autorizza la sovrascrittura automatica.
+
+#### Write Path e autorizzazione
+
+Le operazioni principali sono esposte tramite RPC autoritative:
+
+```text
+create_planned_planting
+update_planned_planting
+confirm_planned_planting
+cancel_planned_planting
+execute_planned_planting
+```
+
+Le RPC applicano l'identità autenticata, l'autorizzazione del proprietario, la Profile Write Authority e i controlli sul contesto delle entità collegate. Le tabelle sono protette da RLS; la lettura è subordinata al contesto autorizzato, mentre le scritture dirette non costituiscono il Write Path applicativo.
+
+Le funzioni SQL sono state progressivamente ridefinite dalle migration S039: per interpretare il comportamento corrente occorre considerare la **definizione finale** di ciascuna funzione, non soltanto la prima migration che l'ha introdotta.
+
+#### Geometrie, intervalli e prenotazioni confermate
+
+La pianificazione è validata rispetto alle geometrie dell'aiuola per l'intero intervallo previsto. Le date di inizio e fine della pianificazione sono inclusive; il limite `valid_to` della geometria è esclusivo. In assenza della data finale pianificata, il periodo è aperto verso il futuro.
+
+Il controllo richiede copertura temporale continua delle geometrie e compatibilità dimensionale di posizione, lunghezza e larghezza occupata. Gli esiti di errore pertinenti comprendono:
+
+```text
+missing_bed_geometry
+outside_bed_geometry
+```
+
+Una pianificazione `confirmed` riserva lo spazio previsto. La protezione delle prenotazioni confermate è integrata nei Write Path che creano o modificano coltivazioni reali e nella modifica delle geometrie delle aiuole. Il codice `blocked_by_confirmed_plans` distingue tali conflitti dalle sovrapposizioni con coltivazioni reali.
+
+La modifica della geometria non è vietata per la sola presenza di una pianificazione confermata: viene bloccata quando il periodo interessato si sovrappone alla prenotazione e le nuove dimensioni risultano insufficienti. Le pianificazioni `draft` non producono la medesima prenotazione vincolante; la modifica di una pianificazione già `confirmed` resta soggetta ai controlli di compatibilità e sovrapposizione.
+
+#### Esecuzione atomica e collegamento alla coltivazione reale
+
+La RPC `execute_planned_planting` accetta una data effettiva di avvio e richiede una pianificazione `confirmed` con versione attesa coerente. Esegue i controlli di autorità, blocca e rivalida le entità interessate e richiama la funzione interna:
+
+```text
+private.create_planting_internal
+```
+
+La funzione interna applica i controlli di creazione della coltivazione reale e può escludere **soltanto la prenotazione della pianificazione in esecuzione**, non le altre pianificazioni confermate.
+
+L'esecuzione riuscita crea una `plantings`, aggiorna la pianificazione a `executed`, valorizza `executed_planting_id` e incrementa `row_version` nella stessa transazione. Se l'aggiornamento finale non riesce, l'operazione genera errore e la transazione viene annullata: non è previsto un successo parziale tra coltivazione reale e pianificazione eseguita.
+
+Il database protegge il collegamento mediante vincoli compositi coerenti con Profile, Garden, Season e Bed, nonché unicità del riferimento alla coltivazione eseguita. La funzione interna non è esposta come percorso di esecuzione diretto ai ruoli applicativi.
+
+#### Stato delle verifiche e limiti di S039
+
+Alla chiusura della Sessione S039 risultano dichiarati `flutter analyze` senza anomalie e **1.472 test Flutter superati**, senza fallimenti. Sono stati eseguiti controlli SQL statici e verifiche di sicurezza del contratto.
+
+Questi risultati **non attestano** test funzionali SQL end-to-end completi, prove dedicate di concorrenza o rollback, né la verifica delle migration sul database Supabase remoto. Non sono stati introdotti dati agronomici provvisori nel database operativo.
+
+La presenza del contratto backend della pianificazione stagionale non deve essere interpretata, da sola, come disponibilità di un flusso UI Flutter completo: tale disponibilità richiede verifiche specifiche sul client.
 
 ### Catalogo Agronomico
 
@@ -3097,6 +3311,87 @@ La verifica di presenza, dimensioni e hash **non dimostra la completezza logica 
 Non risulta documentata l'esecuzione di un test di ripristino dei quattro backup.
 
 I backup sono conservati fuori dal repository applicativo e non devono essere aggiunti ai commit della documentazione.
+
+
+### Migration della pianificazione stagionale — S039
+
+La Sessione S039 ha introdotto il modello autoritativo della pianificazione stagionale delle coltivazioni, comprendente la definizione dei piani, la gestione delle coltivazioni pianificate, la conferma, l'annullamento e l'esecuzione atomica delle pianificazioni.
+
+L'evoluzione dello schema e delle RPC è stata registrata nelle seguenti 11 migration:
+
+```text
+20261104190000_add_seasonal_planting_plans.sql
+20261104213000_add_seasonal_planting_plan_rpcs.sql
+20261104220000_add_update_planned_planting_rpc.sql
+20261104221500_fix_create_planned_planting_geometry.sql
+20261104223000_add_confirm_planned_planting_rpc.sql
+20261104224500_protect_confirmed_planned_planting_updates.sql
+20261104230000_protect_bed_geometry_confirmed_plans.sql
+20261104231500_protect_create_planting_confirmed_plans.sql
+20261104233000_add_cancel_planned_planting_rpc.sql
+20261104234500_protect_update_planting_confirmed_plans.sql
+20261105000000_add_atomic_planned_planting_execution.sql
+```
+
+Le migration introducono e consolidano:
+
+- `season_plans`, con un piano associato a ciascuna stagione;
+- `planned_plantings`, con riferimenti a profilo, orto, stagione, aiuola, coltura e cultivar opzionale;
+- stati di pianificazione `draft`, `confirmed`, `executed` e `cancelled`;
+- controllo ottimistico mediante `row_version`;
+- accesso in lettura protetto da RLS e scritture attraverso RPC autoritative;
+- verifica server-side delle autorizzazioni e della Profile Write Authority;
+- riserva dello spazio per le pianificazioni confermate;
+- protezione da sovrapposizioni incompatibili con coltivazioni reali e modifiche geometriche;
+- esecuzione atomica della pianificazione confermata, con creazione della coltivazione reale e aggiornamento dello stato pianificato nella stessa transazione.
+
+Le RPC autoritative comprendono:
+
+```text
+public.create_planned_planting
+public.update_planned_planting
+public.confirm_planned_planting
+public.cancel_planned_planting
+public.execute_planned_planting
+```
+
+Le verifiche geometriche considerano gli intervalli temporali delle coltivazioni, i limiti delle geometrie storicizzate e la continuità della copertura geometrica. Le date delle coltivazioni sono considerate inclusive, mentre il limite `valid_to` delle geometrie delle aiuole è esclusivo.
+
+Le pianificazioni in stato `draft` non riservano spazio. Le pianificazioni confermate sono invece considerate dai controlli di compatibilità, anche attraverso l'esito `blocked_by_confirmed_plans` nei percorsi interessati.
+
+L'esecuzione atomica richiede una pianificazione confermata e una versione coerente. La creazione della coltivazione reale avviene attraverso il percorso interno autoritativo `private.create_planting_internal`, escludendo dal controllo delle sovrapposizioni esclusivamente la pianificazione confermata che viene eseguita.
+
+In caso di errore, la transazione deve essere annullata integralmente, senza lasciare una coltivazione reale creata a fronte di una pianificazione non aggiornata.
+
+### Applicazione e verifiche S039
+
+Durante lo sviluppo S039, le 11 migration della pianificazione stagionale sono state **applicate al database Supabase locale**.
+
+Le stesse migration **non sono state applicate al database Supabase remoto** durante la sessione.
+
+Pertanto, l'allineamento locale/remoto verificato nella S038 non rappresenta lo stato finale della S039.
+
+Le verifiche effettivamente documentate per S039 comprendono:
+
+- controlli statici delle definizioni SQL e dei percorsi autoritativi;
+- verifiche statiche delle protezioni e dei privilegi;
+- analisi dei vincoli relativi agli stati, alle geometrie e alle sovrapposizioni;
+- `flutter analyze` completato senza problemi;
+- `flutter test` completato con **1.472 test superati**.
+
+Non risultano documentati come completati nella S039:
+
+- un collaudo SQL funzionale end-to-end dell'intero ciclo di pianificazione;
+- test dinamici completi di concorrenza;
+- test dinamici completi di rollback dell'esecuzione atomica;
+- un collaudo integrato Flutter–Supabase sul database remoto;
+- l'applicazione delle 11 migration al database remoto.
+
+Non sono stati inseriti dati di prova permanenti.
+
+Il superamento dei controlli statici e della suite Flutter non deve essere interpretato come prova dell'esecuzione dei test SQL dinamici mancanti.
+
+L'applicazione remota delle migration e gli eventuali collaudi aggiuntivi rimangono attività da valutare e autorizzare nelle successive sessioni di sviluppo, sulla base dello stato effettivo del progetto.
 
 ### Tracciabilità delle migration
 
@@ -4124,6 +4419,16 @@ Il Repository non deve confondere questi due modelli di autorità.
 
 La Profile Write Authority protegge i percorsi Profile-owned per i quali il relativo contratto richiede il controllo del lease.
 
+La Sessione S039 ha esteso il modello delle scritture autoritative Profile-owned alla pianificazione stagionale delle coltivazioni, introducendo le RPC server-side per creare, aggiornare, confermare, annullare ed eseguire una coltivazione pianificata.
+
+Le operazioni sono protette dai controlli autorizzativi e dalla Profile Write Authority previsti dai rispettivi contratti, con verifica della concorrenza ottimistica quando richiesta.
+
+La conferma di una pianificazione introduce vincoli di compatibilità con le coltivazioni reali e con le geometrie storicizzate delle aiuole. L'esecuzione della pianificazione avviene mediante un'operazione atomica server-side, che crea la coltivazione reale e aggiorna lo stato della pianificazione nella stessa transazione.
+
+Le migration S039 risultano applicate al database Supabase locale, ma non al database remoto alla conclusione della sessione.
+
+L'implementazione delle RPC SQL non deve essere interpretata come completamento dell'integrazione Flutter: nella verifica documentale S039 non è stato individuato un Repository applicativo dedicato alla pianificazione stagionale.
+
 La Catalog Authority è invece indipendente dal Profile Edit Lock e governa, attraverso capability specifiche e controlli server-side, le operazioni autoritative sul Catalogo Agronomico globale.
 
 La Sessione S032 ha integrato nel client Flutter i Write Path delle identità globali per:
@@ -4943,6 +5248,22 @@ Nell'interfaccia italiana può continuare a essere utilizzato il termine **Varie
 
 Le invarianti definitive rimangono server-side.
 
+### Compatibilità con le pianificazioni stagionali — S039
+
+La Sessione S039 ha introdotto nel backend autoritativo i controlli di compatibilità tra coltivazioni reali e pianificazioni stagionali confermate.
+
+La creazione di una coltivazione reale attraverso `create_planting` deve rispettare anche le riserve di spazio derivanti dalle pianificazioni in stato `confirmed`. Una sovrapposizione incompatibile viene impedita dal backend, senza affidare alla pagina Flutter la responsabilità definitiva della verifica.
+
+Le protezioni S039 interessano inoltre il percorso di aggiornamento delle coltivazioni reali, attraverso le verifiche previste dalla migration dedicata a `update_planting`.
+
+L'esecuzione di una pianificazione confermata segue invece un percorso autoritativo distinto, esposto dalla RPC `execute_planned_planting`. Tale operazione crea la coltivazione reale mediante `private.create_planting_internal` e aggiorna atomicamente la pianificazione allo stato `executed`, registrando il collegamento alla coltivazione creata.
+
+Durante l'esecuzione viene esclusa dal controllo delle sovrapposizioni soltanto la riserva della pianificazione che si sta eseguendo; le altre protezioni rimangono applicabili.
+
+Queste funzionalità SQL sono state implementate e applicate al database Supabase locale durante S039, ma non ancora al database remoto.
+
+La disponibilità delle RPC non implica che `AddPlantingPage` esponga già un flusso UI per creare, confermare o eseguire pianificazioni stagionali. Tale integrazione Flutter non risulta verificata come completata nella S039.
+
 ### Metodi di avvio
 
 Per:
@@ -5063,6 +5384,33 @@ La data proposta può essere quella corrente, ma la validazione definitiva riman
 La cancellazione fisica ordinaria non viene proposta nel normale lifecycle.
 
 Un eventuale hard delete rimane FUTURE e dovrà essere riservato a correzioni amministrative o tecniche eccezionali.
+
+### Lifecycle delle pianificazioni stagionali — S039
+
+La Sessione S039 ha introdotto un lifecycle autoritativo distinto per le coltivazioni pianificate, persistite nella tabella `planned_plantings`.
+
+Gli stati previsti sono:
+
+```text
+draft
+confirmed
+executed
+cancelled
+```
+
+Una pianificazione nasce in stato `draft`, nel quale può essere modificata attraverso le RPC previste dal contratto.
+
+La conferma, eseguita mediante `confirm_planned_planting`, porta la pianificazione allo stato `confirmed` e attiva i vincoli server-side di compatibilità con le coltivazioni reali e con la geometria storicizzata dell'aiuola.
+
+Una pianificazione confermata può essere eseguita mediante `execute_planned_planting`. L'operazione crea atomicamente la coltivazione reale, porta la pianificazione allo stato `executed` e registra il relativo `executed_planting_id`.
+
+La RPC `cancel_planned_planting` gestisce l'annullamento delle pianificazioni nei casi consentiti dal contratto. Una pianificazione annullata non mantiene una riserva di spazio nell'aiuola.
+
+Gli stati `executed` e `cancelled` sono terminali nel normale lifecycle della pianificazione.
+
+Il lifecycle delle pianificazioni non sostituisce quello delle coltivazioni reali, che continua a essere gestito mediante `set_planting_status`.
+
+Le RPC S039 sono state implementate e applicate al database Supabase locale, ma non ancora al database remoto. L'integrazione di questo lifecycle nell'interfaccia Flutter non risulta verificata come completata nella S039.
 
 ## 7.7 PlantingCard
 
@@ -7432,6 +7780,8 @@ I risultati principali documentati nelle sessioni recenti sono:
 | S033 | 1107/1107 | No issues found | HUB Registri Agronomici 11/11; Crop/Cultivar 38/38; Fase A Flutter 80/80 |
 | S033B | Non rieseguito | Non rieseguito | Audit statico 21/21 RPC dei sette registri aggiuntivi; esame statico dei Write Path Planting |
 | S034 | Non rieseguito | Non rieseguito | Migration SQL applicata localmente; verifiche statiche; controlli di autorizzazione 3/3; test dinamico SQLSTATE 55000 non eseguito |
+| S039 | 1472/1472 | No issues found | 11 migration applicate al DB locale; controlli SQL statici e di sicurezza; test dinamici SQL completi non eseguiti; DB remoto non aggiornato |
+
 
 I risultati delle suite Flutter non devono essere sommati.
 
@@ -7449,6 +7799,9 @@ S032
     ↓
 S033
 1107 test
+    ↓
+S039
+1472 test
 ```
 
 Il numero dei test può aumentare o diminuire tra sessioni senza implicare automaticamente un miglioramento o una regressione: modifiche architetturali, aggiunta o rimozione di componenti, sostituzione di test non più pertinenti e riallineamento dei contratti possono modificare la composizione della suite.
@@ -7507,7 +7860,7 @@ flutter analyze
 No issues found
 ```
 
-Il risultato **1107/1107** costituisce l'ultima baseline completa documentata dei test automatici Flutter.
+Il risultato **1107/1107** costituisce la baseline completa dei test automatici Flutter verificata alla conclusione della S033.
 
 I risultati delle verifiche dedicate rappresentano perimetri specifici e non devono essere sommati alla suite completa.
 
@@ -7569,13 +7922,44 @@ Alla chiusura dello sviluppo S034:
 
 Questi risultati non devono essere interpretati come una verifica dinamica completa del comportamento delle tre RPC modificate.
 
+### Risultati S039
+
+La Sessione S039 ha introdotto il modello autoritativo della pianificazione stagionale delle coltivazioni, comprendente le tabelle `season_plans` e `planned_plantings`, le RPC di gestione del lifecycle e l'esecuzione atomica delle pianificazioni confermate.
+
+Sono state introdotte e applicate al database Supabase locale **11 migration SQL**.
+
+Le verifiche Flutter finali della sessione hanno prodotto:
+
+```text
+flutter analyze
+No issues found
+
+flutter test
+1472/1472 test passati
+```
+
+Le verifiche SQL documentate nella sessione comprendono controlli statici dei contratti, delle autorizzazioni e delle protezioni server-side previste.
+
+Alla conclusione dello sviluppo S039:
+
+- le 11 migration risultavano applicate al database Supabase locale;
+- le migration S039 non risultavano ancora applicate al database remoto;
+- non risultava completata una campagna di test dinamici SQL end-to-end delle nuove RPC;
+- non risultavano completate le verifiche dinamiche specifiche di concorrenza e rollback;
+- l'integrazione Flutter operativa della pianificazione stagionale non risultava verificata come completata.
+
+Il risultato positivo della suite Flutter non deve essere interpretato come collaudo dinamico completo delle nuove RPC SQL.
+
+La baseline Flutter completa più recente documentata è pertanto quella della **S039, con 1472/1472 test superati e analisi statica senza problemi**.
+
 ### Stato consolidato delle verifiche
 
 La documentazione deve riportare esclusivamente i risultati effettivamente ottenuti nella sessione a cui si riferiscono.
 
 In particolare:
 
-- **S033** rappresenta l'ultima baseline Flutter completa verificata.
+- **S033** rappresenta la baseline Flutter completa verificata nella relativa sessione.
+- **S039** rappresenta la baseline Flutter completa più recente documentata, con 1472/1472 test superati e `flutter analyze` senza problemi.
 - **S033B** rappresenta un audit statico dei contratti SQL nel perimetro esaminato.
 - **S034** rappresenta una correzione SQL locale con verifiche statiche e di autorizzazione documentate.
 
@@ -7663,6 +8047,25 @@ Alla chiusura dello sviluppo S034 risultavano ancora non completati:
 Questi elementi rappresentano stati aperti documentati, non risultati acquisiti né attività automaticamente autorizzate per una specifica sessione successiva.
 
 L'eventuale esecuzione dovrà essere valutata e autorizzata secondo il workflow di sviluppo.
+
+### Verifiche aperte della pianificazione stagionale — S039
+
+La Sessione S039 ha introdotto e applicato al database Supabase locale 11 migration relative alla pianificazione stagionale delle coltivazioni, comprendenti le nuove tabelle, le RPC autoritative e le protezioni di compatibilità con le coltivazioni reali e le geometrie storicizzate delle aiuole.
+
+Alla conclusione dello sviluppo S039 risultavano ancora da completare o verificare:
+
+- i test dinamici SQL end-to-end delle RPC `create_planned_planting`, `update_planned_planting`, `confirm_planned_planting`, `cancel_planned_planting` ed `execute_planned_planting`;
+- le verifiche dinamiche dei controlli di autorizzazione e della Profile Write Authority;
+- i test di concorrenza ottimistica, sovrapposizione spaziale e compatibilità temporale;
+- le verifiche del rollback atomico durante l'esecuzione delle pianificazioni confermate;
+- l'applicazione delle migration S039 al database Supabase remoto e le relative verifiche di distribuzione;
+- la verifica di un'eventuale integrazione applicativa Flutter dei workflow di pianificazione, non risultata completata nella S039.
+
+I controlli statici e di sicurezza effettuati durante la sessione non sostituiscono i test dinamici delle nuove RPC.
+
+Questi elementi rappresentano **verifiche aperte o integrazioni non ancora completate**, non attività automaticamente autorizzate per una sessione successiva.
+
+La loro eventuale esecuzione dovrà essere valutata e approvata nell'ambito del normale workflow di sviluppo Orto Smart.
 
 ### Criteri di verifica
 

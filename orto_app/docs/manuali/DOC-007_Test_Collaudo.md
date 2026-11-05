@@ -4,14 +4,14 @@
 
 # Test e Collaudo
 
-**Versione:** 1.2
+**Versione:** 1.3
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/10/2026
-**Ultimo aggiornamento:** 03/11/2026
+**Ultimo aggiornamento:** 05/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |-------|--------|
 | Documento | DOC-007 |
 | Titolo | Test e Collaudo |
-| Versione | 1.2 |
+| Versione | 1.3 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/10/2026 |
-| Ultimo aggiornamento | 03/11/2026 |
+| Ultimo aggiornamento | 05/11/2026 |
 
 ---
 
@@ -41,6 +41,7 @@
 | 1.0 | 16/10/2026 | Prima emissione ufficiale del DOC-007 — Test e Collaudo, versione 1.0 approvata |
 | 1.1 | 26/10/2026 | Inserimento delle evidenze S037: audit statici degli Alias e dell'integrità Taxon/Crop, protezione delle scritture concorrenti in BedPage, 32 test Flutter mirati superati e distinzione esplicita dalle evidenze S036. |
 | 1.2 | 03/11/2026 | Inserimento del §12.20 relativo alla S038: perimetro tecnico del Resolver Agronomico, unità di misura e parametri agronomici; tracciabilità degli otto file di test introdotti; verifica integrativa del 03/11/2026 con 178/178 test Flutter superati e analisi statica senza anomalie; precisazione dei limiti dei collaudi. |
+| 1.3 | 05/11/2026 | Aggiornamento documentale della Sessione S039: introduzione del §12.21 con le evidenze tecniche relative al modello autoritativo di pianificazione stagionale, alle cinque RPC del ciclo di vita e dell'esecuzione atomica, alle protezioni geometriche e temporali e alle undici migration SQL applicate esclusivamente in locale; registrazione dell'esito positivo di `flutter analyze` e di 1472/1472 test Flutter, distinguendo le verifiche statiche SQL effettuate dai collaudi dinamici end-to-end, di concorrenza e rollback non ancora completati, dal deployment remoto e dall'integrazione Flutter ancora aperti. |
 
 ---
 
@@ -3183,6 +3184,108 @@ Non consentono invece di attestare:
 - il collaudo complessivo dell'applicazione per il primo utilizzo reale.
 
 Le verifiche della S038 si inseriscono nel processo progressivo di validazione del progetto e non sostituiscono i controlli autoritativi del database, i test di integrazione e il collaudo complessivo previsto dal Capitolo 13.
+
+## 12.21 Evidenze tecniche della Sessione S039
+
+La Sessione di sviluppo S039, conclusa il **05/11/2026 alle ore 00:02**, ha introdotto il modello persistente e i Write Path autoritativi della pianificazione stagionale.
+
+Le evidenze riguardano le migration SQL, i controlli statici e di sicurezza, la verifica Flutter e le limitazioni del collaudo al termine della sessione.
+
+### 12.21.1 Perimetro tecnico della S039
+
+La S039 ha introdotto:
+
+- le tabelle `season_plans` e `planned_plantings`;
+- il ciclo di vita `draft`, `confirmed`, `executed`, `cancelled`;
+- cinque RPC autoritative di creazione, aggiornamento, conferma, annullamento ed esecuzione;
+- la gestione della concorrenza ottimistica mediante `row_version`;
+- la protezione delle prenotazioni spaziali delle pianificazioni confermate;
+- la verifica della compatibilità con le geometrie storicizzate delle aiuole;
+- l'esecuzione atomica della pianificazione confermata mediante creazione della coltivazione reale e collegamento al piano;
+- le protezioni di autorizzazione e scrittura previste dal contratto Profile Write Authority.
+
+### 12.21.2 Migration SQL e ambiente
+
+Sono state introdotte **11 migration SQL**, dalla:
+
+`20261104190000_add_seasonal_planting_plans.sql`
+
+alla:
+
+`20261105000000_add_atomic_planned_planting_execution.sql`
+
+Alla conclusione dello sviluppo S039, le migration risultavano applicate **soltanto al database Supabase locale**.
+
+Non era stata eseguita la distribuzione al database remoto.
+
+### 12.21.3 Controlli SQL effettuati
+
+Durante lo sviluppo sono stati eseguiti controlli statici e di sicurezza relativi alle strutture e ai contratti SQL introdotti.
+
+Tali controlli non costituiscono evidenza del superamento di una suite completa di test dinamici SQL end-to-end.
+
+In particolare, non risultano completati i collaudi dinamici delle transizioni di stato, delle operazioni concorrenti e del rollback dell'esecuzione atomica.
+
+### 12.21.4 Analisi statica e test Flutter
+
+Alla conclusione dello sviluppo S039 sono stati eseguiti:
+
+```powershell
+flutter analyze
+```
+
+**Esito:** positivo, senza problemi rilevati.
+
+È stata inoltre eseguita la suite automatizzata:
+
+```powershell
+flutter test
+```
+
+**Risultato:**
+
+```text
+1472/1472 test superati
+```
+
+| Verifica | Esito |
+|---|---|
+| Analisi statica Flutter | Superata |
+| Test Flutter complessivi | 1472 |
+| Test superati | 1472 |
+| Test falliti | 0 |
+| Collaudo dinamico SQL completo | Non completato |
+| Integrazione Flutter della pianificazione | Non completata |
+| Distribuzione delle migration S039 sul remoto | Non effettuata |
+
+Il superamento dei test Flutter attesta l'esito della suite eseguita, ma non equivale al collaudo operativo della nuova pianificazione stagionale.
+
+### 12.21.5 Tracciabilità tecnica
+
+La baseline Git conclusiva dello sviluppo S039 è:
+
+```text
+5527aa84582a6ecbe6c78c5c9862c315dbbe11e8
+```
+
+Il commit conclusivo risulta pubblicato nel repository remoto.
+
+Questa evidenza Git non deve essere confusa con la distribuzione delle migration al database Supabase remoto, che rimane pendente.
+
+### 12.21.6 Limiti e verifiche ancora necessarie
+
+Alla conclusione della S039 restano da verificare:
+
+- i flussi SQL end-to-end di creazione, aggiornamento, conferma, annullamento ed esecuzione;
+- le condizioni di sovrapposizione spaziale e temporale;
+- i conflitti di versione e le operazioni concorrenti;
+- l'atomicità e il rollback in presenza di errori;
+- i casi negativi di autorizzazione e violazione delle invarianti;
+- la distribuzione controllata delle 11 migration al database remoto;
+- l'allineamento degli ambienti locale e remoto;
+- l'integrazione Flutter e il relativo collaudo funzionale.
+
+Le evidenze S039 attestano l'avanzamento tecnico raggiunto, ma **non autorizzano a dichiarare completato il collaudo della pianificazione stagionale** né il collaudo complessivo dell'applicazione previsto dal Capitolo 13.
 
 # 13. Collaudo complessivo dell'applicazione
 

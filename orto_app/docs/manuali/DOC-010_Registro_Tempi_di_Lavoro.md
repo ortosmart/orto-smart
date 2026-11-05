@@ -13,17 +13,16 @@
 |---|---|
 | Documento | DOC-010 |
 | Titolo | Registro Tempi di Lavoro |
-| Versione | 1.4 |
-| Stato | Consuntivi S001–S038 consolidati; pubblicazione tecnica S038 da completare |
+| Versione | 1.5 |
+| Stato | Consuntivi S001–S038 consolidati; pubblicazione tecnica S039 da completare |
 | Progetto | Orto Smart |
 | Repository | `ortosmart/orto-smart` |
 | Prima emissione | 17/10/2026 |
-| Ultimo aggiornamento | 03/11/2026 |
-| Sessione di predisposizione | Manuali S035; aggiornamenti successivi fino a Manuali S038 |
+| Ultimo aggiornamento | 05/11/2026 |
+| Sessione di predisposizione | Manuali S035; aggiornamenti successivi fino a Manuali S039 |
 | Baseline storica | S001–S034 |
 | Tempo netto storico consolidato | 280 h 07 min |
-| Ultimo progressivo consolidato | 330 h 56 min (comprende S035–S038 e la regolarizzazione post-chiusura S035) |
-
+| Ultimo progressivo consolidato | 337 h 11 min (comprende S035–S039 e la regolarizzazione post-chiusura S035) |
 ---
 
 
@@ -36,9 +35,9 @@
 | 1.2 | 21/10/2026 | Registrazione del consuntivo S036, aggiornamento del progressivo complessivo a 301 h 41 min e allineamento delle regole operative al DOC-009 v2.7 |
 | 1.3 | 26/10/2026 | Consuntivo definitivo S037: sviluppo 9 h 32 min, Manuali 1 h 06 min, totale sessione 10 h 38 min e progressivo complessivo progetto 312 h 19 min |
 | 1.4 | 03/11/2026 | Consuntivo definitivo S038: sviluppo 13 h 27 min, Manuali 5 h 10 min, totale sessione 18 h 37 min; progressivo complessivo progetto 330 h 56 min; aggiornamento e riconciliazione dei riepiloghi cumulativi |
+| 1.5 | 05/11/2026 | Consuntivo definitivo S039: sviluppo 3 h 35 min, Manuali 2 h 40 min, totale sessione 6 h 15 min; chiusura Manuali del 05/11/2026 alle 22:18; aggiornamento del progressivo complessivo del progetto a 337 h 11 min, di cui 244 h 05 min di Sviluppo e 93 h 06 min di Manuali; conferma della baseline storica S001–S034 invariata e distinzione tra chiusura temporale S039 e successive operazioni tecniche di pubblicazione. |
 
 ---
-
 
 # Nota sullo stato del documento
 
@@ -72,6 +71,38 @@ La versione 1.4 recepisce il consuntivo S038, aggiorna i progressivi cumulativi 
 La chiusura temporale della fase Manuali S038 è distinta dalle successive operazioni tecniche di aggiornamento del registro, verifica finale, commit, push e conferma dell'allineamento con GitHub, secondo il workflow disciplinato dal DOC-009 v2.7.
 
 Alla data di predisposizione della presente revisione, tali operazioni tecniche di pubblicazione S038 non risultano ancora completate.
+
+La fase di Sviluppo S039 è stata dichiarata conclusa il **05/11/2026 alle 00:02**, con un tempo netto definitivo di **3 h 35 min**.
+
+La fase Manuali S039 è iniziata il **05/11/2026 alle 11:15** ed è stata dichiarata conclusa il **05/11/2026 alle 22:18**.
+
+Durante la sessione Manuali S039 sono state registrate due sospensioni:
+
+- dalle 12:44 alle 20:17, per 7 h 33 min;
+- dalle 20:25 alle 21:15, per 50 min.
+
+Gli intervalli effettivi di lavoro sono stati:
+
+- dalle 11:15 alle 12:44, per 1 h 29 min;
+- dalle 20:17 alle 20:25, per 8 min;
+- dalle 21:15 alle 22:18, per 1 h 03 min.
+
+Il tempo netto definitivo della fase Manuali S039 è pertanto di **2 h 40 min**, con **8 h 23 min** complessivi di sospensione.
+
+Il consuntivo complessivo della sessione S039 è di **6 h 15 min**, ripartito in **3 h 35 min di Sviluppo** e **2 h 40 min di Manuali**.
+
+Il progressivo complessivo consolidato del progetto, alla conclusione delle fasi Sviluppo e Manuali S039, raggiunge **337 h 11 min**, ripartito in:
+
+- **244 h 05 min** di Sviluppo;
+- **93 h 06 min** di Manuali.
+
+La quadratura dei progressivi è verificata.
+
+La versione 1.5 recepisce il consuntivo definitivo S039 e mantiene invariata la baseline storica S001–S034 di **280 h 07 min**.
+
+La pubblicazione tecnica della documentazione S038 è stata completata prima dell'avvio dello Sviluppo S039. La chiusura temporale della fase Manuali S039 rimane distinta dalle successive operazioni tecniche di aggiornamento del registro, verifica finale, commit, push e conferma dell'allineamento con GitHub, secondo il DOC-009 v2.7.
+
+Alla predisposizione della revisione 1.5, la pubblicazione tecnica della documentazione S039 deve ancora essere completata.
 
 ---
 
@@ -1733,6 +1764,68 @@ La quadratura è verificata:
 
 Le successive operazioni tecniche di pubblicazione non modificano automaticamente il consuntivo della fase Manuali già dichiarato concluso.
 
+### 6.32 Sessione S039
+
+La sessione S039 comprende la fase di Sviluppo, conclusa il **05/11/2026 alle 00:02**, e la successiva fase Manuali, conclusa il **05/11/2026 alle 22:18**.
+
+#### 6.32.1 Sviluppo
+
+La fase di Sviluppo S039 è stata dichiarata conclusa il **05/11/2026 alle 00:02**.
+
+Il tempo netto definitivo comunicato nel checkpoint ufficiale di sviluppo è di **3 h 35 min**.
+
+La sessione ha riguardato l'implementazione della pianificazione stagionale delle coltivazioni e della relativa esecuzione atomica, con migrazioni SQL applicate al database Supabase locale.
+
+Il consuntivo temporale dello Sviluppo S039 è acquisito dalla sessione ufficiale di sviluppo e non viene ricalcolato nella presente fase Manuali.
+
+#### 6.32.2 Manuali
+
+La fase Manuali S039 è iniziata il **05/11/2026 alle 11:15** ed è stata dichiarata conclusa il **05/11/2026 alle 22:18**.
+
+Gli intervalli registrati sono i seguenti:
+
+| Intervallo | Tipologia | Durata |
+|---|---|---:|
+| 11:15–12:44 | Lavoro documentale | 1 h 29 min |
+| 12:44–20:17 | Sospensione | 7 h 33 min |
+| 20:17–20:25 | Lavoro documentale | 8 min |
+| 20:25–21:15 | Sospensione | 50 min |
+| 21:15–22:18 | Lavoro documentale | 1 h 03 min |
+
+Il tempo lordo trascorso dall'apertura alla chiusura è di **11 h 03 min**.
+
+Le sospensioni ammontano complessivamente a **8 h 23 min** e sono escluse dal conteggio del lavoro.
+
+Il tempo netto definitivo della fase Manuali S039 è pertanto di **2 h 40 min**.
+
+La fase Manuali S039 ha riguardato l'aggiornamento della documentazione ufficiale in relazione alle implementazioni e alle verifiche effettivamente registrate nello Sviluppo S039.
+
+La chiusura temporale delle ore 22:18 è distinta dalle successive operazioni tecniche di consolidamento del DOC-010, verifica documentale, commit, push e conferma dell'allineamento con GitHub, secondo il DOC-009 v2.7.
+
+#### 6.32.3 Consuntivo S039
+
+| Fase | Tempo netto |
+|---|---:|
+| Sviluppo S039 | **3 h 35 min** |
+| Manuali S039 | **2 h 40 min** |
+| **Totale sessione S039** | **6 h 15 min** |
+
+Il progressivo complessivo del progetto alla conclusione della sessione S038 era di **330 h 56 min**.
+
+L'aggiunta del consuntivo S039 determina i seguenti progressivi:
+
+| Categoria | Progressivo S038 | Incremento S039 | Progressivo S039 |
+|---|---:|---:|---:|
+| Sviluppo | 240 h 30 min | 3 h 35 min | **244 h 05 min** |
+| Manuali | 90 h 26 min | 2 h 40 min | **93 h 06 min** |
+| **Totale** | **330 h 56 min** | **6 h 15 min** | **337 h 11 min** |
+
+La quadratura aritmetica dei tempi è verificata.
+
+La baseline storica S001–S034, pari a **280 h 07 min**, rimane invariata.
+
+Il consuntivo S039 è definitivo per le fasi di Sviluppo e Manuali dichiarate concluse. Le successive operazioni tecniche di pubblicazione non modificano automaticamente il tempo netto consolidato.
+
 ## 7. Registro delle correzioni e delle rettifiche
 
 ### 7.1 Finalità
@@ -2123,7 +2216,7 @@ Deve sempre risultare:
 
 ### 9.6 Tabella dei progressivi successivi
 
-La tabella conserva la baseline storica S001–S034, i consuntivi definitivi delle sessioni S035–S038 e la regolarizzazione documentale successiva alla chiusura della S035.
+La tabella conserva la baseline storica S001–S034, i consuntivi definitivi delle sessioni S035–S039 e la regolarizzazione documentale successiva alla chiusura della S035.
 
 | Sessione | Sviluppo netto | Manuali netto | Totale sessione | Progressivo sviluppo | Progressivo Manuali | Progressivo totale |
 |---|---:|---:|---:|---:|---:|---:|
@@ -2132,18 +2225,19 @@ La tabella conserva la baseline storica S001–S034, i consuntivi definitivi del
 | Regolarizzazione DOC-010 post-chiusura S035 (senza nuovo codice sessione) | 0 h 00 | 0 h 20 | 0 h 20 | 210 h 57 | 77 h 41 | 288 h 38 |
 | S036 — consolidamento Manuali del 21/10 alle 22:39 | 6 h 34 | 6 h 29 | 13 h 03 | 217 h 31 | 84 h 10 | 301 h 41 |
 | S037 — chiusura Manuali del 26/10 alle 14:50 | 9 h 32 | 1 h 06 | 10 h 38 | 227 h 03 | 85 h 16 | 312 h 19 |
-| **S038 — chiusura Manuali del 03/11 alle 22:50** | **13 h 27** | **5 h 10** | **18 h 37** | **240 h 30** | **90 h 26** | **330 h 56** |
+| S038 — chiusura Manuali del 03/11 alle 22:50 | 13 h 27 | 5 h 10 | 18 h 37 | 240 h 30 | 90 h 26 | 330 h 56 |
+| **S039 — chiusura Manuali del 05/11 alle 22:18** | **3 h 35** | **2 h 40** | **6 h 15** | **244 h 05** | **93 h 06** | **337 h 11** |
 
 La regolarizzazione successiva alla S035 rappresenta un'attività documentale distinta e non istituisce un nuovo identificativo di sessione.
 
-I consuntivi delle sessioni S036, S037 e S038 comprendono esclusivamente i tempi consolidati delle rispettive fasi Sviluppo e Manuali.
+I consuntivi delle sessioni S036, S037, S038 e S039 comprendono esclusivamente i tempi consolidati delle rispettive fasi Sviluppo e Manuali.
 
 Le operazioni tecniche successive alla dichiarazione di chiusura temporale della fase Manuali sono distinte dal relativo consuntivo e disciplinate dal DOC-009 v2.7.
 
-Alla chiusura temporale della S038, il progressivo complessivo del progetto è di **330 h 56 min**, ripartito in:
+Alla chiusura temporale della S039, il progressivo complessivo del progetto è di **337 h 11 min**, ripartito in:
 
-- **240 h 30 min** di Sviluppo;
-- **90 h 26 min** di Manuali.
+- **244 h 05 min** di Sviluppo;
+- **93 h 06 min** di Manuali.
 
 La quadratura dei progressivi è verificata.
 
@@ -2172,7 +2266,15 @@ La versione 1.0 ha costituito la prima emissione ufficiale.
 
 La versione 1.1, comprendente il consuntivo S035 e la successiva regolarizzazione documentale di 20 minuti, è stata registrata nel commit Git `358099b` del 18/10/2026. La presenza del commit nella cronologia del riferimento `origin/main` è stata verificata localmente durante Manuali S036; ciò non equivale a una nuova verifica in tempo reale dello stato remoto.
 
-La versione 1.2 recepisce il consuntivo S036 e l'allineamento al DOC-009 v2.7. La sua verifica tecnica finale e la pubblicazione nel repository devono essere completate e confermate nell'ambito della chiusura documentale S036.
+La versione 1.2 recepisce il consuntivo S036 e l'allineamento al DOC-009 v2.7. La sua verifica tecnica finale e la pubblicazione nel repository dovevano essere completate e confermate nell'ambito della chiusura documentale S036.
+
+La versione 1.3 recepisce il consuntivo definitivo S037, concluso il 26/10/2026, e il relativo progressivo complessivo del progetto di **312 h 19 min**.
+
+La versione 1.4 recepisce il consuntivo definitivo S038, concluso il 03/11/2026, e il relativo progressivo complessivo del progetto di **330 h 56 min**. La successiva pubblicazione tecnica della documentazione S038 risulta completata prima dell'avvio dello Sviluppo S039.
+
+La versione 1.5 recepisce il consuntivo definitivo S039, con chiusura della fase Manuali il **05/11/2026 alle 22:18**, e aggiorna il progressivo complessivo del progetto a **337 h 11 min**, ripartito in **244 h 05 min di Sviluppo** e **93 h 06 min di Manuali**.
+
+La chiusura temporale della fase Manuali S039 è definitiva. Alla predisposizione della revisione 1.5, le successive operazioni tecniche di verifica, commit, push e conferma dell'allineamento con GitHub non risultano ancora completate e devono essere accertate separatamente.
 
 Dopo l'emissione:
 
@@ -2182,6 +2284,8 @@ Dopo l'emissione:
 - DOC-012 mantiene le funzioni residue stabilite dall'allineamento documentale approvato.
 
 L'aggiornamento del DOC-010 deve avvenire per ultimo, secondo le regole del Capitolo 8.
+
+Le registrazioni storiche, la baseline S001–S034 e le limitazioni di riconciliazione documentate rimangono invariate.
 
 ### 9.9 Principio di continuità
 

@@ -4,7 +4,7 @@
 
 # Roadmap di Sviluppo
 
-**Versione:** 3.0
+**Versione:** 3.1
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 03/11/2026
+**Ultimo aggiornamento:** 05/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-008 |
 | Titolo | Roadmap di Sviluppo |
-| Versione | 3.0 |
+| Versione | 3.1 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 03/11/2026 |
+| Ultimo aggiornamento | 05/11/2026 |
 
 ---
 
@@ -63,6 +63,7 @@
 | 2.8 | 21/10/2026 | Aggiornamento dopo la Sessione S036: protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta; sei test SQL locali di regressione del Catalog Registry superati; `flutter analyze` senza problemi e 1.292 test Flutter superati; aggiornamento delle verifiche ancora aperte, senza assegnazioni automatiche alla sessione successiva. |
 | 2.9 | 26/10/2026 | Aggiornamento dopo S037: audit statici Alias e integrità Taxon/Crop, protezione delle scritture concorrenti in BedPage, verifiche Flutter e definizione dell'obiettivo approvato di primo utilizzo reale per la pianificazione dell'orto 2027 entro il 15/11/2026, subordinato a verifica di fattibilità e senza assegnazioni automatiche alla S038. |
 | 3.0 | 03/11/2026 | Aggiornamento dopo la Sessione S038: introduzione del contratto tipizzato e del repository Flutter del Resolver Agronomico; integrazione dei Registri Unità di misura e Parametri agronomici, con 3/7 Registri Agronomici Flutter implementati; applicazione remota della migration correttiva S034 e allineamento di 34/34 migration; verifiche integrative con 178/178 test Flutter mirati superati e `flutter analyze` senza problemi; aggiornamento delle attività FUTURE e dello stato dell'obiettivo di primo utilizzo reale entro il 15/11/2026, ancora subordinato a verifica di fattibilità. |
+| 3.1 | 05/11/2026 | Aggiornamento della Roadmap dopo la Sessione S039: introduzione del modello autoritativo di pianificazione stagionale mediante `season_plans` e `planned_plantings`, cinque RPC per il ciclo di vita e l'esecuzione atomica delle coltivazioni pianificate, protezioni geometriche e temporali e collegamento alle coltivazioni reali; registrazione delle undici migration SQL applicate esclusivamente al database locale, delle verifiche statiche SQL, di `flutter analyze` senza problemi e di 1472/1472 test Flutter superati. Aggiornamento delle attività ancora aperte: collaudi SQL dinamici, deployment remoto e integrazione Flutter della pianificazione. Confermato l'obiettivo di primo utilizzo reale entro il 15/11/2026 come traguardo subordinato alla verifica di fattibilità, senza garanzia di completamento e senza assegnazioni automatiche alla sessione successiva. Versioni applicative invariate. |
 
 ---
 
@@ -2251,6 +2252,109 @@ Rimangono da valutare:
 La conclusione della S038 non assegna automaticamente alcuna di queste attività alla sessione successiva.
 
 Ogni nuova sessione richiede apertura esplicita, CHECKPOINT DI RICEZIONE, verifica dello stato reale e approvazione del proprio perimetro.
+
+Restano validi i principi **«Sicurezza prima di tutto»** e **«Presto e bene non conviene»**.
+
+### Quadro operativo dopo S039 — Pianificazione stagionale autoritativa e obiettivo di utilizzo reale
+
+La fase di sviluppo della **Sessione S039** si è conclusa il **05/11/2026 alle ore 00:02**, dopo **3 h 35 min** di lavoro effettivo.
+
+Il commit tecnico conclusivo è `5527aa84582a6ecbe6c78c5c9862c315dbbe11e8`.
+
+La S039 ha introdotto nel database Supabase locale le fondamenta autoritative della pianificazione stagionale delle coltivazioni, mantenendo distinta la pianificazione dalle coltivazioni realmente eseguite.
+
+#### Modello persistente della pianificazione
+
+Sono state introdotte le tabelle:
+
+- `season_plans`, per il piano associato alla stagione;
+- `planned_plantings`, per le singole coltivazioni pianificate.
+
+Il modello collega la pianificazione al profilo, all'orto, alla stagione, all'aiuola e all'identità agronomica della coltura, con cultivar opzionale.
+
+Le coltivazioni pianificate dispongono di informazioni temporali, geometriche, quantitative e descrittive, oltre al controllo di versione mediante `row_version`.
+
+Il ciclo di vita autoritativo distingue gli stati:
+
+- `draft`: pianificazione modificabile, senza prenotazione dello spazio;
+- `confirmed`: pianificazione confermata, con protezione dello spazio previsto;
+- `executed`: pianificazione eseguita e collegata alla coltivazione reale;
+- `cancelled`: pianificazione annullata.
+
+La presenza di una pianificazione non equivale alla creazione di una coltivazione reale.
+
+#### Write Path autoritativi e protezioni
+
+Sono state introdotte cinque RPC autoritative:
+
+- `create_planned_planting`;
+- `update_planned_planting`;
+- `confirm_planned_planting`;
+- `cancel_planned_planting`;
+- `execute_planned_planting`.
+
+Le operazioni rispettano il modello di autorizzazione Profile Write Authority, il controllo di concorrenza ottimistica e le protezioni server-side previste.
+
+Le pianificazioni confermate proteggono gli spazi geometrici e temporali interessati, impedendo operazioni incompatibili sulle geometrie delle aiuole e sulle coltivazioni reali.
+
+I controlli considerano la geometria storicizzata delle aiuole, la copertura temporale richiesta e le sovrapposizioni incompatibili.
+
+L'esecuzione di una pianificazione confermata avviene mediante un'operazione atomica che crea la coltivazione reale, aggiorna lo stato della pianificazione e registra il collegamento tra i due elementi.
+
+In caso di errore, l'operazione deve rispettare le garanzie transazionali del database.
+
+#### Stato delle migration e delle verifiche
+
+La S039 ha introdotto **11 migration SQL**, applicate esclusivamente all'ambiente Supabase locale.
+
+**Non è stato effettuato il deployment delle migration S039 al database remoto.**
+
+Le verifiche documentate alla conclusione dello sviluppo sono:
+
+| Verifica | Esito |
+|---|---|
+| `flutter analyze` | Superato, nessun problema |
+| Suite Flutter completa | 1.472/1.472 test superati |
+| Controlli statici SQL e di sicurezza | Eseguiti nel perimetro documentato |
+| Test SQL dinamici integrati della pianificazione | Non completati |
+| Verifiche dinamiche di concorrenza e rollback | Non completate |
+| Deployment remoto delle migration S039 | Non effettuato |
+| Integrazione Flutter della pianificazione stagionale | Non completata |
+
+Le verifiche statiche e il superamento della suite Flutter non dimostrano, da soli, il corretto funzionamento end-to-end dei nuovi Write Path SQL.
+
+#### Obiettivo di utilizzo reale per la pianificazione dell'orto 2027
+
+Rimane documentato l'obiettivo approvato il **25/10/2026** di iniziare entro il **15/11/2026** l'utilizzo reale di Orto Smart per pianificare l'orto 2027.
+
+La S039 costituisce un avanzamento tecnico significativo verso tale obiettivo, ma **non dimostra che l'applicazione sia già pronta per l'utilizzo operativo reale**.
+
+La verifica di fattibilità deve continuare a considerare:
+
+- disponibilità e verifica del Catalogo Agronomico necessario;
+- gestione corretta delle 15 aiuole reali;
+- controlli agronomici pertinenti, comprese le rotazioni;
+- integrazione dei percorsi Flutter necessari alla pianificazione;
+- collaudo dei Write Path e delle garanzie di sicurezza;
+- corretta distinzione tra pianificazione ed esecuzione reale;
+- utilizzo esclusivo di dati operativi reali, senza popolamenti dimostrativi o provvisori.
+
+La scadenza obiettivo non autorizza scorciatoie sulla sicurezza, sull'integrità dei dati o sulla qualità delle verifiche.
+
+#### Questioni aperte e continuità
+
+Alla conclusione della S039 rimangono aperti, nei rispettivi perimetri:
+
+- test SQL dinamici integrati delle RPC di pianificazione;
+- verifiche di concorrenza, protezioni geometriche e rollback;
+- applicazione controllata delle migration S039 al database remoto;
+- integrazione operativa Flutter della pianificazione stagionale;
+- integrazione completa del Resolver Agronomico nei flussi applicativi pertinenti;
+- verifica della fattibilità del primo utilizzo reale per la pianificazione 2027.
+
+Queste questioni descrivono lo stato tecnico residuo e **non costituiscono attività automaticamente assegnate alla S040**.
+
+Ogni nuova sessione richiede apertura esplicita, CHECKPOINT DI RICEZIONE, verifica della baseline effettiva e approvazione autonoma del proprio perimetro.
 
 Restano validi i principi **«Sicurezza prima di tutto»** e **«Presto e bene non conviene»**.
 
