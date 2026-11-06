@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 2.9
+**Versione:** 2.10
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 05/11/2026
+**Ultimo aggiornamento:** 06/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 2.9 |
+| Versione | 2.10 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 05/11/2026 |
+| Ultimo aggiornamento | 06/11/2026 |
 
 ---
 
@@ -56,6 +56,7 @@
 | 2.7 | 26/10/2026 | Aggiornamento S037: audit statici della semantica di attivazione degli Alias e dell'integrità referenziale Taxon/Crop; conferma dei limiti delle verifiche, senza nuove migration SQL né deployment remoto. |
 | 2.8 | 03/11/2026 | Aggiornamento documentale con la Sessione S038: consolidamento dello stato del Catalogo Agronomico e dei sette registri S033B, integrazione amministrativa Flutter di `measurement_units` e `agronomic_parameters`, aggiornamento dei Write Path autoritativi e del contratto Flutter tipizzato del Resolver, registrazione dell'applicazione remota della migration correttiva S034 e dell'allineamento delle 34 migration locali e remote, documentazione dei backup SQL remoti e dei limiti del collaudo integrato e del ripristino logico. |
 | 2.9 | 05/11/2026 | Aggiornamento documentale con la Sessione S039: introduzione delle tabelle autoritative `season_plans` e `planned_plantings`, del ciclo di vita `draft` → `confirmed` → `executed` con possibilità di annullamento, delle cinque RPC di creazione, modifica, conferma, annullamento ed esecuzione atomica; protezione delle sovrapposizioni spaziali e temporali, compatibilità con le geometrie storicizzate delle aiuole, Profile Write Authority, concorrenza ottimistica e vincoli di integrità; registrazione delle undici migration SQL applicate esclusivamente al database locale, delle verifiche statiche effettuate e dei collaudi SQL dinamici, del deployment remoto e dell'integrazione Flutter ancora aperti. |
+| 2.10 | 06/11/2026 | Aggiornamento documentale con la Sessione S040: introduzione del collaudo dinamico SQL locale del lifecycle autoritativo delle pianificazioni stagionali mediante lo script `s040_planned_planting_lifecycle.sql`, articolato in 15 sezioni e 887 righe; verifica delle principali transizioni di creazione, aggiornamento, conferma, annullamento ed esecuzione, delle autorizzazioni, dei conflitti `row_version` e delle protezioni contro operazioni duplicate; registrazione della correzione dei dati di prova relativi alle colonne generate, dell'isolamento transazionale con `ROLLBACK` e dell'assenza di dati persistenti nelle nove tabelle controllate; conferma di `flutter analyze` senza problemi e 1472/1472 test superati; mantenimento delle undici migration S039 esclusivamente locali, senza deployment remoto né integrazione Flutter del nuovo lifecycle, e identificazione delle verifiche avanzate ancora aperte. |
 
 ---
 
@@ -8973,6 +8974,108 @@ Alla conclusione della S039 rimangono da completare:
 La presenza delle migration applicate localmente e il superamento delle verifiche statiche non autorizzano a dichiarare concluso il collaudo dinamico o la distribuzione remota.
 
 Il criterio generale di verifica delle migration, riportato nel sottoparagrafo successivo, rimane integralmente applicabile.
+
+### Collaudo SQL del lifecycle delle pianificazioni — S040
+
+La Sessione S040 del 06/11/2026 ha introdotto ed eseguito un collaudo dinamico SQL del lifecycle autoritativo delle pianificazioni stagionali delle coltivazioni, sviluppato a partire dalle 11 migration introdotte nella S039.
+
+Il collaudo è stato implementato nel file:
+
+```text
+supabase/tests/s040_planned_planting_lifecycle.sql
+```
+
+Lo script comprende **887 righe e 15 sezioni di test** ed è stato eseguito esclusivamente sul database PostgreSQL locale.
+
+#### Perimetro delle verifiche dinamiche
+
+Il collaudo ha verificato i principali comportamenti delle RPC autoritative:
+
+- `public.create_planned_planting`;
+- `public.update_planned_planting`;
+- `public.confirm_planned_planting`;
+- `public.cancel_planned_planting`;
+- `public.execute_planned_planting`.
+
+Le verifiche hanno riguardato:
+
+- predisposizione del contesto di autenticazione e Profile Write Authority;
+- creazione dei dati temporanei necessari al collaudo;
+- creazione e modifica delle pianificazioni;
+- conferma delle pianificazioni;
+- annullamento e protezione dagli annullamenti ripetuti;
+- esecuzione di una pianificazione confermata con creazione della coltivazione reale;
+- rilevazione dei conflitti di versione mediante `row_version`;
+- protezione dalle esecuzioni duplicate;
+- verifica delle autorizzazioni e delle limitazioni alle scritture dirette.
+
+I risultati positivi si riferiscono ai casi effettivamente implementati nello script, senza estendere automaticamente la copertura a tutte le possibili condizioni operative.
+
+#### Correzione dello script e risultato finale
+
+Durante la prima esecuzione è stato rilevato un errore nella predisposizione dei dati di prova, dovuto al tentativo di inserire direttamente valori nelle colonne generate `normalized_scientific_name` e `normalized_canonical_name`.
+
+La predisposizione dei dati è stata corretta nello script di collaudo, senza modificare le migration o il contratto persistente.
+
+La successiva esecuzione del collaudo SQL locale si è conclusa positivamente.
+
+#### Isolamento dei dati di prova
+
+Il collaudo è stato eseguito all'interno di una transazione delimitata da:
+
+```sql
+BEGIN;
+-- Esecuzione delle verifiche SQL
+ROLLBACK;
+```
+
+Al termine dell'esecuzione è stata verificata l'assenza di righe persistenti nelle seguenti nove tabelle operative:
+
+- `gardens`;
+- `seasons`;
+- `beds`;
+- `bed_geometries`;
+- `botanical_taxa`;
+- `crops`;
+- `season_plans`;
+- `planned_plantings`;
+- `plantings`.
+
+La verifica conferma che i dati temporanei utilizzati dal collaudo non sono rimasti persistenti.
+
+Il rollback della transazione di test non costituisce, da solo, una verifica completa del rollback interno delle RPC in ogni possibile condizione di errore.
+
+#### Verifiche applicative e tracciabilità
+
+Durante la S040 sono stati inoltre eseguiti:
+
+- `flutter analyze`, senza problemi rilevati;
+- `flutter test`, con **1.472 test superati su 1.472**.
+
+Il collaudo SQL è stato registrato nel commit:
+
+```text
+8e15c681a5214c4f9643a9fc765b82ec9b427af9
+```
+
+Il commit è stato pubblicato sul branch `main`.
+
+#### Stato degli ambienti e limiti del collaudo
+
+La S040 non ha introdotto nuove migration e non ha modificato lo schema del database.
+
+Le 11 migration S039 risultavano applicate al database locale, ma **non erano state distribuite al database Supabase remoto** alla conclusione della S040.
+
+Non risultano completati nella S040:
+
+- il deployment remoto delle migration S039;
+- il collaudo integrato dei workflow di pianificazione su Flutter e Supabase remoto;
+- l'integrazione applicativa Flutter del lifecycle delle pianificazioni;
+- gli ulteriori test di concorrenza simultanea, sovrapposizione e rollback atomico su errore non specificamente attestati dal collaudo eseguito.
+
+Il collaudo S040 rappresenta pertanto un avanzamento verificato della copertura SQL dinamica locale, senza equivalere al completamento della distribuzione remota o dell'integrazione applicativa.
+
+Le evidenze dettagliate sono riportate nel **DOC-007 — Test e Collaudo, §12.22**.
 
 ### Criterio di verifica
 

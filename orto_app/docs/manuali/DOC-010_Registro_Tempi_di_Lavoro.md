@@ -13,16 +13,16 @@
 |---|---|
 | Documento | DOC-010 |
 | Titolo | Registro Tempi di Lavoro |
-| Versione | 1.5 |
-| Stato | Consuntivi S001–S038 consolidati; pubblicazione tecnica S039 da completare |
+| Versione | 1.6 |
+| Stato | Consuntivi S001–S040 consolidati; pubblicazione tecnica S040 da completare |
 | Progetto | Orto Smart |
 | Repository | `ortosmart/orto-smart` |
 | Prima emissione | 17/10/2026 |
-| Ultimo aggiornamento | 05/11/2026 |
-| Sessione di predisposizione | Manuali S035; aggiornamenti successivi fino a Manuali S039 |
+| Ultimo aggiornamento | 06/11/2026 |
+| Sessione di predisposizione | Manuali S035; aggiornamenti successivi fino a Manuali S040 |
 | Baseline storica | S001–S034 |
 | Tempo netto storico consolidato | 280 h 07 min |
-| Ultimo progressivo consolidato | 337 h 11 min (comprende S035–S039 e la regolarizzazione post-chiusura S035) |
+| Ultimo progressivo consolidato | 341 h 17 min (comprende S035–S040 e la regolarizzazione post-chiusura S035) |
 ---
 
 
@@ -36,6 +36,7 @@
 | 1.3 | 26/10/2026 | Consuntivo definitivo S037: sviluppo 9 h 32 min, Manuali 1 h 06 min, totale sessione 10 h 38 min e progressivo complessivo progetto 312 h 19 min |
 | 1.4 | 03/11/2026 | Consuntivo definitivo S038: sviluppo 13 h 27 min, Manuali 5 h 10 min, totale sessione 18 h 37 min; progressivo complessivo progetto 330 h 56 min; aggiornamento e riconciliazione dei riepiloghi cumulativi |
 | 1.5 | 05/11/2026 | Consuntivo definitivo S039: sviluppo 3 h 35 min, Manuali 2 h 40 min, totale sessione 6 h 15 min; chiusura Manuali del 05/11/2026 alle 22:18; aggiornamento del progressivo complessivo del progetto a 337 h 11 min, di cui 244 h 05 min di Sviluppo e 93 h 06 min di Manuali; conferma della baseline storica S001–S034 invariata e distinzione tra chiusura temporale S039 e successive operazioni tecniche di pubblicazione. |
+| 1.6 | 06/11/2026 | Consuntivo definitivo S040: sviluppo 2 h 25 min, Manuali 1 h 41 min senza sospensioni, totale sessione 4 h 06 min; chiusura Manuali del 06/11/2026 alle 23:45; progressivo complessivo del progetto 341 h 17 min, di cui 246 h 30 min di Sviluppo e 94 h 47 min di Manuali; baseline storica S001–S034 invariata e pubblicazione tecnica Git ancora da completare. |
 
 ---
 
@@ -103,6 +104,34 @@ La versione 1.5 recepisce il consuntivo definitivo S039 e mantiene invariata la 
 La pubblicazione tecnica della documentazione S038 è stata completata prima dell'avvio dello Sviluppo S039. La chiusura temporale della fase Manuali S039 rimane distinta dalle successive operazioni tecniche di aggiornamento del registro, verifica finale, commit, push e conferma dell'allineamento con GitHub, secondo il DOC-009 v2.7.
 
 Alla predisposizione della revisione 1.5, la pubblicazione tecnica della documentazione S039 deve ancora essere completata.
+
+### Consolidamento definitivo della Sessione S040
+
+La fase di Sviluppo S040 è stata aperta il **06/11/2026 alle 11:09** e definitivamente conclusa alle **14:23** dello stesso giorno.
+
+Il tempo netto di sviluppo è di **2 h 25 min**, al netto della sospensione dalle **12:38 alle 13:27**, pari a **49 min**.
+
+La fase Manuali S040 è stata aperta il **06/11/2026 alle 22:04** e definitivamente conclusa alle **23:45** dello stesso giorno.
+
+È stata confermata l'assenza di pause o sospensioni durante la fase Manuali. Il tempo netto documentale è pertanto di **1 h 41 min**.
+
+Il consuntivo definitivo della Sessione S040 è di **4 h 06 min**, ripartito in:
+
+- **2 h 25 min** di Sviluppo;
+- **1 h 41 min** di Manuali.
+
+Il progressivo complessivo consolidato del progetto, alla conclusione definitiva della S040, raggiunge **341 h 17 min**, ripartito in:
+
+- **246 h 30 min** di Sviluppo;
+- **94 h 47 min** di Manuali.
+
+La quadratura dei progressivi è verificata: **246 h 30 min + 94 h 47 min = 341 h 17 min**.
+
+La versione **1.6** recepisce il consuntivo definitivo S040, mantenendo invariata la baseline storica S001–S034 di **280 h 07 min**.
+
+La chiusura temporale dei Manuali S040, dichiarata il **06/11/2026 alle 23:45**, rimane distinta dalle successive operazioni tecniche di verifica finale, commit, push e conferma dell'allineamento con GitHub, secondo il DOC-009.
+
+Alla predisposizione della revisione 1.6, la pubblicazione tecnica della documentazione S040 non risulta ancora completata.
 
 ---
 
@@ -1826,6 +1855,86 @@ La baseline storica S001–S034, pari a **280 h 07 min**, rimane invariata.
 
 Il consuntivo S039 è definitivo per le fasi di Sviluppo e Manuali dichiarate concluse. Le successive operazioni tecniche di pubblicazione non modificano automaticamente il tempo netto consolidato.
 
+### 6.33 Sessione S040
+
+La Sessione S040 comprende la fase di Sviluppo, conclusa il **06/11/2026 alle 14:23**, e la successiva fase Manuali, definitivamente conclusa il **06/11/2026 alle 23:45**.
+
+Entrambe le fasi risultano concluse. Il consuntivo della Sessione S040 è definitivo.
+
+#### 6.33.1 Sviluppo
+
+La fase di Sviluppo S040 è iniziata il **06/11/2026 alle 11:09** ed è stata dichiarata conclusa alle **14:23** dello stesso giorno.
+
+Gli intervalli registrati sono i seguenti:
+
+| Intervallo | Tipologia | Durata |
+|---|---|---:|
+| 11:09–12:38 | Lavoro di sviluppo | 1 h 29 min |
+| 12:38–13:27 | Sospensione | 49 min |
+| 13:27–14:23 | Lavoro di sviluppo | 56 min |
+
+Il tempo lordo trascorso dall'apertura alla chiusura è di **3 h 14 min**.
+
+La sospensione di **49 min** è esclusa dal conteggio.
+
+Il tempo netto definitivo dello Sviluppo S040 è pertanto di **2 h 25 min**.
+
+La sessione ha riguardato l'introduzione e l'esecuzione del collaudo SQL dinamico locale del lifecycle autoritativo delle pianificazioni stagionali mediante lo script `s040_planned_planting_lifecycle.sql`, composto da 887 righe e 15 sezioni di test.
+
+Il collaudo è stato concluso positivamente sul database PostgreSQL locale, con isolamento transazionale e verifica dell'assenza di dati di prova persistenti nelle nove tabelle controllate.
+
+Sono stati inoltre verificati `flutter analyze`, senza problemi rilevati, e `flutter test`, con **1472/1472 test superati**.
+
+La sessione non ha introdotto nuove migration e non ha effettuato il deployment remoto delle undici migration S039.
+
+Il consuntivo dello Sviluppo S040 è definitivo e non viene ricalcolato nella fase Manuali.
+
+#### 6.33.2 Manuali
+
+La fase Manuali S040 è stata dichiarata aperta il **06/11/2026 alle 22:04** e definitivamente conclusa il **06/11/2026 alle 23:45**.
+
+L'assenza di pause o sospensioni è stata esplicitamente confermata alla chiusura.
+
+| Intervallo | Tipologia | Durata |
+|---|---|---:|
+| 22:04–23:45 | Lavoro documentale | 1 h 41 min |
+| Sospensioni | Nessuna | 0 min |
+| **Totale netto Manuali S040** | **Documentazione** | **1 h 41 min** |
+
+La fase Manuali S040 ha riguardato l'aggiornamento e la verifica dei seguenti documenti:
+
+- DOC-001 — Manuale Tecnico;
+- DOC-004 — Manuale Database;
+- DOC-007 — Test e Collaudo;
+- DOC-010 — Registro Tempi di Lavoro;
+- DOC-005 — Quaderno di Sviluppo;
+- DOC-012 — Registro Storico dello Sviluppo;
+- CHANGELOG.
+
+Sono stati effettuati controlli di coerenza storica, dei progressivi temporali e delle modifiche documentali mediante Git.
+
+Il tempo netto definitivo della fase Manuali S040 è di **1 h 41 min**.
+
+Le successive operazioni di commit, push e verifica della pubblicazione sono soggette alle regole di contabilizzazione previste dal DOC-009 e non modificano retroattivamente gli intervalli qui dichiarati.
+
+#### 6.33.3 Consuntivo definitivo S040
+
+Il progressivo complessivo consolidato del progetto alla conclusione della S039 era di **337 h 11 min**.
+
+La Sessione S040 ha aggiunto **2 h 25 min** di sviluppo e **1 h 41 min** di documentazione, per un totale di **4 h 06 min**.
+
+| Categoria | Progressivo S039 | Incremento S040 | Progressivo definitivo |
+|---|---:|---:|---:|
+| Sviluppo | 244 h 05 min | 2 h 25 min | **246 h 30 min** |
+| Manuali | 93 h 06 min | 1 h 41 min | **94 h 47 min** |
+| **Totale progetto** | **337 h 11 min** | **4 h 06 min** | **341 h 17 min** |
+
+Il progressivo complessivo definitivo del progetto alla chiusura della Sessione S040 è pertanto di **341 h 17 min**.
+
+La Sessione S040 è completamente conclusa sia nella fase di Sviluppo sia nella fase Manuali.
+
+La baseline storica S001–S034, pari a **280 h 07 min**, rimane invariata.
+
 ## 7. Registro delle correzioni e delle rettifiche
 
 ### 7.1 Finalità
@@ -2213,10 +2322,9 @@ Deve sempre risultare:
 
 **Progressivo sviluppo + Progressivo Manuali = Progressivo complessivo**
 
-
 ### 9.6 Tabella dei progressivi successivi
 
-La tabella conserva la baseline storica S001–S034, i consuntivi definitivi delle sessioni S035–S039 e la regolarizzazione documentale successiva alla chiusura della S035.
+La tabella conserva la baseline storica S001–S034, i consuntivi definitivi delle sessioni S035–S040 e la regolarizzazione documentale successiva alla chiusura della S035.
 
 | Sessione | Sviluppo netto | Manuali netto | Totale sessione | Progressivo sviluppo | Progressivo Manuali | Progressivo totale |
 |---|---:|---:|---:|---:|---:|---:|
@@ -2226,18 +2334,19 @@ La tabella conserva la baseline storica S001–S034, i consuntivi definitivi del
 | S036 — consolidamento Manuali del 21/10 alle 22:39 | 6 h 34 | 6 h 29 | 13 h 03 | 217 h 31 | 84 h 10 | 301 h 41 |
 | S037 — chiusura Manuali del 26/10 alle 14:50 | 9 h 32 | 1 h 06 | 10 h 38 | 227 h 03 | 85 h 16 | 312 h 19 |
 | S038 — chiusura Manuali del 03/11 alle 22:50 | 13 h 27 | 5 h 10 | 18 h 37 | 240 h 30 | 90 h 26 | 330 h 56 |
-| **S039 — chiusura Manuali del 05/11 alle 22:18** | **3 h 35** | **2 h 40** | **6 h 15** | **244 h 05** | **93 h 06** | **337 h 11** |
+| S039 — chiusura Manuali del 05/11 alle 22:18 | 3 h 35 | 2 h 40 | 6 h 15 | 244 h 05 | 93 h 06 | 337 h 11 |
+| **S040 — chiusura Manuali del 06/11 alle 23:45** | **2 h 25** | **1 h 41** | **4 h 06** | **246 h 30** | **94 h 47** | **341 h 17** |
 
 La regolarizzazione successiva alla S035 rappresenta un'attività documentale distinta e non istituisce un nuovo identificativo di sessione.
 
-I consuntivi delle sessioni S036, S037, S038 e S039 comprendono esclusivamente i tempi consolidati delle rispettive fasi Sviluppo e Manuali.
+I consuntivi delle sessioni S036, S037, S038, S039 e S040 comprendono esclusivamente i tempi consolidati delle rispettive fasi Sviluppo e Manuali.
 
 Le operazioni tecniche successive alla dichiarazione di chiusura temporale della fase Manuali sono distinte dal relativo consuntivo e disciplinate dal DOC-009 v2.7.
 
-Alla chiusura temporale della S039, il progressivo complessivo del progetto è di **337 h 11 min**, ripartito in:
+Alla chiusura temporale definitiva della S040, dichiarata il **06/11/2026 alle 23:45**, il progressivo complessivo del progetto è di **341 h 17 min**, ripartito in:
 
-- **244 h 05 min** di Sviluppo;
-- **93 h 06 min** di Manuali.
+- **246 h 30 min** di Sviluppo;
+- **94 h 47 min** di Manuali.
 
 La quadratura dei progressivi è verificata.
 
@@ -2274,7 +2383,15 @@ La versione 1.4 recepisce il consuntivo definitivo S038, concluso il 03/11/2026,
 
 La versione 1.5 recepisce il consuntivo definitivo S039, con chiusura della fase Manuali il **05/11/2026 alle 22:18**, e aggiorna il progressivo complessivo del progetto a **337 h 11 min**, ripartito in **244 h 05 min di Sviluppo** e **93 h 06 min di Manuali**.
 
-La chiusura temporale della fase Manuali S039 è definitiva. Alla predisposizione della revisione 1.5, le successive operazioni tecniche di verifica, commit, push e conferma dell'allineamento con GitHub non risultano ancora completate e devono essere accertate separatamente.
+La chiusura temporale della fase Manuali S039 è definitiva. Alla predisposizione della revisione 1.5, le successive operazioni tecniche di verifica, commit, push e conferma dell'allineamento con GitHub non risultavano ancora completate e dovevano essere accertate separatamente.
+
+La versione **1.6** recepisce il consuntivo definitivo S040, con chiusura della fase Sviluppo il **06/11/2026 alle 14:23** e della fase Manuali il **06/11/2026 alle 23:45**.
+
+Il consuntivo netto della S040 è di **4 h 06 min**, ripartito in **2 h 25 min di Sviluppo** e **1 h 41 min di Manuali**, senza sospensioni durante la fase Manuali.
+
+Il progressivo complessivo consolidato del progetto raggiunge **341 h 17 min**, ripartito in **246 h 30 min di Sviluppo** e **94 h 47 min di Manuali**. La quadratura è verificata.
+
+La chiusura temporale della fase Manuali S040 è definitiva. Alla predisposizione della revisione 1.6, le successive operazioni tecniche di verifica finale, commit, push e conferma dell'allineamento con GitHub non risultano ancora completate e devono essere accertate separatamente.
 
 Dopo l'emissione:
 

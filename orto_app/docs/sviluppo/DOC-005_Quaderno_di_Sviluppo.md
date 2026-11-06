@@ -5,7 +5,7 @@
 
 # Quaderno di Sviluppo
 
-**Versione:** 0.26
+**Versione:** 0.27
 
 **Stato:** In sviluppo
 
@@ -15,7 +15,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 05/11/2026
+**Ultimo aggiornamento:** 06/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -27,12 +27,12 @@
 |-------|--------|
 | Documento | DOC-005 |
 | Titolo | Quaderno di Sviluppo |
-| Versione | 0.26 |
+| Versione | 0.27 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 26/07/2026 |
-| Ultimo aggiornamento | 05/11/2026 |
+| Ultimo aggiornamento | 06/11/2026 |
 
 ---
 
@@ -66,6 +66,7 @@
 | 0.24 | 21/10/2026 | Aggiornamento del Quaderno con la Sessione S036: protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta, test SQL di regressione del Catalog Registry con 6 verifiche superate su 6, `flutter analyze` senza problemi e 1.292 test Flutter superati; documentazione dei commit `b250b49` e `923c035`, dei limiti del collaudo remoto e delle attività ancora aperte. |
 | 0.25 | 03/11/2026 | Aggiornamento del Quaderno con la Sessione S038: contratto tipizzato del Resolver Agronomico, repository Flutter e integrazione delle pagine di gestione delle Unità di misura e dei Parametri agronomici; utilizzo delle RPC autoritative esistenti, capability server-side, Profile Write Authority e concorrenza ottimistica; documentazione dei cinque commit di sviluppo, delle verifiche integrative di 178/178 test Flutter e `flutter analyze` senza problemi, dei limiti del collaudo e del consuntivo di sviluppo di 13 h 27 min. Riallineamento dei registri delle sessioni S034–S038, con contabilizzazione separata della regolarizzazione documentale post-S035 di 20 minuti. Fase Manuali S038 ancora in corso. |
 | 0.26 | 05/11/2026 | Aggiornamento del Quaderno con la Sessione S039: implementazione del modello autoritativo di pianificazione stagionale mediante `season_plans` e `planned_plantings`, cinque RPC per creazione, modifica, conferma, annullamento ed esecuzione atomica, protezioni geometriche e temporali e integrazione con il Write Path delle coltivazioni reali; undici migration SQL applicate esclusivamente al database locale, verifiche statiche SQL, `flutter analyze` senza problemi e 1472/1472 test Flutter superati; registrazione del commit tecnico `5527aa8`, della durata di sviluppo di 3 h 35 min e dei limiti relativi ai collaudi SQL dinamici, al deployment remoto e all'integrazione Flutter non ancora completati. |
+| 0.27 | 06/11/2026 | Aggiornamento del Quaderno con la Sessione S040: collaudo SQL dinamico locale del lifecycle delle pianificazioni stagionali introdotto nella S039, mediante script `s040_planned_planting_lifecycle.sql` di 887 righe e 15 sezioni; verifica dei principali percorsi autoritativi, delle transizioni di stato, della Profile Write Authority, dei conflitti di versione e delle protezioni contro scritture dirette ed esecuzioni duplicate; correzione dei fixture SQL relativi alle colonne generate; esecuzione transazionale con `BEGIN`/`ROLLBACK` e verifica dell'assenza di residui persistenti nelle nove tabelle controllate; `flutter analyze` senza problemi e 1472/1472 test Flutter superati; commit tecnico `8e15c681`; nessuna nuova migration né modifica al database remoto. Registrazione del tempo netto di sviluppo S040 di 2 h 25 min, aggiornamento dei consuntivi definitivi S038 e S039 e del progressivo provvisorio del progetto a 339 h 36 min, esclusi i Manuali S040 ancora in corso. |
 
 ---
 
@@ -115,9 +116,35 @@ Per una sessione ancora in corso viene riportato soltanto il tempo già consolid
 | Regolarizzazione post-S035 | 18/10/2026 | 0 h 20 min | 288 h 38 min | Regolarizzazione documentale DOC-010 successiva alla chiusura S035; nessun nuovo codice di sessione | Registrazione integrativa |
 | S036 | 18–21/10/2026 | 13 h 03 min | 301 h 41 min | Protezione Flutter dalle RPC duplicate e regressione SQL locale del Catalog Registry | ✅ |
 | S037 | 22–26/10/2026 | 10 h 38 min | 312 h 19 min | Audit statici del Catalogo Agronomico e protezione delle scritture concorrenti nella gestione delle aiuole | ✅ |
-| S038 | 26/10–03/11/2026 | 13 h 27 min (solo sviluppo) | 325 h 46 min (provvisorio) | Resolver Agronomico tipizzato; integrazione Flutter di Unità di misura e Parametri agronomici | Manuali in corso |
+| S038 | 26/10–03/11/2026 | 18 h 37 min | 330 h 56 min | Resolver Agronomico tipizzato; integrazione Flutter di Unità di misura e Parametri agronomici | ✅ |
+| S039 | 04–05/11/2026 | 6 h 15 min | 337 h 11 min | Pianificazione stagionale delle coltivazioni, modello SQL autoritativo ed esecuzione atomica | ✅ |
+| S040 | 06/11/2026 | 4 h 06 min | 341 h 17 min | Collaudo SQL dinamico locale del lifecycle delle pianificazioni stagionali | ✅ |
 
-**Nota di quadratura S035–S038.** La regolarizzazione documentale post-S035 di **20 minuti** è contabilizzata separatamente, secondo il DOC-010, senza istituire una nuova sessione. Il progressivo consolidato alla chiusura S037 è di **312 h 19 min**. Il progressivo di **325 h 46 min** comprende anche lo sviluppo S038, ma non ancora il consuntivo dei Manuali S038. Sarà aggiornato alla chiusura della fase documentale.
+**Nota di quadratura S035–S040.** La regolarizzazione documentale post-S035 di **20 minuti** rimane contabilizzata separatamente, secondo il DOC-010, senza istituire una nuova sessione.
+
+Il progressivo consolidato alla chiusura S037 è di **312 h 19 min**.
+
+La S038 è definitivamente conclusa con **18 h 37 min** complessivi e un progressivo di **330 h 56 min**.
+
+La S039 è definitivamente conclusa con **6 h 15 min** complessivi e un progressivo di **337 h 11 min**, ripartito in **244 h 05 min di Sviluppo** e **93 h 06 min di Manuali**.
+
+La S040 è definitivamente conclusa il **06/11/2026**, con chiusura della fase di Sviluppo alle **14:23** e della fase Manuali alle **23:45**.
+
+Il consuntivo netto definitivo della S040 è di **4 h 06 min**, ripartito in:
+
+- **2 h 25 min** di Sviluppo;
+- **1 h 41 min** di Manuali.
+
+Il progressivo complessivo consolidato del progetto alla chiusura S040 è di **341 h 17 min**, ripartito in:
+
+- **246 h 30 min** di Sviluppo;
+- **94 h 47 min** di Manuali.
+
+La quadratura è verificata.
+
+Il progressivo intermedio di **339 h 36 min**, rilevato dopo il solo Sviluppo S040, rimane un dato storico corretto, ma non rappresenta il consuntivo definitivo della sessione.
+
+La chiusura temporale della fase Manuali S040 è distinta dalle successive operazioni tecniche di verifica, commit, push e conferma dell'allineamento con GitHub, secondo il DOC-009 v2.7.
 
 * La durata della S007 costituisce un valore storico consolidato riferito esclusivamente alla revisione e al consolidamento documentale. Non sono disponibili gli intervalli puntuali originari.
 
@@ -501,16 +528,18 @@ La Sessione S034 è stata successivamente conclusa e documentata. Il relativo co
 
 ### Aggiornamenti S035–S038 — Solo tempi di sviluppo
 
-Il presente registro integra i progressivi delle sole ore di sviluppo delle Sessioni S035, S036, S037 e S038.
+Il presente registro integra i progressivi delle ore di sviluppo delle Sessioni S035, S036, S037, S038, S039 e S040.
 
-I tempi di documentazione sono contabilizzati separatamente nel DOC-010 — Registro Tempi di Lavoro. Le durate indicate nella tabella non rappresentano pertanto il totale complessivo delle rispettive sessioni.
+I tempi di documentazione sono contabilizzati separatamente nel DOC-010 — Registro Tempi di Lavoro. Le durate indicate nella tabella rappresentano esclusivamente lo sviluppo e non il totale complessivo delle rispettive sessioni.
 
 | Sessione | Data | Durata sviluppo | Progressivo sviluppo | Attività | Stato |
 |---|---|---:|---:|---|---|
-| S035 | 16/10/2026 | 2 h 23 min | 210 h 57 min | Integrazione Flutter della gestione delle Finalità di raccolta | Sviluppo concluso |
-| S036 | 18–21/10/2026 | 6 h 34 min | 217 h 31 min | Protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta; test SQL di regressione del Catalog Registry | Sviluppo concluso |
-| S037 | 22–24/10/2026 | 9 h 32 min | 227 h 03 min | Audit statici del Catalogo Agronomico e protezione delle scritture concorrenti nella gestione delle aiuole | Sviluppo concluso |
-| S038 | 26–29/10/2026 | 13 h 27 min | 240 h 30 min | Contratto tipizzato e repository del Resolver Agronomico; integrazione Flutter delle Unità di misura e dei Parametri agronomici | Sviluppo concluso; Manuali in corso |
+| S035 | 16/10/2026 | 2 h 23 min | 210 h 57 min | Integrazione Flutter della gestione delle Finalità di raccolta | Sviluppo e Manuali conclusi |
+| S036 | 18–21/10/2026 | 6 h 34 min | 217 h 31 min | Protezione Flutter dalle richieste duplicate di attivazione/disattivazione delle Finalità di raccolta; test SQL di regressione del Catalog Registry | Sviluppo e Manuali conclusi |
+| S037 | 22–24/10/2026 | 9 h 32 min | 227 h 03 min | Audit statici del Catalogo Agronomico e protezione delle scritture concorrenti nella gestione delle aiuole | Sviluppo e Manuali conclusi |
+| S038 | 26–29/10/2026 | 13 h 27 min | 240 h 30 min | Contratto tipizzato e repository del Resolver Agronomico; integrazione Flutter delle Unità di misura e dei Parametri agronomici; allineamento delle migration locali e remote | Sviluppo e Manuali conclusi |
+| S039 | 04–05/11/2026 | 3 h 35 min | 244 h 05 min | Modello SQL autoritativo della pianificazione stagionale mediante `season_plans` e `planned_plantings`, lifecycle e Write Path RPC; 11 migration applicate esclusivamente in locale | Sviluppo e Manuali conclusi |
+| S040 | 06/11/2026 | 2 h 25 min | 246 h 30 min | Collaudo SQL dinamico locale del lifecycle delle pianificazioni stagionali, con script di 887 righe e 15 sezioni; 1472/1472 test Flutter superati | Sviluppo concluso; Manuali in corso |
 
 **Progressivi consolidati dello sviluppo**
 
@@ -519,26 +548,43 @@ I tempi di documentazione sono contabilizzati separatamente nel DOC-010 — Regi
 - Alla chiusura S036: **217 h 31 min**.
 - Alla chiusura S037: **227 h 03 min**.
 - Alla chiusura dello sviluppo S038: **240 h 30 min**.
+- Alla chiusura dello sviluppo S039: **244 h 05 min**.
+- Alla chiusura dello sviluppo S040: **246 h 30 min**.
 
 **Chiusure delle fasi**
 
 - S035: sviluppo concluso il 16/10/2026 alle 23:39; Manuali conclusi il 18/10/2026 alle 21:38.
 - S036: sviluppo concluso il 21/10/2026 alle 14:36; Manuali conclusi il 21/10/2026 alle 22:39.
 - S037: sviluppo concluso il 24/10/2026 alle 00:31; Manuali conclusi il 26/10/2026 alle 14:50.
-- S038: sviluppo concluso il 29/10/2026 alle 10:21; Manuali S038 ancora in corso.
+- S038: sviluppo concluso il 29/10/2026 alle 10:21; Manuali conclusi il 03/11/2026 alle 22:50.
+- S039: sviluppo concluso il 05/11/2026 alle 00:02; Manuali conclusi il 05/11/2026 alle 22:18.
+- S040: sviluppo concluso il 06/11/2026 alle 14:23; Manuali avviati il 06/11/2026 alle 22:04 e ancora in corso.
 
 **Progressivo complessivo del progetto**
 
-Alla conclusione della S037 risultano consolidate **312 h 19 min**, suddivise in:
+Alla conclusione definitiva della S038 risultano consolidate **330 h 56 min**, suddivise in:
 
-- Sviluppo: **227 h 03 min**.
-- Documentazione: **85 h 16 min**.
+- Sviluppo: **240 h 30 min**.
+- Documentazione: **90 h 26 min**.
 
-Aggiungendo le **13 h 27 min** di sviluppo della S038, il progressivo complessivo prima della contabilizzazione dei Manuali S038 raggiunge **325 h 46 min**.
+La S039 ha aggiunto **3 h 35 min di sviluppo** e **2 h 40 min di Manuali**, per una durata complessiva di **6 h 15 min**.
 
-Questo valore non rappresenta il consuntivo definitivo della S038. Il totale sarà consolidato alla chiusura della fase Manuali e riportato nel DOC-010.
+Alla chiusura definitiva della S039, il progressivo complessivo del progetto è pertanto di **337 h 11 min**, suddivise in:
 
-Le verifiche integrative Flutter effettuate il 03/11/2026 durante i Manuali S038 sono documentate separatamente e non modificano retroattivamente il consuntivo dello sviluppo concluso il 29/10/2026.
+- Sviluppo: **244 h 05 min**.
+- Documentazione: **93 h 06 min**.
+
+La S040 ha aggiunto **2 h 25 min di sviluppo**, portando il progressivo storico dello sviluppo a **246 h 30 min**.
+
+Il progressivo complessivo acquisito dopo il solo sviluppo S040 è di **339 h 36 min**, escluso il tempo dei Manuali S040.
+
+**Il valore di 339 h 36 min è provvisorio e non costituisce il consuntivo definitivo della S040.** Il tempo documentale sarà consolidato nel DOC-010 esclusivamente dopo la dichiarazione ufficiale di chiusura della fase Manuali.
+
+La regolarizzazione documentale post-S035 di **20 minuti** rimane contabilizzata separatamente secondo il DOC-010, senza istituire una nuova sessione.
+
+Le verifiche integrative Flutter effettuate il 03/11/2026 durante i Manuali S038 rimangono attribuite a quella fase documentale e non modificano retroattivamente il consuntivo dello sviluppo S038, concluso il 29/10/2026.
+
+Le 11 migration SQL introdotte nella S039 risultano applicate esclusivamente al database locale. Il collaudo dinamico S040 non costituisce deployment remoto né completamento dell'integrazione Flutter della pianificazione stagionale.
 
 # Indice
 
@@ -13994,3 +14040,274 @@ Restano aperte le seguenti verifiche e attività, da valutare nelle future sessi
 Queste attività non costituiscono automaticamente incarichi approvati per una sessione successiva.
 
 Le decisioni operative future saranno assunte sulla base dello stato reale del progetto e delle verifiche disponibili, mantenendo i principi **«Sicurezza prima di tutto»** e **«Presto e bene non conviene»**.
+
+---
+
+# Sessione S040 — Collaudo SQL dinamico del lifecycle delle pianificazioni stagionali
+
+**Data:** 06/11/2026
+
+**Stato sviluppo:** Concluso
+
+**Ambito:** Collaudo SQL locale del modello autoritativo di pianificazione stagionale introdotto nella S039
+
+**Versioni applicative:** `0.1.21-alpha` e `0.1.21-alpha+6` per Flutter, invariate
+
+## Obiettivo della sessione
+
+La Sessione S040 ha avuto come obiettivo la verifica dinamica locale dei principali percorsi autoritativi delle pianificazioni stagionali delle coltivazioni.
+
+Il lavoro si è concentrato sul modello SQL introdotto nella S039, comprendente le entità `season_plans` e `planned_plantings`, le cinque RPC del lifecycle e il collegamento con le coltivazioni reali.
+
+Il collaudo è stato effettuato sul database PostgreSQL locale, senza modificare il database Supabase remoto.
+
+## Attività tecniche svolte
+
+### Realizzazione dello script di collaudo
+
+È stato introdotto il file:
+
+`supabase/tests/s040_planned_planting_lifecycle.sql`
+
+Lo script comprende **887 righe e 15 sezioni**, dedicate alla predisposizione del contesto di prova e alla verifica dei principali comportamenti del lifecycle.
+
+Il collaudo utilizza dati temporanei creati all'interno della transazione di test, evitando il popolamento persistente del database con dati dimostrativi.
+
+### Predisposizione del contesto autoritativo
+
+Sono stati predisposti i prerequisiti necessari all'esecuzione delle verifiche, comprendenti:
+
+- contesto di autenticazione;
+- Profile Write Authority e relativo lock;
+- orto, stagione e aiuola temporanei;
+- riferimenti temporanei alle identità del Catalogo Agronomico;
+- dati necessari alla creazione delle pianificazioni.
+
+Questi elementi sono stati utilizzati esclusivamente nell'ambito del collaudo locale.
+
+### Verifica del lifecycle delle pianificazioni
+
+Le verifiche dinamiche hanno riguardato i principali percorsi autoritativi:
+
+- creazione di una pianificazione;
+- aggiornamento dei dati della pianificazione;
+- conferma;
+- annullamento;
+- protezione contro annullamenti ripetuti;
+- esecuzione di una pianificazione confermata;
+- generazione e collegamento della coltivazione reale;
+- protezione contro esecuzioni duplicate;
+- controllo dei conflitti di versione mediante `row_version`;
+- verifiche autorizzative e protezione dalle scritture dirette.
+
+Le operazioni sono state esaminate attraverso i percorsi SQL previsti dal modello autoritativo.
+
+L'esito positivo riguarda i casi effettivamente eseguiti e non equivale alla certificazione completa di ogni combinazione di stato, geometria, temporalità e concorrenza.
+
+## Correzione dello script di test
+
+Durante la prima esecuzione è emerso un errore nella predisposizione dei dati temporanei.
+
+Lo script tentava di valorizzare direttamente le colonne generate:
+
+- `normalized_scientific_name`;
+- `normalized_canonical_name`.
+
+La predisposizione dei dati di prova è stata corretta, rispettando la generazione automatica di tali valori da parte del database.
+
+La correzione ha riguardato esclusivamente lo script di collaudo.
+
+Non sono state introdotte nuove migration né modifiche al modello persistente per risolvere questo problema.
+
+La successiva esecuzione del collaudo SQL locale si è conclusa positivamente.
+
+## Isolamento transazionale e pulizia del database
+
+Lo script è stato eseguito all'interno di una transazione delimitata da:
+
+- `BEGIN`;
+- `ROLLBACK`.
+
+Al termine del collaudo è stata verificata l'assenza di righe persistenti nelle seguenti nove tabelle:
+
+| Tabella | Esito della verifica |
+|---|---|
+| `gardens` | Nessuna riga residua del collaudo |
+| `seasons` | Nessuna riga residua del collaudo |
+| `beds` | Nessuna riga residua del collaudo |
+| `bed_geometries` | Nessuna riga residua del collaudo |
+| `botanical_taxa` | Nessuna riga residua del collaudo |
+| `crops` | Nessuna riga residua del collaudo |
+| `season_plans` | Nessuna riga residua del collaudo |
+| `planned_plantings` | Nessuna riga residua del collaudo |
+| `plantings` | Nessuna riga residua del collaudo |
+
+Il risultato conferma l'assenza di persistenza dei dati temporanei nelle tabelle controllate.
+
+Questa verifica non costituisce, da sola, dimostrazione esaustiva del rollback atomico interno delle RPC in tutte le possibili condizioni di errore.
+
+## Verifiche e test
+
+Alla conclusione dello sviluppo S040 sono stati registrati i seguenti risultati:
+
+| Verifica | Esito |
+|---|---|
+| Script SQL dinamico locale | Eseguito con esito positivo |
+| Sezioni dello script | 15 |
+| Lifecycle delle pianificazioni | Verificato nei casi coperti |
+| Controlli autorizzativi e Write Authority | Verificati nei casi coperti |
+| Conflitti `row_version` | Verificati nei casi coperti |
+| Protezione dalle esecuzioni duplicate | Verificata nei casi coperti |
+| Isolamento mediante `ROLLBACK` | Verificato |
+| Persistenza residua nelle nove tabelle controllate | Assente |
+| `flutter analyze` | **Superato — No issues found** |
+| `flutter test` | **1472/1472 test superati** |
+| Concorrenza simultanea e sovrapposizioni | Non certificate esaustivamente |
+| Rollback interno delle RPC in condizioni di errore | Non certificato esaustivamente |
+| Collaudo integrato Flutter–Supabase della pianificazione | Non completato |
+| Deployment delle migration S039 al database remoto | Non effettuato |
+
+I test Flutter confermano l'assenza di regressioni rilevate dalla suite eseguita, ma non attestano la disponibilità di un'interfaccia Flutter operativa per la nuova pianificazione stagionale.
+
+## Stato del database e delle migration
+
+La S040 non ha introdotto nuove migration.
+
+Le **11 migration SQL della S039** rimangono applicate al database locale.
+
+Non è stato effettuato il deployment di tali migration al database Supabase remoto durante la S040.
+
+Il collaudo non ha richiesto modifiche persistenti alle strutture SQL già implementate.
+
+La pubblicazione dello script di test nel repository GitHub è distinta dall'applicazione delle migration al database remoto.
+
+## Versionamento Git
+
+Il commit tecnico conclusivo dello sviluppo S040 è:
+
+`8e15c681a5214c4f9643a9fc765b82ec9b427af9`
+
+Il commit è stato pubblicato sul branch `main` del repository `ortosmart/orto-smart`.
+
+Il contenuto tecnico principale della sessione è lo script:
+
+`supabase/tests/s040_planned_planting_lifecycle.sql`
+
+Alla chiusura dello sviluppo il repository risultava allineato al remoto e la working tree pulita.
+
+Tale stato è riferito alla chiusura dello sviluppo e non comprende le successive modifiche documentali della fase Manuali S040.
+
+## Timing della Sessione S040
+
+### Sviluppo
+
+| Indicatore | Valore |
+|---|---|
+| Data sviluppo | 06/11/2026 |
+| Apertura sviluppo | 11:09 |
+| Prima tranche | 11:09–12:38 |
+| Durata prima tranche | 1 h 29 min |
+| Sospensione | 12:38–13:27 |
+| Durata sospensione, esclusa dal consuntivo | 49 min |
+| Seconda tranche | 13:27–14:23 |
+| Durata seconda tranche | 56 min |
+| Chiusura sviluppo | 14:23 |
+| **Tempo netto sviluppo S040** | **2 h 25 min** |
+| Progressivo sviluppo alla S039 | 244 h 05 min |
+| **Progressivo sviluppo alla S040** | **246 h 30 min** |
+
+### Manuali
+
+| Indicatore | Valore |
+|---|---|
+| Data Manuali | 06/11/2026 |
+| Apertura Manuali | 22:04 |
+| Chiusura Manuali | 23:45 |
+| Sospensioni | Nessuna |
+| **Tempo netto Manuali S040** | **1 h 41 min** |
+| Progressivo Manuali alla S039 | 93 h 06 min |
+| **Progressivo Manuali alla S040** | **94 h 47 min** |
+
+### Consuntivo definitivo S040
+
+| Indicatore | Valore |
+|---|---:|
+| Sviluppo S040 | 2 h 25 min |
+| Manuali S040 | 1 h 41 min |
+| **Totale Sessione S040** | **4 h 06 min** |
+
+### Progressivi complessivi del progetto
+
+Alla chiusura dello sviluppo S040 era stato acquisito il seguente progressivo intermedio:
+
+| Indicatore | Valore |
+|---|---:|
+| Totale progetto consolidato alla S039 | 337 h 11 min |
+| Sviluppo S040 | 2 h 25 min |
+| **Totale dopo il solo sviluppo S040** | **339 h 36 min** |
+
+Il valore di **339 h 36 min** rappresenta correttamente il progressivo intermedio precedente alla chiusura dei Manuali S040.
+
+Dopo il completamento della fase documentale, il progressivo definitivo del progetto è:
+
+| Categoria | Progressivo |
+|---|---:|
+| Sviluppo complessivo | 246 h 30 min |
+| Documentazione complessiva | 94 h 47 min |
+| **Totale progetto** | **341 h 17 min** |
+
+La quadratura definitiva è:
+
+```text
+246 h 30 min   Sviluppo complessivo
+ 94 h 47 min   Documentazione complessiva
+-----------------------------------------
+341 h 17 min   Totale progetto
+```
+
+Il consuntivo della S040 è definitivo e recepisce entrambe le fasi, senza modificare retroattivamente il tempo di sviluppo concluso il 06/11/2026 alle 14:23.
+
+La chiusura temporale dei Manuali S040, dichiarata il 06/11/2026 alle 23:45, rimane distinta dalle successive operazioni tecniche di verifica, aggiornamento, commit, push e conferma dell'allineamento documentale con GitHub, secondo il DOC-009.
+
+## Risultati e limiti della sessione
+
+La S040 ha fornito una prima evidenza dinamica locale del funzionamento dei principali percorsi del lifecycle delle pianificazioni stagionali.
+
+Sono stati conseguiti:
+
+- introduzione di uno script SQL di regressione dedicato;
+- esecuzione positiva dei casi previsti dal collaudo;
+- verifica di creazione, aggiornamento, conferma, annullamento ed esecuzione delle pianificazioni nei casi coperti;
+- verifica di protezioni autorizzative e di versione;
+- controllo della protezione contro operazioni ripetute non consentite;
+- verifica dell'assenza di dati persistenti dopo il rollback del collaudo;
+- conferma di `flutter analyze` senza problemi;
+- superamento di 1472 test Flutter;
+- consolidamento e pubblicazione del commit tecnico S040.
+
+Non vengono dichiarati:
+
+- copertura dinamica esaustiva di tutte le RPC e delle relative condizioni limite;
+- verifica completa di tutte le sovrapposizioni geometriche e temporali;
+- certificazione della concorrenza simultanea;
+- certificazione del rollback atomico interno in tutte le condizioni di errore;
+- applicazione delle migration S039 al database remoto;
+- integrazione Flutter del lifecycle delle pianificazioni;
+- disponibilità di un flusso operativo completo di pianificazione reale dell'orto.
+
+## Continuità e questioni aperte
+
+Restano da valutare nelle future sessioni ufficiali di sviluppo:
+
+- ulteriori prove negative e casi limite del lifecycle;
+- collaudi delle sovrapposizioni spaziali e temporali;
+- prove di concorrenza simultanea;
+- verifiche del rollback atomico delle RPC in condizioni di errore;
+- eventuale deployment controllato delle migration S039 al database remoto;
+- integrazione Flutter del modello di pianificazione;
+- collaudo integrato tra interfaccia Flutter e backend Supabase;
+- verifica dei prerequisiti agronomici necessari all'utilizzo operativo.
+
+Queste attività rappresentano questioni ancora aperte e non costituiscono incarichi automaticamente approvati per le sessioni successive.
+
+Le decisioni operative saranno assunte esclusivamente nelle sessioni ufficiali di sviluppo, sulla base dello stato effettivamente verificato del progetto.

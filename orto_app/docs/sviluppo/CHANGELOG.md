@@ -4,7 +4,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 3.5
+**Versione:** 3.6
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 05/11/2026
+**Ultimo aggiornamento:** 06/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |-------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 3.5 |
+| Versione | 3.6 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 05/11/2026 |
+| Ultimo aggiornamento | 06/11/2026 |
 
 ---
 
@@ -67,6 +67,7 @@
 | 3.3 | 26/10/2026 | Documentazione della S037: audit statici del Catalogo Agronomico, protezione delle scritture concorrenti in BedPage, verifiche e obiettivo operativo per l'orto 2027; consolidamento del consuntivo Manuali S036 |
 | 3.4 | 03/11/2026 | Documentazione della S038: contratto tipizzato e repository del Resolver Agronomico, integrazione Flutter delle Unità di misura e dei Parametri agronomici, cinque commit tecnici, allineamento delle 34 migration e applicazione remota della correzione S034; registrazione delle verifiche integrative Manuali del 03/11/2026 con 178/178 test Flutter superati e analisi statica senza anomalie. Versioni applicative invariate. |
 | 3.5 | 05/11/2026 | Documentazione della Sessione S039: implementazione del modello autoritativo di pianificazione stagionale mediante `season_plans` e `planned_plantings`, introduzione di cinque RPC per creazione, modifica, conferma, annullamento ed esecuzione atomica delle coltivazioni pianificate, protezioni geometriche e temporali e collegamento alle coltivazioni reali; undici migration SQL applicate esclusivamente al database locale, verifiche statiche SQL, `flutter analyze` senza problemi e 1472/1472 test Flutter superati. Registrazione del commit tecnico `5527aa8`, del consuntivo sviluppo di 3 h 35 min e delle attività ancora aperte relative ai collaudi SQL dinamici, al deployment remoto e all'integrazione Flutter. Versione pubblica `0.1.21-alpha` e versione Flutter `0.1.21-alpha+6` invariate. |
+| 3.6 | 06/11/2026 | Documentazione della Sessione S040: introduzione ed esecuzione del collaudo SQL dinamico locale del lifecycle delle pianificazioni stagionali, verifiche autorizzative e transazionali, isolamento dei dati temporanei mediante rollback, 1472/1472 test Flutter superati e registrazione del commit tecnico `8e15c681`. Nessuna nuova migration o applicazione remota; integrazione Flutter della pianificazione e ulteriori collaudi ancora aperti. Versioni applicative invariate. |
 
 ---
 
@@ -3373,6 +3374,106 @@ Restano da verificare o completare i collaudi SQL dinamici, le verifiche di conc
 Tali attività non devono essere considerate risultati conseguiti né impegni operativi automaticamente autorizzati per le sessioni successive.
 
 Le versioni applicative rimangono `0.1.21-alpha` e `0.1.21-alpha+6` per Flutter. La S039 non introduce una nuova versione pubblica dell'applicazione.
+
+### Incremento tecnico S040 — Collaudo SQL dinamico del lifecycle delle pianificazioni stagionali
+
+La Sessione di Sviluppo S040, svolta il **06/11/2026**, ha introdotto ed eseguito un collaudo SQL dinamico locale del lifecycle autoritativo delle pianificazioni stagionali implementato nella S039.
+
+La fase di sviluppo è stata dichiarata conclusa il **06/11/2026 alle 14:23**, con un tempo netto definitivo di **2 h 25 min**.
+
+**Aggiunto — Script di collaudo SQL**
+
+È stato introdotto il file:
+
+`supabase/tests/s040_planned_planting_lifecycle.sql`
+
+Lo script comprende **887 righe e 15 sezioni di test**, dedicate alla verifica dinamica dei principali percorsi autoritativi delle pianificazioni stagionali.
+
+Il collaudo è stato eseguito esclusivamente sul database PostgreSQL locale.
+
+**Verificato — Lifecycle autoritativo**
+
+Le verifiche hanno riguardato:
+
+- predisposizione del contesto di autenticazione e Profile Write Authority;
+- creazione dei dati temporanei necessari al collaudo;
+- creazione e aggiornamento delle pianificazioni;
+- conferma e annullamento;
+- protezione dagli annullamenti ripetuti;
+- esecuzione di una pianificazione confermata con generazione della coltivazione reale;
+- controllo dei conflitti `row_version`;
+- protezione dalle esecuzioni duplicate;
+- verifiche autorizzative e delle limitazioni alle scritture dirette.
+
+Il risultato positivo riguarda i casi effettivamente implementati nello script e non costituisce certificazione di tutte le possibili condizioni operative.
+
+**Corretto — Predisposizione dei dati di prova**
+
+Durante la prima esecuzione è stato individuato un errore nello script di collaudo relativo al tentativo di valorizzare direttamente le colonne generate `normalized_scientific_name` e `normalized_canonical_name`.
+
+La predisposizione dei dati temporanei è stata corretta senza modificare le migration o il contratto persistente.
+
+La successiva esecuzione del collaudo SQL locale si è conclusa positivamente.
+
+**Verificato — Isolamento transazionale**
+
+Il collaudo è stato eseguito all'interno di una transazione delimitata da `BEGIN` e `ROLLBACK`.
+
+Al termine è stata verificata l'assenza di righe persistenti nelle nove tabelle controllate:
+
+- `gardens`;
+- `seasons`;
+- `beds`;
+- `bed_geometries`;
+- `botanical_taxa`;
+- `crops`;
+- `season_plans`;
+- `planned_plantings`;
+- `plantings`.
+
+L'assenza di dati residui conferma l'isolamento del collaudo, ma non dimostra da sola il rollback atomico delle RPC in ogni possibile condizione di errore.
+
+**Verifiche Flutter**
+
+- `flutter analyze`: superato senza problemi.
+- `flutter test`: **1472/1472 test superati**.
+
+La suite Flutter non costituisce un collaudo operativo della nuova interfaccia di pianificazione, non ancora integrata.
+
+**Sicurezza e database**
+
+- Nessuna nuova migration introdotta nella S040.
+- Nessuna modifica alle undici migration S039.
+- Migration S039 applicate al database locale.
+- Nessun deployment delle undici migration al database remoto durante la S040.
+- Nessuna modifica persistente ai dati operativi prodotta dal collaudo SQL.
+
+**Tracciabilità Git**
+
+Il commit tecnico conclusivo dello Sviluppo S040 è:
+
+`8e15c681a5214c4f9643a9fc765b82ec9b427af9`
+
+Il commit è stato pubblicato sul branch `main`.
+
+**Consuntivo sviluppo S040:** **2 h 25 min**.
+
+Il progressivo delle sole ore di sviluppo raggiunge **246 h 30 min**, a partire dalle **244 h 05 min** consolidate alla S039.
+
+La fase Manuali S040 è distinta dallo sviluppo e il relativo consuntivo sarà consolidato nel DOC-010 soltanto dopo la chiusura ufficiale.
+
+**Limiti e attività ancora aperte**
+
+Non risultano completati nella S040:
+
+- il deployment remoto delle undici migration S039;
+- l'integrazione Flutter del lifecycle delle pianificazioni;
+- il collaudo operativo integrato Flutter–Supabase;
+- ulteriori verifiche dinamiche di concorrenza simultanea, sovrapposizione spaziale e temporale e rollback atomico su errore, non specificamente attestate dai test eseguiti.
+
+Le attività ancora aperte non costituiscono impegni operativi automaticamente approvati per le sessioni successive.
+
+Le versioni applicative rimangono **`0.1.21-alpha`** e **`0.1.21-alpha+6`** per Flutter. La S040 non introduce una nuova versione pubblica dell'applicazione.
 
 # 4. Cronologia versioni
 

@@ -4,14 +4,14 @@
 
 # Test e Collaudo
 
-**Versione:** 1.3
+**Versione:** 1.4
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/10/2026
-**Ultimo aggiornamento:** 05/11/2026
+**Ultimo aggiornamento:** 06/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |-------|--------|
 | Documento | DOC-007 |
 | Titolo | Test e Collaudo |
-| Versione | 1.3 |
+| Versione | 1.4 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/10/2026 |
-| Ultimo aggiornamento | 05/11/2026 |
+| Ultimo aggiornamento | 06/11/2026 |
 
 ---
 
@@ -42,6 +42,7 @@
 | 1.1 | 26/10/2026 | Inserimento delle evidenze S037: audit statici degli Alias e dell'integrità Taxon/Crop, protezione delle scritture concorrenti in BedPage, 32 test Flutter mirati superati e distinzione esplicita dalle evidenze S036. |
 | 1.2 | 03/11/2026 | Inserimento del §12.20 relativo alla S038: perimetro tecnico del Resolver Agronomico, unità di misura e parametri agronomici; tracciabilità degli otto file di test introdotti; verifica integrativa del 03/11/2026 con 178/178 test Flutter superati e analisi statica senza anomalie; precisazione dei limiti dei collaudi. |
 | 1.3 | 05/11/2026 | Aggiornamento documentale della Sessione S039: introduzione del §12.21 con le evidenze tecniche relative al modello autoritativo di pianificazione stagionale, alle cinque RPC del ciclo di vita e dell'esecuzione atomica, alle protezioni geometriche e temporali e alle undici migration SQL applicate esclusivamente in locale; registrazione dell'esito positivo di `flutter analyze` e di 1472/1472 test Flutter, distinguendo le verifiche statiche SQL effettuate dai collaudi dinamici end-to-end, di concorrenza e rollback non ancora completati, dal deployment remoto e dall'integrazione Flutter ancora aperti. |
+| 1.4 | 06/11/2026 | Inserimento del §12.22 relativo alla Sessione S040: collaudo SQL dinamico del lifecycle delle pianificazioni stagionali mediante script di 887 righe e 15 sezioni; registrazione della correzione sulle colonne generate, dell'esecuzione transazionale con rollback e dell'assenza di dati persistenti nelle nove tabelle controllate; conferma di `flutter analyze` senza anomalie e di 1472/1472 test Flutter superati; tracciabilità del commit `8e15c681` e distinzione dai collaudi Flutter e dal deployment remoto ancora pendenti. |
 
 ---
 
@@ -3286,6 +3287,197 @@ Alla conclusione della S039 restano da verificare:
 - l'integrazione Flutter e il relativo collaudo funzionale.
 
 Le evidenze S039 attestano l'avanzamento tecnico raggiunto, ma **non autorizzano a dichiarare completato il collaudo della pianificazione stagionale** né il collaudo complessivo dell'applicazione previsto dal Capitolo 13.
+
+## 12.22 Evidenze tecniche della Sessione S040
+
+La Sessione di sviluppo S040, conclusa il **06/11/2026 alle ore 14:23**, ha completato il collaudo funzionale SQL del ciclo di vita delle pianificazioni stagionali introdotte nella S039.
+
+Le evidenze comprendono l'esecuzione controllata dello script SQL, la verifica delle operazioni autoritative, i controlli di integrità del database locale, l'analisi statica Flutter, i test automatici e la tracciabilità Git.
+
+### 12.22.1 Perimetro tecnico della S040
+
+La S040 ha introdotto il seguente script di collaudo:
+
+`orto_app/supabase/tests/s040_planned_planting_lifecycle.sql`
+
+Lo script definitivo comprende **887 righe e 15 sezioni di verifica**.
+
+Il collaudo ha interessato:
+
+- la preparazione del contesto di autenticazione e autorizzazione;
+- l'acquisizione del lock temporaneo;
+- la preparazione delle strutture temporanee necessarie;
+- la creazione di pianificazioni in stato `draft`;
+- l'aggiornamento delle pianificazioni;
+- la conferma delle pianificazioni;
+- l'annullamento delle pianificazioni;
+- la protezione dagli annullamenti ripetuti;
+- l'esecuzione delle pianificazioni confermate;
+- la creazione della coltivazione effettiva;
+- la gestione dei conflitti di versione;
+- la protezione dalle esecuzioni duplicate;
+- il rispetto della Profile Write Authority;
+- il blocco delle modifiche dirette non autorizzate.
+
+Le verifiche sono state completate senza errori SQL non gestiti.
+
+### 12.22.2 Ambiente ed esecuzione del collaudo SQL
+
+Il collaudo è stato eseguito esclusivamente sul database PostgreSQL locale utilizzato dal progetto Supabase.
+
+L'esecuzione è stata racchiusa in una transazione:
+
+```sql
+BEGIN;
+
+-- Operazioni e verifiche del collaudo.
+
+ROLLBACK;
+```
+
+Il rollback conclusivo ha consentito di effettuare le verifiche senza mantenere nel database i dati temporanei utilizzati durante il test.
+
+Non sono state eseguite operazioni di collaudo sul database Supabase remoto.
+
+### 12.22.3 Correzione emersa durante il collaudo
+
+Durante la prima esecuzione è stato individuato un errore nella preparazione del catalogo botanico temporaneo.
+
+Le colonne:
+
+- `normalized_scientific_name`;
+- `normalized_canonical_name`;
+
+sono colonne generate automaticamente da PostgreSQL e non accettano valori inseriti esplicitamente.
+
+La sezione S040.6 dello script è stata corretta eliminando tali inserimenti.
+
+La successiva esecuzione del collaudo è terminata correttamente.
+
+La correzione ha interessato esclusivamente lo script di test e non ha richiesto modifiche alle migration SQL esistenti.
+
+### 12.22.4 Risultati delle verifiche SQL
+
+| Ambito verificato | Esito |
+|---|---|
+| Preparazione del contesto autorizzativo | Superato |
+| Acquisizione del lock temporaneo | Superato |
+| Preparazione dei dati temporanei | Superato |
+| Creazione della pianificazione | Superato |
+| Aggiornamento della pianificazione | Superato |
+| Conferma della pianificazione | Superato |
+| Annullamento della pianificazione | Superato |
+| Protezione dagli annullamenti ripetuti | Superato |
+| Esecuzione della pianificazione | Superato |
+| Creazione della coltivazione effettiva | Superato |
+| Controllo dei conflitti di versione | Superato |
+| Protezione dalle esecuzioni duplicate | Superato |
+| Verifica della Write Authority | Superato |
+| Blocco delle scritture dirette non autorizzate | Superato |
+
+Le 15 sezioni dello script sono terminate senza errori SQL non gestiti.
+
+Il risultato attesta il superamento dei casi implementati nello script, senza estendere automaticamente tale esito a condizioni non comprese nel collaudo.
+
+### 12.22.5 Integrità del database dopo il collaudo
+
+Al termine dell'esecuzione è stata verificata l'assenza di record persistenti nelle nove tabelle operative controllate.
+
+| Tabella | Record finali |
+|---|---:|
+| `gardens` | 0 |
+| `seasons` | 0 |
+| `beds` | 0 |
+| `bed_geometries` | 0 |
+| `botanical_taxa` | 0 |
+| `crops` | 0 |
+| `season_plans` | 0 |
+| `planned_plantings` | 0 |
+| `plantings` | 0 |
+
+La verifica conferma che il collaudo non ha lasciato dati di prova persistenti nelle tabelle controllate.
+
+Non costituisce una verifica generale di tutte le tabelle del database.
+
+### 12.22.6 Analisi statica e test Flutter
+
+Alla conclusione dello sviluppo S040 è stata eseguita l'analisi statica:
+
+```powershell
+flutter analyze
+```
+
+**Esito:** positivo, senza problemi rilevati.
+
+Durata dichiarata: **13,8 secondi**.
+
+È stata inoltre eseguita la suite automatizzata:
+
+```powershell
+flutter test
+```
+
+**Risultato:**
+
+```text
+1472/1472 test superati
+```
+
+Durata dichiarata: **1 minuto e 39 secondi**.
+
+| Verifica | Esito |
+|---|---|
+| Analisi statica Flutter | Superata |
+| Problemi rilevati | 0 |
+| Test Flutter complessivi | 1472 |
+| Test Flutter superati | 1472 |
+| Test Flutter falliti | 0 |
+| Collaudo SQL lifecycle pianificazioni | Superato nei casi implementati |
+| Persistenza dei dati temporanei nelle nove tabelle controllate | Nessuna |
+| Collaudo funzionale Flutter della pianificazione | Non completato |
+| Distribuzione delle migration S039 sul remoto | Non effettuata |
+
+Non risultano regressioni nella suite Flutter rispetto alla baseline iniziale S040.
+
+### 12.22.7 Tracciabilità tecnica e Git
+
+Lo script di collaudo è stato pubblicato nel repository ufficiale.
+
+Commit conclusivo dello sviluppo S040:
+
+```text
+8e15c681a5214c4f9643a9fc765b82ec9b427af9
+```
+
+Messaggio:
+
+```text
+Aggiunge collaudo SQL lifecycle pianificazioni S040
+```
+
+Branch: `main`.
+
+Il commit è stato pubblicato su GitHub e la sincronizzazione tra HEAD locale e `origin/main` è stata verificata.
+
+Il working tree risultava pulito alla conclusione della sessione.
+
+La pubblicazione Git dello script di collaudo non equivale alla distribuzione delle migration SQL al database Supabase remoto.
+
+### 12.22.8 Limiti e verifiche ancora necessarie
+
+Il collaudo S040 rappresenta un avanzamento rispetto alla S039, perché introduce verifiche SQL dinamiche effettivamente eseguite.
+
+Rimangono tuttavia aperte:
+
+- l'applicazione controllata delle migration S039 al database Supabase remoto;
+- la verifica dell'allineamento tra database locale e remoto;
+- la verifica funzionale dell'integrazione Flutter del lifecycle delle pianificazioni;
+- eventuali ulteriori verifiche delle condizioni di concorrenza e sicurezza non comprese nello script;
+- il collaudo complessivo dell'applicazione secondo il Capitolo 13.
+
+Qualsiasi distribuzione delle migration al database remoto richiede una preventiva verifica delle dipendenze e un'autorizzazione esplicita.
+
+Le evidenze S040 consentono di dichiarare **superato il collaudo SQL dei casi implementati nello script `s040_planned_planting_lifecycle.sql`**, ma non consentono ancora di dichiarare completato il collaudo funzionale dell'intera pianificazione stagionale nell'app Flutter o il collaudo complessivo dell'applicazione.
 
 # 13. Collaudo complessivo dell'applicazione
 
