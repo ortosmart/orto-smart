@@ -93,6 +93,10 @@ final class CreatePlantingOverlap extends CreatePlantingResult {
   const CreatePlantingOverlap();
 }
 
+final class CreatePlantingBlockedByConfirmedPlans extends CreatePlantingResult {
+  const CreatePlantingBlockedByConfirmedPlans();
+}
+
 sealed class UpdatePlantingResult {
   const UpdatePlantingResult();
 }

@@ -194,17 +194,22 @@ void main() {
     );
   });
 
-  Future<void> openPage(WidgetTester tester, {Planting? planting}) async {
+  Future<void> openPage(
+    WidgetTester tester, {
+    Planting? planting,
+    bool createMode = false,
+    SeasonRepository? seasonRepository,
+  }) async {
     await tester.pumpWidget(
       MaterialApp(
         home: AddPlantingPage(
           bed: _bed(),
-          planting: planting ?? _directRowsPlanting(),
+          planting: createMode ? null : (planting ?? _directRowsPlanting()),
           repository: plantingRepository,
           authority: authority,
           cropRepository: _CropRepositoryFake(),
           associationRepository: _CropAssociationRepositoryFake(),
-          seasonRepository: _SeasonRepositoryFake(),
+          seasonRepository: seasonRepository ?? _SeasonRepositoryFake(),
         ),
       ),
     );
@@ -295,5 +300,78 @@ void main() {
     expect(find.text('Piante per fila'), findsOneWidget);
     expect(find.text('3'), findsOneWidget);
     expect(find.text('200 cm'), findsWidgets);
+  });
+
+  testWidgets('confirmed planning blocks new planting with specific message', (
+    tester,
+  ) async {
+    var createCalls = 0;
+
+    plantingRepository = PlantingRepository.withProviders(
+      (_) async => <Map<String, dynamic>>[],
+      (functionName, parameters) async {
+        expect(functionName, 'create_planting');
+        createCalls++;
+        return {'status': 'blocked_by_confirmed_plans'};
+      },
+      authority.requireLeaseForWrite,
+    );
+
+    final seasonRepository = SeasonRepository.withProviders(
+      () async => {
+        'id': _seasonId,
+        'garden_id': _gardenId,
+        'year': 2026,
+        'name': 'Stagione test',
+        'start_date': '2026-01-01',
+        'is_active': true,
+        'row_version': 1,
+      },
+      (functionName, parameters) async {
+        fail('RPC stagione inattesa: $functionName');
+      },
+    );
+
+    await openPage(
+      tester,
+      createMode: true,
+      seasonRepository: seasonRepository,
+    );
+
+    final cropDropdown = find.widgetWithText(
+      DropdownButtonFormField<String>,
+      'Coltura',
+    );
+
+    await tester.ensureVisible(cropDropdown);
+    await tester.tap(cropDropdown);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pomodoro').last);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(_field('Numero di piante (facoltativo)'), '5');
+    await tester.enterText(
+      _field('Distanza tra le piante (facoltativa)'),
+      '30',
+    );
+    await tester.enterText(_field('Numero di file'), '2');
+    await tester.enterText(_field('Tra le file'), '40');
+    await tester.enterText(_field('Lunghezza occupata'), '200');
+
+    await _submit(tester);
+
+    expect(createCalls, 1);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is SelectableText &&
+            (widget.data ?? widget.textSpan?.toPlainText())?.contains(
+                  'lo spazio \u00E8 gi\u00E0 riservato',
+                ) ==
+                true,
+      ),
+      findsOneWidget,
+    );
+    expect(find.byType(AddPlantingPage), findsOneWidget);
   });
 }

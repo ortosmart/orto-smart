@@ -167,6 +167,8 @@ class PlantingRepository {
         const CreatePlantingBlockedByInactiveCultivar(),
       'outside_bed_geometry' => const CreatePlantingOutsideBedGeometry(),
       'overlap' => const CreatePlantingOverlap(),
+      'blocked_by_confirmed_plans' =>
+        const CreatePlantingBlockedByConfirmedPlans(),
       _ => throw const PlantingWriteProtocolException(),
     };
   }

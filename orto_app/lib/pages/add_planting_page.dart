@@ -1083,6 +1083,14 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
           });
           return;
 
+        case CreatePlantingBlockedByConfirmedPlans():
+          setState(() {
+            _saveError =
+                'Impossibile inserire la coltura: lo spazio è già riservato '
+                'da una pianificazione confermata per il periodo indicato.';
+          });
+          return;
+
         case CreatePlantingOverlap():
           setState(() {
             _saveError =

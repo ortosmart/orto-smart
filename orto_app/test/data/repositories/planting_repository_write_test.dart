@@ -208,6 +208,8 @@ void main() {
           isA<CreatePlantingBlockedByInactiveCultivar>(),
       'outside_bed_geometry': isA<CreatePlantingOutsideBedGeometry>(),
       'overlap': isA<CreatePlantingOverlap>(),
+      'blocked_by_confirmed_plans':
+          isA<CreatePlantingBlockedByConfirmedPlans>(),
     };
 
     for (final entry in statusCases.entries) {
