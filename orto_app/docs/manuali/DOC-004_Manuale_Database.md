@@ -4,14 +4,14 @@
 
 # Manuale Database
 
-**Versione:** 2.10
+**Versione:** 2.11
 **Stato:** In sviluppo
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/08/2026
-**Ultimo aggiornamento:** 06/11/2026
+**Ultimo aggiornamento:** 12/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 | --- | --- |
 | Documento | DOC-004 |
 | Titolo | Manuale Database |
-| Versione | 2.10 |
+| Versione | 2.11 |
 | Stato | In sviluppo |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/08/2026 |
-| Ultimo aggiornamento | 06/11/2026 |
+| Ultimo aggiornamento | 12/11/2026 |
 
 ---
 
@@ -57,7 +57,7 @@
 | 2.8 | 03/11/2026 | Aggiornamento documentale con la Sessione S038: consolidamento dello stato del Catalogo Agronomico e dei sette registri S033B, integrazione amministrativa Flutter di `measurement_units` e `agronomic_parameters`, aggiornamento dei Write Path autoritativi e del contratto Flutter tipizzato del Resolver, registrazione dell'applicazione remota della migration correttiva S034 e dell'allineamento delle 34 migration locali e remote, documentazione dei backup SQL remoti e dei limiti del collaudo integrato e del ripristino logico. |
 | 2.9 | 05/11/2026 | Aggiornamento documentale con la Sessione S039: introduzione delle tabelle autoritative `season_plans` e `planned_plantings`, del ciclo di vita `draft` → `confirmed` → `executed` con possibilità di annullamento, delle cinque RPC di creazione, modifica, conferma, annullamento ed esecuzione atomica; protezione delle sovrapposizioni spaziali e temporali, compatibilità con le geometrie storicizzate delle aiuole, Profile Write Authority, concorrenza ottimistica e vincoli di integrità; registrazione delle undici migration SQL applicate esclusivamente al database locale, delle verifiche statiche effettuate e dei collaudi SQL dinamici, del deployment remoto e dell'integrazione Flutter ancora aperti. |
 | 2.10 | 06/11/2026 | Aggiornamento documentale con la Sessione S040: introduzione del collaudo dinamico SQL locale del lifecycle autoritativo delle pianificazioni stagionali mediante lo script `s040_planned_planting_lifecycle.sql`, articolato in 15 sezioni e 887 righe; verifica delle principali transizioni di creazione, aggiornamento, conferma, annullamento ed esecuzione, delle autorizzazioni, dei conflitti `row_version` e delle protezioni contro operazioni duplicate; registrazione della correzione dei dati di prova relativi alle colonne generate, dell'isolamento transazionale con `ROLLBACK` e dell'assenza di dati persistenti nelle nove tabelle controllate; conferma di `flutter analyze` senza problemi e 1472/1472 test superati; mantenimento delle undici migration S039 esclusivamente locali, senza deployment remoto né integrazione Flutter del nuovo lifecycle, e identificazione delle verifiche avanzate ancora aperte. |
-
+| 2.11 | 12/11/2026 | Aggiornamento documentale della Sessione Manuali S041: integrazione del contratto applicativo Flutter per il risultato autoritativo `blocked_by_confirmed_plans` introdotto lato SQL nella S039, gestione tipizzata `CreatePlantingBlockedByConfirmedPlans` e comportamento di `AddPlantingPage`; correzione della cardinalità di esecuzione `PlannedPlanting` → `Planting` da `0..N` a `0..1`, verificata sulle migration e sulla RPC `execute_planned_planting`; registrazione delle verifiche Flutter S041 con `flutter analyze` superato e 1474/1474 test superati; conferma dell'assenza di nuove migration S041 e della mancata distribuzione remota delle undici migration S039. |
 ---
 
 # Indice
@@ -1904,6 +1904,36 @@ Alla conclusione dello sviluppo S039:
 
 Questa implementazione costituisce lo stato tecnico raggiunto nella S039 e non modifica retroattivamente il significato della baseline nominale storica.
 
+### Gestione applicativa del blocco sulle pianificazioni confermate — S041
+
+La Sessione S041 dell'11/11/2026 ha introdotto nell'applicazione Flutter la gestione specifica del risultato autoritativo `blocked_by_confirmed_plans`, restituito dal Write Path di creazione delle coltivazioni reali quando l'operazione è incompatibile con una pianificazione confermata.
+
+Il controllo di compatibilità rimane responsabilità del database ed è stato introdotto nella S039 attraverso la migration:
+
+```text
+20261104231500_protect_create_planting_confirmed_plans.sql
+```
+
+La S041 ha integrato il comportamento applicativo senza modificare lo schema persistente o introdurre nuove migration.
+
+In particolare:
+
+- il repository Flutter riconosce il risultato `blocked_by_confirmed_plans` e lo rappresenta mediante il risultato tipizzato `CreatePlantingBlockedByConfirmedPlans`;
+- `AddPlantingPage` presenta un messaggio specifico quando la creazione viene bloccata da una pianificazione confermata;
+- la schermata rimane aperta, senza interpretare il blocco come un salvataggio riuscito;
+- sono stati introdotti due test Flutter dedicati al comportamento.
+
+Le verifiche applicative della S041 si sono concluse con:
+
+- `flutter analyze`: PASS;
+- `flutter test`: PASS, **1.474 test su 1.474**.
+
+La S041 non ha completato l'interfaccia Flutter per l'intero lifecycle delle pianificazioni stagionali.
+
+Alla conclusione della S041, le 11 migration introdotte nella S039 risultavano applicate al database Supabase locale, ma non ancora distribuite al database remoto.
+
+La S041 non ha effettuato distribuzioni remote.
+
 ## 4.8 Realtà colturale e lavoro
 
 33. `plantings`
@@ -1912,11 +1942,19 @@ Questa implementazione costituisce lo stato tecnico raggiunto nella S039 e non m
 
 `plantings` rappresenta ciò che viene realmente coltivato e rimane semanticamente distinta dalla pianificazione contenuta in `planned_plantings`.
 
-Una `PlannedPlanting` può originare:
+Nel modello autoritativo introdotto nella S039, una `PlannedPlanting` può generare attraverso la RPC `execute_planned_planting`:
 
 ```text
-0..N Plantings
+0..1 Plantings
 ```
+
+Una pianificazione non eseguita non presenta una coltivazione reale generata attraverso tale percorso.
+
+L'esecuzione di una pianificazione confermata crea atomicamente una sola coltivazione reale, registra il collegamento mediante `executed_planting_id` e porta la pianificazione allo stato `executed`.
+
+La RPC protegge il percorso mediante il blocco della riga, il controllo di `expected_row_version`, la verifica dello stato `confirmed` e la gestione transazionale dell'operazione. Una pianificazione già eseguita non può essere eseguita nuovamente attraverso il medesimo lifecycle autoritativo.
+
+La cardinalità `0..1` descrive il collegamento di esecuzione previsto dal modello persistente S039 e non una relazione agronomica generale tra pianificazioni e coltivazioni.
 
 Dalla Sessione S028 `public.plantings` è implementata fisicamente nel Database V1 e dispone di un proprio Write Path autoritativo.
 

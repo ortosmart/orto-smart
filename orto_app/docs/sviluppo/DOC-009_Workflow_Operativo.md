@@ -1,18 +1,18 @@
-
 # ORTO SMART
 
 ### DOC-009
 
 # Workflow Operativo
 
-**Versione:** 2.7
+**Versione:** 2.8
 **Stato:** Approvato
 
-**Autore:** Renzo Siega  
+**Autore:** Renzo Siega
+
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 28/07/2026
-**Ultimo aggiornamento:** 21/10/2026
+**Ultimo aggiornamento:** 11/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -24,12 +24,12 @@
 |--------|--------|
 | Documento | DOC-009 |
 | Titolo | Workflow Operativo |
-| Versione | 2.7 |
+| Versione | 2.8 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 28/07/2026 |
-| Ultimo aggiornamento | 21/10/2026 |
+| Ultimo aggiornamento | 11/11/2026 |
 
 ---
 
@@ -45,7 +45,8 @@
 | 2.4 | 13/10/2026 | Formalizzazione della separazione tra sviluppo e Manuali, dell'avvio dichiarato della fase documentale e del protocollo di passaggio e ricezione tra conversazioni; aggiornamento della Fase 6, della checklist e del diagramma operativo |
 | 2.5 | 17/10/2026 | Formalizzazione della procedura controllata di compilazione e revisione documentale tramite PowerShell, con approvazione preventiva, verifiche, backup e protezione dalle sostituzioni ambigue |
 | 2.6 | 21/10/2026 | Manuali S036: rafforzamento della procedura controllata di revisione documentale; obbligo di sostituzione integrale di capitoli, sottocapitoli o sotto-sottocapitoli, approvazione preventiva del testo completo e verifiche di integrità successive |
-| 2.7 | 21/10/2026 | Manuali S036: aggiornamento della procedura documentale con comandi PowerShell brevi e verificati progressivamente, preparazione su copia temporanea, controlli di sicurezza, backup e autorizzazione separata alla sostituzione definitiva. |
+| 2.7 | 21/10/2026 | Manuali S036: aggiornamento della procedura documentale con comandi PowerShell brevi e verificati progressivamente, preparazione su copia temporanea, controlli di sicurezza, backup e autorizzazione separata alla sostituzione definitiva |
+| 2.8 | 11/11/2026 | Formalizzazione della sostituzione manuale controllata dei documenti ufficiali, in alternativa alla sostituzione mediante PowerShell; introduzione delle responsabilità operative, dell'approvazione preventiva, del backup e delle verifiche successive alla sostituzione |
 
 ---
 
@@ -383,11 +384,81 @@ Tra i documenti che possono richiedere aggiornamento rientrano, a titolo esempli
 - CHANGELOG;
 - VERSION.
 
-### Procedura controllata di compilazione e revisione documentale
 
-Le modifiche ai documenti ufficiali di Orto Smart devono essere eseguite esclusivamente mediante comandi PowerShell predisposti dall'assistente e preventivamente approvati dall'utente. Non sono ammesse modifiche mediante copia-incolla manuale direttamente nel documento.
+### Procedura controllata di compilazione, sostituzione e revisione documentale
+
+Le modifiche ai documenti ufficiali di Orto Smart devono essere eseguite mediante una procedura controllata, finalizzata a preservare l'integrità, la completezza e la tracciabilità della documentazione.
+
+Sono ammesse due modalità operative:
+
+- **Sostituzione manuale controllata:** il testo viene predisposto dall'assistente, approvato dall'utente e inserito manualmente dall'utente nel documento.
+- **Sostituzione mediante PowerShell controllato:** il testo viene predisposto e approvato dall'utente e la sostituzione viene eseguita mediante comandi PowerShell preventivamente verificati e approvati.
+
+Entrambe le modalità sono ufficialmente ammesse. La scelta viene effettuata in funzione della natura e della complessità dell'intervento.
+
+#### Principi obbligatori
 
 Ogni intervento deve rispettare una procedura controllata, articolata nelle seguenti attività:
+
+1. **Individuazione:** identificare il documento e la sezione strutturale interessata.
+2. **Lettura preventiva:** leggere integralmente la sezione esistente e verificare se le informazioni richieste siano già presenti e corrette.
+3. **Valutazione:** modificare esclusivamente ciò che risulta effettivamente necessario, evitando duplicazioni e revisioni non giustificate.
+4. **Preparazione:** predisporre il testo Markdown completo della sezione strutturale da sostituire, conservando tutti i contenuti ancora validi.
+5. **Approvazione:** presentare il testo completo all'utente e ottenere la sua approvazione esplicita prima di procedere.
+6. **Backup:** creare una copia di sicurezza del documento originale, utilizzando un nome univoco e senza sovrascrivere backup esistenti.
+7. **Esecuzione:** applicare la sostituzione integrale secondo la modalità scelta.
+8. **Verifica:** rileggere la sezione aggiornata, controllare le differenze Git e accertare che nessun contenuto estraneo sia stato modificato.
+9. **Conferma:** considerare completato l'intervento soltanto dopo il superamento delle verifiche, prima di procedere alla modifica successiva.
+
+L'unità minima di sostituzione documentale è una **sezione strutturale completa**, identificata come capitolo, sottocapitolo o sotto-sottocapitolo.
+
+Non sono ammesse sostituzioni isolate di singole parole, frasi, righe o paragrafi, neppure per correzioni di lieve entità. In tali casi deve essere riscritta e sostituita integralmente la più piccola sezione strutturale completa che contiene il testo da correggere.
+
+La sostituzione di una sezione deve preservare tutti i contenuti validi al suo interno e lasciare invariati i capitoli, sottocapitoli e sotto-sottocapitoli estranei all'intervento.
+
+L'approvazione deve riferirsi al contenuto effettivo della sezione completa da inserire. L'approvazione generale del piano di aggiornamento non sostituisce l'approvazione del testo definitivo.
+
+#### Modalità A – Sostituzione manuale controllata
+
+La sostituzione manuale controllata consente all'utente di inserire direttamente nel documento il testo completo predisposto e approvato dall'assistente, senza utilizzare script o comandi PowerShell per effettuare la sostituzione.
+
+La procedura deve rispettare le seguenti fasi:
+
+1. L'assistente individua il documento e legge integralmente la sezione interessata.
+2. L'assistente prepara il testo Markdown completo della sezione da sostituire, conservando tutti i contenuti validi e integrando esclusivamente le modifiche necessarie.
+3. L'assistente presenta il testo completo all'utente per la revisione e l'approvazione esplicita.
+4. L'utente crea una copia di sicurezza del documento originale, utilizzando un nome univoco e senza sovrascrivere copie precedenti.
+5. L'utente individua nel documento la sezione strutturale da sostituire, verificando il titolo iniziale e il successivo delimitatore.
+6. L'utente sostituisce integralmente la sezione originale con il testo approvato, senza modificare autonomamente il contenuto e senza intervenire sulle sezioni estranee.
+7. L'utente salva il documento mantenendo la codifica, le terminazioni di riga e la struttura Markdown originali.
+8. L'assistente guida la verifica del contenuto aggiornato, della corrispondenza con il testo approvato e delle differenze Git.
+9. L'intervento viene considerato completato soltanto dopo il superamento di tutti i controlli previsti.
+
+Il testo fornito dall'assistente deve essere completo, autonomo e pronto per la sostituzione integrale. Non devono essere richieste all'utente ricostruzioni, integrazioni o correzioni manuali del testo approvato.
+
+Le istruzioni di sostituzione devono indicare chiaramente:
+
+- il documento interessato;
+- il titolo iniziale della sezione;
+- il titolo successivo che delimita la fine della sezione;
+- l'eventuale gerarchia dei sottocapitoli inclusi;
+- le parti del documento che devono rimanere invariate.
+
+L'utente deve sostituire esclusivamente la sezione identificata. Non è consentito eliminare o sovrascrivere intestazioni, capitoli o contenuti esterni all'intervento autorizzato.
+
+Se durante la sostituzione vengono rilevati contenuti inattesi, delimitatori ambigui o differenze rispetto alla struttura verificata, l'operazione deve essere sospesa e la situazione sottoposta a nuova verifica.
+
+Eventuali correzioni al testo approvato devono essere concordate con l'assistente e nuovamente approvate prima dell'inserimento.
+
+La verifica deve comprendere la rilettura della sezione completa, il confronto con il testo approvato, il controllo delle sezioni adiacenti e la verifica delle differenze Git.
+
+La modalità manuale non riduce gli obblighi di backup, approvazione preventiva, integrità documentale e tracciabilità.
+
+#### Modalità B – Sostituzione mediante PowerShell controllato
+
+Quando viene scelta questa modalità, le modifiche devono essere eseguite esclusivamente mediante comandi PowerShell predisposti dall'assistente e preventivamente approvati dall'utente.
+
+Ogni intervento deve rispettare le seguenti fasi:
 
 1. **Individuazione:** identificare il documento e la sezione strutturale interessata.
 2. **Lettura preventiva:** leggere integralmente la sezione esistente e verificare se le informazioni richieste siano già presenti e corrette.
@@ -399,14 +470,6 @@ Ogni intervento deve rispettare una procedura controllata, articolata nelle segu
 8. **Esecuzione:** applicare la sostituzione integrale della sezione approvata esclusivamente mediante un comando PowerShell controllato, dopo il superamento dei controlli preliminari.
 9. **Verifica:** rileggere la sezione aggiornata, controllare le differenze Git e accertare che nessun contenuto estraneo sia stato modificato.
 10. **Conferma:** considerare completato l'intervento soltanto dopo il superamento delle verifiche, prima di procedere alla modifica successiva.
-
-L'unità minima di sostituzione documentale è una **sezione strutturale completa**, identificata come capitolo, sottocapitolo o sotto-sottocapitolo.
-
-Non sono ammesse sostituzioni isolate di singole parole, frasi, righe o paragrafi, neppure per correzioni di lieve entità. In tali casi deve essere riscritta e sostituita integralmente la più piccola sezione strutturale completa che contiene il testo da correggere.
-
-La sostituzione di una sezione deve preservare tutti i contenuti validi al suo interno e lasciare invariati i capitoli, sottocapitoli e sotto-sottocapitoli estranei all'intervento.
-
-L'approvazione deve riferirsi al contenuto effettivo della sezione completa da inserire. L'approvazione generale del piano di aggiornamento non sostituisce l'approvazione del testo definitivo.
 
 **Sicurezza degli script PowerShell**
 

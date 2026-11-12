@@ -4,14 +4,14 @@
 
 # Test e Collaudo
 
-**Versione:** 1.4
+**Versione:** 1.5
 **Stato:** Approvato
 
 **Autore:** Renzo Siega
 **Progetto:** Orto Smart
 
 **Data prima emissione:** 16/10/2026
-**Ultimo aggiornamento:** 06/11/2026
+**Ultimo aggiornamento:** 12/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -23,12 +23,12 @@
 |-------|--------|
 | Documento | DOC-007 |
 | Titolo | Test e Collaudo |
-| Versione | 1.4 |
+| Versione | 1.5 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 16/10/2026 |
-| Ultimo aggiornamento | 06/11/2026 |
+| Ultimo aggiornamento | 12/11/2026 |
 
 ---
 
@@ -43,6 +43,7 @@
 | 1.2 | 03/11/2026 | Inserimento del §12.20 relativo alla S038: perimetro tecnico del Resolver Agronomico, unità di misura e parametri agronomici; tracciabilità degli otto file di test introdotti; verifica integrativa del 03/11/2026 con 178/178 test Flutter superati e analisi statica senza anomalie; precisazione dei limiti dei collaudi. |
 | 1.3 | 05/11/2026 | Aggiornamento documentale della Sessione S039: introduzione del §12.21 con le evidenze tecniche relative al modello autoritativo di pianificazione stagionale, alle cinque RPC del ciclo di vita e dell'esecuzione atomica, alle protezioni geometriche e temporali e alle undici migration SQL applicate esclusivamente in locale; registrazione dell'esito positivo di `flutter analyze` e di 1472/1472 test Flutter, distinguendo le verifiche statiche SQL effettuate dai collaudi dinamici end-to-end, di concorrenza e rollback non ancora completati, dal deployment remoto e dall'integrazione Flutter ancora aperti. |
 | 1.4 | 06/11/2026 | Inserimento del §12.22 relativo alla Sessione S040: collaudo SQL dinamico del lifecycle delle pianificazioni stagionali mediante script di 887 righe e 15 sezioni; registrazione della correzione sulle colonne generate, dell'esecuzione transazionale con rollback e dell'assenza di dati persistenti nelle nove tabelle controllate; conferma di `flutter analyze` senza anomalie e di 1472/1472 test Flutter superati; tracciabilità del commit `8e15c681` e distinzione dai collaudi Flutter e dal deployment remoto ancora pendenti. |
+| 1.5 | 12/11/2026 | Aggiornamento documentale della Sessione Manuali S041: inserimento del §12.23 relativo all'integrazione Flutter del risultato autoritativo `blocked_by_confirmed_plans`, alla gestione tipizzata `CreatePlantingBlockedByConfirmedPlans` e al comportamento di `AddPlantingPage`; registrazione dei due nuovi test Flutter, dell'esito positivo di `flutter analyze` e di 1474/1474 test superati; tracciabilità del commit conclusivo S041 `8da41125`; conferma dell'assenza di nuove migration SQL, della mancata distribuzione remota delle undici migration S039 e dei limiti del collaudo integrato ancora da completare. |
 
 ---
 
@@ -3478,6 +3479,113 @@ Rimangono tuttavia aperte:
 Qualsiasi distribuzione delle migration al database remoto richiede una preventiva verifica delle dipendenze e un'autorizzazione esplicita.
 
 Le evidenze S040 consentono di dichiarare **superato il collaudo SQL dei casi implementati nello script `s040_planned_planting_lifecycle.sql`**, ma non consentono ancora di dichiarare completato il collaudo funzionale dell'intera pianificazione stagionale nell'app Flutter o il collaudo complessivo dell'applicazione.
+
+## 12.23 Evidenze tecniche della Sessione S041
+
+La Sessione di sviluppo S041, conclusa l'**11/11/2026 alle ore 21:06**, ha introdotto e verificato la gestione applicativa Flutter del risultato autoritativo `blocked_by_confirmed_plans`, previsto dal Write Path di creazione delle coltivazioni reali in presenza di pianificazioni stagionali confermate incompatibili.
+
+La sessione ha riguardato l'integrazione del comportamento applicativo e la relativa copertura mediante test automatici, senza introdurre nuove migration SQL o modificare il database remoto.
+
+### 12.23.1 Perimetro tecnico della S041
+
+Il controllo autoritativo delle incompatibilità con le pianificazioni confermate era già stato introdotto nella S039 attraverso la migration:
+
+```text
+20261104231500_protect_create_planting_confirmed_plans.sql
+```
+
+La S041 ha completato un intervento circoscritto sul client Flutter:
+
+- riconoscimento del risultato `blocked_by_confirmed_plans` restituito dal backend;
+- rappresentazione del blocco mediante il risultato tipizzato `CreatePlantingBlockedByConfirmedPlans`;
+- gestione specifica del risultato nella schermata `AddPlantingPage`;
+- visualizzazione di un messaggio dedicato all'utente;
+- mantenimento della schermata aperta quando la creazione viene bloccata;
+- esclusione di una falsa segnalazione di salvataggio riuscito.
+
+La responsabilità del controllo di compatibilità rimane nel database. Il client Flutter interpreta il risultato autoritativo senza sostituirsi ai controlli SQL.
+
+### 12.23.2 Test automatici introdotti
+
+La S041 ha introdotto **due nuovi test Flutter** dedicati alla gestione del blocco sulle pianificazioni confermate.
+
+Le verifiche riguardano il riconoscimento del risultato autoritativo e il comportamento applicativo previsto per la creazione di una coltivazione.
+
+Il loro superamento non equivale a un collaudo integrato Flutter–Supabase del percorso completo di pianificazione stagionale.
+
+### 12.23.3 Analisi statica e test Flutter
+
+Alla conclusione dello sviluppo S041 sono state eseguite le seguenti verifiche:
+
+```powershell
+flutter analyze
+```
+
+**Esito:** PASS, nessun problema rilevato.
+
+```powershell
+flutter test
+```
+
+**Esito:** PASS, **1.474 test superati su 1.474**.
+
+| Verifica | Esito |
+|---|---|
+| Analisi statica Flutter | Superata |
+| Test Flutter complessivi | 1.474 |
+| Test Flutter superati | 1.474 |
+| Test Flutter falliti | 0 |
+| Nuovi test dedicati alla gestione del blocco | 2 |
+| Gestione tipizzata di `blocked_by_confirmed_plans` | Implementata e coperta dai test dedicati |
+| Collaudo integrato Flutter–Supabase del lifecycle delle pianificazioni | Non completato |
+| Distribuzione delle migration S039 sul remoto | Non effettuata |
+
+Non sono state rilevate regressioni nella suite automatizzata Flutter rispetto alla baseline conclusiva S040 di 1.472 test superati.
+
+### 12.23.4 Tracciabilità tecnica e Git
+
+Commit conclusivo dello sviluppo S041:
+
+```text
+8da41125eaa6cc519511aec14d34f5b0b2927f9b
+```
+
+Branch: `main`.
+
+Il commit è stato pubblicato nel repository GitHub ufficiale e costituisce la baseline tecnica di sviluppo S041.
+
+La pubblicazione del codice Flutter non equivale all'applicazione delle migration SQL al database Supabase remoto.
+
+### 12.23.5 Stato del database e limiti del collaudo
+
+La S041 non ha introdotto nuove migration SQL.
+
+Alla conclusione della sessione:
+
+- le undici migration della S039 risultavano applicate al database Supabase locale;
+- le medesime migration non risultavano ancora distribuite al database remoto;
+- non è stata effettuata alcuna distribuzione remota;
+- il collaudo SQL locale della S040 rimane valido nei limiti dei casi verificati;
+- l'interfaccia Flutter dell'intero lifecycle delle pianificazioni stagionali non risulta completata;
+- non è stato dichiarato superato un collaudo end-to-end dell'intero percorso di pianificazione, conferma ed esecuzione.
+
+Rimangono da valutare e verificare nelle successive sessioni, secondo le decisioni operative che saranno adottate:
+
+- l'allineamento controllato tra schema locale e remoto;
+- il completamento dell'integrazione Flutter delle pianificazioni stagionali;
+- il collaudo integrato delle operazioni autoritative;
+- le condizioni di concorrenza e i casi limite non ancora coperti;
+- il collaudo complessivo dell'applicazione secondo il Capitolo 13.
+
+Qualsiasi intervento sul database remoto richiede una preventiva verifica delle dipendenze e un'autorizzazione esplicita.
+
+### 12.23.6 Valutazione conclusiva
+
+Le evidenze della S041 consentono di dichiarare **superati l'analisi statica Flutter e i 1.474 test automatici eseguiti**, compresi i due nuovi test dedicati alla gestione del risultato `blocked_by_confirmed_plans`.
+
+La S041 rappresenta un avanzamento nell'integrazione applicativa del Write Path delle coltivazioni, ma non costituisce il completamento del lifecycle Flutter delle pianificazioni stagionali né del collaudo integrato dell'applicazione.
+
+---
 
 # 13. Collaudo complessivo dell'applicazione
 

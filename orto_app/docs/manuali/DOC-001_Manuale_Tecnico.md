@@ -4,7 +4,7 @@
 
 # Manuale Tecnico e Architetturale
 
-**Versione:** 2.17
+**Versione:** 2.18
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 26/07/2026
 
-**Ultimo aggiornamento:** 06/11/2026
+**Ultimo aggiornamento:** 11/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -27,7 +27,7 @@
 |--------|--------|
 | Documento | DOC-001 |
 | Titolo | Manuale Tecnico e Architetturale |
-| Versione | 2.17 |
+| Versione | 2.18 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Linguaggio | Flutter / Dart |
@@ -73,6 +73,7 @@
 | 2.15 | 03/11/2026 | Aggiornamento documentale con la Sessione S038: consolidamento dell'architettura del Catalogo Agronomico e dei sette registri S033B; integrazione amministrativa Flutter di `measurement_units` e `agronomic_parameters`, con Repository, modelli tipizzati, pagine di gestione, sei RPC autoritative, controllo `row_version` e gestione delle dipendenze; integrazione tecnica Flutter del Resolver mediante `AgronomicKnowledgeRequest`, `AgronomicKnowledgeResult` e `AgronomicKnowledgeRepository`; registrazione dell'applicazione remota della migration correttiva S034, dell'allineamento delle 34 migration locali e remote e dei backup SQL remoti; distinzione tra integrazione tecnica completata, funzionalità operative ancora aperte e collaudo integrato remoto non documentato. |
 | 2.16 | 05/11/2026 | Aggiornamento documentale della Sessione S039: introduzione del modello autoritativo di pianificazione stagionale `season_plans` e `planned_plantings`, cinque RPC per il ciclo di vita e l'esecuzione atomica, protezioni geometriche e temporali, undici migration SQL applicate esclusivamente in locale, verifiche Flutter con 1472/1472 test superati e distinzione dei collaudi SQL dinamici, del deployment remoto e dell'integrazione Flutter ancora non completati. |
 | 2.17 | 06/11/2026 | Aggiornamento documentale della Sessione S040: introduzione e collaudo locale dello script SQL `s040_planned_planting_lifecycle.sql`, composto da 15 sezioni di verifica del lifecycle delle pianificazioni stagionali; controlli dinamici su autorizzazioni, Profile Write Authority, concorrenza ottimistica e protezione dalle esecuzioni duplicate; esecuzione transazionale con rollback e verifica dell'assenza di dati di prova persistenti; conferma di `flutter analyze` senza problemi e 1472/1472 test Flutter superati. Nessuna nuova migration, nessuna distribuzione remota e nessuna integrazione Flutter del workflow di pianificazione nella S040. |
+| 2.18 | 11/11/2026 | Aggiornamento documentale della Sessione S041: integrazione Flutter della gestione dell'esito autoritativo `blocked_by_confirmed_plans` nel percorso di creazione delle coltivazioni reali; introduzione del risultato tipizzato `CreatePlantingBlockedByConfirmedPlans` nel Repository Layer; gestione in `AddPlantingPage` mediante messaggio specifico e permanenza nella pagina in caso di conflitto con pianificazioni confermate; aggiunta di due test dedicati e verifiche positive con `flutter analyze`, `flutter test` (1474/1474) e `git diff --check`; commit tecnico `8da41125eaa6cc519511aec14d34f5b0b2927f9b`. Nessuna nuova migration SQL, nessuna distribuzione remota delle undici migration S039 e nessun completamento del workflow Flutter delle pianificazioni stagionali. |
 
 ---
 
@@ -5333,7 +5334,9 @@ Nell'interfaccia italiana può continuare a essere utilizzato il termine **Varie
 
 Le invarianti definitive rimangono server-side.
 
-### Compatibilità con le pianificazioni stagionali — S039
+### Compatibilità con le pianificazioni stagionali — S039–S041
+
+#### Protezioni autoritative introdotte nella S039
 
 La Sessione S039 ha introdotto nel backend autoritativo i controlli di compatibilità tra coltivazioni reali e pianificazioni stagionali confermate.
 
@@ -5345,9 +5348,61 @@ L'esecuzione di una pianificazione confermata segue invece un percorso autoritat
 
 Durante l'esecuzione viene esclusa dal controllo delle sovrapposizioni soltanto la riserva della pianificazione che si sta eseguendo; le altre protezioni rimangono applicabili.
 
-Queste funzionalità SQL sono state implementate e applicate al database Supabase locale durante S039, ma non ancora al database remoto.
+Le 11 migration S039 sono state applicate al database Supabase locale, ma non al database remoto. Questa condizione permane alla conclusione dello sviluppo S041.
 
-La disponibilità delle RPC non implica che `AddPlantingPage` esponga già un flusso UI per creare, confermare o eseguire pianificazioni stagionali. Tale integrazione Flutter non risulta verificata come completata nella S039.
+#### Gestione Flutter del blocco — S041
+
+La Sessione S041 ha integrato nel percorso Flutter di creazione delle coltivazioni reali la gestione specifica dell'esito autoritativo:
+
+```text
+blocked_by_confirmed_plans
+```
+
+Nel livello repository, tale esito viene rappresentato mediante il risultato tipizzato:
+
+```text
+CreatePlantingBlockedByConfirmedPlans
+```
+
+La distinzione consente al client di riconoscere il conflitto con una pianificazione confermata, senza confonderlo con un errore generico di creazione.
+
+Quando il backend restituisce questo esito, `AddPlantingPage`:
+
+- presenta all'utente un messaggio specifico relativo al conflitto con pianificazioni confermate;
+- non considera riuscita la creazione della coltivazione;
+- rimane aperta, consentendo all'utente di esaminare o correggere i dati inseriti.
+
+La validazione autoritativa rimane nel backend. La gestione Flutter non introduce una prenotazione alternativa dello spazio e non sostituisce i controlli SQL.
+
+L'intervento S041 riguarda il percorso di **creazione** della coltivazione reale. Non attesta il completamento dell'integrazione Flutter del lifecycle delle pianificazioni stagionali.
+
+#### Verifiche e tracciabilità S041
+
+L'intervento è stato accompagnato da verifiche del repository e dell'interfaccia Flutter, comprendenti due nuovi test.
+
+Alla conclusione dello sviluppo S041 risultano:
+
+- `flutter analyze`: superato, senza problemi;
+- `flutter test`: **1.474 test superati su 1.474**;
+- `git diff --check`: superato.
+
+Il commit tecnico della S041 è:
+
+```text
+8da41125eaa6cc519511aec14d34f5b0b2927f9b
+```
+
+Il commit è stato pubblicato sul branch `main`.
+
+La S041 non ha introdotto nuove migration SQL, non ha distribuito le migration S039 al database remoto e non ha inserito dati di prova permanenti.
+
+Rimangono da valutare e completare nelle successive sessioni, sulla base di decisioni esplicite:
+
+- l'integrazione Flutter dei flussi di creazione, conferma, annullamento ed esecuzione delle pianificazioni stagionali;
+- le verifiche necessarie prima dell'eventuale applicazione delle migration al database remoto;
+- i collaudi integrati Flutter–Supabase e gli ulteriori casi limite non ancora verificati.
+
+La gestione del blocco in `AddPlantingPage` rappresenta quindi un avanzamento circoscritto e verificato, non il completamento dell'intero workflow di pianificazione stagionale.
 
 ### Metodi di avvio
 
@@ -7762,7 +7817,7 @@ Non vengono attribuiti alla S034 nuovi risultati di `supabase db reset`, `supaba
 
 ### Stato consolidato
 
-Le verifiche del database devono essere interpretate secondo il perimetro effettivamente controllato, distinguendo le verifiche strutturali, gli audit statici, i test dinamici SQL e le attività di distribuzione.
+Le verifiche del database e dell'applicazione devono essere interpretate secondo il perimetro effettivamente controllato, distinguendo le verifiche strutturali, gli audit statici, i test dinamici SQL, i test Flutter e le attività di distribuzione.
 
 In particolare:
 
@@ -7772,24 +7827,43 @@ In particolare:
 - **S038:** applicazione remota della migration correttiva S034, verifica dell'allineamento delle 34 migration locali e remote e produzione dei backup SQL remoti. Non risulta documentato un test dinamico specifico del ramo `SQLSTATE 55000`.
 - **S039:** introduzione di 11 migration della pianificazione stagionale, applicate esclusivamente al database locale. Le verifiche statiche e applicative non comprendevano ancora un collaudo SQL dinamico end-to-end del lifecycle delle pianificazioni.
 - **S040:** introduzione ed esecuzione positiva, sul database PostgreSQL locale, dello script `supabase/tests/s040_planned_planting_lifecycle.sql`, composto da 887 righe e 15 sezioni di test. Le verifiche hanno riguardato i principali passaggi del lifecycle delle pianificazioni, le autorizzazioni, la Profile Write Authority, i conflitti di versione e la protezione dalle esecuzioni duplicate. Il collaudo è stato eseguito all'interno di una transazione con `BEGIN` e `ROLLBACK`, verificando l'assenza di dati di prova persistenti nelle nove tabelle operative controllate.
+- **S041:** integrazione Flutter della gestione del risultato autoritativo `blocked_by_confirmed_plans` durante la creazione di una coltivazione reale. Sono stati introdotti il risultato tipizzato `CreatePlantingBlockedByConfirmedPlans`, la relativa gestione nel repository e il comportamento specifico di `AddPlantingPage`, con permanenza nella pagina in caso di blocco. Sono stati aggiunti due test dedicati.
 
-La S040 ha inoltre confermato `flutter analyze` senza problemi e **1.472 test Flutter superati su 1.472**.
+Le verifiche Flutter risultano:
 
-Alla conclusione dello sviluppo S040 rimangono distintamente aperti:
+| Sessione | Analisi statica Flutter | Test Flutter |
+|---|---|---|
+| S039 | Superata | 1.472/1.472 |
+| S040 | Superata | 1.472/1.472 |
+| S041 | Superata | 1.474/1.474 |
 
-- la distribuzione delle 11 migration S039 al database Supabase remoto;
-- le verifiche di distribuzione e il collaudo integrato sul remoto;
-- l'integrazione Flutter dei workflow di pianificazione stagionale;
+Per la S041 è stato inoltre superato `git diff --check`.
+
+Il commit tecnico S041 è:
+
+```text
+8da41125eaa6cc519511aec14d34f5b0b2927f9b
+```
+
+Alla conclusione dello sviluppo S041 rimangono distintamente aperti:
+
+- la distribuzione delle 11 migration S039 al database Supabase remoto, subordinata ad autorizzazione;
+- le verifiche di distribuzione e il collaudo integrato Flutter–Supabase;
+- l'integrazione Flutter del lifecycle completo delle pianificazioni stagionali, comprendente creazione, modifica, conferma, annullamento ed esecuzione;
 - gli ulteriori test dinamici non specificamente coperti dal collaudo S040, compresi gli scenari di concorrenza simultanea, sovrapposizione e rollback atomico su errore;
 - il test dinamico specifico del ramo `SQLSTATE 55000` della correzione S034, non attestato dalle evidenze qui consolidate.
 
 Il rollback della transazione utilizzata per il collaudo S040 non deve essere confuso con una verifica completa del rollback interno delle RPC in ogni condizione di errore.
+
+La S041 non ha introdotto nuove migration SQL e non ha effettuato modifiche al database remoto.
 
 **Il superamento dei test locali non dimostra automaticamente la corretta distribuzione o il funzionamento delle stesse funzionalità nell'ambiente remoto.**
 
 Le attività ancora aperte non devono essere considerate implicitamente completate e non costituiscono autorizzazione automatica allo svolgimento di successive attività di sviluppo.
 
 Per i dettagli del collaudo SQL S040 si rimanda al **DOC-007 — Test e Collaudo, §12.22** e al sottocapitolo **«Collaudo SQL della pianificazione stagionale — S040»** del presente manuale.
+
+Per la gestione Flutter del blocco introdotta nella S041 si rimanda al **§7.5 — Inserimento e modifica delle coltivazioni** del presente manuale.
 
 ## 9.6 Acceptance test
 
@@ -7870,7 +7944,6 @@ La distinzione tra risultati storici e correnti è parte della gestione delle re
 
 Un risultato ottenuto in una sessione precedente non deve essere presentato come risultato della sessione corrente.
 
-
 ## 9.9 Risultati di verifica consolidati
 
 I risultati principali documentati nelle sessioni recenti sono:
@@ -7884,7 +7957,8 @@ I risultati principali documentati nelle sessioni recenti sono:
 | S033B | Non rieseguito | Non rieseguito | Audit statico 21/21 RPC dei sette registri aggiuntivi; esame statico dei Write Path Planting |
 | S034 | Non rieseguito | Non rieseguito | Migration SQL applicata localmente; verifiche statiche; controlli di autorizzazione 3/3; test dinamico SQLSTATE 55000 non eseguito |
 | S039 | 1472/1472 | No issues found | 11 migration applicate al DB locale; controlli SQL statici e di sicurezza; test dinamici SQL completi non eseguiti; DB remoto non aggiornato |
-
+| S040 | 1472/1472 | No issues found | Collaudo SQL dinamico locale del lifecycle delle pianificazioni: script di 887 righe, 15 sezioni; transazione con ROLLBACK e verifica dell'assenza di dati di prova persistenti |
+| S041 | 1474/1474 | No issues found | Due test Flutter dedicati al blocco `blocked_by_confirmed_plans`; nessuna nuova migration SQL e nessuna modifica al database remoto |
 
 I risultati delle suite Flutter non devono essere sommati.
 
@@ -7905,9 +7979,19 @@ S033
     ↓
 S039
 1472 test
+    ↓
+S040
+1472 test
+    ↓
+S041
+1474 test
 ```
 
 Il numero dei test può aumentare o diminuire tra sessioni senza implicare automaticamente un miglioramento o una regressione: modifiche architetturali, aggiunta o rimozione di componenti, sostituzione di test non più pertinenti e riallineamento dei contratti possono modificare la composizione della suite.
+
+La baseline Flutter completa più recente documentata è quella della **S041**, con **1.474 test superati su 1.474** e `flutter analyze` concluso senza problemi.
+
+Le verifiche SQL e le attività di distribuzione devono essere considerate separatamente dalle suite Flutter: il collaudo SQL locale S040 non attesta la distribuzione delle 11 migration S039 al database remoto, che risultavano ancora non applicate alla conclusione della S041.
 
 ### Risultati S032
 
@@ -8053,7 +8137,122 @@ Alla conclusione dello sviluppo S039:
 
 Il risultato positivo della suite Flutter non deve essere interpretato come collaudo dinamico completo delle nuove RPC SQL.
 
-La baseline Flutter completa più recente documentata è pertanto quella della **S039, con 1472/1472 test superati e analisi statica senza problemi**.
+La S039 rappresenta la baseline Flutter completa verificata nella relativa sessione, con **1.472/1.472 test superati** e analisi statica senza problemi. Tale risultato rimane parte dello storico e non costituisce più la baseline più recente.
+
+### Risultati S040
+
+La Sessione S040 ha introdotto ed eseguito un collaudo SQL dinamico locale del lifecycle delle pianificazioni stagionali.
+
+Lo script di verifica è:
+
+```text
+supabase/tests/s040_planned_planting_lifecycle.sql
+```
+
+Lo script comprende **887 righe e 15 sezioni di test**.
+
+Le verifiche documentate hanno riguardato:
+
+- autorizzazioni e protezioni della Profile Write Authority;
+- creazione e aggiornamento delle bozze di pianificazione;
+- conferma e annullamento delle pianificazioni;
+- esecuzione delle pianificazioni confermate con creazione della coltivazione reale;
+- controllo della concorrenza ottimistica mediante `row_version`;
+- prevenzione delle esecuzioni duplicate;
+- rifiuto delle operazioni prive di autorizzazione;
+- protezione dagli aggiornamenti diretti non consentiti.
+
+Il collaudo è stato eseguito sul database PostgreSQL locale all'interno di una transazione con `BEGIN` e `ROLLBACK`.
+
+È stata verificata l'assenza di dati di prova persistenti nelle nove tabelle operative controllate:
+
+- `gardens`;
+- `seasons`;
+- `beds`;
+- `bed_geometries`;
+- `botanical_taxa`;
+- `crops`;
+- `season_plans`;
+- `planned_plantings`;
+- `plantings`.
+
+Le verifiche Flutter finali della sessione hanno prodotto:
+
+```text
+flutter analyze
+No issues found
+
+flutter test
+1472/1472 test passati
+```
+
+È stato inoltre superato `git diff --check`.
+
+Il collaudo SQL S040 ha ampliato le evidenze dinamiche disponibili rispetto alla S039, ma non ha costituito una verifica completa di tutti gli scenari di concorrenza simultanea, sovrapposizione e rollback atomico interno delle RPC in caso di errore.
+
+Alla conclusione della S040, le 11 migration S039 risultavano ancora applicate esclusivamente al database locale.
+
+Non è stata effettuata la distribuzione delle migration S039 al database remoto.
+
+Il collaudo locale non equivale a un collaudo integrato Flutter–Supabase nell'ambiente remoto.
+
+Per il dettaglio delle verifiche SQL si rimanda al **DOC-007 — Test e Collaudo, §12.22**.
+
+### Risultati S041
+
+La Sessione S041 ha introdotto un aggiornamento Flutter circoscritto alla gestione del blocco autoritativo della creazione di coltivazioni reali in presenza di pianificazioni stagionali confermate incompatibili.
+
+Il risultato restituito dalla RPC:
+
+```text
+blocked_by_confirmed_plans
+```
+
+viene riconosciuto dal repository Flutter e rappresentato mediante il risultato tipizzato:
+
+```text
+CreatePlantingBlockedByConfirmedPlans
+```
+
+Nella pagina `AddPlantingPage`, il blocco viene comunicato all'utente con un messaggio specifico.
+
+In tale situazione:
+
+- la creazione della coltivazione non viene considerata riuscita;
+- la pagina di inserimento rimane aperta;
+- il controllo autoritativo resta affidato al backend;
+- non viene aggirata la protezione introdotta dalle migration S039.
+
+La modifica ha interessato cinque file, con **97 righe aggiunte e 3 eliminate**, e ha introdotto **due test Flutter dedicati**.
+
+Le verifiche finali documentate sono:
+
+```text
+flutter analyze
+No issues found
+
+flutter test
+1474/1474 test passati
+
+git diff --check
+PASS
+```
+
+Il commit tecnico della sessione è:
+
+```text
+8da41125eaa6cc519511aec14d34f5b0b2927f9b
+```
+
+Il commit è stato pubblicato sul branch `main`.
+
+La S041 non ha introdotto nuove migration SQL, non ha distribuito le 11 migration S039 al database remoto e non ha prodotto dati di prova permanenti.
+
+L'intervento Flutter riguarda specificamente il blocco durante la creazione di una coltivazione reale. **Non costituisce il completamento dell'interfaccia Flutter per il lifecycle delle pianificazioni stagionali.**
+
+La baseline Flutter completa più recente documentata è quella della **S041, con 1.474/1.474 test superati e `flutter analyze` senza problemi**.
+
+Restano da valutare e autorizzare separatamente le attività non ancora completate, comprese la distribuzione delle migration S039, le verifiche integrate e l'implementazione del workflow Flutter completo della pianificazione stagionale.
 
 ### Stato consolidato delle verifiche
 
@@ -8061,15 +8260,22 @@ La documentazione deve riportare esclusivamente i risultati effettivamente otten
 
 In particolare:
 
-- **S033** rappresenta la baseline Flutter completa verificata nella relativa sessione.
-- **S039** rappresenta la baseline Flutter completa più recente documentata, con 1472/1472 test superati e `flutter analyze` senza problemi.
-- **S033B** rappresenta un audit statico dei contratti SQL nel perimetro esaminato.
-- **S034** rappresenta una correzione SQL locale con verifiche statiche e di autorizzazione documentate.
+- **S033** rappresenta la baseline Flutter completa verificata nella relativa sessione, con 1.107/1.107 test superati.
+- **S033B** rappresenta un audit statico dei contratti SQL nel perimetro esaminato, senza esecuzione di una nuova suite Flutter completa.
+- **S034** rappresenta una correzione SQL applicata inizialmente in locale, con verifiche statiche e di autorizzazione documentate. La migration correttiva è stata successivamente distribuita sul database remoto nella S038.
+- **S039** rappresenta la baseline Flutter verificata nella relativa sessione, con 1.472/1.472 test superati, e l'introduzione delle 11 migration della pianificazione stagionale applicate esclusivamente in locale.
+- **S040** rappresenta il collaudo SQL dinamico locale del lifecycle delle pianificazioni stagionali, con verifica dell'assenza di dati di prova persistenti nelle tabelle controllate. La suite Flutter completa ha confermato 1.472/1.472 test superati.
+- **S041** rappresenta l'integrazione Flutter della gestione del blocco autoritativo `blocked_by_confirmed_plans`, con due nuovi test dedicati. La suite Flutter completa ha raggiunto 1.474/1.474 test superati e `flutter analyze` si è concluso senza problemi.
+
+**La S041 costituisce la baseline Flutter completa più recente documentata.**
 
 Le verifiche applicative Flutter, gli audit statici SQL, i test dinamici del database e le operazioni di distribuzione delle migration sono attività distinte.
 
+Il collaudo SQL S040 è stato eseguito esclusivamente sul database locale. Alla conclusione della S041, le 11 migration S039 non risultavano distribuite sul database Supabase remoto.
+
 Un risultato positivo in una categoria non dimostra automaticamente il completamento delle altre.
 
+Le verifiche non eseguite o non documentate devono rimanere esplicitamente distinte da quelle completate, senza attribuire alle sessioni risultati non effettivamente acquisiti.
 
 ## 9.10 Evoluzione futura
 
@@ -8140,20 +8346,40 @@ La migration:
 20261014200459_fix_catalog_registry_semantic_freeze_errors.sql
 ```
 
-è stata applicata al database Supabase locale.
+è stata inizialmente applicata al database Supabase locale durante la S034.
 
-Alla chiusura dello sviluppo S034 risultavano ancora non completati:
+La correzione prevede che l'esito:
 
-- il test dinamico del ramo `SQLSTATE 55000`, con verifica della corretta distinzione tra l'errore di blocco semantico riconosciuto e gli altri errori;
-- l'applicazione della migration S034 al database remoto.
+```json
+{"status":"semantics_frozen"}
+```
 
-Questi elementi rappresentano stati aperti documentati, non risultati acquisiti né attività automaticamente autorizzate per una specifica sessione successiva.
+sia restituito soltanto quando l'errore presenta congiuntamente il codice SQLSTATE `55000` e il messaggio specifico previsto dal trigger di blocco semantico.
 
-L'eventuale esecuzione dovrà essere valutata e autorizzata secondo il workflow di sviluppo.
+Gli altri errori devono essere propagati senza essere riclassificati impropriamente.
 
-### Verifiche aperte della pianificazione stagionale — S039
+Alla conclusione della S034 risultavano ancora aperti:
 
-La Sessione S039 ha introdotto e applicato al database Supabase locale 11 migration relative alla pianificazione stagionale delle coltivazioni, comprendenti le nuove tabelle, le RPC autoritative e le protezioni di compatibilità con le coltivazioni reali e le geometrie storicizzate delle aiuole.
+- il test dinamico del ramo `SQLSTATE 55000`, con verifica della distinzione tra errore riconosciuto e altri errori;
+- la distribuzione della migration correttiva al database Supabase remoto.
+
+**La S038 ha successivamente completato la distribuzione remota della migration S034.**
+
+Nella stessa sessione sono stati verificati l'allineamento delle 34 migration locali e remote e la produzione dei backup SQL remoti.
+
+Pertanto, alla conclusione della S041:
+
+- la distribuzione remota della migration correttiva S034 non costituisce più un'attività aperta;
+- non risulta invece documentata l'esecuzione del test dinamico specifico del ramo `SQLSTATE 55000`;
+- l'audit statico S033B non deve essere interpretato come equivalente a un collaudo dinamico delle RPC esaminate.
+
+Queste distinzioni impediscono di attribuire alle verifiche statiche risultati che richiederebbero un'esecuzione dinamica effettiva.
+
+Le eventuali verifiche ancora necessarie dovranno essere valutate e autorizzate secondo il normale workflow di sviluppo Orto Smart, senza costituire attività automaticamente programmate per una sessione successiva.
+
+### Verifiche della pianificazione stagionale — S039–S041
+
+La Sessione S039 ha introdotto e applicato al database Supabase locale 11 migration relative alla pianificazione stagionale delle coltivazioni, comprendenti le tabelle `season_plans` e `planned_plantings`, le RPC autoritative del lifecycle e le protezioni di compatibilità con le coltivazioni reali e le geometrie storicizzate delle aiuole.
 
 Alla conclusione dello sviluppo S039 risultavano ancora da completare o verificare:
 
@@ -8162,11 +8388,50 @@ Alla conclusione dello sviluppo S039 risultavano ancora da completare o verifica
 - i test di concorrenza ottimistica, sovrapposizione spaziale e compatibilità temporale;
 - le verifiche del rollback atomico durante l'esecuzione delle pianificazioni confermate;
 - l'applicazione delle migration S039 al database Supabase remoto e le relative verifiche di distribuzione;
-- la verifica di un'eventuale integrazione applicativa Flutter dei workflow di pianificazione, non risultata completata nella S039.
+- l'integrazione applicativa Flutter del lifecycle delle pianificazioni.
 
-I controlli statici e di sicurezza effettuati durante la sessione non sostituiscono i test dinamici delle nuove RPC.
+#### Verifiche completate nella S040
 
-Questi elementi rappresentano **verifiche aperte o integrazioni non ancora completate**, non attività automaticamente autorizzate per una sessione successiva.
+La S040 ha introdotto ed eseguito sul database PostgreSQL locale lo script:
+
+```text
+supabase/tests/s040_planned_planting_lifecycle.sql
+```
+
+Il collaudo, composto da **887 righe e 15 sezioni**, ha verificato dinamicamente i principali passaggi del lifecycle delle pianificazioni, comprendendo creazione e aggiornamento delle bozze, conferma, annullamento ed esecuzione con creazione della coltivazione reale.
+
+Sono stati inoltre verificati i controlli di autorizzazione, la Profile Write Authority, la concorrenza ottimistica mediante `row_version`, la prevenzione delle esecuzioni duplicate e la protezione dalle scritture dirette non consentite.
+
+Il collaudo è stato eseguito all'interno di una transazione con `BEGIN` e `ROLLBACK`, verificando l'assenza di dati di prova persistenti nelle nove tabelle operative controllate.
+
+Il risultato positivo costituisce un avanzamento rispetto alle verifiche esclusivamente statiche documentate nella S039.
+
+Non equivale tuttavia a una copertura completa di tutti gli scenari di concorrenza simultanea, sovrapposizione e rollback atomico interno delle RPC in condizioni di errore.
+
+#### Verifiche completate nella S041
+
+La S041 ha introdotto la gestione Flutter del risultato autoritativo `blocked_by_confirmed_plans` durante la creazione di una coltivazione reale.
+
+Il repository riconosce l'esito attraverso il risultato tipizzato `CreatePlantingBlockedByConfirmedPlans`.
+
+La pagina `AddPlantingPage` comunica il blocco con un messaggio specifico e rimane aperta, senza considerare riuscita la creazione della coltivazione.
+
+Sono stati aggiunti due test Flutter dedicati. La suite completa ha superato **1.474 test su 1.474**, con `flutter analyze` senza problemi.
+
+Questo intervento verifica un comportamento applicativo circoscritto e non costituisce il completamento dell'interfaccia Flutter per la gestione del lifecycle delle pianificazioni stagionali.
+
+#### Stato delle verifiche ancora aperte alla conclusione della S041
+
+Rimangono da valutare separatamente:
+
+- la distribuzione delle 11 migration S039 al database Supabase remoto e le relative verifiche, previa autorizzazione;
+- il collaudo integrato Flutter–Supabase delle funzionalità interessate;
+- l'integrazione Flutter del lifecycle completo delle pianificazioni stagionali;
+- gli ulteriori test dinamici non coperti dal collaudo S040, inclusi gli scenari di concorrenza simultanea, sovrapposizione e rollback atomico su errore.
+
+Le verifiche locali non attestano automaticamente la distribuzione delle migration o il funzionamento delle stesse funzionalità sul database remoto.
+
+Gli elementi ancora aperti non costituiscono attività automaticamente autorizzate per una sessione successiva.
 
 La loro eventuale esecuzione dovrà essere valutata e approvata nell'ambito del normale workflow di sviluppo Orto Smart.
 
@@ -8344,7 +8609,11 @@ flutter analyze
 No issues found
 ```
 
-La S033 costituisce pertanto l'ultima baseline applicativa Flutter completa verificata.
+**Alla conclusione della S033**, il risultato di 1.107/1.107 test costituiva la baseline applicativa Flutter completa più recente documentata.
+
+Questo risultato rimane un riferimento storico della S033 e non rappresenta la baseline applicativa Flutter corrente. Alla conclusione della S041, la suite Flutter completa ha raggiunto **1.474/1.474 test superati**, con `flutter analyze` senza problemi. Le verifiche S041 riguardano il livello applicativo Flutter e non costituiscono nuove verifiche delle migration o nuove acceptance database.
+
+Questo risultato rimane valido come riferimento storico della S033. Non deve essere confuso con la baseline più recente raggiunta successivamente nella S041, con 1.474/1.474 test superati.
 
 I risultati delle verifiche dedicate non devono essere sommati al conteggio della suite completa.
 
@@ -8398,6 +8667,16 @@ Alla chiusura dello sviluppo S034:
 
 Pertanto, i risultati S034 non devono essere interpretati come una validazione dinamica completa delle tre RPC modificate.
 
+#### Evoluzione successiva — S038
+
+Nella Sessione S038 è stata completata la distribuzione della migration `20261014200459_fix_catalog_registry_semantic_freeze_errors.sql` al database Supabase remoto.
+
+La verifica di allineamento ha confermato la presenza delle **34 migration previste** negli ambienti locale e remoto.
+
+Questo risultato aggiorna lo stato di distribuzione della migration rispetto alla conclusione della S034, senza modificare retroattivamente le verifiche attribuite a quella sessione.
+
+La distribuzione remota e l'allineamento delle migration non dimostrano, da soli, l'esecuzione positiva del test dinamico specifico relativo al ramo `SQLSTATE 55000`, che non deve essere dichiarato superato senza un risultato documentato.
+
 ### Principi di qualità consolidati
 
 Il database deve continuare a rimanere privo di dati demo o provvisori fino all'avvio della gestione reale dell'orto e al popolamento controllato del Catalogo Agronomico verificato.
@@ -8418,7 +8697,9 @@ possibili attività future
 
 Non devono essere sommati risultati appartenenti a suite eseguite in momenti differenti, né attribuite a una sessione verifiche non effettivamente eseguite.
 
-Al termine dello sviluppo S034, il riferimento applicativo Flutter più recente documentato rimane:
+#### Evoluzione delle baseline verificate
+
+Alla conclusione della S034, il riferimento applicativo Flutter completo più recente era costituito dalla S033:
 
 ```text
 Sessione S033
@@ -8430,9 +8711,69 @@ suite Flutter completa
 1107/1107 test passati
 ```
 
-Le verifiche statiche S033B e la correzione SQL S034 rappresentano avanzamenti distinti sul livello backend.
+Questo risultato rimane valido come riferimento storico e non rappresenta la baseline applicativa corrente.
+
+Le verifiche statiche S033B e la correzione SQL S034 costituiscono avanzamenti distinti sul livello backend.
+
+Nella S038 è stata completata la distribuzione remota della migration S034, con verifica dell'allineamento delle 34 migration allora previste tra gli ambienti locale e remoto.
+
+#### Verifiche database S039 e S040
+
+La S039 ha introdotto 11 migration relative alla pianificazione stagionale delle coltivazioni, applicate al database Supabase locale.
+
+La S040 ha completato il collaudo SQL dinamico locale del lifecycle delle pianificazioni attraverso:
+
+```text
+supabase/tests/s040_planned_planting_lifecycle.sql
+```
+
+Il collaudo ha verificato i principali passaggi del lifecycle, i controlli di autorizzazione, la concorrenza ottimistica mediante `row_version`, la prevenzione delle esecuzioni duplicate e le protezioni dalle scritture dirette non consentite.
+
+L'esecuzione è avvenuta all'interno di una transazione con `BEGIN` e `ROLLBACK`, senza lasciare dati di prova permanenti nelle nove tabelle controllate.
+
+Il risultato positivo del collaudo locale non equivale alla verifica di tutti i possibili scenari di concorrenza, sovrapposizione e rollback interno delle RPC in condizioni di errore.
+
+#### Baseline applicativa Flutter S041
+
+La S041 ha integrato nel livello Flutter la gestione del risultato autoritativo `blocked_by_confirmed_plans` durante la creazione di una coltivazione reale.
+
+Il risultato viene riconosciuto attraverso `CreatePlantingBlockedByConfirmedPlans` e gestito nella pagina `AddPlantingPage`, che comunica il blocco e rimane aperta senza considerare riuscita l'operazione.
+
+Sono stati aggiunti due test dedicati.
+
+La verifica finale ha prodotto:
+
+```text
+Sessione S041
+
+flutter analyze
+No issues found
+
+flutter test
+1474/1474 test passati
+```
+
+Questo costituisce il riferimento applicativo Flutter completo più recente documentato alla conclusione della S041.
+
+La S041 non ha introdotto nuove migration né eseguito nuove verifiche dinamiche o acceptance test del database. I risultati SQL della S040 rimangono attribuiti esclusivamente alla sessione nella quale sono stati ottenuti.
+
+#### Stato delle verifiche ancora aperte
+
+Alla conclusione della S041, le 11 migration S039 risultano applicate soltanto al database locale e non risultano distribuite sul database Supabase remoto.
+
+Rimangono da valutare, secondo il normale workflow di sviluppo:
+
+- la distribuzione remota delle migration S039, esclusivamente previa autorizzazione;
+- il collaudo integrato Flutter–Supabase;
+- l'integrazione applicativa del lifecycle completo delle pianificazioni stagionali;
+- le verifiche dinamiche aggiuntive non coperte dal collaudo S040, comprese concorrenza simultanea, sovrapposizioni e rollback atomico su errore;
+- le ulteriori verifiche database specifiche rimaste aperte nelle sessioni precedenti, senza considerarle automaticamente superate.
+
+Le verifiche eseguite sul database locale non dimostrano automaticamente la corretta distribuzione o il funzionamento delle stesse modifiche nell'ambiente remoto.
 
 Il completamento delle verifiche ancora aperte e le successive attività di sviluppo dovranno essere valutati e approvati sulla base dello stato reale del progetto.
+
+Nessuna attività futura deve essere considerata automaticamente autorizzata dal presente documento.
 
 # 10. Evoluzione del Progetto
 

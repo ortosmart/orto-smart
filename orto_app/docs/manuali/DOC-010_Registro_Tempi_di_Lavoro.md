@@ -6,25 +6,28 @@
 
 ---
 
-
 # Informazioni sul documento
 
 | Campo | Valore |
 |---|---|
 | Documento | DOC-010 |
 | Titolo | Registro Tempi di Lavoro |
-| Versione | 1.6 |
-| Stato | Consuntivi S001–S040 consolidati; pubblicazione tecnica S040 da completare |
+| Versione | 1.7 |
+| Stato | Consuntivi S001–S041 definitivi; chiusura temporale Manuali S041 registrata; revisione 1.7 in attesa di verifica finale e pubblicazione Git |
 | Progetto | Orto Smart |
 | Repository | `ortosmart/orto-smart` |
 | Prima emissione | 17/10/2026 |
-| Ultimo aggiornamento | 06/11/2026 |
-| Sessione di predisposizione | Manuali S035; aggiornamenti successivi fino a Manuali S040 |
+| Ultimo aggiornamento | 12/11/2026 |
+| Sessione di predisposizione | Manuali S035; aggiornamenti successivi fino a Manuali S041 |
 | Baseline storica | S001–S034 |
 | Tempo netto storico consolidato | 280 h 07 min |
-| Ultimo progressivo consolidato | 341 h 17 min (comprende S035–S040 e la regolarizzazione post-chiusura S035) |
----
+| Ultimo progressivo definitivo | 347 h 33 min (S001–S041, inclusa la regolarizzazione post-chiusura S035) |
+| Progressivo Sviluppo S001–S041 | 248 h 39 min |
+| Progressivo Manuali S001–S041 | 98 h 54 min |
+| Consuntivo definitivo S041 | 6 h 16 min (Sviluppo 2 h 09 min; Manuali 4 h 07 min) |
+| Chiusura temporale Manuali S041 | 12/11/2026 alle ore 16:50 |
 
+---
 
 # Cronologia delle revisioni
 
@@ -37,6 +40,7 @@
 | 1.4 | 03/11/2026 | Consuntivo definitivo S038: sviluppo 13 h 27 min, Manuali 5 h 10 min, totale sessione 18 h 37 min; progressivo complessivo progetto 330 h 56 min; aggiornamento e riconciliazione dei riepiloghi cumulativi |
 | 1.5 | 05/11/2026 | Consuntivo definitivo S039: sviluppo 3 h 35 min, Manuali 2 h 40 min, totale sessione 6 h 15 min; chiusura Manuali del 05/11/2026 alle 22:18; aggiornamento del progressivo complessivo del progetto a 337 h 11 min, di cui 244 h 05 min di Sviluppo e 93 h 06 min di Manuali; conferma della baseline storica S001–S034 invariata e distinzione tra chiusura temporale S039 e successive operazioni tecniche di pubblicazione. |
 | 1.6 | 06/11/2026 | Consuntivo definitivo S040: sviluppo 2 h 25 min, Manuali 1 h 41 min senza sospensioni, totale sessione 4 h 06 min; chiusura Manuali del 06/11/2026 alle 23:45; progressivo complessivo del progetto 341 h 17 min, di cui 246 h 30 min di Sviluppo e 94 h 47 min di Manuali; baseline storica S001–S034 invariata e pubblicazione tecnica Git ancora da completare. |
+| 1.7 | 12/11/2026 | Consuntivo definitivo S041: Sviluppo concluso l'11/11/2026 alle 21:06, con 2 h 09 min netti; Manuali aperti l'11/11/2026 alle 21:10 e conclusi il 12/11/2026 alle 16:50, con 4 h 07 min netti e 15 h 33 min di sospensioni; totale S041 6 h 16 min; progressivo complessivo progetto 347 h 33 min, di cui 248 h 39 min di Sviluppo e 98 h 54 min di Manuali. Quadratura temporale verificata; verifiche finali e pubblicazione Git ancora da completare. |
 
 ---
 
@@ -133,7 +137,53 @@ La chiusura temporale dei Manuali S040, dichiarata il **06/11/2026 alle 23:45**,
 
 Alla predisposizione della revisione 1.6, la pubblicazione tecnica della documentazione S040 non risulta ancora completata.
 
----
+### Stato della Sessione S041 — Consuntivo temporale definitivo
+
+La pubblicazione tecnica della documentazione S040 è stata successivamente completata e verificata su GitHub.
+
+Il commit documentale conclusivo S040 è:
+
+`e3b9382fd47a5b5e5186a14e71700d7bbb109394`
+
+La fase di Sviluppo S041 è stata dichiarata conclusa l'**11/11/2026 alle ore 21:06**, con un tempo netto definitivo di **2 h 09 min**.
+
+Il relativo commit tecnico conclusivo è:
+
+`8da41125eaa6cc519511aec14d34f5b0b2927f9b`
+
+La fase Manuali S041 è stata aperta l'**11/11/2026 alle ore 21:10** e dichiarata conclusa il **12/11/2026 alle ore 16:50**.
+
+Il tempo netto definitivo della fase Manuali S041 è pari a **4 h 07 min**.
+
+Le sospensioni registrate ammontano complessivamente a **15 h 33 min** e sono escluse dal conteggio del lavoro.
+
+L'ultimo intervallo documentale, dalle **15:49 alle 16:50 del 12/11/2026**, ha una durata netta di **1 h 01 min**.
+
+Il consuntivo definitivo della Sessione S041 è il seguente:
+
+| Categoria | Tempo netto S041 | Progressivo S001–S041 |
+|---|---:|---:|
+| Sviluppo | 2 h 09 min | 248 h 39 min |
+| Manuali | 4 h 07 min | 98 h 54 min |
+| **Totale** | **6 h 16 min** | **347 h 33 min** |
+
+Il progressivo definitivo del progetto alla conclusione della S040 era pari a **341 h 17 min**.
+
+L'incremento della S041, pari a **6 h 16 min**, determina il nuovo progressivo definitivo di **347 h 33 min**.
+
+La quadratura temporale è verificata:
+
+- 2 h 09 min + 4 h 07 min = **6 h 16 min**;
+- 341 h 17 min + 6 h 16 min = **347 h 33 min**;
+- 248 h 39 min + 98 h 54 min = **347 h 33 min**.
+
+La revisione **1.7** recepisce pertanto il consuntivo temporale definitivo della Sessione S041.
+
+La baseline storica S001–S034 rimane invariata a **280 h 07 min**.
+
+Le verifiche finali della documentazione e le successive operazioni di commit, push e conferma dell'allineamento con GitHub saranno registrate separatamente, secondo il DOC-009.
+
+Alla predisposizione della presente revisione, **la fase Manuali S041 è conclusa temporalmente, mentre la pubblicazione documentale S041 non è ancora stata effettuata**.
 
 # Indice
 
@@ -1935,6 +1985,105 @@ La Sessione S040 è completamente conclusa sia nella fase di Sviluppo sia nella 
 
 La baseline storica S001–S034, pari a **280 h 07 min**, rimane invariata.
 
+### 6.34 Sessione S041
+
+La Sessione S041 comprende la fase di Sviluppo, conclusa l'**11/11/2026 alle ore 21:06**, e la successiva fase Manuali, aperta l'**11/11/2026 alle ore 21:10** e conclusa il **12/11/2026 alle ore 16:50**.
+
+Entrambe le fasi risultano concluse temporalmente. I relativi consuntivi sono definitivi.
+
+#### 6.34.1 Sviluppo
+
+La fase di Sviluppo S041 è stata dichiarata conclusa l'**11/11/2026 alle ore 21:06**.
+
+Il tempo netto definitivo, acquisito dal checkpoint ufficiale di sviluppo, è di **2 h 09 min**.
+
+La sessione ha riguardato l'integrazione Flutter del blocco autoritativo `blocked_by_confirmed_plans` nella creazione delle coltivazioni reali.
+
+Sono stati introdotti il risultato tipizzato `CreatePlantingBlockedByConfirmedPlans` e la relativa gestione nella pagina `AddPlantingPage`.
+
+Le verifiche conclusive hanno registrato:
+
+- `flutter analyze`: PASS;
+- `flutter test`: PASS, 1474/1474 test superati;
+- due nuovi test Flutter;
+- nessuna nuova migration SQL;
+- nessun deployment delle migration S039 al database remoto.
+
+Il commit tecnico conclusivo è:
+
+`8da41125eaa6cc519511aec14d34f5b0b2927f9b`
+
+Il consuntivo dello Sviluppo S041 è definitivo e non viene ricalcolato nella fase Manuali.
+
+#### 6.34.2 Manuali — Consuntivo definitivo
+
+La fase Manuali S041 è stata aperta l'**11/11/2026 alle ore 21:10** e dichiarata conclusa il **12/11/2026 alle ore 16:50**.
+
+Gli intervalli registrati sono:
+
+| Data | Intervallo | Tipologia | Durata |
+|---|---|---|---:|
+| 11/11/2026 | 21:10–22:58 | Lavoro documentale | 1 h 48 min |
+| 11–12/11/2026 | 22:58–08:46 | Sospensione | 9 h 48 min |
+| 12/11/2026 | 08:46–09:44 | Lavoro documentale | 58 min |
+| 12/11/2026 | 09:44–11:10 | Sospensione | 1 h 26 min |
+| 12/11/2026 | 11:10–11:30 | Lavoro documentale | 20 min |
+| 12/11/2026 | 11:30–15:49 | Sospensione | 4 h 19 min |
+| 12/11/2026 | 15:49–16:50 | Lavoro documentale | 1 h 01 min |
+
+Il tempo netto complessivo della fase Manuali S041 è pari a **4 h 07 min**.
+
+Le sospensioni ammontano complessivamente a **15 h 33 min** e sono escluse dal conteggio del lavoro.
+
+Durante la fase Manuali S041 sono stati aggiornati i seguenti documenti:
+
+- DOC-001 — Manuale Tecnico;
+- DOC-004 — Manuale Database;
+- DOC-007 — Test e Collaudo;
+- DOC-005 — Quaderno di Sviluppo;
+- DOC-009 — Workflow Operativo;
+- DOC-012 — Registro Storico dello Sviluppo;
+- CHANGELOG;
+- DOC-010 — Registro Tempi di Lavoro.
+
+Le attività documentali comprendono la registrazione delle modifiche Flutter S041, la verifica della coerenza con il backend autoritativo, l'aggiornamento della cronologia tecnica e i controlli Git sui documenti modificati.
+
+**Stato della fase Manuali:** conclusa temporalmente.
+
+**Orario definitivo di chiusura:** 12/11/2026, ore 16:50.
+
+**Tempo netto definitivo Manuali S041:** 4 h 07 min.
+
+La pubblicazione Git delle modifiche documentali resta soggetta alle verifiche conclusive e all'autorizzazione esplicita.
+
+#### 6.34.3 Consuntivo definitivo S041
+
+Il progressivo definitivo del progetto alla chiusura della S040 è pari a **341 h 17 min**.
+
+La Sessione S041 aggiunge **2 h 09 min** di Sviluppo e **4 h 07 min** di Manuali, per un incremento complessivo di **6 h 16 min**.
+
+| Categoria | Progressivo S040 | Incremento S041 | Progressivo S041 |
+|---|---:|---:|---:|
+| Sviluppo | 246 h 30 min | 2 h 09 min | 248 h 39 min |
+| Manuali | 94 h 47 min | 4 h 07 min | 98 h 54 min |
+| **Totale progetto** | **341 h 17 min** | **6 h 16 min** | **347 h 33 min** |
+
+**Tempo netto definitivo Sviluppo S041:** 2 h 09 min.
+
+**Tempo netto definitivo Manuali S041:** 4 h 07 min.
+
+**Tempo netto complessivo Sessione S041:** 6 h 16 min.
+
+**Progressivo definitivo progetto S001–S041:** 347 h 33 min.
+
+La quadratura conclusiva è verificata:
+
+- 2 h 09 min + 4 h 07 min = **6 h 16 min**;
+- 341 h 17 min + 6 h 16 min = **347 h 33 min**;
+- 248 h 39 min + 98 h 54 min = **347 h 33 min**.
+
+La baseline storica S001–S034, pari a **280 h 07 min**, rimane invariata.
+
 ## 7. Registro delle correzioni e delle rettifiche
 
 ### 7.1 Finalità
@@ -2324,7 +2473,7 @@ Deve sempre risultare:
 
 ### 9.6 Tabella dei progressivi successivi
 
-La tabella conserva la baseline storica S001–S034, i consuntivi definitivi delle sessioni S035–S040 e la regolarizzazione documentale successiva alla chiusura della S035.
+La tabella conserva la baseline storica S001–S034, i consuntivi definitivi delle sessioni S035–S041 e la regolarizzazione documentale successiva alla chiusura della S035.
 
 | Sessione | Sviluppo netto | Manuali netto | Totale sessione | Progressivo sviluppo | Progressivo Manuali | Progressivo totale |
 |---|---:|---:|---:|---:|---:|---:|
@@ -2335,20 +2484,24 @@ La tabella conserva la baseline storica S001–S034, i consuntivi definitivi del
 | S037 — chiusura Manuali del 26/10 alle 14:50 | 9 h 32 | 1 h 06 | 10 h 38 | 227 h 03 | 85 h 16 | 312 h 19 |
 | S038 — chiusura Manuali del 03/11 alle 22:50 | 13 h 27 | 5 h 10 | 18 h 37 | 240 h 30 | 90 h 26 | 330 h 56 |
 | S039 — chiusura Manuali del 05/11 alle 22:18 | 3 h 35 | 2 h 40 | 6 h 15 | 244 h 05 | 93 h 06 | 337 h 11 |
-| **S040 — chiusura Manuali del 06/11 alle 23:45** | **2 h 25** | **1 h 41** | **4 h 06** | **246 h 30** | **94 h 47** | **341 h 17** |
+| S040 — chiusura Manuali del 06/11 alle 23:45 | 2 h 25 | 1 h 41 | 4 h 06 | 246 h 30 | 94 h 47 | 341 h 17 |
+| **S041 — chiusura Manuali del 12/11 alle 16:50** | **2 h 09** | **4 h 07** | **6 h 16** | **248 h 39** | **98 h 54** | **347 h 33** |
 
 La regolarizzazione successiva alla S035 rappresenta un'attività documentale distinta e non istituisce un nuovo identificativo di sessione.
 
-I consuntivi delle sessioni S036, S037, S038, S039 e S040 comprendono esclusivamente i tempi consolidati delle rispettive fasi Sviluppo e Manuali.
+I consuntivi delle sessioni S036, S037, S038, S039, S040 e S041 comprendono esclusivamente i tempi consolidati delle rispettive fasi Sviluppo e Manuali.
 
-Le operazioni tecniche successive alla dichiarazione di chiusura temporale della fase Manuali sono distinte dal relativo consuntivo e disciplinate dal DOC-009 v2.7.
+Le operazioni tecniche successive alla dichiarazione di chiusura temporale della fase Manuali sono distinte dal relativo consuntivo e disciplinate dal DOC-009 v2.8.
 
-Alla chiusura temporale definitiva della S040, dichiarata il **06/11/2026 alle 23:45**, il progressivo complessivo del progetto è di **341 h 17 min**, ripartito in:
+Alla chiusura temporale definitiva della S041, dichiarata il **12/11/2026 alle 16:50**, il progressivo complessivo del progetto è di **347 h 33 min**, ripartito in:
 
-- **246 h 30 min** di Sviluppo;
-- **94 h 47 min** di Manuali.
+- **248 h 39 min** di Sviluppo;
+- **98 h 54 min** di Manuali.
 
-La quadratura dei progressivi è verificata.
+La quadratura dei progressivi è verificata:
+
+- 248 h 39 min + 98 h 54 min = **347 h 33 min**;
+- 341 h 17 min + 6 h 16 min = **347 h 33 min**.
 
 Le sessioni successive devono essere aggiunte in ordine cronologico.
 
@@ -2392,6 +2545,25 @@ Il consuntivo netto della S040 è di **4 h 06 min**, ripartito in **2 h 25 min d
 Il progressivo complessivo consolidato del progetto raggiunge **341 h 17 min**, ripartito in **246 h 30 min di Sviluppo** e **94 h 47 min di Manuali**. La quadratura è verificata.
 
 La chiusura temporale della fase Manuali S040 è definitiva. Alla predisposizione della revisione 1.6, le successive operazioni tecniche di verifica finale, commit, push e conferma dell'allineamento con GitHub non risultano ancora completate e devono essere accertate separatamente.
+
+La versione **1.7** recepisce il consuntivo temporale definitivo della Sessione S041.
+
+Lo Sviluppo S041 è stato definitivamente concluso l'**11/11/2026 alle ore 21:06**, con un tempo netto di **2 h 09 min**.
+
+La fase Manuali S041 è stata aperta l'**11/11/2026 alle ore 21:10** e dichiarata conclusa il **12/11/2026 alle ore 16:50**, con un tempo netto definitivo di **4 h 07 min** e sospensioni complessive di **15 h 33 min**.
+
+Il tempo netto complessivo della Sessione S041 è di **6 h 16 min**, ripartito in **2 h 09 min di Sviluppo** e **4 h 07 min di Manuali**.
+
+Il progressivo definitivo del progetto alla chiusura della S041 raggiunge **347 h 33 min**, ripartito in:
+
+- **248 h 39 min** di Sviluppo;
+- **98 h 54 min** di Manuali.
+
+La quadratura temporale della Sessione S041 e dei progressivi complessivi è verificata.
+
+La revisione 1.7 contiene pertanto i consuntivi temporali definitivi della S041. La sua emissione documentale resta subordinata alle verifiche conclusive e alla pubblicazione Git.
+
+Le successive operazioni di verifica Git, commit e push saranno accertate separatamente, secondo il workflow documentale approvato, senza modificare automaticamente il consuntivo temporale già dichiarato.
 
 Dopo l'emissione:
 

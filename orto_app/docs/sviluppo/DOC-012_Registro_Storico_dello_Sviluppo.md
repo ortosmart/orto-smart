@@ -4,7 +4,7 @@
 
 # Registro Storico dello Sviluppo
 
-**Versione:** 5.0
+**Versione:** 5.1
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 29/07/2026
 
-**Ultimo aggiornamento:** 06/11/2026
+**Ultimo aggiornamento:** 12/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |--------|--------|
 | Documento | DOC-012 |
 | Titolo | Registro Storico dello Sviluppo |
-| Versione | 5.0 |
+| Versione | 5.1 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 29/07/2026 |
-| Ultimo aggiornamento | 06/11/2026 |
+| Ultimo aggiornamento | 12/11/2026 |
 
 ---
 
@@ -71,6 +71,7 @@
 | 4.8 | 03/11/2026 | Aggiornamento storico S038: integrazione Flutter dei Registri Agronomici Unità di misura e Parametri agronomici, introduzione del Resolver agronomico tipizzato, deployment remoto della correzione SQL S034, riallineamento delle migration locali e remote, consolidamento delle milestone S037–S038 e degli indicatori evolutivi; sviluppo S038 concluso, fase Manuali S038 in corso. |
 | 4.9 | 05/11/2026 | Aggiornamento storico della Sessione S039: introduzione della pianificazione stagionale autoritativa mediante `season_plans` e `planned_plantings`, cinque RPC per il ciclo di vita e l'esecuzione atomica delle coltivazioni pianificate, protezioni geometriche e temporali e integrazione con il Write Path delle coltivazioni reali; registrazione delle undici migration SQL applicate esclusivamente al database locale, delle verifiche statiche SQL, di `flutter analyze` senza problemi e di 1472/1472 test Flutter superati; consolidamento del commit tecnico `5527aa8` e del tempo di sviluppo S039 di 3 h 35 min, con distinzione dei collaudi dinamici, del deployment remoto e dell'integrazione Flutter ancora aperti. |
 | 5.0 | 06/11/2026 | Aggiornamento storico della Sessione S040: collaudo SQL dinamico locale del lifecycle delle pianificazioni stagionali mediante `s040_planned_planting_lifecycle.sql`, composto da 887 righe e 15 sezioni; verifica dei principali percorsi autoritativi, delle transizioni di stato, dei conflitti di versione, delle protezioni contro scritture dirette ed esecuzioni duplicate e dell'isolamento transazionale dei dati temporanei. Registrati `flutter analyze` senza problemi, 1472/1472 test Flutter superati, assenza di nuove migration e mancato deployment remoto delle 11 migration S039. Consolidati il commit tecnico `8e15c681a5214c4f9643a9fc765b82ec9b427af9`, le 2 h 25 min di sviluppo S040 e gli indicatori storici aggiornati, consolidando il consuntivo definitivo della Sessione S040, comprensivo delle 2 h 25 min di sviluppo e delle 1 h 41 min di Manuali, per un totale di 4 h 06 min e un progressivo complessivo del progetto di 341 h 17 min. |
+| 5.1 | 12/11/2026 | Aggiornamento storico della Sessione S041: introduzione del risultato Flutter tipizzato `CreatePlantingBlockedByConfirmedPlans`, gestione dedicata in `AddPlantingPage`, due nuovi test e verifica conclusiva con 1474/1474 test superati; commit tecnico `8da41125`, nessuna nuova migration SQL e nessun deployment remoto delle undici migration S039. Sviluppo S041 concluso l'11/11/2026 alle 21:06 con 2 h 09 min netti; Manuali S041 conclusi il 12/11/2026 alle 16:50 con 4 h 07 min netti e 15 h 33 min di sospensioni. Totale definitivo S041 6 h 16 min; progressivi consolidati: Sviluppo 248 h 39 min, Manuali 98 h 54 min, progetto 347 h 33 min. Pubblicazione documentale Git S041 ancora da completare. |
 
 ---
 
@@ -120,7 +121,13 @@ Le informazioni riportate vengono aggiornate sulla base delle sessioni di svilup
 
 ## 2.1 Stato attuale del progetto
 
-Alla data del **06/11/2026**, la Sessione **S040** costituisce l'ultima sessione completamente conclusa, sia nella fase Sviluppo sia nella fase Manuali.
+Alla data del **12/11/2026**, la Sessione **S041** costituisce l'ultima sessione completamente conclusa, sia nella fase Sviluppo sia nella fase Manuali.
+
+La fase Sviluppo S041 è stata conclusa l'**11/11/2026 alle ore 21:06**, con un tempo netto definitivo di **2 h 09 min**.
+
+La fase Manuali S041 è stata aperta l'**11/11/2026 alle ore 21:10** e dichiarata conclusa il **12/11/2026 alle ore 16:50**, con un tempo netto definitivo di **4 h 07 min** e sospensioni complessive di **15 h 33 min**.
+
+Il consuntivo complessivo definitivo della Sessione S041 è pertanto pari a **6 h 16 min**.
 
 La Sessione **S038** è definitivamente conclusa con **18 h 37 min** complessivi, di cui **13 h 27 min** di Sviluppo e **5 h 10 min** di Manuali. Il progressivo complessivo alla sua chiusura è pari a **330 h 56 min**.
 
@@ -132,36 +139,74 @@ La Sessione **S040** è definitivamente conclusa il **06/11/2026 alle ore 23:45*
 
 | Indicatore | Valore |
 |------------|--------|
-| Sessioni completamente concluse | 40 — S001–S040, con S033B come prosecuzione della S033 |
-| Fasi sviluppo completate | 40 — S001–S040 |
-| Ore di sviluppo consolidate | 246 h 30 min |
-| Ore di documentazione consolidate fino a S040 | 94 h 47 min |
-| Totale definitivo progetto alla chiusura S040 | 341 h 17 min |
+| Sessioni completamente concluse | 41 — S001–S041, con S033B come prosecuzione della S033 |
+| Fasi sviluppo completate | 41 — S001–S041 |
+| Ore di sviluppo consolidate | 248 h 39 min |
+| Ore di documentazione consolidate | 98 h 54 min |
+| Totale definitivo progetto alla chiusura S041 | 347 h 33 min |
+| Durata sviluppo S041 | 2 h 09 min |
+| Durata Manuali S041 | 4 h 07 min |
+| Sospensioni Manuali S041 | 15 h 33 min |
+| Durata complessiva S041 | 6 h 16 min |
 | Durata complessiva S038 | 18 h 37 min |
 | Durata complessiva S039 | 6 h 15 min |
 | Durata sviluppo S040 | 2 h 25 min |
 | Durata Manuali S040 | 1 h 41 min |
 | Durata complessiva S040 | 4 h 06 min |
-| Ultima sessione completamente conclusa | S040 |
-| Ultima fase sviluppo completata | S040 |
-| Ultima fase documentale completata | Manuali S040 |
+| Ultima sessione completamente conclusa | S041 |
+| Ultima fase sviluppo completata | S041 |
+| Ultima fase documentale completata | Manuali S041 |
 | Stato Manuali S040 | Conclusi il 06/11/2026 alle 23:45 |
+| Stato Manuali S041 | Conclusi temporalmente il 12/11/2026 alle 16:50; pubblicazione Git documentale ancora da completare |
 | Prossima attività di sviluppo | Da definire secondo il workflow operativo |
 | Versione pubblica corrente | `0.1.21-alpha` |
 | Versione Flutter corrente | `0.1.21-alpha+6` |
 
-Il progressivo definitivo del progetto alla chiusura S040 è pari a **341 h 17 min**, ripartito in:
+### Consuntivo definitivo alla chiusura S040
 
-```text
-Sviluppo complessivo        246 h 30 min
-Documentazione complessiva   94 h 47 min
-----------------------------------------
-Totale progetto             341 h 17 min
-```
+| Attività | Tempo |
+|----------|------:|
+| Sviluppo complessivo | 246 h 30 min |
+| Documentazione complessiva | 94 h 47 min |
+| **Totale progetto** | **341 h 17 min** |
+
+### Progressivo intermedio storico dopo lo sviluppo S041
+
+| Attività | Tempo |
+|----------|------:|
+| Totale definitivo alla S040 | 341 h 17 min |
+| Sviluppo S041 | 2 h 09 min |
+| **Progressivo intermedio storico** | **343 h 26 min** |
+
+La ripartizione del progressivo intermedio storico è:
+
+| Attività | Tempo |
+|----------|------:|
+| Sviluppo complessivo | 248 h 39 min |
+| Documentazione fino a S040 | 94 h 47 min |
+| **Progressivo intermedio storico** | **343 h 26 min** |
+
+Il progressivo di **343 h 26 min** rappresenta esclusivamente la situazione successiva alla conclusione dello sviluppo S041 e precedente al consolidamento della fase Manuali S041. Non costituisce più il progressivo corrente del progetto.
+
+### Consuntivo definitivo alla chiusura S041
+
+| Attività | Progressivo S040 | Incremento S041 | Progressivo S041 |
+|----------|-----------------:|----------------:|----------------:|
+| Sviluppo | 246 h 30 min | 2 h 09 min | **248 h 39 min** |
+| Manuali | 94 h 47 min | 4 h 07 min | **98 h 54 min** |
+| **Totale progetto** | **341 h 17 min** | **6 h 16 min** | **347 h 33 min** |
+
+La quadratura del consuntivo definitivo è verificata:
+
+- 2 h 09 min + 4 h 07 min = **6 h 16 min**;
+- 341 h 17 min + 6 h 16 min = **347 h 33 min**;
+- 248 h 39 min + 98 h 54 min = **347 h 33 min**.
 
 Il precedente progressivo di **339 h 36 min** rappresenta correttamente lo stato intermedio successivo al solo sviluppo S040, prima del consolidamento della fase Manuali.
 
 La regolarizzazione documentale post-S035 di **20 minuti** rimane contabilizzata separatamente secondo il DOC-010, senza istituire una nuova sessione.
+
+La chiusura temporale definitiva della S041 non implica automaticamente il completamento delle verifiche finali o della pubblicazione documentale Git, che rimangono operazioni distinte.
 
 I consuntivi delle sessioni precedenti rimangono invariati. Le fotografie storiche riportate nelle sezioni successive conservano il proprio riferimento temporale.
 
@@ -1196,6 +1241,85 @@ La quadratura è verificata:
 Il precedente progressivo di **339 h 36 min** rimane registrato come valore intermedio successivo al solo sviluppo S040 e non costituisce il consuntivo definitivo della sessione.
 
 La Sessione S040 risulta pertanto completamente conclusa, sia nella fase Sviluppo sia nella fase Manuali.
+
+### S041 — Gestione Flutter del blocco delle coltivazioni con pianificazioni confermate
+
+La fase Sviluppo S041 è stata conclusa l'**11/11/2026 alle ore 21:06**, con un tempo netto definitivo di **2 h 09 min**.
+
+La sessione ha introdotto nel client Flutter la gestione esplicita dell'esito autoritativo `blocked_by_confirmed_plans`, restituito dal backend quando la creazione di una coltivazione reale è impedita dalla presenza di pianificazioni stagionali confermate incompatibili.
+
+È stato introdotto il risultato applicativo tipizzato `CreatePlantingBlockedByConfirmedPlans`, che permette di distinguere tale blocco dalle altre condizioni di errore.
+
+La pagina `AddPlantingPage` è stata aggiornata per:
+
+- mostrare un messaggio dedicato al blocco;
+- mantenere aperta la schermata di inserimento;
+- evitare una falsa conferma di creazione;
+- rispettare la validazione autoritativa del backend.
+
+### Verifiche S041
+
+Sono stati aggiunti **due test Flutter** dedicati al nuovo comportamento.
+
+Le verifiche conclusive dello sviluppo hanno prodotto:
+
+- `flutter analyze`: nessun problema;
+- `flutter test`: **1474/1474 test superati**.
+
+Il superamento della suite Flutter non costituisce un collaudo integrato dell'intero lifecycle delle pianificazioni stagionali.
+
+### Database e limiti S041
+
+- Nessuna nuova migration SQL introdotta.
+- Nessuna applicazione remota delle undici migration S039.
+- Nessun popolamento permanente con dati provvisori.
+- Integrazione Flutter completa della pianificazione stagionale ancora aperta.
+- Collaudo integrato Flutter–Supabase ancora da completare.
+- Ulteriori verifiche dinamiche di concorrenza e rollback non ancora esaustivamente certificate.
+
+### Tracciabilità e consuntivo S041
+
+**Commit tecnico:** `8da41125eaa6cc519511aec14d34f5b0b2927f9b`.
+
+Il commit tecnico S041 è stato pubblicato sul branch `main`.
+
+La fase Sviluppo S041 è stata conclusa l'**11/11/2026 alle ore 21:06**, con un tempo netto definitivo di **2 h 09 min**.
+
+La fase Manuali S041 è stata aperta l'**11/11/2026 alle ore 21:10** e dichiarata conclusa il **12/11/2026 alle ore 16:50**, con un tempo netto definitivo di **4 h 07 min** e sospensioni complessive di **15 h 33 min**.
+
+Il consuntivo complessivo definitivo della Sessione S041 è pari a **6 h 16 min**.
+
+| Indicatore | Valore |
+|---|---:|
+| Sviluppo S041 | 2 h 09 min |
+| Manuali S041 | 4 h 07 min |
+| Sospensioni Manuali S041 | 15 h 33 min |
+| **Totale S041** | **6 h 16 min** |
+| Progressivo sviluppo alla S041 | 248 h 39 min |
+| Progressivo Manuali alla S041 | 98 h 54 min |
+| **Progressivo definitivo progetto alla S041** | **347 h 33 min** |
+
+### Riconciliazione dei progressivi
+
+| Attività | Progressivo S040 | Incremento S041 | Progressivo S041 |
+|---|---:|---:|---:|
+| Sviluppo | 246 h 30 min | 2 h 09 min | **248 h 39 min** |
+| Manuali | 94 h 47 min | 4 h 07 min | **98 h 54 min** |
+| **Totale progetto** | **341 h 17 min** | **6 h 16 min** | **347 h 33 min** |
+
+La quadratura del consuntivo è verificata:
+
+- 2 h 09 min + 4 h 07 min = **6 h 16 min**;
+- 341 h 17 min + 6 h 16 min = **347 h 33 min**;
+- 248 h 39 min + 98 h 54 min = **347 h 33 min**.
+
+Il progressivo intermedio storico di **343 h 26 min** rappresenta la situazione successiva alla sola fase Sviluppo S041, prima della contabilizzazione dei Manuali. Non costituisce più il progressivo corrente del progetto.
+
+La chiusura temporale definitiva della S041 non implica automaticamente il completamento delle verifiche finali e della pubblicazione Git della documentazione S041, ancora da effettuare.
+
+Le versioni applicative restano `0.1.21-alpha` e `0.1.21-alpha+6` per Flutter.
+
+Le attività ancora aperte non costituiscono automaticamente incarichi approvati per le sessioni successive.
 
 ## 3.1 Lettura della cronologia
 
@@ -3929,6 +4053,155 @@ L'obiettivo precedentemente approvato di avviare la pianificazione reale dell'or
 Le attività ancora aperte non costituiscono automaticamente incarichi approvati o priorità vincolanti per una successiva sessione di sviluppo.
 
 La Sessione S040 risulta pertanto definitivamente conclusa, sia nella fase Sviluppo sia nella fase Manuali, con un consuntivo complessivo di **4 h 06 min** e un progressivo totale del progetto di **341 h 17 min**.
+
+## Stato evolutivo S041 — 11–12/11/2026
+
+La presente sezione registra l'evoluzione tecnica e il consolidamento documentale della Sessione S041.
+
+La fase Sviluppo S041 è stata conclusa l'**11/11/2026 alle ore 21:06**, con un tempo netto definitivo di **2 h 09 min**.
+
+La fase Manuali S041 è stata aperta l'**11/11/2026 alle ore 21:10** e dichiarata conclusa il **12/11/2026 alle ore 16:50**, con un tempo netto definitivo di **4 h 07 min** e sospensioni complessive di **15 h 33 min**.
+
+Il consuntivo definitivo complessivo della S041 è pari a **6 h 16 min**. Il progressivo complessivo del progetto raggiunge **347 h 33 min**, di cui **248 h 39 min di Sviluppo** e **98 h 54 min di Manuali**.
+
+La chiusura temporale della fase Manuali è distinta dalle successive verifiche finali e dalla pubblicazione Git della documentazione S041, ancora da completare.
+
+La S041 prosegue il lavoro sulle pianificazioni stagionali introdotto nella S039 e verificato mediante collaudo SQL locale nella S040.
+
+L'intervento riguarda specificamente la gestione Flutter del blocco autoritativo alla creazione di coltivazioni reali in presenza di pianificazioni confermate incompatibili.
+
+### Gestione tipizzata del blocco autoritativo
+
+Durante la S041 è stato introdotto il risultato applicativo:
+
+`CreatePlantingBlockedByConfirmedPlans`
+
+Il risultato permette al client Flutter di riconoscere esplicitamente l'esito backend:
+
+`blocked_by_confirmed_plans`
+
+Tale esito segnala che la creazione di una coltivazione reale è impedita dalla presenza di pianificazioni stagionali confermate incompatibili con l'operazione.
+
+La distinzione tipizzata evita che il blocco venga interpretato come un risultato positivo o trattato indistintamente rispetto ad altre condizioni di errore.
+
+L'autorità della validazione rimane nel database.
+
+### Integrazione nella pagina AddPlantingPage
+
+La pagina Flutter `AddPlantingPage` è stata aggiornata per gestire il nuovo risultato applicativo.
+
+In presenza del blocco autoritativo:
+
+- viene mostrato un messaggio dedicato all'utente;
+- la schermata di inserimento rimane aperta;
+- non viene comunicata una falsa conferma di creazione;
+- non viene introdotto alcun percorso di aggiramento della protezione server-side.
+
+L'intervento riguarda il comportamento applicativo in caso di blocco e non costituisce l'integrazione completa del lifecycle delle pianificazioni stagionali.
+
+### Verifiche Flutter S041
+
+Sono stati introdotti **due nuovi test Flutter** dedicati alla gestione del risultato autoritativo e al comportamento applicativo previsto.
+
+Le verifiche conclusive dello sviluppo S041 hanno prodotto:
+
+| Verifica | Risultato |
+|---|---|
+| `flutter analyze` | PASS — nessun problema |
+| `flutter test` | PASS — 1474/1474 test superati |
+| Nuovi test Flutter S041 | 2 |
+
+La suite Flutter è passata dai **1472 test superati nella S040** ai **1474 test superati nella S041**.
+
+Il risultato documenta la regressione applicativa nel perimetro verificato e non equivale a un collaudo integrato Flutter–Supabase dell'intero sistema di pianificazione stagionale.
+
+### Stato del database e delle migration
+
+La S041 non ha introdotto nuove migration SQL.
+
+Le **11 migration della S039** rimangono applicate esclusivamente all'ambiente Supabase locale.
+
+Non è stata effettuata alcuna applicazione al database remoto.
+
+La protezione autoritativa contro la creazione incompatibile di coltivazioni reali rimane di competenza del backend.
+
+La S041 non ha introdotto popolamenti permanenti con dati dimostrativi o provvisori.
+
+### Versionamento e tracciabilità Git
+
+Lo sviluppo S041 è stato concluso l'**11/11/2026 alle ore 21:06**.
+
+Il commit tecnico conclusivo è:
+
+`8da41125eaa6cc519511aec14d34f5b0b2927f9b`
+
+Il commit è stato pubblicato sul branch `main`.
+
+Le versioni applicative rimangono invariate:
+
+- versione pubblica: `0.1.21-alpha`;
+- versione Flutter: `0.1.21-alpha+6`.
+
+### Consuntivo temporale definitivo S041
+
+La fase Sviluppo S041 è stata conclusa l'**11/11/2026 alle ore 21:06**, con un tempo netto definitivo di **2 h 09 min**.
+
+La fase Manuali S041 è stata aperta l'**11/11/2026 alle ore 21:10** e dichiarata conclusa il **12/11/2026 alle ore 16:50**, con un tempo netto definitivo di **4 h 07 min** e sospensioni complessive di **15 h 33 min**.
+
+### Progressivo storico dopo il solo sviluppo S041
+
+| Indicatore | Valore |
+|---|---:|
+| Sviluppo complessivo alla S040 | 246 h 30 min |
+| Sviluppo S041 | 2 h 09 min |
+| **Progressivo sviluppo alla S041** | **248 h 39 min** |
+
+Il progressivo intermedio storico del progetto, dopo il solo sviluppo S041, è:
+
+| Indicatore | Valore |
+|---|---:|
+| Totale definitivo progetto alla S040 | 341 h 17 min |
+| Sviluppo S041 | 2 h 09 min |
+| **Progressivo intermedio storico** | **343 h 26 min** |
+
+Il valore di **343 h 26 min** rappresenta esclusivamente la situazione precedente al consolidamento della fase Manuali S041 e non costituisce più il progressivo corrente del progetto.
+
+### Consuntivo definitivo della Sessione S041
+
+| Attività | Progressivo S040 | Incremento S041 | Progressivo S041 |
+|---|---:|---:|---:|
+| Sviluppo | 246 h 30 min | 2 h 09 min | **248 h 39 min** |
+| Manuali | 94 h 47 min | 4 h 07 min | **98 h 54 min** |
+| **Totale progetto** | **341 h 17 min** | **6 h 16 min** | **347 h 33 min** |
+
+La quadratura è verificata:
+
+- 2 h 09 min + 4 h 07 min = **6 h 16 min**;
+- 341 h 17 min + 6 h 16 min = **347 h 33 min**;
+- 248 h 39 min + 98 h 54 min = **347 h 33 min**.
+
+Il consuntivo definitivo della Sessione S041 è quindi pari a **6 h 16 min**, con un progressivo complessivo del progetto di **347 h 33 min**.
+
+La chiusura temporale della S041 è distinta dalle successive operazioni di verifica finale, commit e push della documentazione, ancora da completare.
+
+### Limiti e continuità
+
+Alla conclusione dello sviluppo S041 rimangono aperti:
+
+- l'integrazione Flutter del lifecycle completo delle pianificazioni stagionali;
+- l'applicazione controllata delle undici migration S039 al database remoto, subordinata ad autorizzazione esplicita;
+- il collaudo integrato Flutter–Supabase;
+- ulteriori verifiche dinamiche di concorrenza;
+- verifiche approfondite del rollback atomico nei casi di errore;
+- la verifica dei prerequisiti agronomici per l'utilizzo reale dell'orto.
+
+La S041 costituisce un incremento circoscritto e verificato della gestione Flutter dei blocchi autoritativi.
+
+Non rappresenta il completamento della pianificazione stagionale operativa né l'avvio effettivo della gestione reale dell'orto.
+
+Le questioni ancora aperte non costituiscono automaticamente attività approvate, priorità vincolanti o autorizzazioni a modificare il database remoto.
+
+La scelta delle attività successive rimane subordinata alla valutazione dello stato tecnico effettivo e alle decisioni esplicite della successiva sessione di sviluppo.
 
 # 6. Regole di aggiornamento
 

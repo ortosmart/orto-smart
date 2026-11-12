@@ -4,7 +4,7 @@
 
 # Registro delle modifiche
 
-**Versione:** 3.6
+**Versione:** 3.7
 
 **Stato:** Approvato
 
@@ -14,7 +14,7 @@
 
 **Data prima emissione:** 27/07/2026
 
-**Ultimo aggiornamento:** 06/11/2026
+**Ultimo aggiornamento:** 12/11/2026
 
 **Repository:** `ortosmart/orto-smart`
 
@@ -26,12 +26,12 @@
 |-------|--------|
 | Documento | CHANGELOG |
 | Titolo | Registro delle modifiche |
-| Versione | 3.6 |
+| Versione | 3.7 |
 | Stato | Approvato |
 | Progetto | Orto Smart |
 | Repository | ortosmart/orto-smart |
 | Prima emissione | 27/07/2026 |
-| Ultimo aggiornamento | 06/11/2026 |
+| Ultimo aggiornamento | 12/11/2026 |
 
 ---
 
@@ -68,6 +68,7 @@
 | 3.4 | 03/11/2026 | Documentazione della S038: contratto tipizzato e repository del Resolver Agronomico, integrazione Flutter delle Unità di misura e dei Parametri agronomici, cinque commit tecnici, allineamento delle 34 migration e applicazione remota della correzione S034; registrazione delle verifiche integrative Manuali del 03/11/2026 con 178/178 test Flutter superati e analisi statica senza anomalie. Versioni applicative invariate. |
 | 3.5 | 05/11/2026 | Documentazione della Sessione S039: implementazione del modello autoritativo di pianificazione stagionale mediante `season_plans` e `planned_plantings`, introduzione di cinque RPC per creazione, modifica, conferma, annullamento ed esecuzione atomica delle coltivazioni pianificate, protezioni geometriche e temporali e collegamento alle coltivazioni reali; undici migration SQL applicate esclusivamente al database locale, verifiche statiche SQL, `flutter analyze` senza problemi e 1472/1472 test Flutter superati. Registrazione del commit tecnico `5527aa8`, del consuntivo sviluppo di 3 h 35 min e delle attività ancora aperte relative ai collaudi SQL dinamici, al deployment remoto e all'integrazione Flutter. Versione pubblica `0.1.21-alpha` e versione Flutter `0.1.21-alpha+6` invariate. |
 | 3.6 | 06/11/2026 | Documentazione della Sessione S040: introduzione ed esecuzione del collaudo SQL dinamico locale del lifecycle delle pianificazioni stagionali, verifiche autorizzative e transazionali, isolamento dei dati temporanei mediante rollback, 1472/1472 test Flutter superati e registrazione del commit tecnico `8e15c681`. Nessuna nuova migration o applicazione remota; integrazione Flutter della pianificazione e ulteriori collaudi ancora aperti. Versioni applicative invariate. |
+| 3.7 | 12/11/2026 | Documentazione della Sessione S041: gestione Flutter tipizzata del blocco `blocked_by_confirmed_plans` nella creazione delle coltivazioni, messaggio dedicato in `AddPlantingPage`, due nuovi test e suite Flutter conclusiva con 1474/1474 test superati. Nessuna nuova migration SQL e nessun deployment remoto delle undici migration S039. Commit tecnico `8da41125`; versioni applicative invariate. |
 
 ---
 
@@ -3474,6 +3475,72 @@ Non risultano completati nella S040:
 Le attività ancora aperte non costituiscono impegni operativi automaticamente approvati per le sessioni successive.
 
 Le versioni applicative rimangono **`0.1.21-alpha`** e **`0.1.21-alpha+6`** per Flutter. La S040 non introduce una nuova versione pubblica dell'applicazione.
+
+### Incremento tecnico S041 — Gestione Flutter del blocco delle coltivazioni in presenza di pianificazioni confermate
+
+La Sessione di Sviluppo S041, conclusa l'**11/11/2026 alle 21:06**, ha introdotto nel client Flutter la gestione esplicita dell'esito autoritativo `blocked_by_confirmed_plans`, restituito dal backend quando la creazione di una coltivazione reale è impedita dalla presenza di pianificazioni stagionali confermate incompatibili con l'operazione.
+
+Il tempo netto definitivo dello sviluppo S041 è stato di **2 h 09 min**.
+
+**Aggiunto — Contratto applicativo tipizzato**
+
+È stato introdotto il risultato applicativo `CreatePlantingBlockedByConfirmedPlans`, per distinguere il blocco autoritativo dalle altre condizioni di errore e impedire che venga interpretato come una creazione riuscita.
+
+**Modificato — Interfaccia di creazione delle coltivazioni**
+
+La pagina `AddPlantingPage` gestisce esplicitamente il risultato di blocco:
+
+- presenta un messaggio dedicato all'utente;
+- mantiene aperta la schermata di inserimento;
+- non segnala erroneamente il successo dell'operazione;
+- preserva l'autorità della validazione server-side.
+
+L'intervento non introduce una possibilità di aggirare il blocco restituito dal database.
+
+**Verificato — Regressione Flutter**
+
+Sono stati aggiunti **due test Flutter** dedicati al nuovo comportamento.
+
+Le verifiche conclusive hanno prodotto:
+
+- `flutter analyze`: superato senza problemi;
+- `flutter test`: **1474/1474 test superati**.
+
+Il risultato conferma il superamento della suite nel perimetro verificato, senza equivalere a un collaudo integrato Flutter–Supabase dell'intero lifecycle delle pianificazioni.
+
+**Database e migration**
+
+- Nessuna nuova migration SQL introdotta nella S041.
+- Nessuna applicazione delle undici migration S039 al database remoto.
+- Il blocco autoritativo resta una responsabilità del backend.
+- Nessun popolamento permanente con dati dimostrativi o provvisori.
+
+**Tracciabilità Git**
+
+Il commit tecnico conclusivo dello Sviluppo S041 è:
+
+`8da41125eaa6cc519511aec14d34f5b0b2927f9b`
+
+Il commit è stato pubblicato sul branch `main`.
+
+**Consuntivo sviluppo S041:** **2 h 09 min**.
+
+Il progressivo delle sole ore di sviluppo raggiunge **248 h 39 min**, a partire dalle **246 h 30 min** consolidate alla S040.
+
+Il consuntivo della fase Manuali S041 è distinto e sarà consolidato nel DOC-010 dopo la chiusura ufficiale.
+
+**Limiti e attività ancora aperte**
+
+L'intervento S041 non completa:
+
+- l'integrazione Flutter del lifecycle delle pianificazioni stagionali;
+- il deployment remoto delle undici migration S039;
+- il collaudo integrato Flutter–Supabase;
+- le ulteriori verifiche dinamiche di concorrenza e rollback non ancora attestate.
+
+Le attività ancora aperte non costituiscono automaticamente decisioni operative approvate per le sessioni successive.
+
+Le versioni applicative rimangono **`0.1.21-alpha`** e **`0.1.21-alpha+6`** per Flutter. La S041 non introduce una nuova versione pubblica dell'applicazione.
 
 # 4. Cronologia versioni
 
