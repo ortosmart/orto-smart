@@ -1615,7 +1615,7 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Inserisci la quantità di seme';
+                      return null;
                     }
 
                     final width = int.tryParse(value.trim());

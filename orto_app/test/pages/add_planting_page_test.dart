@@ -302,6 +302,77 @@ void main() {
     expect(find.text('200 cm'), findsWidgets);
   });
 
+  testWidgets('broadcast planting with empty width uses full bed width', (
+    tester,
+  ) async {
+    var createCalls = 0;
+
+    plantingRepository = PlantingRepository.withProviders(
+      (_) async => <Map<String, dynamic>>[],
+      (functionName, parameters) async {
+        expect(functionName, 'create_planting');
+        expect(parameters['planting_start_method'], 'direct_broadcast');
+        expect(parameters['planting_occupied_width_cm'], 90);
+        createCalls++;
+        return {'status': 'invalid_input'};
+      },
+      authority.requireLeaseForWrite,
+    );
+
+    final seasonRepository = SeasonRepository.withProviders(
+      () async => {
+        'id': _seasonId,
+        'garden_id': _gardenId,
+        'year': 2026,
+        'name': 'Stagione test',
+        'start_date': '2026-01-01',
+        'is_active': true,
+        'row_version': 1,
+      },
+      (functionName, parameters) async {
+        fail('RPC stagione inattesa: $functionName');
+      },
+    );
+
+    await openPage(
+      tester,
+      createMode: true,
+      seasonRepository: seasonRepository,
+    );
+
+    final cropDropdown = find.widgetWithText(
+      DropdownButtonFormField<String>,
+      'Coltura',
+    );
+
+    await tester.ensureVisible(cropDropdown);
+    await tester.tap(cropDropdown);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pomodoro').last);
+    await tester.pumpAndSettle();
+
+    final methodDropdown = find.widgetWithText(
+      DropdownButtonFormField<String>,
+      'Metodo di coltivazione',
+    );
+
+    await tester.ensureVisible(methodDropdown);
+    await tester.tap(methodDropdown);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Semina diretta a spaglio').last);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(_field('Lunghezza occupata'), '200');
+
+    final widthField = _field('Larghezza occupata');
+    expect(tester.widget<TextFormField>(widthField).controller?.text, isEmpty);
+
+    await _submit(tester);
+
+    expect(createCalls, 1);
+    expect(find.byType(AddPlantingPage), findsOneWidget);
+  });
+
   testWidgets('confirmed planning blocks new planting with specific message', (
     tester,
   ) async {
