@@ -125,6 +125,41 @@ void main() {
     );
   });
 
+  group('write authority gate - additional operations', () {
+    test(
+      'rejects update before invoking RPC when lease is unavailable',
+      () async {
+        final repository = _repository(rpc, withLease: false);
+
+        await expectLater(
+          _update(repository),
+          throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+        );
+
+        expect(rpc.callCount, 0);
+      },
+    );
+
+    test(
+      'rejects status change before invoking RPC when lease is unavailable',
+      () async {
+        final repository = _repository(rpc, withLease: false);
+
+        await expectLater(
+          repository.setPlantingStatus(
+            plantingId: _plantingId,
+            expectedRowVersion: 4,
+            status: 'finished',
+            endDate: DateTime.utc(2026, 10, 20, 18),
+          ),
+          throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+        );
+
+        expect(rpc.callCount, 0);
+      },
+    );
+  });
+
   group('createPlanting', () {
     test('invokes create_planting and maps created', () async {
       rpc.response = {
