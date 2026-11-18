@@ -248,6 +248,8 @@ class PlantingRepository {
       'start_date_locked' => const UpdatePlantingStartDateLocked(),
       'outside_bed_geometry' => const UpdatePlantingOutsideBedGeometry(),
       'overlap' => const UpdatePlantingOverlap(),
+      'blocked_by_confirmed_plans' =>
+        const UpdatePlantingBlockedByConfirmedPlans(),
       _ => throw const PlantingWriteProtocolException(),
     };
   }

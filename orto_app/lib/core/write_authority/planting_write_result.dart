@@ -205,6 +205,10 @@ final class UpdatePlantingOverlap extends UpdatePlantingResult {
   const UpdatePlantingOverlap();
 }
 
+final class UpdatePlantingBlockedByConfirmedPlans extends UpdatePlantingResult {
+  const UpdatePlantingBlockedByConfirmedPlans();
+}
+
 sealed class SetPlantingStatusResult {
   const SetPlantingStatusResult();
 }

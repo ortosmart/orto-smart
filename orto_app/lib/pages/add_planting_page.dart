@@ -992,6 +992,13 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
                   'registrata nell’aiuola.';
             });
             return;
+          case UpdatePlantingBlockedByConfirmedPlans():
+            setState(() {
+              _saveError =
+                  'Impossibile modificare la coltura: lo spazio è già riservato '
+                  'da una pianificazione confermata per il periodo indicato.';
+            });
+            return;
         }
       }
 
