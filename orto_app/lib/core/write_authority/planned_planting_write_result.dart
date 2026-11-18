@@ -51,3 +51,13 @@ final class CreatePlannedPlantingInactiveCultivar
     extends CreatePlannedPlantingResult {
   const CreatePlannedPlantingInactiveCultivar();
 }
+
+final class CreatePlannedPlantingMissingBedGeometry
+    extends CreatePlannedPlantingResult {
+  const CreatePlannedPlantingMissingBedGeometry();
+}
+
+final class CreatePlannedPlantingOutsideBedGeometry
+    extends CreatePlannedPlantingResult {
+  const CreatePlannedPlantingOutsideBedGeometry();
+}

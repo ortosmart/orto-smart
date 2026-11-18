@@ -145,6 +145,8 @@ void main() {
       'blocked_by_inactive_bed': CreatePlannedPlantingInactiveBed,
       'blocked_by_inactive_crop': CreatePlannedPlantingInactiveCrop,
       'blocked_by_inactive_cultivar': CreatePlannedPlantingInactiveCultivar,
+      'missing_bed_geometry': CreatePlannedPlantingMissingBedGeometry,
+      'outside_bed_geometry': CreatePlannedPlantingOutsideBedGeometry,
     };
 
     for (final entry in cases.entries) {

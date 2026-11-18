@@ -97,6 +97,10 @@ class PlannedPlantingRepository {
       'blocked_by_inactive_crop' => const CreatePlannedPlantingInactiveCrop(),
       'blocked_by_inactive_cultivar' =>
         const CreatePlannedPlantingInactiveCultivar(),
+      'missing_bed_geometry' =>
+        const CreatePlannedPlantingMissingBedGeometry(),
+      'outside_bed_geometry' =>
+        const CreatePlannedPlantingOutsideBedGeometry(),
       _ => throw const FormatException(
         'Stato RPC creazione pianificazione sconosciuto.',
       ),
