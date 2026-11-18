@@ -866,7 +866,9 @@ class _AddPlantingPageState extends State<AddPlantingPage> {
       final editingPlanting = _editingPlanting;
       final seasonId =
           editingPlanting?.seasonId ??
-          (await _seasonRepository.getActiveSeason()).id;
+          (await _seasonRepository.getActiveSeason(
+            gardenId: widget.bed.gardenId,
+          )).id;
 
       final notesText = _notesController.text.trim();
 

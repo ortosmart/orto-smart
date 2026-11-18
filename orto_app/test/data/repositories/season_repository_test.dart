@@ -45,7 +45,7 @@ class _RpcRecorder {
   }
 }
 
-Future<Map<String, dynamic>> _unusedActiveSeasonLoader() {
+Future<Map<String, dynamic>> _unusedActiveSeasonLoader(String gardenId) {
   throw StateError('Active Season loader not expected');
 }
 
@@ -576,8 +576,10 @@ void main() {
 
   group('getActiveSeason', () {
     test('maps row_version into the Season model', () async {
-      final repository = SeasonRepository.withProviders(
-        () async => {
+      String? requestedGardenId;
+      final repository = SeasonRepository.withProviders((gardenId) async {
+        requestedGardenId = gardenId;
+        return {
           'id': _seasonId,
           'garden_id': _gardenId,
           'year': 2026,
@@ -587,12 +589,12 @@ void main() {
           'is_active': true,
           'notes': 'Attiva',
           'row_version': 7,
-        },
-        rpc.call,
-      );
+        };
+      }, rpc.call);
 
-      final season = await repository.getActiveSeason();
+      final season = await repository.getActiveSeason(gardenId: _gardenId);
 
+      expect(requestedGardenId, _gardenId);
       expect(season.id, _seasonId);
       expect(season.gardenId, _gardenId);
       expect(season.year, 2026);

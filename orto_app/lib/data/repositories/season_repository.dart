@@ -5,7 +5,8 @@ import '../../core/write_authority/profile_write_authority_controller.dart';
 import '../../core/write_authority/season_write_result.dart';
 import '../models/season.dart';
 
-typedef ActiveSeasonLoader = Future<Map<String, dynamic>> Function();
+typedef ActiveSeasonLoader =
+    Future<Map<String, dynamic>> Function(String gardenId);
 
 typedef SeasonWriteAuthorityProvider = ProfileEditLockLease Function();
 
@@ -27,10 +28,11 @@ class SeasonRepository {
     final client = supabase ?? Supabase.instance.client;
 
     return SeasonRepository.withProviders(
-      () async {
+      (String gardenId) async {
         final response = await client
             .from('seasons')
             .select()
+            .eq('garden_id', gardenId)
             .eq('is_active', true)
             .limit(1)
             .single();
@@ -50,9 +52,8 @@ class SeasonRepository {
     this._requireLeaseForWrite,
   ]);
 
-  Future<Season> getActiveSeason() async {
-    final response = await _loadActiveSeason();
-
+  Future<Season> getActiveSeason({required String gardenId}) async {
+    final response = await _loadActiveSeason(gardenId);
     return Season.fromMap(response);
   }
 

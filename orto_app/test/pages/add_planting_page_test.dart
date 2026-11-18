@@ -320,7 +320,7 @@ void main() {
     );
 
     final seasonRepository = SeasonRepository.withProviders(
-      () async => {
+      (gardenId) async => {
         'id': _seasonId,
         'garden_id': _gardenId,
         'year': 2026,
@@ -389,7 +389,7 @@ void main() {
     );
 
     final seasonRepository = SeasonRepository.withProviders(
-      () async => {
+      (gardenId) async => {
         'id': _seasonId,
         'garden_id': _gardenId,
         'year': 2026,
