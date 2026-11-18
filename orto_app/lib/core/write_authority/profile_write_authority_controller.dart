@@ -74,7 +74,7 @@ class ProfileWriteAuthorityController extends ChangeNotifier {
     }
 
     if (!lease.expiresAt.isAfter(_utcNow())) {
-      _clearLeaseAndTransition(ProfileWriteAuthorityStatus.lost);
+      _handleExpiredLease(_generation);
 
       throw const ProfileWriteAuthorityUnavailableException();
     }
@@ -213,7 +213,7 @@ class ProfileWriteAuthorityController extends ChangeNotifier {
     }
 
     if (!lease.expiresAt.isAfter(_utcNow())) {
-      _clearLeaseAndTransition(ProfileWriteAuthorityStatus.lost);
+      _handleExpiredLease(generation);
       return;
     }
 
@@ -251,9 +251,10 @@ class ProfileWriteAuthorityController extends ChangeNotifier {
       if (_isCurrent(generation)) {
         final currentLease = _lease;
 
-        if (currentLease == null ||
-            !currentLease.expiresAt.isAfter(_utcNow())) {
+        if (currentLease == null) {
           _clearLeaseAndTransition(ProfileWriteAuthorityStatus.lost);
+        } else if (!currentLease.expiresAt.isAfter(_utcNow())) {
+          _handleExpiredLease(generation);
         } else {
           _transitionTo(ProfileWriteAuthorityStatus.recovering);
           _scheduleHeartbeat(generation, retryInterval);
@@ -306,6 +307,14 @@ class ProfileWriteAuthorityController extends ChangeNotifier {
       // Il token locale resta eliminato. Il server libererà il lock
       // mediante release riuscita oppure tramite scadenza del lease.
       return null;
+    }
+  }
+
+  void _handleExpiredLease(int generation) {
+    _clearLeaseAndTransition(ProfileWriteAuthorityStatus.lost);
+
+    if (_isCurrent(generation) && _profileId != null && _identity != null) {
+      _scheduleAcquireRetry(generation);
     }
   }
 

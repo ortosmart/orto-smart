@@ -381,6 +381,58 @@ void main() {
       ProfileWriteAuthorityController.heartbeatInterval,
     );
   });
+  test(
+    'reacquires after heartbeat network failure with expired lease',
+    () async {
+      final heartbeatCompleter = Completer<dynamic>();
+
+      rpc
+        ..enqueue(_acquiredResponse())
+        ..enqueue(heartbeatCompleter.future)
+        ..enqueue(
+          _acquiredResponse(
+            rowVersion: 2,
+            expiresAt: '2026-08-26T22:06:00+00:00',
+          ),
+        );
+
+      await controller.initialize(
+        profileContext: _ownerContext,
+        identity: _identity,
+      );
+
+      // Avvia l'heartbeat mentre il lease è ancora valido.
+      final pendingHeartbeat = scheduler.runNext();
+
+      // La RPC rimane in attesa mentre il lease scade.
+      now = DateTime.utc(2026, 8, 26, 22, 3);
+
+      heartbeatCompleter.completeError(const _NetworkFailure());
+      await pendingHeartbeat;
+
+      expect(controller.status, ProfileWriteAuthorityStatus.lost);
+      expect(controller.canWrite, isFalse);
+      expect(controller.expiresAt, isNull);
+
+      expect(
+        scheduler.delays.last,
+        ProfileWriteAuthorityController.retryInterval,
+      );
+
+      // Nessuna acquisizione anticipata.
+      expect(rpc.functionNames, [
+        'acquire_profile_edit_lock',
+        'heartbeat_profile_edit_lock',
+      ]);
+
+      await scheduler.runNext();
+
+      expect(controller.status, ProfileWriteAuthorityStatus.writer);
+      expect(controller.canWrite, isTrue);
+      expect(controller.rowVersion, 2);
+      expect(rpc.functionNames.last, 'acquire_profile_edit_lock');
+    },
+  );
   final heartbeatLossCases =
       <(String serverStatus, ProfileWriteAuthorityStatus expectedStatus)>[
         ('not_holder', ProfileWriteAuthorityStatus.lost),
@@ -434,6 +486,53 @@ void main() {
     expect(controller.canWrite, isFalse);
     expect(controller.expiresAt, isNull);
   });
+  test(
+    'reacquires authority after heartbeat detects an expired lease',
+    () async {
+      rpc
+        ..enqueue(_acquiredResponse())
+        ..enqueue(
+          _acquiredResponse(
+            rowVersion: 2,
+            expiresAt: '2026-08-26T22:06:00+00:00',
+          ),
+        );
+
+      await controller.initialize(
+        profileContext: _ownerContext,
+        identity: _identity,
+      );
+
+      expect(controller.status, ProfileWriteAuthorityStatus.writer);
+
+      // Simula una scheda browser rimasta inattiva oltre la scadenza.
+      now = DateTime.utc(2026, 8, 26, 22, 3);
+
+      // Esegue il precedente heartbeat, ormai in ritardo.
+      await scheduler.runNext();
+
+      expect(controller.status, ProfileWriteAuthorityStatus.lost);
+      expect(controller.canWrite, isFalse);
+      expect(controller.expiresAt, isNull);
+
+      // Il recupero deve essere programmato, senza riabilitare le scritture.
+      expect(
+        scheduler.delays.last,
+        ProfileWriteAuthorityController.retryInterval,
+      );
+      expect(rpc.functionNames, ['acquire_profile_edit_lock']);
+
+      await scheduler.runNext();
+
+      expect(controller.status, ProfileWriteAuthorityStatus.writer);
+      expect(controller.canWrite, isTrue);
+      expect(controller.rowVersion, 2);
+      expect(rpc.functionNames, [
+        'acquire_profile_edit_lock',
+        'acquire_profile_edit_lock',
+      ]);
+    },
+  );
   test('an expired local lease is removed before a write', () async {
     rpc.enqueue(_acquiredResponse());
 
@@ -451,6 +550,57 @@ void main() {
     );
     expect(controller.status, ProfileWriteAuthorityStatus.lost);
     expect(controller.expiresAt, isNull);
+  });
+  test('reacquires authority after a write detects an expired lease', () async {
+    rpc
+      ..enqueue(_acquiredResponse())
+      ..enqueue(
+        _acquiredResponse(
+          rowVersion: 2,
+          expiresAt: '2026-08-26T22:06:00+00:00',
+        ),
+      );
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    expect(controller.status, ProfileWriteAuthorityStatus.writer);
+
+    // Il lease scade prima del prossimo heartbeat.
+    now = DateTime.utc(2026, 8, 26, 22, 3);
+
+    // La scrittura deve essere rifiutata immediatamente.
+    expect(
+      controller.requireLeaseForWrite,
+      throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+    );
+
+    expect(controller.status, ProfileWriteAuthorityStatus.lost);
+    expect(controller.canWrite, isFalse);
+    expect(controller.expiresAt, isNull);
+
+    // Il recupero deve essere programmato dopo 10 secondi.
+    expect(
+      scheduler.delays.last,
+      ProfileWriteAuthorityController.retryInterval,
+    );
+
+    // Nessuna nuova acquisizione prima del tentativo programmato.
+    expect(rpc.functionNames, ['acquire_profile_edit_lock']);
+
+    await scheduler.runNext();
+
+    // Solo la conferma del server ripristina l'autorità.
+    expect(controller.status, ProfileWriteAuthorityStatus.writer);
+    expect(controller.canWrite, isTrue);
+    expect(controller.rowVersion, 2);
+
+    expect(rpc.functionNames, [
+      'acquire_profile_edit_lock',
+      'acquire_profile_edit_lock',
+    ]);
   });
 
   test('verifyNow suspends writes until the server renews the lease', () async {

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../core/profile/profile_context_scope.dart';
+import '../core/write_authority/profile_write_authority_controller.dart';
+import '../core/write_authority/profile_write_authority_scope.dart';
+import 'create_garden_page.dart';
 import '../data/models/garden.dart';
 import '../data/repositories/bed_repository.dart';
 import '../data/repositories/garden_repository.dart';
@@ -25,6 +28,8 @@ class GardenPage extends StatefulWidget {
 
 class _GardenPageState extends State<GardenPage> {
   late GardenRepository _repository;
+  ProfileWriteAuthorityController? _writeAuthority;
+  bool _creationPageOpen = false;
 
   String? _profileId;
   String? _selectedGardenId;
@@ -42,7 +47,11 @@ class _GardenPageState extends State<GardenPage> {
     super.didUpdateWidget(oldWidget);
 
     if (!identical(oldWidget.repository, widget.repository)) {
-      _repository = widget.repository ?? GardenRepository();
+      _repository =
+          widget.repository ??
+          GardenRepository(
+            requireLeaseForWrite: _writeAuthority?.requireLeaseForWrite,
+          );
       _selectedGardenId = null;
 
       final profileId = _profileId;
@@ -58,12 +67,115 @@ class _GardenPageState extends State<GardenPage> {
     super.didChangeDependencies();
 
     final profile = ProfileContextScope.of(context);
+    final authority = ProfileWriteAuthorityScope.maybeOf(context);
+    final authorityChanged = !identical(authority, _writeAuthority);
+
+    _writeAuthority = authority;
+
+    if (authorityChanged && widget.repository == null) {
+      _repository = GardenRepository(
+        requireLeaseForWrite: authority?.requireLeaseForWrite,
+      );
+    }
 
     if (_profileId != profile.profileId) {
       _profileId = profile.profileId;
       _selectedGardenId = null;
       _gardensFuture = _repository.getGardens(profileId: profile.profileId);
+    } else if (authorityChanged && widget.repository == null) {
+      _gardensFuture = _repository.getGardens(profileId: profile.profileId);
     }
+  }
+
+  Future<void> _openCreateGarden() async {
+    final profileId = _profileId;
+    final authority = _writeAuthority;
+    final repository = _repository;
+
+    if (_creationPageOpen || profileId == null || authority == null) {
+      return;
+    }
+
+    try {
+      final lease = authority.requireLeaseForWrite();
+      if (lease.profileId != profileId) {
+        throw const ProfileWriteAuthorityUnavailableException();
+      }
+    } on ProfileWriteAuthorityUnavailableException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Autorit\u00E0 di scrittura non disponibile per questo profilo.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _creationPageOpen = true;
+    });
+
+    try {
+      await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => CreateGardenPage(
+            profileId: profileId,
+            repository: repository,
+            authority: authority,
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _creationPageOpen = false;
+          if (_profileId == profileId &&
+              identical(_repository, repository) &&
+              identical(_writeAuthority, authority)) {
+            _gardensFuture = repository.getGardens(profileId: profileId);
+          }
+        });
+      }
+    }
+  }
+
+  Widget _createGardenControl() {
+    final authority = _writeAuthority;
+
+    Widget buildControl() {
+      final canWrite = authority?.canWrite ?? false;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          FilledButton.icon(
+            onPressed: canWrite && !_creationPageOpen
+                ? _openCreateGarden
+                : null,
+            icon: const Icon(Icons.add),
+            label: const Text('Crea orto'),
+          ),
+          if (!canWrite) ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Creazione non disponibile: '
+              'autorit\u00E0 di scrittura non attiva.',
+            ),
+          ],
+        ],
+      );
+    }
+
+    if (authority == null) {
+      return buildControl();
+    }
+
+    return AnimatedBuilder(
+      animation: authority,
+      builder: (context, child) => buildControl(),
+    );
   }
 
   void _retry() {
@@ -114,11 +226,21 @@ class _GardenPageState extends State<GardenPage> {
         final gardens = snapshot.data ?? [];
 
         if (gardens.isEmpty) {
-          return const Center(
-            child: Text(
-              'Nessun orto trovato per questo profilo.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20),
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Nessun orto trovato per questo profilo.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(height: 16),
+                  _createGardenControl(),
+                ],
+              ),
             ),
           );
         }
@@ -143,6 +265,8 @@ class _GardenPageState extends State<GardenPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              _createGardenControl(),
+              const SizedBox(height: 16),
               if (gardens.length > 1) ...[
                 const Text(
                   'Seleziona un orto',
