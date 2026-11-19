@@ -183,6 +183,64 @@ class PlannedPlantingRepository {
 
     return ConfirmPlannedPlantingOverlap(bedId: bedId);
   }
+
+  Future<CancelPlannedPlantingResult> cancelPlannedPlanting({
+    required String plannedPlantingId,
+    required int expectedRowVersion,
+  }) async {
+    final lease = _requireWriteLease();
+
+    final response = await _invokeRpc('cancel_planned_planting', {
+      'target_profile_id': lease.profileId,
+      'target_planned_planting_id': plannedPlantingId,
+      'expected_row_version': expectedRowVersion,
+      'target_client_id': lease.identity.clientInstanceId,
+      'target_session_id': lease.identity.sessionId,
+      'lock_token': lease.lockToken,
+    });
+
+    if (response is! Map) {
+      throw const FormatException(
+        'Risposta RPC annullamento pianificazione non valida.',
+      );
+    }
+
+    final payload = Map<String, dynamic>.from(response);
+
+    return switch (payload['status']) {
+      'cancelled' => _cancelledPlannedPlanting(payload),
+      'forbidden' => const CancelPlannedPlantingForbidden(),
+      'write_forbidden' => const CancelPlannedPlantingWriteForbidden(),
+      'not_found' => const CancelPlannedPlantingNotFound(),
+      'version_conflict' => const CancelPlannedPlantingVersionConflict(),
+      'blocked_by_lifecycle' => const CancelPlannedPlantingBlockedByLifecycle(),
+      _ => throw const FormatException(
+        'Stato RPC annullamento pianificazione sconosciuto.',
+      ),
+    };
+  }
+
+  static CancelPlannedPlantingCancelled _cancelledPlannedPlanting(
+    Map<String, dynamic> payload,
+  ) {
+    final plannedPlantingId = payload['planned_planting_id'];
+    final rowVersion = payload['row_version'];
+
+    if (plannedPlantingId is! String ||
+        plannedPlantingId.isEmpty ||
+        rowVersion is! int ||
+        rowVersion < 1) {
+      throw const FormatException(
+        'Risposta annullamento pianificazione incompleta.',
+      );
+    }
+
+    return CancelPlannedPlantingCancelled(
+      plannedPlantingId: plannedPlantingId,
+      rowVersion: rowVersion,
+    );
+  }
+
   Future<UpdatePlannedPlantingResult> updatePlannedPlanting({
     required String plannedPlantingId,
     required int expectedRowVersion,

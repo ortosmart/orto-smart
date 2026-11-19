@@ -626,4 +626,141 @@ void main() {
       });
     }
   });
+
+  group('annullamento pianificazione', () {
+    const identity = AppSessionIdentity(
+      clientInstanceId: '88888888-8888-4888-8888-888888888888',
+      sessionId: '99999999-9999-4999-8999-999999999999',
+    );
+
+    const plannedPlantingId = '33333333-3333-4333-8333-333333333333';
+
+    ProfileEditLockLease makeLease() => ProfileEditLockLease(
+      profileId: '11111111-1111-4111-8111-111111111111',
+      identity: identity,
+      lockToken: 'token-esclusivamente-test',
+      expiresAt: DateTime.utc(2026, 11, 18, 18),
+      rowVersion: 1,
+    );
+
+    Future<CancelPlannedPlantingResult> cancel(
+      PlannedPlantingRepository repository,
+    ) => repository.cancelPlannedPlanting(
+      plannedPlantingId: plannedPlantingId,
+      expectedRowVersion: 1,
+    );
+
+    test('annullamento riuscito e sei parametri RPC corretti', () async {
+      var calls = 0;
+      String? rpcName;
+      Map<String, dynamic>? rpcParameters;
+
+      final repository = PlannedPlantingRepository.withProviders((
+        functionName,
+        parameters,
+      ) async {
+        calls++;
+        rpcName = functionName;
+        rpcParameters = Map<String, dynamic>.from(parameters);
+        return {
+          'status': 'cancelled',
+          'planned_planting_id': plannedPlantingId,
+          'row_version': 2,
+        };
+      }, makeLease);
+
+      final result = await cancel(repository);
+
+      expect(calls, 1);
+      expect(rpcName, 'cancel_planned_planting');
+      expect(rpcParameters, {
+        'target_profile_id': '11111111-1111-4111-8111-111111111111',
+        'target_planned_planting_id': plannedPlantingId,
+        'expected_row_version': 1,
+        'target_client_id': identity.clientInstanceId,
+        'target_session_id': identity.sessionId,
+        'lock_token': 'token-esclusivamente-test',
+      });
+
+      expect(result, isA<CancelPlannedPlantingCancelled>());
+      final cancelled = result as CancelPlannedPlantingCancelled;
+      expect(cancelled.plannedPlantingId, plannedPlantingId);
+      expect(cancelled.rowVersion, 2);
+    });
+
+    final errorCases = <String, Type>{
+      'forbidden': CancelPlannedPlantingForbidden,
+      'write_forbidden': CancelPlannedPlantingWriteForbidden,
+      'not_found': CancelPlannedPlantingNotFound,
+      'version_conflict': CancelPlannedPlantingVersionConflict,
+      'blocked_by_lifecycle': CancelPlannedPlantingBlockedByLifecycle,
+    };
+
+    for (final entry in errorCases.entries) {
+      test('gestisce stato ${entry.key}', () async {
+        var calls = 0;
+
+        final repository = PlannedPlantingRepository.withProviders((
+          functionName,
+          parameters,
+        ) async {
+          calls++;
+          expect(functionName, 'cancel_planned_planting');
+          return {'status': entry.key};
+        }, makeLease);
+
+        final result = await cancel(repository);
+        expect(result.runtimeType, entry.value);
+        expect(calls, 1);
+      });
+    }
+
+    test('blocca scrittura senza Write Authority', () async {
+      var calls = 0;
+
+      final repository = PlannedPlantingRepository.withProviders((
+        functionName,
+        parameters,
+      ) async {
+        calls++;
+        return {'status': 'cancelled'};
+      }, null);
+
+      await expectLater(
+        cancel(repository),
+        throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+      );
+      expect(calls, 0);
+    });
+
+    final invalidResponses = <dynamic>[
+      null,
+      'risposta non valida',
+      {'status': 'unknown_status'},
+      {'status': 'cancelled'},
+      {'status': 'cancelled', 'planned_planting_id': '', 'row_version': 2},
+      {
+        'status': 'cancelled',
+        'planned_planting_id': plannedPlantingId,
+        'row_version': 0,
+      },
+    ];
+
+    for (var index = 0; index < invalidResponses.length; index++) {
+      test('rifiuta risposta annullamento non valida ${index + 1}', () async {
+        var calls = 0;
+
+        final repository = PlannedPlantingRepository.withProviders((
+          functionName,
+          parameters,
+        ) async {
+          calls++;
+          return invalidResponses[index];
+        }, makeLease);
+
+        await expectLater(cancel(repository), throwsA(isA<FormatException>()));
+        expect(calls, 1);
+      });
+    }
+  });
 }

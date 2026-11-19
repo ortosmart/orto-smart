@@ -200,9 +200,45 @@ final class ConfirmPlannedPlantingOutsideBedGeometry
   const ConfirmPlannedPlantingOutsideBedGeometry();
 }
 
-final class ConfirmPlannedPlantingOverlap
-    extends ConfirmPlannedPlantingResult {
+final class ConfirmPlannedPlantingOverlap extends ConfirmPlannedPlantingResult {
   final String bedId;
 
   const ConfirmPlannedPlantingOverlap({required this.bedId});
+}
+
+sealed class CancelPlannedPlantingResult {
+  const CancelPlannedPlantingResult();
+}
+
+final class CancelPlannedPlantingCancelled extends CancelPlannedPlantingResult {
+  final String plannedPlantingId;
+  final int rowVersion;
+
+  const CancelPlannedPlantingCancelled({
+    required this.plannedPlantingId,
+    required this.rowVersion,
+  });
+}
+
+final class CancelPlannedPlantingForbidden extends CancelPlannedPlantingResult {
+  const CancelPlannedPlantingForbidden();
+}
+
+final class CancelPlannedPlantingWriteForbidden
+    extends CancelPlannedPlantingResult {
+  const CancelPlannedPlantingWriteForbidden();
+}
+
+final class CancelPlannedPlantingNotFound extends CancelPlannedPlantingResult {
+  const CancelPlannedPlantingNotFound();
+}
+
+final class CancelPlannedPlantingVersionConflict
+    extends CancelPlannedPlantingResult {
+  const CancelPlannedPlantingVersionConflict();
+}
+
+final class CancelPlannedPlantingBlockedByLifecycle
+    extends CancelPlannedPlantingResult {
+  const CancelPlannedPlantingBlockedByLifecycle();
 }
