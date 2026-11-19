@@ -956,4 +956,219 @@ void main() {
       });
     }
   });
+  test('lettura pianificazioni: stagione senza risultati', () async {
+    const seasonId = '55555555-5555-4555-8555-555555555555';
+    var rpcCalls = 0;
+    var loaderCalls = 0;
+
+    final repository = PlannedPlantingRepository.withProviders(
+      (functionName, parameters) async {
+        rpcCalls++;
+        throw StateError('RPC non prevista durante la lettura');
+      },
+      null,
+      loadPlannedPlantings: (requestedSeasonId) async {
+        loaderCalls++;
+        expect(requestedSeasonId, seasonId);
+        return <Map<String, dynamic>>[];
+      },
+    );
+
+    final result = await repository.getPlannedPlantingsBySeason(seasonId);
+
+    expect(result, isEmpty);
+    expect(loaderCalls, 1);
+    expect(rpcCalls, 0);
+  });
+  for (final seasonId in ['', '   ']) {
+    test(
+      'lettura pianificazioni: rifiuta identificativo stagione vuoto "$seasonId"',
+      () async {
+        var rpcCalls = 0;
+        var loaderCalls = 0;
+
+        final repository = PlannedPlantingRepository.withProviders(
+          (functionName, parameters) async {
+            rpcCalls++;
+            throw StateError('RPC non prevista');
+          },
+          null,
+          loadPlannedPlantings: (requestedSeasonId) async {
+            loaderCalls++;
+            return <Map<String, dynamic>>[];
+          },
+        );
+
+        await expectLater(
+          repository.getPlannedPlantingsBySeason(seasonId),
+          throwsA(isA<ArgumentError>()),
+        );
+
+        expect(loaderCalls, 0);
+        expect(rpcCalls, 0);
+      },
+    );
+  }
+  test('lettura pianificazioni: loader non configurato', () async {
+    const seasonId = '55555555-5555-4555-8555-555555555555';
+    var rpcCalls = 0;
+
+    final repository = PlannedPlantingRepository.withProviders((
+      functionName,
+      parameters,
+    ) async {
+      rpcCalls++;
+      throw StateError('RPC non prevista durante la lettura');
+    }, null);
+
+    await expectLater(
+      repository.getPlannedPlantingsBySeason(seasonId),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(rpcCalls, 0);
+  });
+  test('lettura pianificazioni: converte record valido', () async {
+    const seasonId = '55555555-5555-4555-8555-555555555555';
+    var rpcCalls = 0;
+    var loaderCalls = 0;
+
+    final repository = PlannedPlantingRepository.withProviders(
+      (functionName, parameters) async {
+        rpcCalls++;
+        throw StateError('RPC non prevista durante la lettura');
+      },
+      null,
+      loadPlannedPlantings: (requestedSeasonId) async {
+        loaderCalls++;
+        expect(requestedSeasonId, seasonId);
+
+        return [
+          <String, dynamic>{
+            'id': '11111111-1111-4111-8111-111111111111',
+            'season_plan_id': '22222222-2222-4222-8222-222222222222',
+            'profile_id': '33333333-3333-4333-8333-333333333333',
+            'garden_id': '44444444-4444-4444-8444-444444444444',
+            'season_id': seasonId,
+            'bed_id': '66666666-6666-4666-8666-666666666666',
+            'crop_id': '77777777-7777-4777-8777-777777777777',
+            'cultivar_id': '88888888-8888-4888-8888-888888888888',
+            'start_method': 'direct_rows',
+            'planned_start_date': '2026-11-20',
+            'planned_end_date': '2026-12-20',
+            'start_position_cm': 100,
+            'length_cm': 250,
+            'occupied_width_cm': 40,
+            'plant_spacing_cm': 30,
+            'row_spacing_cm': 40,
+            'rows_count': 2,
+            'plants_count': 8,
+            'seed_quantity_g': 12.5,
+            'status': 'draft',
+            'executed_planting_id': null,
+            'notes': 'Pianificazione di test',
+            'created_at': '2026-11-19T10:00:00+00:00',
+            'updated_at': '2026-11-19T10:30:00+00:00',
+            'row_version': 3,
+          },
+        ];
+      },
+    );
+
+    final result = await repository.getPlannedPlantingsBySeason(seasonId);
+
+    expect(result, hasLength(1));
+    final planting = result.single;
+    expect(planting.id, '11111111-1111-4111-8111-111111111111');
+    expect(planting.seasonId, seasonId);
+    expect(planting.startMethod, 'direct_rows');
+    expect(planting.plannedStartDate, DateTime.utc(2026, 11, 20));
+    expect(planting.lengthCm, 250);
+    expect(planting.seedQuantityG, 12.5);
+    expect(planting.status, 'draft');
+    expect(planting.rowVersion, 3);
+    expect(loaderCalls, 1);
+    expect(rpcCalls, 0);
+  });
+  test('lettura pianificazioni: rifiuta stagione incoerente', () async {
+    const seasonId = '55555555-5555-4555-8555-555555555555';
+    var rpcCalls = 0;
+    var loaderCalls = 0;
+
+    final repository = PlannedPlantingRepository.withProviders(
+      (functionName, parameters) async {
+        rpcCalls++;
+        throw StateError('RPC non prevista');
+      },
+      null,
+      loadPlannedPlantings: (requestedSeasonId) async {
+        loaderCalls++;
+        expect(requestedSeasonId, seasonId);
+        return [
+          <String, dynamic>{
+            'id': '11111111-1111-4111-8111-111111111111',
+            'season_plan_id': '22222222-2222-4222-8222-222222222222',
+            'profile_id': '33333333-3333-4333-8333-333333333333',
+            'garden_id': '44444444-4444-4444-8444-444444444444',
+            'season_id': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            'bed_id': '66666666-6666-4666-8666-666666666666',
+            'crop_id': '77777777-7777-4777-8777-777777777777',
+            'cultivar_id': '88888888-8888-4888-8888-888888888888',
+            'start_method': 'direct_rows',
+            'planned_start_date': '2026-11-20',
+            'planned_end_date': '2026-12-20',
+            'start_position_cm': 100,
+            'length_cm': 250,
+            'occupied_width_cm': 40,
+            'plant_spacing_cm': 30,
+            'row_spacing_cm': 40,
+            'rows_count': 2,
+            'plants_count': 8,
+            'seed_quantity_g': 12.5,
+            'status': 'draft',
+            'executed_planting_id': null,
+            'notes': 'Pianificazione di test',
+            'created_at': '2026-11-19T10:00:00+00:00',
+            'updated_at': '2026-11-19T10:30:00+00:00',
+            'row_version': 3,
+          },
+        ];
+      },
+    );
+
+    await expectLater(
+      repository.getPlannedPlantingsBySeason(seasonId),
+      throwsA(isA<FormatException>()),
+    );
+
+    expect(loaderCalls, 1);
+    expect(rpcCalls, 0);
+  });
+  test('lettura pianificazioni: propaga errore loader', () async {
+    const seasonId = '55555555-5555-4555-8555-555555555555';
+    final loaderError = StateError('Errore simulato del loader');
+    var rpcCalls = 0;
+    var loaderCalls = 0;
+
+    final repository = PlannedPlantingRepository.withProviders(
+      (functionName, parameters) async {
+        rpcCalls++;
+        throw StateError('RPC non prevista durante la lettura');
+      },
+      null,
+      loadPlannedPlantings: (requestedSeasonId) async {
+        loaderCalls++;
+        expect(requestedSeasonId, seasonId);
+        throw loaderError;
+      },
+    );
+
+    await expectLater(
+      repository.getPlannedPlantingsBySeason(seasonId),
+      throwsA(same(loaderError)),
+    );
+
+    expect(loaderCalls, 1);
+    expect(rpcCalls, 0);
+  });
 }

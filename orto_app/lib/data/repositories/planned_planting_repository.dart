@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/planned_planting.dart';
+
 import '../../core/write_authority/planned_planting_write_result.dart';
 import '../../core/write_authority/profile_edit_lock.dart';
 import '../../core/write_authority/profile_write_authority_controller.dart';
@@ -12,8 +14,12 @@ typedef PlannedPlantingRpcInvoker =
 
 typedef PlannedPlantingWriteAuthorityProvider = ProfileEditLockLease Function();
 
+typedef PlannedPlantingListLoader =
+    Future<List<Map<String, dynamic>>> Function(String seasonId);
+
 class PlannedPlantingRepository {
   final PlannedPlantingRpcInvoker _invokeRpc;
+  final PlannedPlantingListLoader? _loadPlannedPlantings;
   final PlannedPlantingWriteAuthorityProvider? _requireLeaseForWrite;
 
   factory PlannedPlantingRepository({
@@ -26,13 +32,57 @@ class PlannedPlantingRepository {
       (functionName, parameters) =>
           client.rpc(functionName, params: parameters),
       requireLeaseForWrite,
+      loadPlannedPlantings: (seasonId) async {
+        final rows = await client
+            .from('planned_plantings')
+            .select('''
+              id, season_plan_id, profile_id, garden_id, season_id,
+              bed_id, crop_id, cultivar_id, start_method,
+              planned_start_date, planned_end_date,
+              start_position_cm, length_cm, occupied_width_cm,
+              plant_spacing_cm, row_spacing_cm, rows_count,
+              plants_count, seed_quantity_g, status,
+              executed_planting_id, notes, created_at,
+              updated_at, row_version
+            ''')
+            .eq('season_id', seasonId)
+            .order('planned_start_date')
+            .order('start_position_cm')
+            .order('id');
+        return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+      },
     );
   }
 
   PlannedPlantingRepository.withProviders(
     this._invokeRpc,
-    this._requireLeaseForWrite,
-  );
+    this._requireLeaseForWrite, {
+    this._loadPlannedPlantings,
+  });
+
+  Future<List<PlannedPlanting>> getPlannedPlantingsBySeason(
+    String seasonId,
+  ) async {
+    if (seasonId.trim().isEmpty) {
+      throw ArgumentError.value(seasonId, 'seasonId');
+    }
+
+    final loader = _loadPlannedPlantings;
+    if (loader == null) {
+      throw StateError('Loader delle pianificazioni non configurato.');
+    }
+
+    final rows = await loader(seasonId);
+    final plantings = rows.map(PlannedPlanting.fromMap).toList();
+
+    if (plantings.any((planting) => planting.seasonId != seasonId)) {
+      throw const FormatException(
+        'Risposta pianificazioni non coerente con la stagione richiesta.',
+      );
+    }
+
+    return plantings;
+  }
 
   Future<CreatePlannedPlantingResult> createPlannedPlanting({
     required String gardenId,
