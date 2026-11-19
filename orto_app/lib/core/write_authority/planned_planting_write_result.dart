@@ -61,3 +61,81 @@ final class CreatePlannedPlantingOutsideBedGeometry
     extends CreatePlannedPlantingResult {
   const CreatePlannedPlantingOutsideBedGeometry();
 }
+
+sealed class UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingResult();
+}
+
+final class UpdatePlannedPlantingUpdated extends UpdatePlannedPlantingResult {
+  final String plannedPlantingId;
+  final int rowVersion;
+
+  const UpdatePlannedPlantingUpdated({
+    required this.plannedPlantingId,
+    required this.rowVersion,
+  });
+}
+
+final class UpdatePlannedPlantingForbidden extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingForbidden();
+}
+
+final class UpdatePlannedPlantingWriteForbidden
+    extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingWriteForbidden();
+}
+
+final class UpdatePlannedPlantingNotFound extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingNotFound();
+}
+
+final class UpdatePlannedPlantingInvalidInput
+    extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingInvalidInput();
+}
+
+final class UpdatePlannedPlantingVersionConflict
+    extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingVersionConflict();
+}
+
+final class UpdatePlannedPlantingBlockedByLifecycle
+    extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingBlockedByLifecycle();
+}
+
+final class UpdatePlannedPlantingInactiveGarden
+    extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingInactiveGarden();
+}
+
+final class UpdatePlannedPlantingInactiveBed
+    extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingInactiveBed();
+}
+
+final class UpdatePlannedPlantingInactiveCrop
+    extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingInactiveCrop();
+}
+
+final class UpdatePlannedPlantingInactiveCultivar
+    extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingInactiveCultivar();
+}
+
+final class UpdatePlannedPlantingMissingBedGeometry
+    extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingMissingBedGeometry();
+}
+
+final class UpdatePlannedPlantingOutsideBedGeometry
+    extends UpdatePlannedPlantingResult {
+  const UpdatePlannedPlantingOutsideBedGeometry();
+}
+
+final class UpdatePlannedPlantingOverlap extends UpdatePlannedPlantingResult {
+  final String bedId;
+
+  const UpdatePlannedPlantingOverlap({required this.bedId});
+}
