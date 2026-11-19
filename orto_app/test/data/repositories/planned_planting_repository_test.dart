@@ -471,4 +471,159 @@ void main() {
       });
     }
   });
+  group('conferma pianificazione', () {
+    const identity = AppSessionIdentity(
+      clientInstanceId: '88888888-8888-4888-8888-888888888888',
+      sessionId: '99999999-9999-4999-8999-999999999999',
+    );
+
+    const plannedPlantingId = '33333333-3333-4333-8333-333333333333';
+
+    ProfileEditLockLease makeLease() => ProfileEditLockLease(
+      profileId: '11111111-1111-4111-8111-111111111111',
+      identity: identity,
+      lockToken: 'token-esclusivamente-test',
+      expiresAt: DateTime.utc(2026, 11, 18, 18),
+      rowVersion: 1,
+    );
+
+    Future<ConfirmPlannedPlantingResult> confirm(
+      PlannedPlantingRepository repository,
+    ) => repository.confirmPlannedPlanting(
+      plannedPlantingId: plannedPlantingId,
+      expectedRowVersion: 1,
+    );
+
+    test('conferma riuscita e sei parametri RPC corretti', () async {
+      var calls = 0;
+      String? rpcName;
+      Map<String, dynamic>? rpcParameters;
+
+      final repository = PlannedPlantingRepository.withProviders((
+        functionName,
+        parameters,
+      ) async {
+        calls++;
+        rpcName = functionName;
+        rpcParameters = Map<String, dynamic>.from(parameters);
+        return {
+          'status': 'confirmed',
+          'planned_planting_id': plannedPlantingId,
+          'row_version': 2,
+        };
+      }, makeLease);
+
+      final result = await confirm(repository);
+
+      expect(calls, 1);
+      expect(rpcName, 'confirm_planned_planting');
+      expect(rpcParameters, {
+        'target_profile_id': '11111111-1111-4111-8111-111111111111',
+        'target_planned_planting_id': plannedPlantingId,
+        'expected_row_version': 1,
+        'target_client_id': identity.clientInstanceId,
+        'target_session_id': identity.sessionId,
+        'lock_token': 'token-esclusivamente-test',
+      });
+
+      expect(result, isA<ConfirmPlannedPlantingConfirmed>());
+      final confirmed = result as ConfirmPlannedPlantingConfirmed;
+      expect(confirmed.plannedPlantingId, plannedPlantingId);
+      expect(confirmed.rowVersion, 2);
+    });
+
+    final errorCases = <String, Type>{
+      'forbidden': ConfirmPlannedPlantingForbidden,
+      'write_forbidden': ConfirmPlannedPlantingWriteForbidden,
+      'not_found': ConfirmPlannedPlantingNotFound,
+      'version_conflict': ConfirmPlannedPlantingVersionConflict,
+      'inactive_garden': ConfirmPlannedPlantingInactiveGarden,
+      'inactive_bed': ConfirmPlannedPlantingInactiveBed,
+      'blocked_by_lifecycle': ConfirmPlannedPlantingBlockedByLifecycle,
+      'missing_bed_geometry': ConfirmPlannedPlantingMissingBedGeometry,
+      'outside_bed_geometry': ConfirmPlannedPlantingOutsideBedGeometry,
+    };
+
+    for (final entry in errorCases.entries) {
+      test('gestisce stato ${entry.key}', () async {
+        var calls = 0;
+        final repository = PlannedPlantingRepository.withProviders((
+          functionName,
+          parameters,
+        ) async {
+          calls++;
+          expect(functionName, 'confirm_planned_planting');
+          return {'status': entry.key};
+        }, makeLease);
+
+        final result = await confirm(repository);
+        expect(result.runtimeType, entry.value);
+        expect(calls, 1);
+      });
+    }
+
+    test('gestisce overlap con identificativo aiuola', () async {
+      const bedId = '66666666-6666-4666-8666-666666666666';
+
+      final repository = PlannedPlantingRepository.withProviders(
+        (functionName, parameters) async => {
+          'status': 'overlap',
+          'bed_id': bedId,
+        },
+        makeLease,
+      );
+
+      final result = await confirm(repository);
+      expect(result, isA<ConfirmPlannedPlantingOverlap>());
+      expect((result as ConfirmPlannedPlantingOverlap).bedId, bedId);
+    });
+
+    test('blocca scrittura senza Write Authority', () async {
+      var calls = 0;
+
+      final repository = PlannedPlantingRepository.withProviders((
+        functionName,
+        parameters,
+      ) async {
+        calls++;
+        return {'status': 'confirmed'};
+      }, null);
+
+      await expectLater(
+        confirm(repository),
+        throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+      );
+      expect(calls, 0);
+    });
+
+    final invalidResponses = <dynamic>[
+      null,
+      'risposta non valida',
+      {'status': 'unknown_status'},
+      {'status': 'confirmed'},
+      {
+        'status': 'confirmed',
+        'planned_planting_id': plannedPlantingId,
+        'row_version': 0,
+      },
+      {'status': 'overlap'},
+    ];
+
+    for (var index = 0; index < invalidResponses.length; index++) {
+      test('rifiuta risposta conferma non valida ${index + 1}', () async {
+        var calls = 0;
+
+        final repository = PlannedPlantingRepository.withProviders((
+          functionName,
+          parameters,
+        ) async {
+          calls++;
+          return invalidResponses[index];
+        }, makeLease);
+
+        await expectLater(confirm(repository), throwsA(isA<FormatException>()));
+        expect(calls, 1);
+      });
+    }
+  });
 }

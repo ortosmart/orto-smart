@@ -105,6 +105,84 @@ class PlannedPlantingRepository {
     };
   }
 
+  Future<ConfirmPlannedPlantingResult> confirmPlannedPlanting({
+    required String plannedPlantingId,
+    required int expectedRowVersion,
+  }) async {
+    final lease = _requireWriteLease();
+
+    final response = await _invokeRpc('confirm_planned_planting', {
+      'target_profile_id': lease.profileId,
+      'target_planned_planting_id': plannedPlantingId,
+      'expected_row_version': expectedRowVersion,
+      'target_client_id': lease.identity.clientInstanceId,
+      'target_session_id': lease.identity.sessionId,
+      'lock_token': lease.lockToken,
+    });
+
+    if (response is! Map) {
+      throw const FormatException(
+        'Risposta RPC conferma pianificazione non valida.',
+      );
+    }
+
+    final payload = Map<String, dynamic>.from(response);
+
+    return switch (payload['status']) {
+      'confirmed' => _confirmedPlannedPlanting(payload),
+      'forbidden' => const ConfirmPlannedPlantingForbidden(),
+      'write_forbidden' => const ConfirmPlannedPlantingWriteForbidden(),
+      'not_found' => const ConfirmPlannedPlantingNotFound(),
+      'version_conflict' => const ConfirmPlannedPlantingVersionConflict(),
+      'inactive_garden' => const ConfirmPlannedPlantingInactiveGarden(),
+      'inactive_bed' => const ConfirmPlannedPlantingInactiveBed(),
+      'blocked_by_lifecycle' =>
+        const ConfirmPlannedPlantingBlockedByLifecycle(),
+      'missing_bed_geometry' =>
+        const ConfirmPlannedPlantingMissingBedGeometry(),
+      'outside_bed_geometry' =>
+        const ConfirmPlannedPlantingOutsideBedGeometry(),
+      'overlap' => _confirmPlannedPlantingOverlap(payload),
+      _ => throw const FormatException(
+        'Stato RPC conferma pianificazione sconosciuto.',
+      ),
+    };
+  }
+
+  static ConfirmPlannedPlantingConfirmed _confirmedPlannedPlanting(
+    Map<String, dynamic> payload,
+  ) {
+    final plannedPlantingId = payload['planned_planting_id'];
+    final rowVersion = payload['row_version'];
+
+    if (plannedPlantingId is! String ||
+        plannedPlantingId.isEmpty ||
+        rowVersion is! int ||
+        rowVersion < 1) {
+      throw const FormatException(
+        'Risposta conferma pianificazione incompleta.',
+      );
+    }
+
+    return ConfirmPlannedPlantingConfirmed(
+      plannedPlantingId: plannedPlantingId,
+      rowVersion: rowVersion,
+    );
+  }
+
+  static ConfirmPlannedPlantingOverlap _confirmPlannedPlantingOverlap(
+    Map<String, dynamic> payload,
+  ) {
+    final bedId = payload['bed_id'];
+
+    if (bedId is! String || bedId.isEmpty) {
+      throw const FormatException(
+        'Risposta sovrapposizione conferma incompleta.',
+      );
+    }
+
+    return ConfirmPlannedPlantingOverlap(bedId: bedId);
+  }
   Future<UpdatePlannedPlantingResult> updatePlannedPlanting({
     required String plannedPlantingId,
     required int expectedRowVersion,

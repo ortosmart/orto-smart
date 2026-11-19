@@ -139,3 +139,70 @@ final class UpdatePlannedPlantingOverlap extends UpdatePlannedPlantingResult {
 
   const UpdatePlannedPlantingOverlap({required this.bedId});
 }
+
+sealed class ConfirmPlannedPlantingResult {
+  const ConfirmPlannedPlantingResult();
+}
+
+final class ConfirmPlannedPlantingConfirmed
+    extends ConfirmPlannedPlantingResult {
+  final String plannedPlantingId;
+  final int rowVersion;
+
+  const ConfirmPlannedPlantingConfirmed({
+    required this.plannedPlantingId,
+    required this.rowVersion,
+  });
+}
+
+final class ConfirmPlannedPlantingForbidden
+    extends ConfirmPlannedPlantingResult {
+  const ConfirmPlannedPlantingForbidden();
+}
+
+final class ConfirmPlannedPlantingWriteForbidden
+    extends ConfirmPlannedPlantingResult {
+  const ConfirmPlannedPlantingWriteForbidden();
+}
+
+final class ConfirmPlannedPlantingNotFound
+    extends ConfirmPlannedPlantingResult {
+  const ConfirmPlannedPlantingNotFound();
+}
+
+final class ConfirmPlannedPlantingVersionConflict
+    extends ConfirmPlannedPlantingResult {
+  const ConfirmPlannedPlantingVersionConflict();
+}
+
+final class ConfirmPlannedPlantingInactiveGarden
+    extends ConfirmPlannedPlantingResult {
+  const ConfirmPlannedPlantingInactiveGarden();
+}
+
+final class ConfirmPlannedPlantingInactiveBed
+    extends ConfirmPlannedPlantingResult {
+  const ConfirmPlannedPlantingInactiveBed();
+}
+
+final class ConfirmPlannedPlantingBlockedByLifecycle
+    extends ConfirmPlannedPlantingResult {
+  const ConfirmPlannedPlantingBlockedByLifecycle();
+}
+
+final class ConfirmPlannedPlantingMissingBedGeometry
+    extends ConfirmPlannedPlantingResult {
+  const ConfirmPlannedPlantingMissingBedGeometry();
+}
+
+final class ConfirmPlannedPlantingOutsideBedGeometry
+    extends ConfirmPlannedPlantingResult {
+  const ConfirmPlannedPlantingOutsideBedGeometry();
+}
+
+final class ConfirmPlannedPlantingOverlap
+    extends ConfirmPlannedPlantingResult {
+  final String bedId;
+
+  const ConfirmPlannedPlantingOverlap({required this.bedId});
+}
