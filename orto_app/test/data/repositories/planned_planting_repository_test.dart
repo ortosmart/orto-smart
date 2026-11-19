@@ -763,4 +763,197 @@ void main() {
       });
     }
   });
+
+  group('esecuzione pianificazione', () {
+    const identity = AppSessionIdentity(
+      clientInstanceId: '88888888-8888-4888-8888-888888888888',
+      sessionId: '99999999-9999-4999-8999-999999999999',
+    );
+
+    const plannedPlantingId = '33333333-3333-4333-8333-333333333333';
+    const plantingId = '44444444-4444-4444-8444-444444444444';
+    const bedId = '66666666-6666-4666-8666-666666666666';
+
+    ProfileEditLockLease makeLease() => ProfileEditLockLease(
+      profileId: '11111111-1111-4111-8111-111111111111',
+      identity: identity,
+      lockToken: 'token-esclusivamente-test',
+      expiresAt: DateTime.utc(2026, 11, 19, 18),
+      rowVersion: 1,
+    );
+
+    Future<ExecutePlannedPlantingResult> execute(
+      PlannedPlantingRepository repository,
+    ) => repository.executePlannedPlanting(
+      plannedPlantingId: plannedPlantingId,
+      expectedRowVersion: 1,
+      effectiveStartDate: DateTime(2026, 11, 19),
+    );
+
+    test('esecuzione riuscita e sette parametri RPC corretti', () async {
+      var calls = 0;
+      String? rpcName;
+      Map<String, dynamic>? rpcParameters;
+
+      final repository = PlannedPlantingRepository.withProviders((
+        functionName,
+        parameters,
+      ) async {
+        calls++;
+        rpcName = functionName;
+        rpcParameters = Map<String, dynamic>.from(parameters);
+        return {
+          'status': 'executed',
+          'planned_planting_id': plannedPlantingId,
+          'planting_id': plantingId,
+          'effective_start_date': '2026-11-19',
+          'row_version': 2,
+        };
+      }, makeLease);
+
+      final result = await execute(repository);
+
+      expect(calls, 1);
+      expect(rpcName, 'execute_planned_planting');
+      expect(rpcParameters, {
+        'target_profile_id': '11111111-1111-4111-8111-111111111111',
+        'target_planned_planting_id': plannedPlantingId,
+        'expected_row_version': 1,
+        'target_client_id': identity.clientInstanceId,
+        'target_session_id': identity.sessionId,
+        'lock_token': 'token-esclusivamente-test',
+        'effective_start_date': '2026-11-19',
+      });
+
+      expect(result, isA<ExecutePlannedPlantingExecuted>());
+      final executed = result as ExecutePlannedPlantingExecuted;
+      expect(executed.plannedPlantingId, plannedPlantingId);
+      expect(executed.plantingId, plantingId);
+      expect(executed.effectiveStartDate, DateTime(2026, 11, 19));
+      expect(executed.rowVersion, 2);
+    });
+
+    final errorCases = <String, Type>{
+      'forbidden': ExecutePlannedPlantingForbidden,
+      'write_forbidden': ExecutePlannedPlantingWriteForbidden,
+      'not_found': ExecutePlannedPlantingNotFound,
+      'invalid_input': ExecutePlannedPlantingInvalidInput,
+      'version_conflict': ExecutePlannedPlantingVersionConflict,
+      'blocked_by_lifecycle': ExecutePlannedPlantingBlockedByLifecycle,
+      'blocked_by_inactive_garden': ExecutePlannedPlantingInactiveGarden,
+      'blocked_by_inactive_bed': ExecutePlannedPlantingInactiveBed,
+      'blocked_by_inactive_crop': ExecutePlannedPlantingInactiveCrop,
+      'blocked_by_inactive_cultivar': ExecutePlannedPlantingInactiveCultivar,
+      'outside_bed_geometry': ExecutePlannedPlantingOutsideBedGeometry,
+    };
+
+    for (final entry in errorCases.entries) {
+      test('gestisce stato ${entry.key}', () async {
+        var calls = 0;
+
+        final repository = PlannedPlantingRepository.withProviders((
+          functionName,
+          parameters,
+        ) async {
+          calls++;
+          expect(functionName, 'execute_planned_planting');
+          return {'status': entry.key};
+        }, makeLease);
+
+        final result = await execute(repository);
+        expect(result.runtimeType, entry.value);
+        expect(calls, 1);
+      });
+    }
+
+    for (final status in ['overlap', 'blocked_by_confirmed_plans']) {
+      test('gestisce $status con identificativo aiuola', () async {
+        final repository = PlannedPlantingRepository.withProviders(
+          (functionName, parameters) async => {
+            'status': status,
+            'bed_id': bedId,
+          },
+          makeLease,
+        );
+
+        final result = await execute(repository);
+
+        if (status == 'overlap') {
+          expect(result, isA<ExecutePlannedPlantingOverlap>());
+          expect((result as ExecutePlannedPlantingOverlap).bedId, bedId);
+        } else {
+          expect(result, isA<ExecutePlannedPlantingBlockedByConfirmedPlans>());
+          expect(
+            (result as ExecutePlannedPlantingBlockedByConfirmedPlans).bedId,
+            bedId,
+          );
+        }
+      });
+    }
+
+    test('blocca scrittura senza Write Authority', () async {
+      var calls = 0;
+
+      final repository = PlannedPlantingRepository.withProviders((
+        functionName,
+        parameters,
+      ) async {
+        calls++;
+        return {'status': 'executed'};
+      }, null);
+
+      await expectLater(
+        execute(repository),
+        throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+      );
+      expect(calls, 0);
+    });
+
+    final invalidResponses = <dynamic>[
+      null,
+      'risposta non valida',
+      {'status': 'unknown_status'},
+      {'status': 'executed'},
+      {
+        'status': 'executed',
+        'planned_planting_id': plannedPlantingId,
+        'planting_id': '',
+        'effective_start_date': '2026-11-19',
+        'row_version': 2,
+      },
+      {
+        'status': 'executed',
+        'planned_planting_id': plannedPlantingId,
+        'planting_id': plantingId,
+        'effective_start_date': '2026-02-30',
+        'row_version': 2,
+      },
+      {
+        'status': 'executed',
+        'planned_planting_id': plannedPlantingId,
+        'planting_id': plantingId,
+        'effective_start_date': '2026-11-19',
+        'row_version': 0,
+      },
+      {'status': 'overlap'},
+      {'status': 'blocked_by_confirmed_plans'},
+    ];
+
+    for (var index = 0; index < invalidResponses.length; index++) {
+      test('rifiuta risposta esecuzione non valida ${index + 1}', () async {
+        var calls = 0;
+
+        final repository = PlannedPlantingRepository.withProviders((
+          functionName,
+          parameters,
+        ) async {
+          calls++;
+          return invalidResponses[index];
+        }, makeLease);
+
+        await expectLater(execute(repository), throwsA(isA<FormatException>()));
+        expect(calls, 1);
+      });
+    }
+  });
 }

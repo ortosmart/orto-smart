@@ -241,6 +241,119 @@ class PlannedPlantingRepository {
     );
   }
 
+  Future<ExecutePlannedPlantingResult> executePlannedPlanting({
+    required String plannedPlantingId,
+    required int expectedRowVersion,
+    required DateTime effectiveStartDate,
+  }) async {
+    final lease = _requireWriteLease();
+
+    final response = await _invokeRpc('execute_planned_planting', {
+      'target_profile_id': lease.profileId,
+      'target_planned_planting_id': plannedPlantingId,
+      'expected_row_version': expectedRowVersion,
+      'target_client_id': lease.identity.clientInstanceId,
+      'target_session_id': lease.identity.sessionId,
+      'lock_token': lease.lockToken,
+      'effective_start_date': _dateOnly(effectiveStartDate),
+    });
+
+    if (response is! Map) {
+      throw const FormatException(
+        'Risposta RPC esecuzione pianificazione non valida.',
+      );
+    }
+
+    final payload = Map<String, dynamic>.from(response);
+
+    return switch (payload['status']) {
+      'executed' => _executedPlannedPlanting(payload),
+      'forbidden' => const ExecutePlannedPlantingForbidden(),
+      'write_forbidden' => const ExecutePlannedPlantingWriteForbidden(),
+      'not_found' => const ExecutePlannedPlantingNotFound(),
+      'invalid_input' => const ExecutePlannedPlantingInvalidInput(),
+      'version_conflict' => const ExecutePlannedPlantingVersionConflict(),
+      'blocked_by_lifecycle' =>
+        const ExecutePlannedPlantingBlockedByLifecycle(),
+      'blocked_by_inactive_garden' =>
+        const ExecutePlannedPlantingInactiveGarden(),
+      'blocked_by_inactive_bed' => const ExecutePlannedPlantingInactiveBed(),
+      'blocked_by_inactive_crop' => const ExecutePlannedPlantingInactiveCrop(),
+      'blocked_by_inactive_cultivar' =>
+        const ExecutePlannedPlantingInactiveCultivar(),
+      'outside_bed_geometry' =>
+        const ExecutePlannedPlantingOutsideBedGeometry(),
+      'overlap' => _executePlannedPlantingOverlap(payload),
+      'blocked_by_confirmed_plans' =>
+        _executePlannedPlantingBlockedByConfirmedPlans(payload),
+      _ => throw const FormatException(
+        'Stato RPC esecuzione pianificazione sconosciuto.',
+      ),
+    };
+  }
+
+  static ExecutePlannedPlantingExecuted _executedPlannedPlanting(
+    Map<String, dynamic> payload,
+  ) {
+    final plannedPlantingId = payload['planned_planting_id'];
+    final plantingId = payload['planting_id'];
+    final effectiveStartDate = payload['effective_start_date'];
+    final rowVersion = payload['row_version'];
+
+    if (plannedPlantingId is! String ||
+        plannedPlantingId.isEmpty ||
+        plantingId is! String ||
+        plantingId.isEmpty ||
+        effectiveStartDate is! String ||
+        rowVersion is! int ||
+        rowVersion < 1) {
+      throw const FormatException(
+        'Risposta esecuzione pianificazione incompleta.',
+      );
+    }
+
+    final parsedDate = DateTime.tryParse(effectiveStartDate);
+    if (parsedDate == null || _dateOnly(parsedDate) != effectiveStartDate) {
+      throw const FormatException(
+        'Data effettiva esecuzione pianificazione non valida.',
+      );
+    }
+
+    return ExecutePlannedPlantingExecuted(
+      plannedPlantingId: plannedPlantingId,
+      plantingId: plantingId,
+      effectiveStartDate: parsedDate,
+      rowVersion: rowVersion,
+    );
+  }
+
+  static ExecutePlannedPlantingOverlap _executePlannedPlantingOverlap(
+    Map<String, dynamic> payload,
+  ) {
+    final bedId = payload['bed_id'];
+
+    if (bedId is! String || bedId.isEmpty) {
+      throw const FormatException(
+        'Risposta sovrapposizione esecuzione incompleta.',
+      );
+    }
+
+    return ExecutePlannedPlantingOverlap(bedId: bedId);
+  }
+
+  static ExecutePlannedPlantingBlockedByConfirmedPlans
+  _executePlannedPlantingBlockedByConfirmedPlans(Map<String, dynamic> payload) {
+    final bedId = payload['bed_id'];
+
+    if (bedId is! String || bedId.isEmpty) {
+      throw const FormatException(
+        'Risposta prenotazioni confermate incompleta.',
+      );
+    }
+
+    return ExecutePlannedPlantingBlockedByConfirmedPlans(bedId: bedId);
+  }
+
   Future<UpdatePlannedPlantingResult> updatePlannedPlanting({
     required String plannedPlantingId,
     required int expectedRowVersion,

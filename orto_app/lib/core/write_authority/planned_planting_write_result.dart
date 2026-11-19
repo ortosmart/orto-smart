@@ -242,3 +242,90 @@ final class CancelPlannedPlantingBlockedByLifecycle
     extends CancelPlannedPlantingResult {
   const CancelPlannedPlantingBlockedByLifecycle();
 }
+
+sealed class ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingResult();
+}
+
+final class ExecutePlannedPlantingExecuted
+    extends ExecutePlannedPlantingResult {
+  final String plannedPlantingId;
+  final String plantingId;
+  final DateTime effectiveStartDate;
+  final int rowVersion;
+
+  const ExecutePlannedPlantingExecuted({
+    required this.plannedPlantingId,
+    required this.plantingId,
+    required this.effectiveStartDate,
+    required this.rowVersion,
+  });
+}
+
+final class ExecutePlannedPlantingForbidden
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingForbidden();
+}
+
+final class ExecutePlannedPlantingWriteForbidden
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingWriteForbidden();
+}
+
+final class ExecutePlannedPlantingNotFound
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingNotFound();
+}
+
+final class ExecutePlannedPlantingInvalidInput
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingInvalidInput();
+}
+
+final class ExecutePlannedPlantingVersionConflict
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingVersionConflict();
+}
+
+final class ExecutePlannedPlantingBlockedByLifecycle
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingBlockedByLifecycle();
+}
+
+final class ExecutePlannedPlantingInactiveGarden
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingInactiveGarden();
+}
+
+final class ExecutePlannedPlantingInactiveBed
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingInactiveBed();
+}
+
+final class ExecutePlannedPlantingInactiveCrop
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingInactiveCrop();
+}
+
+final class ExecutePlannedPlantingInactiveCultivar
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingInactiveCultivar();
+}
+
+final class ExecutePlannedPlantingOutsideBedGeometry
+    extends ExecutePlannedPlantingResult {
+  const ExecutePlannedPlantingOutsideBedGeometry();
+}
+
+final class ExecutePlannedPlantingOverlap extends ExecutePlannedPlantingResult {
+  final String bedId;
+
+  const ExecutePlannedPlantingOverlap({required this.bedId});
+}
+
+final class ExecutePlannedPlantingBlockedByConfirmedPlans
+    extends ExecutePlannedPlantingResult {
+  final String bedId;
+
+  const ExecutePlannedPlantingBlockedByConfirmedPlans({required this.bedId});
+}
