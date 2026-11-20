@@ -4,6 +4,7 @@ import '../core/profile/profile_context_scope.dart';
 import '../core/write_authority/profile_write_authority_controller.dart';
 import '../core/write_authority/profile_write_authority_scope.dart';
 import 'create_garden_page.dart';
+import 'seasons_page.dart';
 import '../data/models/garden.dart';
 import '../data/repositories/bed_repository.dart';
 import '../data/repositories/garden_repository.dart';
@@ -208,7 +209,7 @@ class _GardenPageState extends State<GardenPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Non è stato possibile caricare gli orti.',
+                    'Non \u00E8 stato possibile caricare gli orti.',
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
@@ -276,7 +277,7 @@ class _GardenPageState extends State<GardenPage> {
                 DropdownButton<String>(
                   isExpanded: true,
                   value: garden?.id,
-                  hint: const Text('Scegli l’orto da visualizzare'),
+                  hint: const Text('Scegli l\u2019orto da visualizzare'),
                   items: [
                     for (final item in gardens)
                       DropdownMenuItem<String>(
@@ -331,6 +332,21 @@ class _GardenPageState extends State<GardenPage> {
                         ],
                         const SizedBox(height: 24),
                         const Divider(),
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => SeasonsPage(
+                                  gardenId: garden.id,
+                                  gardenName: garden.name,
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.calendar_month),
+                          label: const Text('Stagioni'),
+                        ),
                         const SizedBox(height: 16),
                         const Text(
                           'Aiuole',
