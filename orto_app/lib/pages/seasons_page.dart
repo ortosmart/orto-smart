@@ -1,18 +1,22 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../data/models/season.dart';
 import '../data/repositories/season_repository.dart';
+import '../data/repositories/planned_planting_repository.dart';
+import 'planned_plantings_page.dart';
 
 class SeasonsPage extends StatefulWidget {
   final String gardenId;
   final String gardenName;
   final SeasonRepository? repository;
+  final PlannedPlantingRepository? plannedPlantingRepository;
 
   const SeasonsPage({
     super.key,
     required this.gardenId,
     required this.gardenName,
     this.repository,
+    this.plannedPlantingRepository,
   });
 
   @override
@@ -31,9 +35,7 @@ class _SeasonsPageState extends State<SeasonsPage> {
   }
 
   void _loadSeasons() {
-    _seasonsFuture = _repository.getSeasonsByGarden(
-      gardenId: widget.gardenId,
-    );
+    _seasonsFuture = _repository.getSeasonsByGarden(gardenId: widget.gardenId);
   }
 
   @override
@@ -54,16 +56,12 @@ class _SeasonsPageState extends State<SeasonsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Stagioni - ${widget.gardenName}'),
-      ),
+      appBar: AppBar(title: Text('Stagioni - ${widget.gardenName}')),
       body: FutureBuilder<List<Season>>(
         future: _seasonsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
@@ -105,17 +103,25 @@ class _SeasonsPageState extends State<SeasonsPage> {
 
               return Card(
                 child: ListTile(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => PlannedPlantingsPage(
+                          seasonId: season.id,
+                          seasonName: '${season.year} - ${season.name}',
+                          repository:
+                              widget.plannedPlantingRepository ??
+                              PlannedPlantingRepository.readOnly(),
+                        ),
+                      ),
+                    );
+                  },
                   title: Text('${season.year} - ${season.name}'),
                   subtitle: Text(
-                    season.isActive
-                        ? 'Stagione attiva'
-                        : 'Stagione non attiva',
+                    season.isActive ? 'Stagione attiva' : 'Stagione non attiva',
                   ),
                   trailing: season.isActive
-                      ? const Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                        )
+                      ? const Icon(Icons.check_circle, color: Colors.green)
                       : null,
                 ),
               );

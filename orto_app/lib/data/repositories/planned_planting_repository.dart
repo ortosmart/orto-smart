@@ -46,11 +46,19 @@ class PlannedPlantingRepository {
               updated_at, row_version
             ''')
             .eq('season_id', seasonId)
-            .order('planned_start_date')
-            .order('start_position_cm')
-            .order('id');
+            .order('planned_start_date', ascending: true)
+            .order('start_position_cm', ascending: true)
+            .order('id', ascending: true);
         return rows.map((row) => Map<String, dynamic>.from(row)).toList();
       },
+    );
+  }
+
+  factory PlannedPlantingRepository.readOnly({SupabaseClient? supabase}) {
+    return PlannedPlantingRepository(
+      supabase: supabase,
+      requireLeaseForWrite: () =>
+          throw const ProfileWriteAuthorityUnavailableException(),
     );
   }
 
