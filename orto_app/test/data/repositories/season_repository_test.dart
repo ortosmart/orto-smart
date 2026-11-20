@@ -607,4 +607,101 @@ void main() {
       expect(rpc.callCount, 0);
     });
   });
+    group('getSeasonsByGarden', () {
+    final rpc = _RpcRecorder();
+
+    Map<String, dynamic> seasonRow({
+      String gardenId = _gardenId,
+      int year = 2026,
+      bool isActive = false,
+    }) {
+      return {
+        'id': _seasonId,
+        'garden_id': gardenId,
+        'year': year,
+        'name': 'Stagione $year',
+        'start_date': '$year-01-01',
+        'end_date': '$year-12-31',
+        'is_active': isActive,
+        'notes': null,
+        'row_version': 1,
+      };
+    }
+
+    SeasonRepository repositoryWithLoader(
+      Future<List<Map<String, dynamic>>> Function(String) loader,
+    ) {
+      return SeasonRepository.withProviders(
+        (_) async => seasonRow(),
+        rpc.call,
+        null,
+        loader,
+      );
+    }
+
+    test('returns an empty list when no seasons exist', () async {
+      final repository = repositoryWithLoader((_) async => []);
+
+      final result = await repository.getSeasonsByGarden(
+        gardenId: _gardenId,
+      );
+
+      expect(result, isEmpty);
+    });
+
+    test('maps active and inactive seasons', () async {
+      String? requestedGardenId;
+
+      final repository = repositoryWithLoader((gardenId) async {
+        requestedGardenId = gardenId;
+        return [
+          seasonRow(year: 2026, isActive: true),
+          seasonRow(year: 2027),
+        ];
+      });
+
+      final result = await repository.getSeasonsByGarden(
+        gardenId: _gardenId,
+      );
+
+      expect(requestedGardenId, _gardenId);
+      expect(result, hasLength(2));
+      expect(result[0].year, 2026);
+      expect(result[0].isActive, isTrue);
+      expect(result[1].year, 2027);
+      expect(result[1].isActive, isFalse);
+    });
+
+    test('rejects an empty garden ID', () async {
+      final repository = repositoryWithLoader((_) async => []);
+
+      await expectLater(
+        repository.getSeasonsByGarden(gardenId: '  '),
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects seasons belonging to another garden', () async {
+      final repository = repositoryWithLoader((_) async {
+        return [seasonRow(gardenId: 'different-garden')];
+      });
+
+      await expectLater(
+        repository.getSeasonsByGarden(gardenId: _gardenId),
+        throwsFormatException,
+      );
+    });
+
+    test('rejects a missing loader', () async {
+      final repository = SeasonRepository.withProviders(
+        (_) async => seasonRow(),
+        rpc.call,
+      );
+
+      await expectLater(
+        repository.getSeasonsByGarden(gardenId: _gardenId),
+        throwsStateError,
+      );
+    });
+  });
 }

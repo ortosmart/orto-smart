@@ -8,6 +8,9 @@ import '../models/season.dart';
 typedef ActiveSeasonLoader =
     Future<Map<String, dynamic>> Function(String gardenId);
 
+typedef SeasonsByGardenLoader =
+    Future<List<Map<String, dynamic>>> Function(String gardenId);
+
 typedef SeasonWriteAuthorityProvider = ProfileEditLockLease Function();
 
 typedef SeasonRpcInvoker =
@@ -18,6 +21,7 @@ typedef SeasonRpcInvoker =
 
 class SeasonRepository {
   final ActiveSeasonLoader _loadActiveSeason;
+  final SeasonsByGardenLoader? _loadSeasonsByGarden;
   final SeasonRpcInvoker _invokeRpc;
   final SeasonWriteAuthorityProvider? _requireLeaseForWrite;
 
@@ -43,19 +47,59 @@ class SeasonRepository {
         return client.rpc(functionName, params: parameters);
       },
       requireLeaseForWrite,
+      (String gardenId) async {
+        final response = await client
+            .from('seasons')
+            .select()
+            .eq('garden_id', gardenId)
+            .order('year', ascending: false)
+            .order('id', ascending: true);
+
+        return response
+            .map((row) => Map<String, dynamic>.from(row))
+            .toList();
+      },
     );
   }
 
-  SeasonRepository.withProviders(
-    this._loadActiveSeason,
-    this._invokeRpc, [
-    this._requireLeaseForWrite,
-  ]);
+SeasonRepository.withProviders(
+  this._loadActiveSeason,
+  this._invokeRpc, [
+  this._requireLeaseForWrite,
+  this._loadSeasonsByGarden,
+]);
 
   Future<Season> getActiveSeason({required String gardenId}) async {
     final response = await _loadActiveSeason(gardenId);
     return Season.fromMap(response);
   }
+  Future<List<Season>> getSeasonsByGarden({
+  required String gardenId,
+}) async {
+  if (gardenId.trim().isEmpty) {
+    throw ArgumentError.value(
+      gardenId,
+      'gardenId',
+      'Garden ID must not be empty',
+    );
+  }
+
+  final loader = _loadSeasonsByGarden;
+  if (loader == null) {
+    throw StateError('Seasons by garden loader is not configured');
+  }
+
+  final response = await loader(gardenId);
+  final seasons = response.map(Season.fromMap).toList();
+
+  if (seasons.any((season) => season.gardenId != gardenId)) {
+    throw const FormatException(
+      'Season does not belong to the requested Garden',
+    );
+  }
+
+  return seasons;
+}
 
   Future<CreateSeasonResult> createSeason({
     required String gardenId,
