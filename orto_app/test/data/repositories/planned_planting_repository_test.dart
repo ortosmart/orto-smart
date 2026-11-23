@@ -129,6 +129,46 @@ void main() {
     expect(rpcCalls, 0);
   });
 
+  test('blocca aggiornamento dopo revoca dinamica Write Authority', () async {
+    const identity = AppSessionIdentity(
+      clientInstanceId: '88888888-8888-4888-8888-888888888888',
+      sessionId: '99999999-9999-4999-8999-999999999999',
+    );
+
+    final lease = ProfileEditLockLease(
+      profileId: '11111111-1111-4111-8111-111111111111',
+      identity: identity,
+      lockToken: 'token-esclusivamente-test',
+      expiresAt: DateTime.utc(2026, 11, 18, 18),
+      rowVersion: 1,
+    );
+
+    var authorized = true;
+    var rpcCalls = 0;
+
+    final repository = PlannedPlantingRepository.withProviders(
+      (functionName, parameters) async {
+        rpcCalls++;
+        return {'status': 'updated'};
+      },
+      () {
+        if (!authorized) {
+          throw const ProfileWriteAuthorityUnavailableException();
+        }
+        return lease;
+      },
+    );
+
+    authorized = false;
+
+    await expectLater(
+      _updatePlannedPlanting(repository),
+      throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+    );
+
+    expect(rpcCalls, 0);
+  });
+
   test('blocca la creazione senza Write Authority', () async {
     var rpcCalls = 0;
 
@@ -1169,6 +1209,48 @@ void main() {
     );
 
     expect(loaderCalls, 1);
+    expect(rpcCalls, 0);
+  });
+
+  test('asReadOnly conserva lettura e blocca scritture', () async {
+    const seasonId = '55555555-5555-4555-8555-555555555555';
+
+    var rpcCalls = 0;
+    var leaseCalls = 0;
+    var loaderCalls = 0;
+
+    final original = PlannedPlantingRepository.withProviders(
+      (_, _) async {
+        rpcCalls++;
+        throw StateError('RPC non prevista');
+      },
+      () {
+        leaseCalls++;
+        throw StateError('Provider originale non deve essere chiamato');
+      },
+      loadPlannedPlantings: (requestedSeasonId) async {
+        loaderCalls++;
+        expect(requestedSeasonId, seasonId);
+        return <Map<String, dynamic>>[];
+      },
+    );
+
+    final readOnly = original.asReadOnly();
+
+    final rows = await readOnly.getPlannedPlantingsBySeason(seasonId);
+
+    expect(rows, isEmpty);
+    expect(loaderCalls, 1);
+
+    await expectLater(
+      readOnly.confirmPlannedPlanting(
+        plannedPlantingId: '11111111-1111-4111-8111-111111111111',
+        expectedRowVersion: 1,
+      ),
+      throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+    );
+
+    expect(leaseCalls, 0);
     expect(rpcCalls, 0);
   });
 }

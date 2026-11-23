@@ -68,6 +68,14 @@ class PlannedPlantingRepository {
     this._loadPlannedPlantings,
   });
 
+  PlannedPlantingRepository asReadOnly() {
+    return PlannedPlantingRepository.withProviders(
+      (_, _) async => throw const ProfileWriteAuthorityUnavailableException(),
+      null,
+      loadPlannedPlantings: _loadPlannedPlantings,
+    );
+  }
+
   Future<List<PlannedPlanting>> getPlannedPlantingsBySeason(
     String seasonId,
   ) async {

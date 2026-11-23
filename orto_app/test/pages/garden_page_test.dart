@@ -2,11 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:orto_app/core/identity/app_session_identity.dart';
+import 'package:orto_app/core/write_authority/profile_edit_lock.dart';
+import 'package:orto_app/core/write_authority/profile_write_authority_controller.dart';
 import 'package:orto_app/core/profile/profile_context.dart';
 import 'package:orto_app/core/profile/profile_context_scope.dart';
 import 'package:orto_app/data/repositories/bed_repository.dart';
 import 'package:orto_app/data/repositories/garden_repository.dart';
 import 'package:orto_app/data/repositories/planting_repository.dart';
+import 'package:orto_app/data/repositories/planned_planting_repository.dart';
+import 'package:orto_app/data/repositories/season_repository.dart';
+import 'package:orto_app/pages/seasons_page.dart';
 import 'package:orto_app/pages/garden_page.dart';
 import 'package:orto_app/widgets/garden/garden_map.dart';
 
@@ -27,6 +33,8 @@ Map<String, dynamic> _gardenMap() {
 Widget _testApp({
   required GardenRepository gardenRepository,
   required BedRepository bedRepository,
+  SeasonRepository? seasonRepository,
+  PlannedPlantingRepository? plannedPlantingRepository,
   String profileId = _profileId,
 }) {
   final plantingRepository = PlantingRepository.withLoader(
@@ -44,6 +52,8 @@ Widget _testApp({
           repository: gardenRepository,
           bedRepository: bedRepository,
           plantingRepository: plantingRepository,
+          seasonRepository: seasonRepository,
+          plannedPlantingRepository: plannedPlantingRepository,
         ),
       ),
     ),
@@ -489,6 +499,166 @@ void main() {
       expect(find.byType(GardenMap), findsOneWidget);
       expect(requestedProfiles, [_profileId, _profileId]);
       expect(requestedGardens, [_gardenId]);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('opens seasons from the selected garden', (tester) async {
+      final requestedGardens = <String>[];
+
+      final gardenRepository = GardenRepository.withLoader(
+        (_) async => [_gardenMap()],
+      );
+
+      final bedRepository = BedRepository.withLoader(
+        (_) async => <Map<String, dynamic>>[],
+      );
+
+      final seasonRepository = SeasonRepository.withProviders(
+        (_) async => <String, dynamic>{},
+        (_, _) async => <String, dynamic>{},
+        null,
+        (gardenId) async {
+          requestedGardens.add(gardenId);
+          return [
+            {
+              'id': 'season-2026',
+              'garden_id': gardenId,
+              'year': 2026,
+              'name': 'Corrente',
+              'start_date': '2026-01-01',
+              'end_date': null,
+              'is_active': true,
+              'notes': null,
+              'row_version': 1,
+            },
+          ];
+        },
+      );
+
+      final plannedRepository = PlannedPlantingRepository.withProviders(
+        (_, _) async => <String, dynamic>{},
+        null,
+        loadPlannedPlantings: (_) async => <Map<String, dynamic>>[],
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          gardenRepository: gardenRepository,
+          bedRepository: bedRepository,
+          seasonRepository: seasonRepository,
+          plannedPlantingRepository: plannedRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Stagioni'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SeasonsPage), findsOneWidget);
+      expect(find.text('2026 - Corrente'), findsOneWidget);
+      expect(requestedGardens, [_gardenId]);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('blocks injected write authority when opening seasons', (
+      tester,
+    ) async {
+      var rpcCalls = 0;
+      var leaseCalls = 0;
+      var loaderCalls = 0;
+
+      final lease = ProfileEditLockLease(
+        profileId: _profileId,
+        identity: const AppSessionIdentity(
+          clientInstanceId: '88888888-8888-4888-8888-888888888888',
+          sessionId: '99999999-9999-4999-8999-999999999999',
+        ),
+        lockToken: 'token-esclusivamente-test',
+        expiresAt: DateTime.now().toUtc().add(const Duration(hours: 1)),
+        rowVersion: 1,
+      );
+
+      final originalRepository = PlannedPlantingRepository.withProviders(
+        (_, _) async {
+          rpcCalls++;
+          throw StateError('RPC non autorizzata');
+        },
+        () {
+          leaseCalls++;
+          return lease;
+        },
+        loadPlannedPlantings: (seasonId) async {
+          loaderCalls++;
+          expect(seasonId, 'season-2026');
+          return <Map<String, dynamic>>[];
+        },
+      );
+
+      final gardenRepository = GardenRepository.withLoader(
+        (_) async => [_gardenMap()],
+      );
+
+      final bedRepository = BedRepository.withLoader(
+        (_) async => <Map<String, dynamic>>[],
+      );
+
+      final seasonRepository = SeasonRepository.withProviders(
+        (_) async => <String, dynamic>{},
+        (_, _) async => <String, dynamic>{},
+        null,
+        (gardenId) async => [
+          {
+            'id': 'season-2026',
+            'garden_id': gardenId,
+            'year': 2026,
+            'name': 'Corrente',
+            'start_date': '2026-01-01',
+            'end_date': null,
+            'is_active': true,
+            'notes': null,
+            'row_version': 1,
+          },
+        ],
+      );
+
+      await tester.pumpWidget(
+        _testApp(
+          gardenRepository: gardenRepository,
+          bedRepository: bedRepository,
+          seasonRepository: seasonRepository,
+          plannedPlantingRepository: originalRepository,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Stagioni'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SeasonsPage), findsOneWidget);
+
+      final seasonsPage = tester.widget<SeasonsPage>(find.byType(SeasonsPage));
+
+      final forwardedRepository = seasonsPage.plannedPlantingRepository!;
+
+      expect(forwardedRepository, isNot(same(originalRepository)));
+
+      final rows = await forwardedRepository.getPlannedPlantingsBySeason(
+        'season-2026',
+      );
+
+      expect(rows, isEmpty);
+      expect(loaderCalls, 1);
+
+      await expectLater(
+        forwardedRepository.confirmPlannedPlanting(
+          plannedPlantingId: '33333333-3333-4333-8333-333333333333',
+          expectedRowVersion: 1,
+        ),
+        throwsA(isA<ProfileWriteAuthorityUnavailableException>()),
+      );
+
+      expect(leaseCalls, 0);
+      expect(rpcCalls, 0);
       expect(tester.takeException(), isNull);
     });
   });

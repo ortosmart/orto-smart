@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../core/profile/profile_context.dart';
 import '../core/profile/profile_context_scope.dart';
+import '../core/write_authority/profile_edit_lock.dart';
 import '../core/write_authority/profile_write_authority_controller.dart';
 import '../core/write_authority/profile_write_authority_scope.dart';
 import 'create_garden_page.dart';
@@ -8,6 +10,8 @@ import 'seasons_page.dart';
 import '../data/models/garden.dart';
 import '../data/repositories/bed_repository.dart';
 import '../data/repositories/garden_repository.dart';
+import '../data/repositories/planned_planting_repository.dart';
+import '../data/repositories/season_repository.dart';
 import '../widgets/garden/garden_map.dart';
 import 'package:orto_app/data/repositories/planting_repository.dart';
 
@@ -15,12 +19,16 @@ class GardenPage extends StatefulWidget {
   final GardenRepository? repository;
   final BedRepository? bedRepository;
   final PlantingRepository? plantingRepository;
+  final SeasonRepository? seasonRepository;
+  final PlannedPlantingRepository? plannedPlantingRepository;
 
   const GardenPage({
     super.key,
     this.repository,
     this.bedRepository,
     this.plantingRepository,
+    this.seasonRepository,
+    this.plannedPlantingRepository,
   });
 
   @override
@@ -335,11 +343,76 @@ class _GardenPageState extends State<GardenPage> {
                         const SizedBox(height: 16),
                         OutlinedButton.icon(
                           onPressed: () {
+                            final authority = _writeAuthority;
+                            final profileId = _profileId;
+                            final currentProfile = ProfileContextScope.of(
+                              context,
+                            );
+                            ProfileEditLockLease? initialLease;
+                            if (authority != null &&
+                                profileId != null &&
+                                currentProfile.profileId == profileId &&
+                                currentProfile.canWrite) {
+                              try {
+                                initialLease = authority.requireLeaseForWrite();
+                              } on ProfileWriteAuthorityUnavailableException {
+                                initialLease = null;
+                              }
+                            }
+                            final initialIdentity = initialLease?.identity;
+                            final initialToken = initialLease?.lockToken;
+
+                            final plannedRepository =
+                                initialLease == null ||
+                                    initialIdentity == null ||
+                                    initialToken == null ||
+                                    profileId == null ||
+                                    initialLease.profileId != profileId
+                                ? (widget.plannedPlantingRepository
+                                          ?.asReadOnly() ??
+                                      PlannedPlantingRepository.readOnly())
+                                : PlannedPlantingRepository(
+                                    requireLeaseForWrite: () {
+                                      if (!mounted) {
+                                        throw const ProfileWriteAuthorityUnavailableException();
+                                      }
+                                      final activeProfile =
+                                          ProfileContextScope.read(context);
+                                      if (!identical(
+                                            _writeAuthority,
+                                            authority,
+                                          ) ||
+                                          _profileId != profileId ||
+                                          activeProfile.profileId !=
+                                              profileId ||
+                                          activeProfile.role !=
+                                              ProfileMemberRole.owner) {
+                                        throw const ProfileWriteAuthorityUnavailableException();
+                                      }
+                                      final currentLease = authority!
+                                          .requireLeaseForWrite();
+                                      if (currentLease.profileId != profileId ||
+                                          currentLease.lockToken !=
+                                              initialToken ||
+                                          currentLease
+                                                  .identity
+                                                  .clientInstanceId !=
+                                              initialIdentity
+                                                  .clientInstanceId ||
+                                          currentLease.identity.sessionId !=
+                                              initialIdentity.sessionId) {
+                                        throw const ProfileWriteAuthorityUnavailableException();
+                                      }
+                                      return currentLease;
+                                    },
+                                  );
                             Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) => SeasonsPage(
                                   gardenId: garden.id,
                                   gardenName: garden.name,
+                                  repository: widget.seasonRepository,
+                                  plannedPlantingRepository: plannedRepository,
                                 ),
                               ),
                             );
