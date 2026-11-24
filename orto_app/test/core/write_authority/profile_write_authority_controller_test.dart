@@ -268,6 +268,271 @@ void main() {
     ]);
     expect(rpc.functionNames, ['acquire_profile_edit_lock']);
   });
+  test('canWriteWithLease accepts the current lease', () async {
+    rpc.enqueue(_acquiredResponse());
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+
+    expect(controller.canWriteWithLease(originalLease), isTrue);
+  });
+
+  test('canWriteWithLease accepts a renewal of the same lease', () async {
+    rpc
+      ..enqueue(_acquiredResponse())
+      ..enqueue({
+        'status': 'renewed',
+        'expires_at': '2026-08-26T22:04:00+00:00',
+        'row_version': 2,
+      });
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+
+    now = now.add(const Duration(seconds: 30));
+    await scheduler.runNext();
+
+    expect(controller.rowVersion, 2);
+    expect(controller.canWriteWithLease(originalLease), isTrue);
+  });
+
+  test('canWriteWithLease rejects a different token', () async {
+    rpc.enqueue(_acquiredResponse());
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+
+    rpc.enqueue({
+      ..._acquiredResponse(rowVersion: 2),
+      'lock_token': 'secondo-token-fittizio',
+    });
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    expect(controller.canWrite, isTrue);
+    expect(controller.canWriteWithLease(originalLease), isFalse);
+  });
+
+  test('canWriteWithLease rejects a different client', () async {
+    rpc.enqueue(_acquiredResponse());
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+
+    rpc.enqueue(_acquiredResponse(rowVersion: 2));
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: const AppSessionIdentity(
+        clientInstanceId: '44444444-4444-4444-8444-444444444444',
+        sessionId: _sessionId,
+      ),
+    );
+
+    expect(controller.canWrite, isTrue);
+    expect(controller.canWriteWithLease(originalLease), isFalse);
+  });
+
+  test('canWriteWithLease rejects a different session', () async {
+    rpc.enqueue(_acquiredResponse());
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+
+    rpc.enqueue(_acquiredResponse(rowVersion: 2));
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: const AppSessionIdentity(
+        clientInstanceId: _clientInstanceId,
+        sessionId: '55555555-5555-4555-8555-555555555555',
+      ),
+    );
+
+    expect(controller.canWrite, isTrue);
+    expect(controller.canWriteWithLease(originalLease), isFalse);
+  });
+
+  test('canWriteWithLease rejects a different profile', () async {
+    rpc.enqueue(_acquiredResponse());
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+
+    rpc.enqueue(_acquiredResponse(rowVersion: 2));
+
+    await controller.initialize(
+      profileContext: const ProfileContext(
+        profileId: '66666666-6666-4666-8666-666666666666',
+        role: ProfileMemberRole.owner,
+      ),
+      identity: _identity,
+    );
+
+    expect(controller.canWrite, isTrue);
+    expect(controller.canWriteWithLease(originalLease), isFalse);
+  });
+
+  test('canWriteWithLease rejects expiry without side effects', () async {
+    rpc.enqueue(_acquiredResponse());
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+    final rpcCount = rpc.functionNames.length;
+    final scheduledCount = scheduler.delays.length;
+
+    var notifications = 0;
+    controller.addListener(() {
+      notifications++;
+    });
+
+    now = originalLease.expiresAt;
+
+    expect(controller.canWriteWithLease(originalLease), isFalse);
+    expect(controller.canWrite, isFalse);
+    expect(controller.status, ProfileWriteAuthorityStatus.writer);
+    expect(notifications, 0);
+    expect(rpc.functionNames.length, rpcCount);
+    expect(scheduler.delays.length, scheduledCount);
+  });
+
+  test('canWriteWithLease rejects authority during recovery', () async {
+    rpc
+      ..enqueue(_acquiredResponse())
+      ..enqueue(const _NetworkFailure());
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+
+    now = now.add(const Duration(seconds: 30));
+    await scheduler.runNext();
+
+    expect(controller.status, ProfileWriteAuthorityStatus.recovering);
+    expect(controller.canWriteWithLease(originalLease), isFalse);
+  });
+
+  test('canWriteWithLease restores availability after recovery', () async {
+    rpc
+      ..enqueue(_acquiredResponse())
+      ..enqueue(const _NetworkFailure())
+      ..enqueue({
+        'status': 'renewed',
+        'expires_at': '2026-08-26T22:04:00+00:00',
+        'row_version': 2,
+      });
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+
+    now = now.add(const Duration(seconds: 30));
+    await scheduler.runNext();
+
+    expect(controller.canWriteWithLease(originalLease), isFalse);
+
+    now = now.add(const Duration(seconds: 10));
+    await scheduler.runNext();
+
+    expect(controller.status, ProfileWriteAuthorityStatus.writer);
+    expect(controller.canWriteWithLease(originalLease), isTrue);
+  });
+
+  test('canWriteWithLease rejects released authority', () async {
+    rpc
+      ..enqueue(_acquiredResponse())
+      ..enqueue({'status': 'released'});
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+
+    await controller.release();
+
+    expect(controller.status, ProfileWriteAuthorityStatus.released);
+    expect(controller.canWriteWithLease(originalLease), isFalse);
+  });
+
+  test('canWriteWithLease rejects a disposed controller', () async {
+    final localRpc = _QueuedRpc()..enqueue(_acquiredResponse());
+
+    final localController = ProfileWriteAuthorityController(
+      ProfileEditLockRepository.withRpcInvoker(localRpc.call),
+      _ManualScheduler(),
+      utcNow: () => now,
+    );
+
+    await localController.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = localController.requireLeaseForWrite();
+
+    localController.dispose();
+
+    expect(localController.canWriteWithLease(originalLease), isFalse);
+  });
+
+  test('canWriteWithLease rejects a read-only member', () async {
+    rpc.enqueue(_acquiredResponse());
+
+    await controller.initialize(
+      profileContext: _ownerContext,
+      identity: _identity,
+    );
+
+    final originalLease = controller.requireLeaseForWrite();
+
+    await controller.initialize(
+      profileContext: _workerContext,
+      identity: _identity,
+    );
+
+    expect(controller.status, ProfileWriteAuthorityStatus.readOnlyMember);
+    expect(controller.canWriteWithLease(originalLease), isFalse);
+  });
+
   final acquisitionCases =
       <(String serverStatus, ProfileWriteAuthorityStatus expectedStatus)>[
         ('already_held', ProfileWriteAuthorityStatus.alreadyHeldWithoutToken),

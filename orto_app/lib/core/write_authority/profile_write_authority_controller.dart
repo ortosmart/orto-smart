@@ -62,6 +62,20 @@ class ProfileWriteAuthorityController extends ChangeNotifier {
       _lease != null &&
       _lease!.expiresAt.isAfter(_utcNow());
 
+  bool canWriteWithLease(ProfileEditLockLease originalLease) {
+    final currentLease = _lease;
+
+    if (_isDisposed || !canWrite || currentLease == null) {
+      return false;
+    }
+
+    return currentLease.profileId == originalLease.profileId &&
+        currentLease.lockToken == originalLease.lockToken &&
+        currentLease.identity.clientInstanceId ==
+            originalLease.identity.clientInstanceId &&
+        currentLease.identity.sessionId == originalLease.identity.sessionId;
+  }
+
   DateTime? get expiresAt => _lease?.expiresAt;
 
   int? get rowVersion => _lease?.rowVersion;
