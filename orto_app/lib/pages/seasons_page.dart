@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../core/write_authority/planning_route_lifetime.dart';
+import '../core/write_authority/route_write_availability.dart';
 import '../data/models/season.dart';
 import '../data/repositories/season_repository.dart';
 import '../data/repositories/planned_planting_repository.dart';
@@ -10,6 +14,8 @@ class SeasonsPage extends StatefulWidget {
   final String gardenName;
   final SeasonRepository? repository;
   final PlannedPlantingRepository? plannedPlantingRepository;
+  final RouteWriteAvailability? writeAvailability;
+  final PlanningRouteLifetime? planningRouteLifetime;
 
   const SeasonsPage({
     super.key,
@@ -17,6 +23,8 @@ class SeasonsPage extends StatefulWidget {
     required this.gardenName,
     this.repository,
     this.plannedPlantingRepository,
+    this.writeAvailability,
+    this.planningRouteLifetime,
   });
 
   @override
@@ -104,17 +112,46 @@ class _SeasonsPageState extends State<SeasonsPage> {
               return Card(
                 child: ListTile(
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
+                    final lifetime = widget.planningRouteLifetime;
+
+                    if (lifetime?.isClosed ?? false) {
+                      return;
+                    }
+
+                    final availability =
+                        lifetime?.availability ?? widget.writeAvailability;
+
+                    final repository =
+                        widget.plannedPlantingRepository ??
+                        PlannedPlantingRepository.readOnly();
+
+                    final release = lifetime?.retain();
+
+                    late final MaterialPageRoute<void> route;
+
+                    try {
+                      route = MaterialPageRoute<void>(
                         builder: (_) => PlannedPlantingsPage(
                           seasonId: season.id,
                           seasonName: '${season.year} - ${season.name}',
-                          repository:
-                              widget.plannedPlantingRepository ??
-                              PlannedPlantingRepository.readOnly(),
+                          repository: repository,
+                          writeAvailability: availability,
                         ),
-                      ),
-                    );
+                      );
+
+                      Navigator.of(context).push(route);
+                    } on Object {
+                      release?.call();
+                      rethrow;
+                    }
+
+                    if (release != null) {
+                      unawaited(
+                        route.completed.then<void>((_) {
+                          release();
+                        }),
+                      );
+                    }
                   },
                   title: Text('${season.year} - ${season.name}'),
                   subtitle: Text(

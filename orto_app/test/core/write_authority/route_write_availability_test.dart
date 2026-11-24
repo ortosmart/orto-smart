@@ -1146,4 +1146,240 @@ void main() {
       expect(rpc.functionNames, ['acquire_profile_edit_lock']);
     },
   );
+
+  test('T26 invalidate immediately revokes route writes', () async {
+    final lease = await acquire();
+    final availability = createAvailability(lease: lease);
+
+    expect(availability.canWrite, isTrue);
+
+    final rpcCount = rpc.functionNames.length;
+
+    availability.invalidate();
+
+    expect(availability.canWrite, isFalse);
+    expect(controller.canWrite, isTrue);
+    expect(rpc.functionNames.length, rpcCount);
+  });
+
+  test('T27 invalidate cancels the route expiry timer', () async {
+    final lease = await acquire();
+    final availability = createAvailability(lease: lease);
+
+    final task = routeScheduler.tasks.single;
+
+    expect(task.isActive, isTrue);
+    expect(routeScheduler.activeCount, 1);
+
+    availability.invalidate();
+
+    expect(task.isActive, isFalse);
+    expect(routeScheduler.activeCount, 0);
+  });
+
+  test('T28 invalidate notifies the revocation synchronously', () async {
+    final lease = await acquire();
+    final availability = createAvailability(lease: lease);
+
+    final observedStates = <bool>[];
+
+    availability.addListener(() {
+      observedStates.add(availability.canWrite);
+    });
+
+    availability.invalidate();
+
+    expect(observedStates, [false]);
+  });
+
+  test('T29 repeated invalidation is idempotent', () async {
+    final lease = await acquire();
+    final availability = createAvailability(lease: lease);
+
+    var notifications = 0;
+    availability.addListener(() => notifications++);
+
+    final taskCount = routeScheduler.tasks.length;
+
+    availability.invalidate();
+    availability.invalidate();
+    availability.invalidate();
+
+    expect(availability.canWrite, isFalse);
+    expect(notifications, 1);
+    expect(routeScheduler.activeCount, 0);
+    expect(routeScheduler.tasks.length, taskCount);
+  });
+
+  test('T30 heartbeat cannot reactivate an invalidated route', () async {
+    final lease = await acquire();
+    final availability = createAvailability(lease: lease);
+
+    var notifications = 0;
+    availability.addListener(() => notifications++);
+
+    availability.invalidate();
+
+    final taskCount = routeScheduler.tasks.length;
+
+    rpc.responses.add({
+      'status': 'renewed',
+      'expires_at': '2026-08-26T22:04:00+00:00',
+      'row_version': 2,
+    });
+
+    now = DateTime.utc(2026, 8, 26, 22, 0, 30);
+
+    await controllerScheduler.tasks.where((task) => task.isActive).single.run();
+
+    expect(controller.canWrite, isTrue);
+    expect(
+      controller.remainingWriteDurationForLease(lease),
+      const Duration(minutes: 3, seconds: 30),
+    );
+
+    expect(availability.canWrite, isFalse);
+    expect(notifications, 1);
+    expect(routeScheduler.activeCount, 0);
+    expect(routeScheduler.tasks.length, taskCount);
+
+    expect(rpc.functionNames, [
+      'acquire_profile_edit_lock',
+      'heartbeat_profile_edit_lock',
+    ]);
+  });
+
+  test('T31 refresh cannot reactivate an invalidated route', () async {
+    final lease = await acquire();
+
+    var valid = true;
+    var contextChecks = 0;
+
+    final availability = createAvailability(
+      lease: lease,
+      contextValid: () {
+        contextChecks++;
+        return valid;
+      },
+    );
+
+    var notifications = 0;
+    availability.addListener(() => notifications++);
+
+    valid = false;
+    availability.refresh();
+
+    expect(availability.canWrite, isFalse);
+    expect(notifications, 1);
+
+    availability.invalidate();
+
+    final checksAfterInvalidation = contextChecks;
+
+    valid = true;
+    availability.refresh();
+    availability.refresh();
+
+    expect(controller.canWrite, isTrue);
+    expect(availability.canWrite, isFalse);
+    expect(notifications, 1);
+    expect(contextChecks, checksAfterInvalidation);
+    expect(routeScheduler.activeCount, 0);
+  });
+
+  test('T32 invalidating an initially read only route is silent', () async {
+    final availability = createAvailability(lease: null);
+
+    var notifications = 0;
+    availability.addListener(() => notifications++);
+
+    availability.invalidate();
+
+    await acquire();
+
+    availability.refresh();
+
+    expect(controller.canWrite, isTrue);
+    expect(availability.canWrite, isFalse);
+    expect(notifications, 0);
+    expect(routeScheduler.activeCount, 0);
+    expect(routeScheduler.tasks, isEmpty);
+  });
+
+  test('T33 invalidate after dispose is harmless', () async {
+    final lease = await acquire();
+    final availability = createAvailability(lease: lease);
+
+    var notifications = 0;
+    availability.addListener(() => notifications++);
+
+    availability.dispose();
+
+    expect(availability.invalidate, returnsNormally);
+    expect(availability.invalidate, returnsNormally);
+
+    expect(availability.canWrite, isFalse);
+    expect(notifications, 0);
+    expect(routeScheduler.activeCount, 0);
+  });
+
+  test(
+    'T34 obsolete expiry callback cannot affect invalidated route',
+    () async {
+      final lease = await acquire();
+      final availability = createAvailability(lease: lease);
+
+      var notifications = 0;
+      availability.addListener(() => notifications++);
+
+      final obsoleteTask = routeScheduler.tasks.single;
+
+      availability.invalidate();
+
+      final taskCount = routeScheduler.tasks.length;
+
+      now = lease.expiresAt;
+
+      await obsoleteTask.action();
+
+      expect(availability.canWrite, isFalse);
+      expect(notifications, 1);
+      expect(obsoleteTask.isActive, isFalse);
+      expect(routeScheduler.activeCount, 0);
+      expect(routeScheduler.tasks.length, taskCount);
+
+      expect(rpc.functionNames, ['acquire_profile_edit_lock']);
+    },
+  );
+
+  test('T35 invalidated notifier remains usable until disposal', () async {
+    final lease = await acquire();
+    final availability = createAvailability(lease: lease);
+
+    var notifications = 0;
+
+    void listener() {
+      notifications++;
+    }
+
+    availability.addListener(listener);
+
+    availability.invalidate();
+
+    expect(notifications, 1);
+
+    availability.removeListener(listener);
+
+    expect(() => availability.addListener(listener), returnsNormally);
+
+    availability.removeListener(listener);
+
+    expect(availability.dispose, returnsNormally);
+    expect(availability.dispose, returnsNormally);
+    expect(availability.refresh, returnsNormally);
+
+    expect(availability.canWrite, isFalse);
+    expect(notifications, 1);
+    expect(routeScheduler.activeCount, 0);
+  });
 }

@@ -13,6 +13,7 @@ class RouteWriteAvailability extends ChangeNotifier {
   ScheduledWriteAuthorityTask? _expiryTask;
 
   bool _isDisposed = false;
+  bool _isInvalidated = false;
   bool _isListening = false;
   bool _lastCanWrite = false;
 
@@ -41,7 +42,10 @@ class RouteWriteAvailability extends ChangeNotifier {
     final authority = _authority;
     final originalLease = _originalLease;
 
-    if (_isDisposed || authority == null || originalLease == null) {
+    if (_isDisposed ||
+        _isInvalidated ||
+        authority == null ||
+        originalLease == null) {
       return null;
     }
 
@@ -58,6 +62,27 @@ class RouteWriteAvailability extends ChangeNotifier {
 
   void refresh() {
     _refresh();
+  }
+
+  void invalidate() {
+    if (_isDisposed || _isInvalidated) {
+      return;
+    }
+
+    _isInvalidated = true;
+    _cancelExpiry();
+
+    if (_isListening) {
+      _authority?.removeListener(_refresh);
+      _isListening = false;
+    }
+
+    final changed = _lastCanWrite;
+    _lastCanWrite = false;
+
+    if (changed) {
+      notifyListeners();
+    }
   }
 
   void _refresh() {
