@@ -7,8 +7,19 @@
 - Repository: ortosmart/orto-smart.
 - Branch di riferimento: main.
 - Baseline sorgenti: 20649de7474765bd1c293b20bfcedab0a9493a14.
+- Baseline documentale pubblicata: 76acd230567d13e0cd6e6b2376e5b25bba301b38.
 - Sessione: IN CORSO.
-- Registro tecnico: in consolidamento iniziale.
+- Registro tecnico: istituito e operativo.
+- Consolidamento aggiuntivo RC02: IN CORSO.
+
+La baseline sorgenti identifica il codice
+applicativo oggetto della ricognizione.
+
+La baseline documentale identifica
+il primo versionamento del Registro.
+
+Il presente aggiornamento precede
+il versionamento aggiuntivo CONS.05.
 
 ## 2. Consultazione obbligatoria
 
@@ -30,7 +41,7 @@ Il codice e il database effettivo rimangono le fonti tecniche primarie.
 | 273 | Inventario tecnico | Concluso |
 | 274 | Perimetro V1 | Concluso |
 | 275 | Valutazione e riconciliazione | In corso |
-| 275.R | Registro tecnico permanente | In corso |
+| 275.R | Registro tecnico permanente | Concluso |
 | 276 | Sequenza operativa | Da iniziare |
 | 277 | Programmazione rilasci | Da iniziare |
 | 278 | Consolidamento Registro | Da iniziare |
@@ -46,43 +57,131 @@ Il codice e il database effettivo rimangono le fonti tecniche primarie.
 | 275.R.05 | Conclusa |
 | 275.R.06 | Conclusa |
 | 275.R.07 | Conclusa |
-| 275.R.08 | In corso - versionamento da completare |
-| 275.R.09 | Da eseguire |
+| 275.R.08 | Conclusa |
+| 275.R.09 | Conclusa |
 
-Attivita integralmente concluse: 7/9.
+Attivita integralmente concluse: 9/9.
 
-Verifiche documentali del 26/11/2026:
+### 4.1. Baseline documentale pubblicata
+
+Commit:
+
+76acd230567d13e0cd6e6b2376e5b25bba301b38
+
+Messaggio:
+
+Introduce il Registro tecnico permanente di Orto Smart S046
+
+Evidenze del primo versionamento:
+
+- Commit completato.
+- Push origin main completato.
+- HEAD e origin/main coincidenti.
+- Working tree pulita dopo il push.
+- 45 file interessati.
+- 44 nuovi documenti del Registro.
+- Un documento storico modificato e preservato.
+- 9204 righe aggiunte.
+- Nessuna riga eliminata.
+- Nessuna modifica applicativa o alle migrazioni.
+
+Verifiche della baseline iniziale:
 
 - 44 documenti Markdown.
 - 10 sottocartelle.
-- 43 documenti indicizzati nel README.
+- 43 documenti indicizzati.
 - Nessun file vuoto.
 - Verifica logica mirata: 13/13 documenti.
 - Collegamenti locali verificati: 61/61.
 - Collegamenti mancanti: 0.
-- Documento storico collegato e preservato.
-- Working tree: 44 nuovi documenti e un documento storico modificato.
 - Diff documento storico: 22 righe aggiunte, nessuna eliminata.
-- Nessuna modifica applicativa o alle migrazioni.
 
-Dimensione verificata prima del presente aggiornamento:
+Dimensione storica verificata prima
+dell aggiornamento conclusivo iniziale:
 206539 byte.
 
-Versionamento Git ancora da completare.
-Verificare commit, push e allineamento effettivo
-prima di dichiarare concluso lo STEP 275.R.08.
+Questi valori si riferiscono alla
+baseline iniziale e non alla consistenza
+del consolidamento aggiuntivo.
+
+### 4.2. Consolidamento aggiuntivo RC02
+
+| Attivita | Stato |
+|---|---|
+| CONS.01 - Baseline Git | Conclusa |
+| CONS.02 - Schede tecniche | Conclusa |
+| CONS.03 - Osservazioni | Conclusa |
+| CONS.04 - Allineamento Registro | In corso |
+| CONS.05 - Integrita e versionamento | Da eseguire |
+
+Consistenza locale acquisita:
+
+- 49 documenti Markdown.
+- 10 directory tematiche.
+- 48 documenti indicizzati.
+- 5 nuove schede tecniche RC02.
+- 253 osservazioni consolidate localmente.
+- 41 osservazioni presenti nella baseline pubblicata.
+- 212 osservazioni aggiuntive da versionare.
+- 9 RPC pubbliche analizzate strutturalmente.
+- 180 controlli strutturali RPC.
+- 4 helper privati esaminati.
+- 15 famiglie trasversali di verifiche residue.
+
+La verifica conclusiva dei collegamenti
+e dell integrita complessiva deve essere
+completata prima del nuovo commit.
+
+Il presente documento rappresenta
+lo stato precedente al commit CONS.05.
+
+La pubblicazione successiva deve essere
+attestata mediante le evidenze Git effettive.
 
 ## 5. Stato delle riconciliazioni
 
 - RC01: conclusa tecnicamente e approvata.
-- RC02: in corso, 2/10 controlli principali conclusi.
+- RC02: in corso, 5/10 controlli principali conclusi strutturalmente.
 - RC03-RC18: da eseguire.
 - Riconciliazioni quantitative concluse: 0/18.
+
+Avanzamento RC02 per numero di controlli: 50%.
+
+Non costituisce percentuale di maturita
+tecnica della Write Authority.
+
+Controlli RC02 conclusi:
+
+- 01: inventario Flutter, SQL e test.
+- 02: struttura edit lock e privilegi.
+- 03: helper, acquisizione e rilascio.
+- 04: heartbeat e stato lock.
+- 05: lifecycle takeover.
+
+Controlli RC02 ancora aperti:
+
+- 06: infrastrutture Flutter.
+- 07: integrazione nei domini.
+- 08: approfondimento NC-RC01-001.
+- 09: test ed evidenze integrate.
+- 10: conclusione tecnica.
 
 Riferimenti:
 
 - [Conclusione RC01](../08_riutilizzo/RC01_Conclusione_Tecnica.md)
 - [Stato parziale RC02](../08_riutilizzo/RC02_Stato_Parziale.md)
+- [Osservazioni RC02](../08_riutilizzo/RC02-OBS-001_Osservazioni_Tecniche.md)
+- [Helper autoritativi](../03_database/DB-WA-003_Helper_Autorita_Scrittura.md)
+- [Acquisizione e rilascio](../03_database/DB-WA-004_Acquisizione_Rilascio_Lock.md)
+- [Heartbeat e stato](../03_database/DB-WA-005_Heartbeat_Stato_Lock.md)
+- [Protocollo takeover](../03_database/DB-WA-006_Protocollo_Takeover.md)
+- [Lifecycle e contratti RPC](../03_database/DB-WA-007_Lifecycle_Contratti_RPC.md)
+- [Evidenze strutturali SQL](../06_collaudi/TST-RC02-001_Evidenze_Strutturali_SQL.md)
+
+Le evidenze SQL E3 non equivalgono
+a nuovi collaudi funzionali superati.
+
+Nessuna variazione quantitativa approvata.
 
 ## 6. Baseline tecnica e ambienti
 
@@ -109,13 +208,22 @@ Non costituiscono nuove verifiche degli ambienti.
 - NC-RC01-001: P1, aperta.
 - Ripristino funzionale del backup: NV.
 - Allineamento delle migrazioni remote: pendente.
-- Completamento della ricognizione RC02.
+- Completamento della ricognizione RC02.06-10.
+- Riconciliazione delle 15 famiglie di verifiche residue Write Authority.
 - Riconciliazione delle stime PERT originarie.
-- Versionamento iniziale del Registro.
+- Verifica conclusiva del consolidamento aggiuntivo.
+- Versionamento aggiuntivo CONS.05.
+
+Il versionamento iniziale del Registro
+risulta completato.
+
+Le verifiche residue non costituiscono
+automaticamente nuovi pacchetti di sviluppo.
 
 Consultare:
 
-[NC-RC01-001](../07_criticita/NC-RC01-001_Scritture_Dirette_Profili_Operatori.md)
+- [NC-RC01-001](../07_criticita/NC-RC01-001_Scritture_Dirette_Profili_Operatori.md)
+- [Lifecycle e verifiche residue](../03_database/DB-WA-007_Lifecycle_Contratti_RPC.md)
 
 ## 8. Stato della programmazione V1
 
@@ -130,19 +238,39 @@ Nessuna data definitiva di rilascio approvata.
 
 ## 9. Punto esatto di ripresa
 
-Attivita immediata: completare STEP 275.R.08.
+Attivita immediata:
 
-Successivamente: STEP 275.R.09.
+- Concludere CONS.04.
+- Eseguire CONS.05.
+- Verificare integrita e coerenza del Registro.
+- Ottenere autorizzazione al commit e al push.
+- Verificare HEAD, origin/main e working tree.
 
-Riprendere RC02 dal controllo 03.2:
-verifica della funzione privata is_profile_auth_user_owner.
+Successivamente:
 
-Il comando esatto e' conservato nella scheda RC02:
+Riprendere RC02 dal controllo 06:
 
-[Punto di ripresa RC02](../08_riutilizzo/RC02_Stato_Parziale.md)
+Controller, scheduler, scope e gate Flutter.
 
-Non ripetere i controlli 01, 02 e 03.1
+Consultare preventivamente:
+
+- [Inventario Write Authority](../02_infrastrutture/INF-WA-001_Inventario_Write_Authority.md)
+- [Lifecycle e contratti RPC](../03_database/DB-WA-007_Lifecycle_Contratti_RPC.md)
+- [Punto di ripresa RC02](../08_riutilizzo/RC02_Stato_Parziale.md)
+
+Il primo comando di ispezione Flutter
+deve essere definito alla ripresa effettiva.
+
+Non ripetere i controlli RC02.01-05
 se le condizioni tecniche rimangono invariate.
+
+Procedere un comando alla volta.
+
+Nessuna modifica applicativa
+senza autorizzazione pertinente.
+
+Nessuna migrazione remota
+senza autorizzazione esplicita.
 
 ## 10. Regole di aggiornamento
 

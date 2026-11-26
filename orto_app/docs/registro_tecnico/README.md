@@ -5,10 +5,11 @@
 - Progetto: Orto Smart
 - Registro: infrastrutture e componenti riutilizzabili
 - Versione iniziale: 1.0
+- Versione corrente: 1.1
 - Sessione di introduzione: S046
 - Data di istituzione: 26/11/2026
 - Baseline sorgenti: 20649de7474765bd1c293b20bfcedab0a9493a14
-- Stato del Registro: in costruzione
+- Stato del Registro: istituito e operativo, in aggiornamento progressivo
 
 [Stato operativo corrente](10_stato_operativo/STATO_CORRENTE.md)
 
@@ -135,7 +136,7 @@ Non conservare credenziali, password o token.
 L'utente interviene per le operazioni di interfaccia
 con il PC e per le autorizzazioni previste.
 
-## 8. Stato iniziale della ricognizione S046
+## 8. Stato della ricognizione S046
 
 | Attivita | Stato |
 |---|---|
@@ -144,13 +145,32 @@ con il PC e per le autorizzazioni previste.
 | STEP 273 - Inventario tecnico | Concluso |
 | STEP 274 - Perimetro V1 | Concluso |
 | STEP 275 - Valutazione e riconciliazione | In corso |
-| STEP 275.R - Creazione Registro | In corso |
+| STEP 275.R - Creazione Registro | Concluso |
 | STEP 276 - Sequenza operativa | Da iniziare |
 | STEP 277 - Programmazione rilasci | Da iniziare |
 | STEP 278 - Consolidamento Registro | Da iniziare |
 
 RC01: riconciliazione tecnica approvata.
-RC02: temporaneamente sospeso alla verifica 03.2.
+RC02: controlli 01-05 conclusi strutturalmente.
+RC02: controlli 06-10 ancora aperti.
+Avanzamento strutturale RC02: 5/10 controlli principali.
+
+Consistenza locale del Registro durante il consolidamento:
+
+- Documenti Markdown complessivi: 49.
+- Documenti indicizzati: 48.
+- Directory tematiche: 10.
+- Nuove schede tecniche RC02: 5.
+- Osservazioni tecniche RC02 consolidate: 253.
+- RPC pubbliche analizzate strutturalmente: 9/9.
+- Controlli strutturali RPC: 180.
+- Famiglie trasversali di verifiche residue: 15.
+
+Le evidenze strutturali non equivalgono a collaudi funzionali.
+Il consolidamento delle nuove evidenze e in corso.
+Il versionamento aggiuntivo e previsto in CONS.05.
+
+Per lo stato operativo aggiornato consultare STATO_CORRENTE.
 RC03-RC18: da completare.
 
 La riconciliazione quantitativa rimane aperta.
@@ -215,6 +235,10 @@ Consultare soltanto le schede pertinenti all'attivita.
 - [DB-WA-001 - Inventario RPC Write Authority](03_database/DB-WA-001_Inventario_RPC_Write_Authority.md)
 - [DB-WA-002 - Struttura edit lock](03_database/DB-WA-002_Struttura_Edit_Lock.md)
 - [DB-WA-003 - Helper autorita di scrittura](03_database/DB-WA-003_Helper_Autorita_Scrittura.md)
+- [DB-WA-004 - Acquisizione e rilascio del lock](03_database/DB-WA-004_Acquisizione_Rilascio_Lock.md)
+- [DB-WA-005 - Heartbeat e consultazione stato del lock](03_database/DB-WA-005_Heartbeat_Stato_Lock.md)
+- [DB-WA-006 - Protocollo takeover](03_database/DB-WA-006_Protocollo_Takeover.md)
+- [DB-WA-007 - Lifecycle e contratti RPC Write Authority](03_database/DB-WA-007_Lifecycle_Contratti_RPC.md)
 
 ### 04_flutter
 
@@ -231,6 +255,7 @@ Consultare soltanto le schede pertinenti all'attivita.
 ### 06_collaudi
 
 - [TST-RC01-001 - Evidenze identita e profilo](06_collaudi/TST-RC01-001_Evidenze_Identita_Profilo.md)
+- [TST-RC02-001 - Evidenze strutturali SQL Write Authority](06_collaudi/TST-RC02-001_Evidenze_Strutturali_SQL.md)
 - [TST-S046-001 - Baseline dei collaudi](06_collaudi/TST-S046-001_Baseline_Collaudi.md)
 
 ### 07_criticita

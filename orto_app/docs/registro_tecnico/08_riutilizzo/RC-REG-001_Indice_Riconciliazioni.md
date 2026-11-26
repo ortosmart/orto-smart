@@ -2,7 +2,7 @@
 
 ## 1. Identificazione
 
-- Versione: 1.0.
+- Versione: 1.1.
 - Sessione: S046.
 - Data: 26/11/2026.
 - Origine: STEP 275.6.4.
@@ -186,20 +186,64 @@ Nessuna correzione tecnica autorizzata.
 
 Ricognizione tecnica in corso.
 
-- Controlli principali: 2/10 conclusi.
-- Controllo 03.1: eseguito.
-- Controllo 03.2: da eseguire.
+- Controlli principali: 5/10 conclusi strutturalmente.
+- Avanzamento per numero di controlli: 50%.
+- Controlli 01-05: conclusi strutturalmente.
+- Controlli 06-10: ancora aperti.
+- RPC pubbliche analizzate: 9/9.
+- Helper privati esaminati: 4.
+- Osservazioni consolidate localmente: 253.
+- Controlli strutturali RPC: 180.
+- Famiglie trasversali di verifiche residue: 15.
+- Livello delle evidenze SQL: E3.
+- Ambiente remoto: NV.
+- Riconciliazione quantitativa: aperta.
 
-La ricognizione e' stata sospesa
-per introdurre il Registro permanente.
+Il Registro tecnico permanente e stato
+istituito e pubblicato su GitHub.
+
+La precedente sospensione al controllo
+03.2 e stata superata.
+
+La definizione della funzione privata
+is_profile_auth_user_owner e stata acquisita.
+
+Sono stati inoltre esaminati acquisizione,
+rilascio, heartbeat, stato del lock
+e lifecycle completo del takeover.
 
 Punto di ripresa:
 
-Verifica della funzione privata
-is_profile_auth_user_owner.
+RC02.06 - Controller, scheduler,
+scope e gate Flutter.
 
-Le evidenze gia acquisite devono
-essere consolidate prima della ripresa.
+Prima della ripresa completare
+la verifica e il versionamento
+del consolidamento aggiuntivo.
+
+Riferimenti operativi:
+
+- [Stato parziale RC02](RC02_Stato_Parziale.md)
+- [Osservazioni tecniche RC02](RC02-OBS-001_Osservazioni_Tecniche.md)
+- [Inventario Write Authority](../02_infrastrutture/INF-WA-001_Inventario_Write_Authority.md)
+- [Lifecycle e contratti RPC](../03_database/DB-WA-007_Lifecycle_Contratti_RPC.md)
+- [Evidenze strutturali SQL](../06_collaudi/TST-RC02-001_Evidenze_Strutturali_SQL.md)
+- [Stato operativo corrente](../10_stato_operativo/STATO_CORRENTE.md)
+
+Non ripetere i controlli 01-05
+se le condizioni tecniche
+rimangono invariate.
+
+Il completamento strutturale
+non equivale al superamento
+dei collaudi funzionali.
+
+Le 15 famiglie residue non costituiscono
+automaticamente nuovi pacchetti di sviluppo.
+
+NC-RC01-001 rimane aperta, classificazione P1.
+
+Nessuna variazione quantitativa approvata.
 
 ## 10. Procedura di consultazione
 

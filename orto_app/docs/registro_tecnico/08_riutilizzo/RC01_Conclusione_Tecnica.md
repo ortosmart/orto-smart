@@ -241,3 +241,33 @@ Prossima ricognizione:
 RC02, dal punto di sospensione 03.2.
 
 Nessuna variazione quantitativa introdotta.
+
+<!-- RACCORDO OPERATIVO RC02 S046 -->
+
+### 12.1. Nota di raccordo operativo del 26/11/2026
+
+Il riferimento al controllo RC02.03.2
+rappresenta lo stato storico al momento
+della conclusione tecnica RC01.
+
+Successivamente sono stati completati
+strutturalmente i controlli RC02.01-05.
+
+Il punto di ripresa individuato
+nel consolidamento aggiuntivo S046
+e il controllo RC02.06.
+
+Per lo stato operativo aggiornato consultare:
+
+- [Stato parziale RC02](RC02_Stato_Parziale.md)
+- [Indice delle riconciliazioni](RC-REG-001_Indice_Riconciliazioni.md)
+- [Stato operativo corrente](../10_stato_operativo/STATO_CORRENTE.md)
+
+La presente nota non modifica
+la conclusione tecnica RC01 approvata,
+le evidenze originarie,
+la classificazione delle criticita
+o la baseline quantitativa.
+
+La versione 1.0 identifica
+la conclusione tecnica originaria.

@@ -3,7 +3,7 @@
 ## 1. Identificazione
 
 - Identificativo: RC02.
-- Versione: 1.0.
+- Versione: 1.1.
 - Sessione: S046.
 - Data: 26/11/2026.
 - Macroblocco principale: V1-02.
@@ -25,20 +25,23 @@ i relativi contratti e le verifiche ancora necessarie.
 | ID | Controllo | Stato |
 |---|---|---|
 | 01 | Inventario Flutter, SQL e test | Concluso |
-| 02 | Struttura profile_edit_locks | Concluso |
-| 03 | Helper, acquisizione e rilascio RPC | In corso |
-| 04 | Heartbeat, scadenza e rinnovo | Da eseguire |
-| 05 | Lifecycle takeover | Da eseguire |
+| 02 | Struttura profile_edit_locks | Concluso strutturalmente |
+| 03 | Helper, acquisizione e rilascio RPC | Concluso strutturalmente |
+| 04 | Heartbeat, scadenza e rinnovo | Concluso strutturalmente |
+| 05 | Lifecycle takeover | Concluso strutturalmente |
 | 06 | Controller, scheduler, scope e gate Flutter | Da eseguire |
 | 07 | Integrazione nei domini | Da eseguire |
 | 08 | Approfondimento NC-RC01-001 | Da eseguire |
 | 09 | Test ed evidenze integrate | Da eseguire |
 | 10 | Conclusione tecnica | Da eseguire |
 
-Controlli principali conclusi: 2/10.
-Avanzamento per numero di controlli: 20%.
+Controlli principali conclusi: 5/10.
+Avanzamento per numero di controlli: 50%.
 
 Non costituisce percentuale di maturita della Write Authority.
+
+La conclusione strutturale dei controlli 01-05
+non equivale al superamento dei collaudi funzionali.
 
 ## 4. Dettaglio delle verifiche eseguite
 
@@ -56,11 +59,33 @@ Controllo 02:
 
 Controllo 03:
 
-- 03.1: definizioni dei tre helper, concluso.
-- 03.2: dipendenza owner, da eseguire.
+- 03.1: definizioni dei tre helper iniziali.
+- 03.2: dipendenza owner esplicita.
+- 03.3: acquisizione del lock.
+- 03.4: rilascio del lock.
+
+Controllo 04:
+
+- 04.1: heartbeat e rinnovo.
+- 04.2: consultazione dello stato del lock.
+
+Controllo 05:
+
+- 05.1: richiesta takeover.
+- 05.2: annullamento richiesta.
+- 05.3: rifiuto richiesta e silenziamento.
+- 05.4: concessione takeover.
+- 05.5: completamento takeover.
+- 05.6: confronto storico request e riconciliazione lifecycle.
+
+Tutti i controlli sopra elencati
+sono conclusi nel rispettivo perimetro strutturale.
 
 Non ripetere i controlli conclusi se le condizioni
 tecniche rimangono invariate.
+
+Le verifiche funzionali residue devono essere
+riconciliate con le evidenze di collaudo esistenti.
 
 ## 5. Evidenze consolidate
 
@@ -69,22 +94,62 @@ tecniche rimangono invariate.
 | INF-WA-001 | Inventario Flutter, migrazioni e test |
 | DB-WA-001 | Inventario RPC e helper |
 | DB-WA-002 | Struttura edit lock e privilegi |
-| DB-WA-003 | Contratti degli helper privati |
+| DB-WA-003 | Contratti dei quattro helper esaminati |
+| DB-WA-004 | Acquisizione e rilascio lock |
+| DB-WA-005 | Heartbeat e stato lock |
+| DB-WA-006 | Protocollo takeover |
+| DB-WA-007 | Lifecycle e contratti RPC |
+| TST-RC02-001 | Evidenze strutturali SQL |
 | RC02-OBS-001 | Osservazioni tecniche |
 
 Risultati principali:
 
 - 40 file individuati nella ricerca iniziale.
-- 13 dichiarazioni SQL.
-- 12 funzioni distinte installate.
-- 9 RPC pubbliche.
-- 3 helper privati esaminati.
+- 13 dichiarazioni SQL inizialmente individuate.
+- 12 funzioni distinte installate nel perimetro iniziale.
+- 9 RPC pubbliche analizzate strutturalmente.
+- 3 helper privati del perimetro iniziale.
+- 1 helper owner aggiuntivo esaminato.
+- 4 helper privati complessivamente esaminati.
 - 18 colonne della tabella edit lock.
 - 10 vincoli CHECK.
-- 41 osservazioni consolidate.
+- 253 osservazioni consolidate localmente.
+- 180 controlli strutturali sulle nove RPC.
+- 15 famiglie trasversali di verifiche residue.
 
-La dipendenza owner aggiuntiva non e' compresa
+La dipendenza owner aggiuntiva non e compresa
 nel conteggio iniziale delle dodici funzioni.
+
+### 5.1. Evidenze del lifecycle
+
+- Lease ordinario: 120 secondi.
+- Richiesta takeover: 600 secondi.
+- Concessione takeover: 60 secondi.
+- Silenziamento: 5, 15 o 30 minuti.
+- Token generato dal server mediante 32 byte casuali.
+- Memorizzazione del solo hash SHA-256.
+- Serializzazione delle mutazioni protette mediante helper autoritativo.
+- Sospensione delle mutazioni protette durante il grant valido.
+- Sostituzione del token al completamento takeover.
+
+### 5.2. Livello delle evidenze
+
+Le definizioni SQL esaminate costituiscono
+evidenze strutturali E3.
+
+Il confronto storico della RPC request
+e stato consolidato in DB-WA-006 e TST-RC02-001.
+
+Le 15 famiglie WA-V01-WA-V15
+sono documentate in DB-WA-007.
+
+Non costituiscono automaticamente
+15 nuovi pacchetti di sviluppo.
+
+Nessun nuovo collaudo funzionale
+eseguito durante il consolidamento.
+
+Ambiente remoto: NV.
 
 ## 6. Dipendenze
 
@@ -118,47 +183,88 @@ Incrementi approvati: 0 minuti.
 
 ## 8. Punto esatto di ripresa
 
-Controllo RC02 03.2.
+Controllo RC02.06.
 
-Verifica della funzione privata is_profile_auth_user_owner.
+Controller, scheduler, scope e gate Flutter.
 
-La funzione costituisce una dipendenza
-di private.lock_profile_write_authority.
+Obiettivo:
 
-Verificare:
+Verificare la corrispondenza fra i contratti
+SQL gia acquisiti e il comportamento
+delle infrastrutture Flutter esistenti.
 
-- Firma.
-- Definizione effettiva.
-- Condizioni di proprieta.
-- Gestione della membership.
-- Modalita di sicurezza.
-- Privilegi di esecuzione.
+Componenti iniziali da consultare:
 
-Comando PowerShell di sola lettura:
+- profile_edit_lock.dart.
+- profile_edit_lock_repository.dart.
+- profile_write_authority_controller.dart.
+- write_authority_scheduler.dart.
+- profile_write_authority_scope.dart.
+- ProfileSessionGate.
+- route_write_availability.dart.
+- planning_route_lifetime.dart.
 
-    docker exec supabase_db_orto_app psql -U postgres -d postgres -P pager=off -x -c "SELECT p.oid::regprocedure AS function_name, pg_get_functiondef(p.oid) AS function_definition, has_function_privilege('authenticated', p.oid, 'EXECUTE') AS authenticated_execute, has_function_privilege('anon', p.oid, 'EXECUTE') AS anon_execute FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'private' AND p.proname = 'is_profile_auth_user_owner';"
+Utilizzare INF-WA-001 per individuare
+i percorsi sorgente gia inventariati.
 
-Il comando non e' ancora stato eseguito.
+Consultare DB-WA-004, DB-WA-005,
+DB-WA-006 e DB-WA-007 per i contratti SQL.
+
+Verificare progressivamente:
+
+- Modelli e decodifica delle risposte RPC.
+- Gestione degli stati del lock.
+- Conservazione e invalidazione del token.
+- Acquisizione, heartbeat e rilascio.
+- Gestione delle scadenze locali.
+- Richiesta, rifiuto e concessione takeover.
+- Completamento del trasferimento.
+- Sospensione delle scritture durante il grant.
+- Recupero dopo perdita della risposta.
+- Comportamento fail-closed.
+- Lifecycle delle sessioni e delle route.
+- Collegamento con i test esistenti.
+
+Non assumere che questi comportamenti
+siano gia verificati soltanto perche
+le relative infrastrutture esistono.
+
+Il primo comando di ispezione Flutter
+deve essere definito alla ripresa effettiva
+dopo la verifica dello stato Git.
+
+Non ripetere il precedente controllo 03.2:
+la definizione installata dell helper owner
+e gia stata acquisita e consolidata.
 
 ## 9. Procedura successiva
 
 Prima della ripresa:
 
-- Concludere STEP 275.R.07.
-- Verificare la persistenza del Registro.
-- Controllare i file creati.
-- Verificare lo stato Git.
-- Ottenere le autorizzazioni pertinenti.
+- Concludere CONS.04.
+- Completare CONS.05.
+- Verificare integrita e persistenza del Registro.
+- Ottenere autorizzazione al commit e al push.
+- Verificare la baseline Git risultante.
 
 Dopo la ripresa:
 
-- Eseguire il controllo 03.2.
-- Esaminare il risultato.
-- Aggiornare le evidenze.
-- Proseguire con acquisizione e rilascio.
-- Completare i controlli successivi.
+- Consultare le schede tecniche pertinenti.
+- Avviare il controllo RC02.06.
+- Acquisire le evidenze Flutter.
+- Riconciliare i contratti Flutter con quelli SQL.
+- Aggiornare progressivamente il Registro.
+- Proseguire con RC02.07-10.
+- Sottoporre la conclusione tecnica ad approvazione.
+- Riconciliare separatamente la baseline quantitativa.
 
 Procedere un comando alla volta.
+
+Non introdurre correzioni applicative
+senza la relativa autorizzazione.
+
+Non applicare migrazioni remote
+senza autorizzazione esplicita.
 
 ## 10. Limiti e stato conclusivo
 
