@@ -1,14 +1,17 @@
-﻿# Orto Smart - Registro tecnico permanente
+# Orto Smart - Registro tecnico permanente
 
 ## Identificazione
 
 - Progetto: Orto Smart
 - Registro: infrastrutture e componenti riutilizzabili
 - Versione iniziale: 1.0
-- Versione corrente: 1.1
+- Versione corrente: 1.2
 - Sessione di introduzione: S046
+- Sessione ultimo aggiornamento: S047
 - Data di istituzione: 26/11/2026
-- Baseline sorgenti: 20649de7474765bd1c293b20bfcedab0a9493a14
+- Data ultimo aggiornamento: 26/11/2026
+- Baseline sorgenti originaria: 20649de7474765bd1c293b20bfcedab0a9493a14
+- Baseline aggiornamento: 39665b458221b69c469ebe1d16a686312af79320
 - Stato del Registro: istituito e operativo, in aggiornamento progressivo
 
 [Stato operativo corrente](10_stato_operativo/STATO_CORRENTE.md)
@@ -136,7 +139,9 @@ Non conservare credenziali, password o token.
 L'utente interviene per le operazioni di interfaccia
 con il PC e per le autorizzazioni previste.
 
-## 8. Stato della ricognizione S046
+## 8. Stato della ricognizione S046-S047
+
+### 8.1. Stato delle attivita
 
 | Attivita | Stato |
 |---|---|
@@ -152,28 +157,93 @@ con il PC e per le autorizzazioni previste.
 
 RC01: riconciliazione tecnica approvata.
 RC02: controlli 01-05 conclusi strutturalmente.
-RC02: controlli 06-10 ancora aperti.
-Avanzamento strutturale RC02: 5/10 controlli principali.
+RC02: ricognizione Flutter del controllo 06 acquisita.
+RC02: consolidamento finale del controllo 06 pendente.
+RC02: controlli 07-10 ancora aperti.
 
-Consistenza locale del Registro durante il consolidamento:
+Controlli formalmente conclusi RC02: 5/10.
+Controlli con ricognizione acquisita RC02: 6/10.
 
-- Documenti Markdown complessivi: 49.
-- Documenti indicizzati: 48.
-- Directory tematiche: 10.
-- Nuove schede tecniche RC02: 5.
-- Osservazioni tecniche RC02 consolidate: 253.
-- RPC pubbliche analizzate strutturalmente: 9/9.
-- Controlli strutturali RPC: 180.
-- Famiglie trasversali di verifiche residue: 15.
-
-Le evidenze strutturali non equivalgono a collaudi funzionali.
-Il consolidamento delle nuove evidenze e in corso.
-Il versionamento aggiuntivo e previsto in CONS.05.
-
-Per lo stato operativo aggiornato consultare STATO_CORRENTE.
 RC03-RC18: da completare.
 
+### 8.2. Consistenza del Registro
+
+| Indicatore | S046 | S047 |
+|---|---:|---:|
+| Documenti Markdown complessivi | 49 | 51 |
+| Documenti indicizzati | 48 | 50 |
+| Directory tematiche | 10 | 10 |
+| Osservazioni tecniche RC02 | 253 | 360 |
+| RPC pubbliche analizzate strutturalmente | 9/9 | 9/9 |
+| Controlli strutturali RPC | 180 | 180 |
+| Famiglie trasversali residue | 15 | 15 |
+
+Nella sessione S046 sono state aggiunte
+cinque schede tecniche RC02 durante il consolidamento SQL.
+
+Nella sessione S047 sono state aggiunte
+due schede tecniche:
+
+- INF-WA-002 - Infrastruttura Flutter Write Authority.
+- TST-RC02-002 - Evidenze collaudi Flutter.
+
+Le 253 osservazioni storiche sono conservate.
+Le 107 osservazioni aggiuntive sono salvate localmente.
+
+### 8.3. Evidenze Flutter S047
+
+- Suite mirate: 7/7 PASS.
+- Test mirati: 116/116 PASS.
+- Baseline generale: 1956/1956 PASS.
+- Nuovi test introdotti: 0.
+- RPC integrate nel repository Flutter: 3/9.
+- Stati SQL complessivi: 48.
+- Stati decodificati dal repository Flutter: 12.
+- Stati non integrati: 36.
+- Verifiche specifiche residue C01-C09: 9.
+- Famiglie trasversali residue WA-V01-WA-V15: 15.
+- Famiglie integralmente chiuse: 0.
+
+Evidenza complessiva: E3.
+Evidenze specifiche collaudate: E4.
+Collaudo integrato reale: NV.
+Ambiente remoto: NV.
+
+I collaudi mirati Flutter utilizzano
+dipendenze simulate.
+
+Le evidenze strutturali non equivalgono
+a collaudi funzionali complessivi.
+
+### 8.4. Stato del consolidamento
+
+Il Registro originario S046 e stato
+versionato e pubblicato su GitHub.
+
+Gli aggiornamenti S047 sono salvati localmente.
+
+Il consolidamento finale richiede
+verifica cumulativa, versionamento e pubblicazione.
+
+Controllo tecnico successivo:
+
+RC02.07 - Integrazione nei domini.
+
+Per lo stato operativo aggiornato
+consultare STATO_CORRENTE.
+
+### 8.5. Stato quantitativo
+
+- Riconciliazioni tecniche concluse: 1/18.
+- Riconciliazioni quantitative concluse: 0/18.
+- DUP-A quantitative concluse: 0/9.
+- DUP-B quantitative concluse: 0/12.
+- Riduzioni approvate: 0 minuti.
+- Incrementi approvati: 0 minuti.
+
 La riconciliazione quantitativa rimane aperta.
+
+Nessuna variazione delle stime PERT.
 
 ## 9. Documentazione precedente
 
@@ -224,6 +294,7 @@ Consultare soltanto le schede pertinenti all'attivita.
 - [INF-CAT-001 - Catalogo Agronomico](02_infrastrutture/INF-CAT-001_Catalogo_Agronomico.md)
 - [INF-ID-001 - Identita client e sessione](02_infrastrutture/INF-ID-001_Identita_Client_Sessione.md)
 - [INF-WA-001 - Inventario Write Authority](02_infrastrutture/INF-WA-001_Inventario_Write_Authority.md)
+- [INF-WA-002 - Infrastruttura Flutter Write Authority](02_infrastrutture/INF-WA-002_Infrastruttura_Flutter_Write_Authority.md)
 
 ### 03_database
 
@@ -256,6 +327,7 @@ Consultare soltanto le schede pertinenti all'attivita.
 
 - [TST-RC01-001 - Evidenze identita e profilo](06_collaudi/TST-RC01-001_Evidenze_Identita_Profilo.md)
 - [TST-RC02-001 - Evidenze strutturali SQL Write Authority](06_collaudi/TST-RC02-001_Evidenze_Strutturali_SQL.md)
+- [TST-RC02-002 - Evidenze collaudi Flutter](06_collaudi/TST-RC02-002_Evidenze_Collaudi_Flutter.md)
 - [TST-S046-001 - Baseline dei collaudi](06_collaudi/TST-S046-001_Baseline_Collaudi.md)
 
 ### 07_criticita
@@ -288,3 +360,48 @@ Consultare soltanto le schede pertinenti all'attivita.
 - [Orto Smart - Stato operativo corrente](10_stato_operativo/STATO_CORRENTE.md)
 
 <!-- END INDICE ANALITICO -->
+
+### Attestazione conclusiva RC02.06 - S047
+
+Data: 26/11/2026.
+
+Le verifiche cumulative RC02.06.10.9
+sono state completate: 6/6 PASS.
+
+- Flutter analyze: PASS.
+- Flutter test generale: 1956/1956 PASS.
+- Collaudi mirati Flutter: 116/116 PASS.
+- Osservazioni tecniche: 360/360.
+- Osservazioni storiche preservate: 253/253.
+- Git diff --check: codice di uscita 0.
+
+Le indicazioni di versionamento pendente
+presenti nel documento descrivono lo stato
+precedente alla pubblicazione S047.
+
+Subordinatamente al completamento del commit,
+del push e alla verifica della sincronizzazione Git:
+
+- RC02.06: concluso formalmente.
+- RC02: 6/10 controlli conclusi, 60%.
+- Prossimo controllo tecnico: RC02.07.
+- Riconciliazioni tecniche concluse: 1/18.
+- Riconciliazioni quantitative concluse: 0/18.
+
+La conclusione riguarda la ricognizione
+dell infrastruttura Flutter e non equivale
+alla completa maturita della Write Authority.
+
+Livello complessivo E3.
+E4 limitato ai comportamenti collaudati.
+Verifiche integrate reali e remote: NV.
+
+Restano aperte le 15 famiglie trasversali
+e i 9 controlli specifici Flutter.
+
+Nessuna variazione PERT.
+Nessuna nuova non conformita formalizzata.
+Nessuna modifica applicativa o SQL.
+
+L effettiva pubblicazione e attestata
+dalle evidenze Git e dal checkpoint S047.

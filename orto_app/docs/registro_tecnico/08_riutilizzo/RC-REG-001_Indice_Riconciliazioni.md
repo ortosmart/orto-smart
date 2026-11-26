@@ -1,15 +1,25 @@
-﻿# RC-REG-001 - Indice delle riconciliazioni
+# RC-REG-001 - Indice delle riconciliazioni
 
 ## 1. Identificazione
 
-- Versione: 1.1.
-- Sessione: S046.
+- Versione: 1.2.
+- Sessione originaria: S046.
+- Sessione aggiornamento: S047.
 - Data: 26/11/2026.
 - Origine: STEP 275.6.4.
-- Baseline Git: 20649de7474765bd1c293b20bfcedab0a9493a14.
+- Aggiornamento: RC02.06.
+- Baseline Git originaria: 20649de7474765bd1c293b20bfcedab0a9493a14.
+- Baseline Git aggiornamento: 39665b458221b69c469ebe1d16a686312af79320.
 - Ricognizioni previste: 18.
 - Ricognizioni tecniche concluse: 1.
 - Ricognizioni quantitative concluse: 0.
+
+### 1.1. Storico delle versioni
+
+| Versione | Sessione | Contenuto |
+|---|---|---|
+| 1.1 | S046 | Consolidamento RC01 e ricognizione SQL RC02.01-05 |
+| 1.2 | S047 | Aggiornamento ricognizione Flutter RC02.06 |
 
 ## 2. Finalita
 
@@ -186,18 +196,28 @@ Nessuna correzione tecnica autorizzata.
 
 Ricognizione tecnica in corso.
 
-- Controlli principali: 5/10 conclusi strutturalmente.
-- Avanzamento per numero di controlli: 50%.
+### 9.1. Avanzamento dei controlli
+
+- Controlli formalmente conclusi: 5/10.
+- Avanzamento formale per numero di controlli: 50%.
 - Controlli 01-05: conclusi strutturalmente.
-- Controlli 06-10: ancora aperti.
+- Controllo 06: ricognizione acquisita, consolidamento finale pendente.
+- Controlli 07-10: ancora aperti.
+- Avanzamento previsto dopo chiusura RC02.06: 60%.
+- Riconciliazione quantitativa: aperta.
+
+Le percentuali rappresentano il numero
+di controlli conclusi e non la maturita
+complessiva della Write Authority.
+
+### 9.2. Evidenze consolidate S046
+
 - RPC pubbliche analizzate: 9/9.
 - Helper privati esaminati: 4.
-- Osservazioni consolidate localmente: 253.
+- Osservazioni storiche: 253.
 - Controlli strutturali RPC: 180.
 - Famiglie trasversali di verifiche residue: 15.
 - Livello delle evidenze SQL: E3.
-- Ambiente remoto: NV.
-- Riconciliazione quantitativa: aperta.
 
 Il Registro tecnico permanente e stato
 istituito e pubblicato su GitHub.
@@ -212,36 +232,83 @@ Sono stati inoltre esaminati acquisizione,
 rilascio, heartbeat, stato del lock
 e lifecycle completo del takeover.
 
-Punto di ripresa:
+### 9.3. Evidenze acquisite S047
 
-RC02.06 - Controller, scheduler,
-scope e gate Flutter.
+- RPC integrate nel repository Flutter: 3/9.
+- Stati SQL complessivi: 48.
+- Stati decodificati dal repository Flutter: 12.
+- Stati non integrati: 36.
+- Suite Flutter mirate: 7/7 PASS.
+- Test Flutter mirati: 116/116 PASS.
+- Baseline generale Flutter: 1956/1956 PASS.
+- Nuovi test introdotti: 0.
+- Nuove osservazioni tecniche: 107.
+- Osservazioni complessive salvate localmente: 360.
+- Verifiche specifiche residue C01-C09: 9.
+- Famiglie trasversali residue WA-V01-WA-V15: 15.
+- Famiglie integralmente chiuse: 0.
 
-Prima della ripresa completare
-la verifica e il versionamento
-del consolidamento aggiuntivo.
+Le tre RPC integrate sono Acquire,
+Heartbeat e Release.
 
-Riferimenti operativi:
+Get State e le cinque RPC Takeover
+non risultano integrate nel repository Flutter esaminato.
+
+Livello complessivo: E3.
+Evidenze specifiche collaudate: E4.
+Collaudo integrato reale: NV.
+Ambiente remoto: NV.
+
+I collaudi Flutter mirati utilizzano
+dipendenze simulate.
+
+Le evidenze condivise con RC01 e RC05
+non devono essere conteggiate due volte.
+
+### 9.4. Punto di ripresa
+
+Completare RC02.06.10:
+
+- Aggiornamento stato e indici.
+- Verifiche cumulative.
+- Versionamento e chiusura.
+
+Controllo tecnico successivo:
+
+RC02.07 - Integrazione nei domini.
+
+Il piano analitico del controllo 07
+deve essere definito alla ripresa effettiva.
+
+Non ripetere i controlli 01-06
+se le condizioni tecniche rimangono invariate
+e le evidenze consolidate sono ancora valide.
+
+### 9.5. Riferimenti operativi
 
 - [Stato parziale RC02](RC02_Stato_Parziale.md)
 - [Osservazioni tecniche RC02](RC02-OBS-001_Osservazioni_Tecniche.md)
 - [Inventario Write Authority](../02_infrastrutture/INF-WA-001_Inventario_Write_Authority.md)
+- [Infrastruttura Flutter Write Authority](../02_infrastrutture/INF-WA-002_Infrastruttura_Flutter_Write_Authority.md)
 - [Lifecycle e contratti RPC](../03_database/DB-WA-007_Lifecycle_Contratti_RPC.md)
 - [Evidenze strutturali SQL](../06_collaudi/TST-RC02-001_Evidenze_Strutturali_SQL.md)
+- [Evidenze collaudi Flutter](../06_collaudi/TST-RC02-002_Evidenze_Collaudi_Flutter.md)
 - [Stato operativo corrente](../10_stato_operativo/STATO_CORRENTE.md)
 
-Non ripetere i controlli 01-05
-se le condizioni tecniche
-rimangono invariate.
+### 9.6. Limiti e dipendenze
 
 Il completamento strutturale
 non equivale al superamento
-dei collaudi funzionali.
+dei collaudi funzionali complessivi.
 
 Le 15 famiglie residue non costituiscono
 automaticamente nuovi pacchetti di sviluppo.
 
-NC-RC01-001 rimane aperta, classificazione P1.
+NC-RC01-001 rimane aperta,
+classificazione P1.
+
+Nessuna nuova non conformita
+formalmente approvata.
 
 Nessuna variazione quantitativa approvata.
 
@@ -283,8 +350,11 @@ rimangono le fonti tecniche autorevoli.
 - V1-EST-001.
 - V1-EST-003.
 
-Indice ricostruito dalle conoscenze
-acquisite durante la sessione S046.
+Indice originariamente ricostruito
+dalle conoscenze acquisite nella sessione S046.
+
+Aggiornato nella sessione S047
+con le evidenze Flutter RC02.06.
 
 La chiusura tecnica di una RC
 non equivale alla risoluzione
@@ -293,4 +363,53 @@ di tutte le non conformita rilevate.
 Le singole schede RC devono conservare
 le evidenze e le limitazioni specifiche.
 
+Le evidenze condivise fra riconciliazioni
+non determinano duplicazioni automatiche
+delle attivita o delle stime.
+
 Nessuna variazione quantitativa introdotta.
+
+### Attestazione conclusiva RC02.06 - S047
+
+Data: 26/11/2026.
+
+Le verifiche cumulative RC02.06.10.9
+sono state completate: 6/6 PASS.
+
+- Flutter analyze: PASS.
+- Flutter test generale: 1956/1956 PASS.
+- Collaudi mirati Flutter: 116/116 PASS.
+- Osservazioni tecniche: 360/360.
+- Osservazioni storiche preservate: 253/253.
+- Git diff --check: codice di uscita 0.
+
+Le indicazioni di versionamento pendente
+presenti nel documento descrivono lo stato
+precedente alla pubblicazione S047.
+
+Subordinatamente al completamento del commit,
+del push e alla verifica della sincronizzazione Git:
+
+- RC02.06: concluso formalmente.
+- RC02: 6/10 controlli conclusi, 60%.
+- Prossimo controllo tecnico: RC02.07.
+- Riconciliazioni tecniche concluse: 1/18.
+- Riconciliazioni quantitative concluse: 0/18.
+
+La conclusione riguarda la ricognizione
+dell infrastruttura Flutter e non equivale
+alla completa maturita della Write Authority.
+
+Livello complessivo E3.
+E4 limitato ai comportamenti collaudati.
+Verifiche integrate reali e remote: NV.
+
+Restano aperte le 15 famiglie trasversali
+e i 9 controlli specifici Flutter.
+
+Nessuna variazione PERT.
+Nessuna nuova non conformita formalizzata.
+Nessuna modifica applicativa o SQL.
+
+L effettiva pubblicazione e attestata
+dalle evidenze Git e dal checkpoint S047.

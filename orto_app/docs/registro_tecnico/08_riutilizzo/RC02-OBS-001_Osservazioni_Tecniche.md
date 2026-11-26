@@ -1,16 +1,29 @@
-﻿# RC02-OBS-001 - Osservazioni tecniche
+# RC02-OBS-001 - Osservazioni tecniche
 
 ## 1. Identificazione
 
-- Versione: 1.1.
-- Sessione: S046.
+- Versione: 1.2.
+- Sessione originaria: S046.
+- Sessione aggiornamento: S047.
 - Data: 26/11/2026.
 - Origine: RC02, controlli 01-05.
+- Aggiornamento: RC02, controllo 06.
 - Macroblocco principale: V1-02.
-- Baseline Git: 20649de7474765bd1c293b20bfcedab0a9493a14.
-- Stato: PARZIALE - controlli strutturali 01-05 conclusi; controlli 06-10 aperti.
-- Ambiente verificato: codice Git e PostgreSQL locale.
+- Baseline Git originaria: 20649de7474765bd1c293b20bfcedab0a9493a14.
+- Baseline Git aggiornamento: 39665b458221b69c469ebe1d16a686312af79320.
+- Stato: PARZIALE - ricognizione controlli 01-06 acquisita; controlli 07-10 aperti.
+- Ambiente verificato: codice Git, PostgreSQL locale e collaudi Flutter simulati.
+- Evidenza complessiva: E3.
+- Evidenze specifiche collaudate: E4.
+- Collaudo integrato reale: NV.
 - Ambiente remoto: NV.
+
+### 1.1. Storico delle versioni
+
+| Versione | Sessione | Contenuto |
+|---|---|---|
+| 1.1 | S046 | 253 osservazioni originarie e SQL |
+| 1.2 | S047 | 107 osservazioni Flutter aggiuntive |
 
 ## 2. Osservazioni inventario
 
@@ -410,52 +423,315 @@ Nessuna variazione quantitativa PERT autorizzata.
 Le osservazioni comprendono evidenze strutturali positive,
 caratteristiche tecniche, limiti, dipendenze e possibili miglioramenti.
 
-Non costituiscono 253 non conformita.
-Non costituiscono 253 nuovi pacchetti di sviluppo.
+Non costituiscono 360 non conformita.
+Non costituiscono 360 nuovi pacchetti di sviluppo.
 Non attribuire automaticamente classificazioni P0-P3.
 Le eventuali non conformita richiedono evidenze specifiche.
+
+Le osservazioni OBS01-OBS253 conservano
+lo storico della ricognizione S046.
+
+Le osservazioni OBS254-OBS360 riguardano
+la ricognizione Flutter S047.
+
+E3 identifica le evidenze strutturali.
+E4 identifica esclusivamente i comportamenti collaudati.
+NV identifica le verifiche ancora da effettuare.
+
+Il livello E4 di un singolo comportamento
+non certifica integralmente il componente.
+
+Le evidenze condivise con altre riconciliazioni
+non devono generare duplicazioni di attivita o stime.
 
 ## 6. Collegamenti
 
 - RC01, RC02, RC03, RC04, RC05.
 - NC-RC01-001.
-- INF-WA-001.
-- DB-WA-001.
-- DB-WA-002.
-- DB-WA-003.
-- DB-WA-004.
-- DB-WA-005.
-- DB-WA-006.
-- DB-WA-007.
-- TST-RC02-001.
+- [INF-WA-001](../02_infrastrutture/INF-WA-001_Inventario_Write_Authority.md).
+- [INF-WA-002](../02_infrastrutture/INF-WA-002_Infrastruttura_Flutter_Write_Authority.md).
+- [DB-WA-001](../03_database/DB-WA-001_Inventario_RPC_Write_Authority.md).
+- [DB-WA-002](../03_database/DB-WA-002_Struttura_Edit_Lock.md).
+- [DB-WA-003](../03_database/DB-WA-003_Helper_Autorita_Scrittura.md).
+- [DB-WA-004](../03_database/DB-WA-004_Acquisizione_Rilascio_Lock.md).
+- [DB-WA-005](../03_database/DB-WA-005_Heartbeat_Stato_Lock.md).
+- [DB-WA-006](../03_database/DB-WA-006_Protocollo_Takeover.md).
+- [DB-WA-007](../03_database/DB-WA-007_Lifecycle_Contratti_RPC.md).
+- [TST-RC02-001](../06_collaudi/TST-RC02-001_Evidenze_Strutturali_SQL.md).
+- [TST-RC02-002](../06_collaudi/TST-RC02-002_Evidenze_Collaudi_Flutter.md).
 
 NC-RC01-001 rimane aperta e distinta dalle osservazioni RC02.
 
 ## 7. Stato quantitativo
 
-- Osservazioni consolidate localmente: 253.
+### 7.1. Consuntivo storico S046
+
+- Osservazioni consolidate: 253.
 - Osservazioni originarie: 41.
 - Osservazioni aggiunte durante CONS.03: 212.
 - Controlli RC02 conclusi strutturalmente: 5/10.
 - RPC pubbliche analizzate strutturalmente: 9/9.
 - Controlli strutturali sulle nove RPC: 180.
 - Famiglie trasversali di verifiche residue: 15.
-- Nuovi collaudi funzionali eseguiti durante il consolidamento: 0.
+- Nuovi collaudi funzionali durante il consolidamento S046: 0.
+
+### 7.2. Aggiornamento S047
+
+- Osservazioni storiche conservate: 253.
+- Nuove osservazioni Flutter: 107.
+- Osservazioni complessive: 360.
+- RPC integrate nel repository Flutter: 3/9.
+- Stati SQL complessivi: 48.
+- Stati decodificati dal repository Flutter: 12.
+- Stati non integrati: 36.
+- Suite Flutter mirate: 7/7 PASS.
+- Test Flutter mirati: 116/116 PASS.
+- Baseline generale Flutter: 1956/1956 PASS.
+- Nuovi test introdotti: 0.
+- Verifiche specifiche residue C01-C09: 9.
+- Famiglie trasversali residue: 15.
+- Famiglie integralmente chiuse: 0.
+- Controllo RC02.06: ricognizione acquisita, consolidamento finale da verificare.
+- Nuove non conformita formalmente approvate: 0.
 - Riduzioni approvate: 0 minuti.
 - Incrementi approvati: 0 minuti.
+
+I 116 test mirati non rappresentano necessariamente
+scenari aggiuntivi rispetto alla baseline generale.
 
 Nessuna variazione delle stime derivante dal numero di osservazioni.
 
 ## 8. Limiti del consolidamento
 
+### 8.1. Consolidamento originario S046
+
 Inventario sintetico ricostruito dalle evidenze gia acquisite.
 Non costituisce trascrizione integrale degli output SQL originari.
-Nessun nuovo collaudo eseguito durante il consolidamento.
+Nessun nuovo collaudo eseguito durante il consolidamento S046.
 Le evidenze SQL strutturali non equivalgono a collaudi funzionali superati.
 La configurazione remota rimane non verificata.
 Le osservazioni iniziali sono conservate come storico della ricognizione.
 Le successive osservazioni possono risolvere verifiche precedentemente aperte.
 Il consolidamento non determina automaticamente variazioni delle stime V1.
-Versionamento delle nuove evidenze previsto in CONS.05.
+Versionamento originariamente previsto in CONS.05.
 
-Nessuna modifica tecnica introdotta.
+### 8.2. Aggiornamento S047
+
+Le osservazioni Flutter derivano dall'esame
+dei componenti e dei test esistenti.
+
+Le sette suite mirate sono state rieseguite
+utilizzando dipendenze simulate.
+
+Le evidenze non certificano il comportamento
+integrato reale Flutter-PostgreSQL.
+
+Le ricerche testuali sono limitate
+ai percorsi e ai filtri utilizzati.
+
+Le verifiche residue non costituiscono
+automaticamente non conformita accertate.
+
+Nessuna modifica applicativa introdotta.
+Nessuna modifica SQL introdotta.
+Nessuna migrazione remota applicata.
+Nessuna variazione quantitativa PERT.
+
+## 9. Osservazioni infrastruttura Flutter S047
+
+### 9.1. Modelli e contratti
+
+| ID | Livello | Osservazione |
+|---|---|---|
+| OBS254 | E3 | Modello ProfileEditLockLease disponibile con profilo, identita, token, scadenza e versione |
+| OBS255 | E3 | Rinnovo del lease conserva profilo, identita e token |
+| OBS256 | E3 | AppSessionIdentity distingue clientInstanceId e sessionId |
+| OBS257 | E3 | Risultati ordinari rappresentati mediante contratti tipizzati |
+| OBS258 | E3 | Cinque risultati Acquire, tre Heartbeat e quattro Release |
+| OBS259 | E3 | Rappresentazione testuale del lease non espone il token |
+| OBS260 | NV | Validazione autonoma delle identita applicative da approfondire |
+| OBS261 | NV | Contratti tipizzati Get State e Takeover non individuati nel perimetro esaminato |
+
+Riferimenti: INF-WA-002, TST-RC02-002.
+
+### 9.2. Repository Edit Lock
+
+| ID | Livello | Osservazione |
+|---|---|---|
+| OBS262 | E3 | Repository con invocatore RPC sostituibile per i test |
+| OBS263 | E3 | Invocatore ordinario collegato al client Supabase |
+| OBS264 | E4 | Acquire trasmette i tre identificativi previsti dal contratto |
+| OBS265 | E4 | Risposta acquired convertita in lease con scadenza UTC |
+| OBS266 | E4 | Decodifica dei quattro risultati Acquire senza acquisizione |
+| OBS267 | E4 | Risposta acquired priva di token rifiutata |
+| OBS268 | E4 | Status Acquire sconosciuto rifiutato |
+| OBS269 | E4 | Risposta Acquire non rappresentata da una mappa rifiutata |
+| OBS270 | E4 | Heartbeat trasmette identita e token previsti |
+| OBS271 | E4 | Heartbeat renewed conserva identita e token del lease |
+| OBS272 | E4 | Heartbeat not_holder e forbidden decodificati |
+| OBS273 | E4 | Risposta Heartbeat con data non valida e versione zero rifiutata |
+| OBS274 | E4 | Release trasmette identita e token previsti |
+| OBS275 | E4 | Quattro risultati Release decodificati, incluso transfer_pending |
+| OBS276 | E4 | Status Release sconosciuto rifiutato |
+| OBS277 | NV | Validazione isolata di row_version non dimostrata dal test combinato |
+| OBS278 | NV | Uniformita della validazione UUID, token, scadenze e versioni da approfondire |
+| OBS279 | NV | Risposte perse o tardive e anomalie di trasporto da verificare in integrazione |
+
+Riferimenti: INF-WA-002, TST-RC02-002.
+Collegamenti storici: OBS58, OBS60, OBS75, OBS78, OBS93.
+
+### 9.3. Controller Write Authority
+
+| ID | Livello | Osservazione |
+|---|---|---|
+| OBS280 | E3 | Controller articolato in undici stati applicativi |
+| OBS281 | E4 | Membri senza diritto di scrittura mantenuti in sola lettura |
+| OBS282 | E4 | Acquire riuscito abilita lo stato writer con lease valido |
+| OBS283 | E4 | Disponibilita scrittura subordinata alla validita temporale del lease |
+| OBS284 | E4 | Lease rinnovato con medesima identita e token riconosciuto |
+| OBS285 | E4 | Token differente impedisce utilizzo del lease precedente |
+| OBS286 | E4 | Identita client differente impedisce utilizzo del lease precedente |
+| OBS287 | E4 | Identita sessione differente impedisce utilizzo del lease precedente |
+| OBS288 | E4 | Profilo differente impedisce utilizzo del lease precedente |
+| OBS289 | E4 | Verifica temporale del lease alla scadenza esatta senza mutazione dello stato |
+| OBS290 | E4 | BedRepository richiede il lease per le operazioni protette esercitate |
+| OBS291 | E4 | BedRepository non riutilizza un lease scaduto |
+| OBS292 | E4 | Medesimo repository utilizza la nuova autorita dopo nuova acquisizione |
+| OBS293 | E4 | Risultati Acquire negativi riconciliati negli stati applicativi previsti |
+| OBS294 | E4 | Errore di trasporto Acquire conduce a recupero e nuovo tentativo |
+| OBS295 | E4 | Heartbeat riuscito rinnova il lease |
+| OBS296 | E4 | Errore Heartbeat conduce a recupero con scrittura sospesa |
+| OBS297 | E4 | Errore Heartbeat dopo scadenza conduce a perdita del lease |
+| OBS298 | E4 | Heartbeat not_holder conduce a perdita dell'autorita |
+| OBS299 | E4 | Heartbeat forbidden conduce allo stato forbidden |
+| OBS300 | E4 | Risposta Heartbeat malformata conduce a protocolError |
+| OBS301 | E4 | Lease scaduto rifiutato da requireLeaseForWrite |
+| OBS302 | E4 | Recupero dopo scadenza mediante nuovo tentativo esercitato |
+| OBS303 | E4 | verifyNow riconcilia lo stato finale mediante Heartbeat |
+| OBS304 | E4 | Release rimuove l'autorita locale |
+| OBS305 | E4 | Errore Release non ripristina l'autorita locale |
+| OBS306 | E4 | Risposta Acquire tardiva dopo cambio generazione sottoposta a rilascio simulato |
+| OBS307 | E3 | Dispose del controller invalida generazione, lease e pianificazione locale |
+| OBS308 | NV | Risposta Heartbeat positiva di generazione precedente da collaudare |
+| OBS309 | NV | Interferenza del flag Heartbeat tra generazioni concorrenti da verificare |
+| OBS310 | NV | Risposta Heartbeat positiva tardiva dopo scadenza e riacquisizione da verificare |
+| OBS311 | NV | Stato intermedio durante verifyNow pendente da collaudare |
+| OBS312 | NV | Reinizializzazione di controller con precedente lease attivo da approfondire |
+
+Riferimenti: INF-WA-002, TST-RC02-002.
+Verifiche specifiche: C01-C09.
+
+### 9.4. Scheduler e scadenze
+
+| ID | Livello | Osservazione |
+|---|---|---|
+| OBS313 | E3 | Scheduler ordinario basato su Timer a esecuzione singola |
+| OBS314 | E3 | Heartbeat pianificato dopo 30 secondi e recupero dopo 10 secondi |
+| OBS315 | E4 | Esecuzione del callback pianificato verificata |
+| OBS316 | E4 | Annullamento del timer prima dell'esecuzione verificato |
+| OBS317 | NV | Callback asincroni gia avviati e relative eccezioni da approfondire |
+| OBS318 | NV | Sospensione browser, ritardi reali e ripresa applicativa da collaudare |
+
+Riferimenti: INF-WA-002, TST-RC02-002.
+Collegamenti storici: OBS95, OBS250.
+
+### 9.5. Scope e propagazione
+
+| ID | Livello | Osservazione |
+|---|---|---|
+| OBS319 | E3 | Scope implementato mediante InheritedNotifier |
+| OBS320 | E3 | Accessi reattivi e non reattivi distinti |
+| OBS321 | E4 | Accessi of e read restituiscono il controller condiviso |
+| OBS322 | E4 | Accesso obbligatorio senza Scope produce errore |
+| OBS323 | NV | Notifiche reattive, accesso opzionale e servizio mutazioni condiviso da approfondire |
+
+Riferimenti: INF-WA-002, TST-RC02-002.
+
+### 9.6. Disponibilita di scrittura delle route
+
+| ID | Livello | Osservazione |
+|---|---|---|
+| OBS324 | E4 | Route senza autorita iniziale mantenuta in sola lettura |
+| OBS325 | E4 | Route senza lease iniziale non acquisisce autorita tardivamente |
+| OBS326 | E4 | Lease valido abilita disponibilita senza nuova RPC |
+| OBS327 | E4 | Contesto applicativo non valido impedisce la scrittura |
+| OBS328 | E4 | Eccezione nella verifica del contesto gestita fail-closed |
+| OBS329 | E4 | Ripristino del contesto valido consente recupero della medesima autorita |
+| OBS330 | E4 | Scadenza esatta del lease revoca disponibilita della route |
+| OBS331 | E4 | Verifica temporale immediatamente precedente alla scadenza esercitata |
+| OBS332 | E4 | Apertura alla scadenza esatta non pianifica timer utile |
+| OBS333 | E4 | Timer anticipato riconciliato con durata residua |
+| OBS334 | E4 | Rinnovo del lease ripianifica la scadenza |
+| OBS335 | E4 | Callback temporale obsoleto non altera la nuova pianificazione |
+| OBS336 | E4 | Recupero con medesimo token ripristina disponibilita |
+| OBS337 | E4 | Nuovo token non riabilita una route associata al precedente lease |
+| OBS338 | E4 | Release revoca sincronicamente la disponibilita prima della risposta RPC |
+| OBS339 | E4 | Invalidazione permanente impedisce riattivazione mediante heartbeat o refresh |
+| OBS340 | E4 | Invalidazione idempotente e annullamento delle risorse temporali esercitati |
+| OBS341 | E4 | Dispose annulla timer e sottoscrizioni della route |
+| OBS342 | E4 | Coerenza della singola valutazione temporale durante apertura e refresh esercitata |
+| OBS343 | NV | Collegamento completo con lifecycle delle route effettive da verificare in RC02.07 |
+
+Riferimenti: INF-WA-002, TST-RC02-002.
+
+### 9.7. Get State e Takeover Flutter
+
+| ID | Livello | Osservazione |
+|---|---|---|
+| OBS344 | E3 | Get State non integrato nel repository Flutter esaminato |
+| OBS345 | E3 | Cinque RPC Takeover non integrate nel repository Flutter esaminato |
+| OBS346 | E3 | Controller privo di stati dedicati al lifecycle Takeover nel perimetro esaminato |
+| OBS347 | E3 | Release transfer_pending tipizzato ma privo di riconciliazione dedicata nel controller |
+| OBS348 | NV | Rilevamento richiesta entrante e sospensione scrittura durante handoff da integrare e verificare |
+| OBS349 | NV | Acquisizione del nuovo lease dopo Complete e invalidazione del precedente holder da collaudare |
+
+Riferimenti: INF-WA-002, DB-WA-005, DB-WA-006.
+Collegamenti storici: OBS78, OBS112, OBS115, OBS156, OBS178, OBS202, OBS229.
+
+### 9.8. Widget pianificazioni stagionali
+
+| ID | Livello | Osservazione |
+|---|---|---|
+| OBS350 | E4 | Creazione, aggiornamento e rifiuto delle mutazioni esercitati con RPC simulate |
+| OBS351 | E4 | Recupero mediante ricevuta esercitato senza ripetizione della mutazione |
+| OBS352 | E4 | Esecuzione subordinata alla selezione della data |
+| OBS353 | E4 | Conferma e annullamento subordinati a disponibilita e stato delle operazioni |
+| OBS354 | E4 | Widget senza autorita disponibile mantenuto in sola lettura |
+| OBS355 | E4 | Revoca, scadenza e invalidazione della disponibilita propagate ai widget |
+| OBS356 | E4 | Rimozione e sostituzione del notifier riconciliano le sottoscrizioni |
+
+Riferimenti: INF-WA-002, TST-RC02-002.
+Evidenze condivise con RC05, da non conteggiare due volte.
+
+### 9.9. ProfileSessionGate e autenticazione
+
+| ID | Livello | Osservazione |
+|---|---|---|
+| OBS357 | E3 | AuthGate collega la sessione autenticata al ProfileSessionGate |
+| OBS358 | E4 | Inizializzazione ordinaria, recupero errore e attesa identita esercitati |
+| OBS359 | E4 | Rimozione Gate invoca Release simulato; risoluzione profilo tardiva non inizializza la sessione rimossa |
+
+Riferimenti: INF-WA-002, TST-RC02-002.
+Evidenze condivise con RC01.
+Rilascio remoto effettivo, logout e lifecycle applicativo rimangono da verificare.
+
+### 9.10. Riconciliazione Flutter-PostgreSQL
+
+| ID | Livello | Osservazione |
+|---|---|---|
+| OBS360 | E3 | Riconciliazione strutturale dei contratti ordinari completata: tre RPC integrate su nove e dodici stati decodificati su quarantotto; integrazione complessiva ancora parziale |
+
+Riferimenti: INF-WA-002, TST-RC02-002, DB-WA-007.
+
+La ricognizione Flutter conserva le nove verifiche
+specifiche C01-C09 e le quindici famiglie
+trasversali WA-V01-WA-V15.
+
+Le verifiche gia registrate nelle osservazioni storiche
+sono richiamate senza duplicazione automatica.
+
+Il collaudo integrato reale rimane NV.
+L'ambiente remoto rimane NV.
+Nessuna famiglia residua integralmente chiusa.
+Nessuna nuova non conformita formalmente approvata.
+Nessuna variazione quantitativa PERT.
