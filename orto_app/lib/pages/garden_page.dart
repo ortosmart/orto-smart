@@ -179,6 +179,9 @@ class _GardenPageState extends State<GardenPage> {
 
     return PlannedPlantingRepository(
       requireLeaseForWrite: requireLeaseForWrite,
+      mutationService: context
+          .getInheritedWidgetOfExactType<ProfileWriteAuthorityScope>()
+          ?.seasonalPlanningMutations,
     );
   }
 

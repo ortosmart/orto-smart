@@ -1,12 +1,16 @@
 import 'package:flutter/widgets.dart';
 
 import 'profile_write_authority_controller.dart';
+import 'seasonal_planning_mutation_service.dart';
 
 class ProfileWriteAuthorityScope
     extends InheritedNotifier<ProfileWriteAuthorityController> {
+  final SeasonalPlanningMutationService? seasonalPlanningMutations;
+
   const ProfileWriteAuthorityScope({
     super.key,
     required ProfileWriteAuthorityController controller,
+    this.seasonalPlanningMutations,
     required super.child,
   }) : super(notifier: controller);
 

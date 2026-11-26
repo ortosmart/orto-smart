@@ -4,7 +4,10 @@ import 'package:flutter/widgets.dart';
 
 import '../identity/app_session_identity.dart';
 import '../write_authority/profile_write_authority_controller.dart';
+import '../write_authority/mutation_operation_coordinator.dart';
+import '../write_authority/mutation_operation_journal.dart';
 import '../write_authority/profile_write_authority_scope.dart';
+import '../write_authority/seasonal_planning_mutation_service.dart';
 import 'profile_context.dart';
 import 'profile_context_scope.dart';
 
@@ -44,6 +47,10 @@ class ProfileSessionGate extends StatefulWidget {
 
 class _ProfileSessionGateState extends State<ProfileSessionGate> {
   late final ProfileWriteAuthorityController _controller;
+  late final _seasonalPlanningMutations = SeasonalPlanningMutationService(
+    MutationOperationCoordinator(),
+    MutationOperationJournal(SharedPreferencesMutationJournalPersistence()),
+  );
   ProfileContext? _profileContext;
 
   int _generation = 0;
@@ -148,6 +155,7 @@ class _ProfileSessionGateState extends State<ProfileSessionGate> {
       profileContext: profileContext,
       child: ProfileWriteAuthorityScope(
         controller: _controller,
+        seasonalPlanningMutations: _seasonalPlanningMutations,
         child: widget.child,
       ),
     );

@@ -133,8 +133,9 @@ class _SeasonsPageState extends State<SeasonsPage> {
                       route = MaterialPageRoute<void>(
                         builder: (_) => PlannedPlantingsPage(
                           seasonId: season.id,
+                          season: season,
                           seasonName: '${season.year} - ${season.name}',
-                          repository: repository,
+                          repository: repository.forSeasonMutations(season.id),
                           writeAvailability: availability,
                         ),
                       );

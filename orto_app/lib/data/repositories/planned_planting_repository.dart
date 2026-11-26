@@ -2,7 +2,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/planned_planting.dart';
 
+import '../../core/write_authority/mutation_operation_contract.dart';
 import '../../core/write_authority/planned_planting_write_result.dart';
+import '../../core/write_authority/seasonal_planning_mutation_service.dart';
+import '../../core/write_authority/seasonal_planning_mutation_transport.dart';
 import '../../core/write_authority/profile_edit_lock.dart';
 import '../../core/write_authority/profile_write_authority_controller.dart';
 
@@ -21,10 +24,14 @@ class PlannedPlantingRepository {
   final PlannedPlantingRpcInvoker _invokeRpc;
   final PlannedPlantingListLoader? _loadPlannedPlantings;
   final PlannedPlantingWriteAuthorityProvider? _requireLeaseForWrite;
+  final SeasonalPlanningMutationService? _mutationService;
+  final Future<void> Function(MutationRequestSnapshot)? _refreshAfterMutation;
 
   factory PlannedPlantingRepository({
     SupabaseClient? supabase,
     required PlannedPlantingWriteAuthorityProvider requireLeaseForWrite,
+    SeasonalPlanningMutationService? mutationService,
+    Future<void> Function(MutationRequestSnapshot)? refreshAfterMutation,
   }) {
     final client = supabase ?? Supabase.instance.client;
 
@@ -32,6 +39,8 @@ class PlannedPlantingRepository {
       (functionName, parameters) =>
           client.rpc(functionName, params: parameters),
       requireLeaseForWrite,
+      mutationService: mutationService,
+      refreshAfterMutation: refreshAfterMutation,
       loadPlannedPlantings: (seasonId) async {
         final rows = await client
             .from('planned_plantings')
@@ -66,13 +75,85 @@ class PlannedPlantingRepository {
     this._invokeRpc,
     this._requireLeaseForWrite, {
     this._loadPlannedPlantings,
+    this._mutationService,
+    this._refreshAfterMutation,
   });
+
+  Future<bool> canStartMutation() async {
+    try {
+      final lease = _requireWriteLease();
+      final service = _mutationService;
+      if (service == null) return true;
+      if (!await service.canStartMutation(lease.profileId)) return false;
+      final current = _requireWriteLease();
+      return current.profileId == lease.profileId &&
+          current.identity.clientInstanceId ==
+              lease.identity.clientInstanceId &&
+          current.identity.sessionId == lease.identity.sessionId &&
+          current.lockToken == lease.lockToken;
+    } on ProfileWriteAuthorityUnavailableException {
+      return false;
+    }
+  }
+
+  PlannedPlantingRepository forSeasonMutations(String seasonId) {
+    final service = _mutationService;
+    if (service == null) return this;
+
+    return PlannedPlantingRepository.withProviders(
+      _invokeRpc,
+      _requireLeaseForWrite,
+      loadPlannedPlantings: _loadPlannedPlantings,
+      mutationService: service,
+      refreshAfterMutation: (snapshot) async {
+        final requestedSeason = snapshot.parameters['target_season_id'];
+        if (requestedSeason != null && requestedSeason != seasonId) {
+          throw StateError('Planning mutation belongs to a different season.');
+        }
+        await getPlannedPlantingsBySeason(seasonId);
+      },
+    );
+  }
 
   PlannedPlantingRepository asReadOnly() {
     return PlannedPlantingRepository.withProviders(
       (_, _) async => throw const ProfileWriteAuthorityUnavailableException(),
       null,
       loadPlannedPlantings: _loadPlannedPlantings,
+    );
+  }
+
+  Future<MutationOperationReceipt?> recoverPendingMutationForSeason(
+    String seasonId,
+  ) async {
+    final service = _mutationService;
+    if (service == null) return null;
+
+    final profileId = _requireWriteLease().profileId.toLowerCase();
+    return service.recoverTerminalFromJournal(
+      profileId: profileId,
+      transport: SeasonalPlanningMutationTransport(_invokeRpc),
+      refresh: (snapshot) async {
+        final requestedSeason = snapshot.parameters['target_season_id'];
+        if (requestedSeason != null && requestedSeason != seasonId) {
+          throw StateError('Operazione registrata per un’altra stagione.');
+        }
+
+        final plantings = await getPlannedPlantingsBySeason(seasonId);
+        if (requestedSeason == null) {
+          final plantingId = snapshot.parameters['target_planned_planting_id'];
+          final belongsToSeason = plantings.any(
+            (planting) =>
+                planting.id == plantingId &&
+                planting.profileId.toLowerCase() == profileId,
+          );
+          if (!belongsToSeason) {
+            throw StateError(
+              'Pianificazione non trovata nella stagione aperta.',
+            );
+          }
+        }
+      },
     );
   }
 
@@ -108,7 +189,7 @@ class PlannedPlantingRepository {
     String? cultivarId,
     required String startMethod,
     required DateTime startDate,
-    required DateTime endDate,
+    required DateTime? endDate,
     required int startPositionCm,
     required int lengthCm,
     required int occupiedWidthCm,
@@ -121,7 +202,7 @@ class PlannedPlantingRepository {
   }) async {
     final lease = _requireWriteLease();
 
-    final response = await _invokeRpc('create_planned_planting', {
+    final response = await _invokeMutation('create_planned_planting', {
       'target_profile_id': lease.profileId,
       'target_garden_id': gardenId,
       'target_season_id': seasonId,
@@ -133,7 +214,7 @@ class PlannedPlantingRepository {
       'lock_token': lease.lockToken,
       'planting_start_method': startMethod,
       'planting_start_date': _dateOnly(startDate),
-      'planting_end_date': _dateOnly(endDate),
+      'planting_end_date': endDate == null ? null : _dateOnly(endDate),
       'planting_start_position_cm': startPositionCm,
       'planting_length_cm': lengthCm,
       'planting_occupied_width_cm': occupiedWidthCm,
@@ -177,7 +258,7 @@ class PlannedPlantingRepository {
   }) async {
     final lease = _requireWriteLease();
 
-    final response = await _invokeRpc('confirm_planned_planting', {
+    final response = await _invokeMutation('confirm_planned_planting', {
       'target_profile_id': lease.profileId,
       'target_planned_planting_id': plannedPlantingId,
       'expected_row_version': expectedRowVersion,
@@ -256,7 +337,7 @@ class PlannedPlantingRepository {
   }) async {
     final lease = _requireWriteLease();
 
-    final response = await _invokeRpc('cancel_planned_planting', {
+    final response = await _invokeMutation('cancel_planned_planting', {
       'target_profile_id': lease.profileId,
       'target_planned_planting_id': plannedPlantingId,
       'expected_row_version': expectedRowVersion,
@@ -314,7 +395,7 @@ class PlannedPlantingRepository {
   }) async {
     final lease = _requireWriteLease();
 
-    final response = await _invokeRpc('execute_planned_planting', {
+    final response = await _invokeMutation('execute_planned_planting', {
       'target_profile_id': lease.profileId,
       'target_planned_planting_id': plannedPlantingId,
       'expected_row_version': expectedRowVersion,
@@ -428,7 +509,7 @@ class PlannedPlantingRepository {
     String? cultivarId,
     required String startMethod,
     required DateTime startDate,
-    required DateTime endDate,
+    required DateTime? endDate,
     required int startPositionCm,
     required int lengthCm,
     required int occupiedWidthCm,
@@ -441,7 +522,7 @@ class PlannedPlantingRepository {
   }) async {
     final lease = _requireWriteLease();
 
-    final response = await _invokeRpc('update_planned_planting', {
+    final response = await _invokeMutation('update_planned_planting', {
       'target_profile_id': lease.profileId,
       'target_planned_planting_id': plannedPlantingId,
       'expected_row_version': expectedRowVersion,
@@ -453,7 +534,7 @@ class PlannedPlantingRepository {
       'planting_cultivar_id': cultivarId,
       'planting_start_method': startMethod,
       'planting_start_date': _dateOnly(startDate),
-      'planting_end_date': _dateOnly(endDate),
+      'planting_end_date': endDate == null ? null : _dateOnly(endDate),
       'planting_start_position_cm': startPositionCm,
       'planting_length_cm': lengthCm,
       'planting_occupied_width_cm': occupiedWidthCm,
@@ -554,6 +635,42 @@ class PlannedPlantingRepository {
       plannedPlantingId: plantingId,
       rowVersion: rowVersion,
     );
+  }
+
+  Future<dynamic> _invokeMutation(
+    String functionName,
+    Map<String, dynamic> parameters,
+  ) async {
+    final service = _mutationService;
+    if (service == null) {
+      return _invokeRpc(functionName, parameters);
+    }
+
+    final operationType = MutationOperationType.values.singleWhere(
+      (type) => type.wireValue == functionName,
+    );
+    final refresh = _refreshAfterMutation;
+    if (refresh == null) {
+      throw const ProfileWriteAuthorityUnavailableException();
+    }
+    final transport = SeasonalPlanningMutationTransport(_invokeRpc);
+    final result = await service.submit(
+      operationType: operationType,
+      parameters: Map<String, Object?>.of(parameters)
+        ..remove('target_profile_id')
+        ..remove('target_client_id')
+        ..remove('target_session_id')
+        ..remove('lock_token'),
+      transport: transport,
+      requireLease: _requireWriteLease,
+    );
+    final receipt = await service.finalizeTerminal(
+      snapshot: result.snapshot,
+      expectedFingerprint: result.fingerprint,
+      transport: transport,
+      refresh: () => refresh(result.snapshot),
+    );
+    return receipt.resultPayload;
   }
 
   ProfileEditLockLease _requireWriteLease() {
