@@ -1,3 +1,25 @@
+﻿<!-- TRANSIZIONE REGISTRO TECNICO S046 -->
+
+> **AVVISO DI TRANSIZIONE DOCUMENTALE - S046**
+>
+> Dal 26/11/2026 il presente documento viene conservato
+> come riferimento storico della sessione S044.
+>
+> La gestione permanente della conoscenza tecnica
+> e dello stato operativo prosegue nel Registro tecnico.
+>
+> - [Registro tecnico permanente](registro_tecnico/README.md)
+> - [Stato operativo corrente](registro_tecnico/10_stato_operativo/STATO_CORRENTE.md)
+> - [Standard del Registro](registro_tecnico/01_architettura/ARC-REG-001_Standard_Registro.md)
+>
+> Le informazioni sottostanti sono conservate integralmente.
+> Non devono essere interpretate come stato operativo corrente.
+>
+> L'aggiornamento sistematico di questo documento e' cessato.
+> Consultare il Registro per le evidenze successive alla S044.
+
+---
+
 # ORTO SMART
 
 ### DOCUMENTO OPERATIVO V1
