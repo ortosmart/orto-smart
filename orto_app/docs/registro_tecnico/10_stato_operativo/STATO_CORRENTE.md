@@ -2,29 +2,23 @@
 
 ## 1. Identificazione
 
-- Sessione corrente: S047.
-- Data aggiornamento: 26/11/2026.
+- Sessione corrente: S048.
+- Data aggiornamento: 28/11/2026.
 - Repository: ortosmart/orto-smart.
 - Branch di riferimento: main.
 - Baseline sorgenti: 20649de7474765bd1c293b20bfcedab0a9493a14.
 - Prima baseline documentale pubblicata: 76acd230567d13e0cd6e6b2376e5b25bba301b38.
 - Baseline documentale di apertura S047: 39665b458221b69c469ebe1d16a686312af79320.
 - Sessione S046: CONCLUSA.
-- Sessione S047: IN CORSO.
+- Sessione S047: CONCLUSA.
+- Sessione S048: CONCLUSA il 28/11/2026 alle 14:10 (Europe/Rome).
+- Baseline di apertura S048: d1de8f659b52605aa52941ea33e920db5d684bd7.
 - Registro tecnico: istituito e operativo.
-- RC02.06: acquisito tecnicamente, in consolidamento finale.
+- STEP 275: 50%.
+- RC02: 10/10 controlli conclusi.
+- RC02.07: 10/10 sottoblocchi completati.
 
-La baseline sorgenti identifica il codice
-applicativo oggetto della ricognizione.
-
-La baseline documentale di apertura S047
-comprende il consolidamento SQL della S046.
-
-Il presente aggiornamento precede il
-versionamento documentale conclusivo RC02.06.
-
-Commit e pubblicazione devono essere attestati
-mediante le evidenze Git effettive.
+Le baseline precedenti identificano le evidenze storiche S046–S047.
 
 ## 2. Consultazione obbligatoria
 
@@ -200,21 +194,16 @@ Riferimenti:
 ## 5. Stato delle riconciliazioni
 
 - RC01: conclusa tecnicamente e approvata.
-- RC02: in corso.
-- RC03-RC18: da eseguire.
-- Riconciliazioni tecniche concluse: 1/18.
+- RC02: conclusa tecnicamente e approvata.
+- RC03–RC09: concluse tecnicamente e approvate. RC10: conclusa
+  tecnicamente. RC11–RC18: da eseguire.
+- Riconciliazioni tecniche concluse: 10/18 (55,56%).
 - Riconciliazioni quantitative concluse: 0/18.
 
-RC02.01-05: conclusi formalmente.
-RC02.06: acquisito tecnicamente,
-in attesa di versionamento conclusivo.
-
-Avanzamento formalizzato RC02: 5/10, 50%.
-Avanzamento tecnico acquisito: 6/10, 60%.
-
-Il completamento formale del controllo 06
-deve essere attestato mediante le evidenze
-conclusive di versionamento.
+RC02.01–RC02.10: conclusi formalmente.
+RC02.07: concluso, 10/10 sottoblocchi completati.
+Conclusione tecnica RC02.10 registrata in S048.
+Avanzamento formale RC02: 10/10, 100%.
 
 Queste percentuali non costituiscono
 misure della maturita della Write Authority.
@@ -312,16 +301,35 @@ Lo stato delle migrazioni rappresenta
 le evidenze acquisite alla ricezione S047,
 non una nuova verifica degli ambienti.
 
+### Evidenze di apertura e di collaudo S048
+
+La ricognizione di Orti, Aiuole e Stagioni è documentata in [INF-WA-003](../02_infrastrutture/INF-WA-003_Integrazione_Write_Authority_Domini.md).
+Le esecuzioni acquisite nel checkpoint sono riportate in [TST-RC02-003](../06_collaudi/TST-RC02-003_Evidenze_Collaudi_Domini.md).
+
+- Flutter analyze: PASS, 19,0 secondi.
+- Flutter test: 1.956/1.956 PASS, 2 minuti e 53 secondi.
+- SeasonRepository: 33/33 PASS, 12 secondi, già inclusi nella suite generale.
+
+All'apertura S048 erano registrate 48 migrazioni locali e 34 remote,
+con 14 pendenti. Ultima versione locale: 20261125151100.
+Ultima versione remota a quella data: 20261014200459.
+Il collaudo integrato reale dei domini restava NV nel perimetro
+delle evidenze di apertura.
+
+Alla chiusura RC10, le 14 migrazioni sono state applicate sul remoto:
+48/48 versioni in entrambi gli ambienti, ultima 20261125151100,
+zero pendenti. Vedere DB-MIG-001 §2.1 e INF-CAT-001 §2.14.
+
 ## 7. Criticita e verifiche aperte
 
 - NC-RC01-001: P1, aperta.
-- Ripristino funzionale del backup: NV.
-- Allineamento delle migrazioni remote: pendente.
-- Versionamento conclusivo RC02.06.
-- Completamento della ricognizione RC02.07-10.
+- Ripristino PostgreSQL di schema e dati verificato. Proprietari originali, app e Data API: NV. ACC-A03 aperta.
+- RC10 conclusa tecnicamente. Errore di caricamento Aiuole osservato
+  nell'orto temporaneo, da riprodurre e approfondire.
 - 15 famiglie di verifiche residue Write Authority.
 - 9 controlli residui specifici Flutter.
-- Collaudi integrati reali Flutter-Supabase: NV.
+- Collaudi integrati reali Flutter-Supabase ancora NV per le famiglie
+  residue Write Authority. Per le prove RC10 vedere INF-CAT-001 §2.14.
 - Verifica operativa remota: NV.
 - Riconciliazione delle stime PERT originarie.
 
@@ -350,24 +358,23 @@ Consultare le schede della directory 09_programmazione.
 Nessuna variazione quantitativa approvata.
 Nessuna data definitiva di rilascio approvata.
 
+- Residuo A: 678 h 33 min.
+- Residuo B: 2.055 h 45 min.
+- Residuo V1: 2.734 h 18 min.
+- Configurazione reale A separata: 43 h 20 min.
+- Residuo A con configurazione: 721 h 53 min.
+- Residuo V1 con configurazione: 2.777 h 38 min.
+
+Al trasferimento del 27/11/2026 alle 15:57 il checkpoint riportava
+2 h 54 min per S048 e 407 h 11 min complessive.
+Questi sono valori storici di trasferimento. Il consuntivo definitivo
+riconciliato è riportato nel checkpoint S048.
+
 ## 9. Punto esatto di ripresa
 
-Attivita immediata:
+DOC.09 e DOC.10 completati. Ricognizioni tecniche RC02.07.06 Pianificazione e RC02.07.07 Coltivazioni concluse.
 
-RC02.06.10.10 - Versionamento e chiusura.
-
-- Completare l allineamento documentale.
-- Verificare le modifiche conclusive.
-- Preparare e verificare lo staging.
-- Ottenere autorizzazione al commit.
-- Ottenere autorizzazione al push.
-- Verificare HEAD, origin/main e working tree.
-- Formalizzare la conclusione RC02.06.
-
-Successivamente:
-
-RC02.07 - Integrazione della Write Authority
-nei domini applicativi.
+Punto di ripresa tecnico: RC11 — Registri, unità e parametri.
 
 Consultare preventivamente:
 
@@ -377,8 +384,7 @@ Consultare preventivamente:
 - [Evidenze collaudi Flutter](../06_collaudi/TST-RC02-002_Evidenze_Collaudi_Flutter.md)
 - [Stato parziale RC02](../08_riutilizzo/RC02_Stato_Parziale.md)
 
-Il primo comando RC02.07 deve essere
-definito alla ripresa effettiva del controllo.
+I sottoblocchi RC02.07.01–10 sono già acquisiti.
 
 Non ripetere i controlli RC02.01-06
 gia acquisiti se le condizioni tecniche
@@ -458,9 +464,11 @@ dalle evidenze Git e dal checkpoint S047.
 
 ## Checkpoint S048 — chiusura tecnica RC10
 
-Checkpoint S048 del 28/11/2026, ripresa alle 12:57 (Europe/Rome).
-`main` e il riferimento locale `origin/main` coincidono con la
-baseline `d1de8f659b52605aa52941ea33e920db5d684bd7`.
+Checkpoint S048 del 28/11/2026, ripresa alle 12:57 e chiusura
+alle 14:10 (Europe/Rome). Baseline di apertura
+`d1de8f659b52605aa52941ea33e920db5d684bd7`. Il commit di chiusura
+tecnica RC10 `1cd7df5` è pubblicato su `origin/main`. Le modifiche
+preesistenti restano nel working tree.
 Il titolare ha eseguito il collaudo remoto delle nove RPC degli alias
 e la pulizia delle righe di prova. Per gli esiti vedere
 [INF-CAT-001 §2.12](../02_infrastrutture/INF-CAT-001_Catalogo_Agronomico.md#212-mutazioni-flutter-e-rpc-degli-alias-su-supabase-remoto--rc10-s048).
@@ -474,6 +482,22 @@ Vedere INF-CAT-001 §2.14 e DB-MIG-001 §2.1.
 Restano aperte la riconciliazione quantitativa e l'accettazione
 operativa. L'errore nella sezione Aiuole rimane un'osservazione da
 approfondire.
-Il consuntivo del lavoro dopo il trasferimento resta da ricostruire.
+Il Registro di Coordinamento conferma 58, 256 e 121 minuti di
+Sviluppo per S048 rispettivamente il 26, 27 e 28/11/2026.
+I 73 minuti dalle 12:57 alle 14:10 del 28/11 sono inclusi nei 121
+minuti della giornata. La sospensione dalle 00:48 alle 12:57 è
+esclusa. I valori 4 h 07 min per S048 e 408 h 24 min generali
+erano un riepilogo intermedio, superato dalla riconciliazione.
+
+| Consuntivo confermato al 28/11/2026 | Valore |
+|---|---:|
+| S048 | 7 h 15 min |
+| Sviluppo complessivo | 312 h 38 min |
+| Manuali storici | 98 h 54 min |
+| Progetto | 411 h 32 min |
+| Ore provvisorie | 0 |
+
+Riconciliazioni tecniche: 10/18 (55,56%). Riconciliazioni
+quantitative: 0/18. STEP 275: 50%, invariato.
 
 Punto di ripresa tecnico: RC11 — Registri, unità e parametri.

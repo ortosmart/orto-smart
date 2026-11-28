@@ -25,6 +25,50 @@ la percentuale di completamento funzionale della V1.
 Ultima migrazione remota rilevata:
 20261014200459
 
+### 1.1. Confronto delle versioni locali — RC07, S048
+
+Verifica in sola lettura del 27/11/2026 sulla baseline Git
+d1de8f659b52605aa52941ea33e920db5d684bd7.
+
+Le 48 versioni ricavate dai nomi dei file in supabase/migrations
+coincidono una per una con le versioni registrate in
+supabase_migrations.schema_migrations nel PostgreSQL locale.
+Differenze: 0. Ultima versione locale: 20261125151100.
+
+La corrispondenza delle versioni attesta l'allineamento del registro
+locale. L'equivalenza funzionale degli schemi richiede verifiche
+dedicate.
+
+### 1.2. Verifica del registro remoto — RC07, S048
+
+La consultazione del progetto Supabase collegato con
+`supabase migration list --linked` è terminata con codice 0.
+
+| Riscontro | Valore |
+|---|---:|
+| Versioni locali | 48 |
+| Versioni remote, tutte presenti anche in locale | 34 |
+| Versioni presenti soltanto in locale | 14 |
+| Versioni presenti soltanto sul remoto | 0 |
+| Ultima versione remota | 20261014200459 |
+
+Il riscontro conferma la rilevazione precedente. Restano pendenti
+11 migrazioni di S039 e 3 di S045, come indicato nel §2.
+La verifica riguarda le versioni registrate. L'equivalenza funzionale
+degli schemi resta da verificare. Nessuna migrazione è stata applicata.
+
+### 1.3. Conclusione tecnica RC07 — S048
+
+Ricognizione tecnica conclusa e approvata. Il confronto delle versioni
+registrate conferma 48/48 in locale, 34 sul remoto, 14 pendenti
+e zero versioni presenti soltanto sul remoto.
+
+L'equivalenza funzionale degli schemi resta NV. La distribuzione
+delle 14 migrazioni resta aperta e richiede autorizzazione separata.
+
+Riconciliazioni tecniche concluse: 7/18. Riconciliazioni quantitative
+concluse: 0/18. Punto di ripresa: RC08 — Geometrie e storico.
+
 ## 2. Migrazioni remote pendenti
 
 - 11 migrazioni provenienti dalla S039.

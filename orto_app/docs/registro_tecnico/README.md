@@ -5,13 +5,13 @@
 - Progetto: Orto Smart
 - Registro: infrastrutture e componenti riutilizzabili
 - Versione iniziale: 1.0
-- Versione corrente: 1.2
+- Versione corrente: 1.3
 - Sessione di introduzione: S046
-- Sessione ultimo aggiornamento: S047
+- Sessione ultimo aggiornamento: S048
 - Data di istituzione: 26/11/2026
-- Data ultimo aggiornamento: 26/11/2026
+- Data ultimo aggiornamento: 27/11/2026
 - Baseline sorgenti originaria: 20649de7474765bd1c293b20bfcedab0a9493a14
-- Baseline aggiornamento: 39665b458221b69c469ebe1d16a686312af79320
+- Baseline aggiornamento: d1de8f659b52605aa52941ea33e920db5d684bd7
 - Stato del Registro: istituito e operativo, in aggiornamento progressivo
 
 [Stato operativo corrente](10_stato_operativo/STATO_CORRENTE.md)
@@ -139,7 +139,7 @@ Non conservare credenziali, password o token.
 L'utente interviene per le operazioni di interfaccia
 con il PC e per le autorizzazioni previste.
 
-## 8. Stato della ricognizione S046-S047
+## 8. Stato della ricognizione S046–S048
 
 ### 8.1. Stato delle attivita
 
@@ -156,27 +156,24 @@ con il PC e per le autorizzazioni previste.
 | STEP 278 - Consolidamento Registro | Da iniziare |
 
 RC01: riconciliazione tecnica approvata.
-RC02: controlli 01-05 conclusi strutturalmente.
-RC02: ricognizione Flutter del controllo 06 acquisita.
-RC02: consolidamento finale del controllo 06 pendente.
-RC02: controlli 07-10 ancora aperti.
+RC02.01–RC02.10: conclusi (10/10).
+RC02.07: concluso, 10/10 sottoblocchi completati.
+RC02: ricognizione tecnica conclusa.
+DOC.09 e DOC.10 completati. Punto di ripresa: RC11 — Registri, unità e parametri.
 
-Controlli formalmente conclusi RC02: 5/10.
-Controlli con ricognizione acquisita RC02: 6/10.
-
-RC03-RC18: da completare.
+RC03–RC10: concluse tecnicamente. RC11–RC18: da eseguire.
 
 ### 8.2. Consistenza del Registro
 
-| Indicatore | S046 | S047 |
-|---|---:|---:|
-| Documenti Markdown complessivi | 49 | 51 |
-| Documenti indicizzati | 48 | 50 |
-| Directory tematiche | 10 | 10 |
-| Osservazioni tecniche RC02 | 253 | 360 |
-| RPC pubbliche analizzate strutturalmente | 9/9 | 9/9 |
-| Controlli strutturali RPC | 180 | 180 |
-| Famiglie trasversali residue | 15 | 15 |
+| Indicatore | S046 | S047 | S048 (locale) |
+|---|---:|---:| ---: |
+| Documenti Markdown complessivi | 49 | 51 | 53 |
+| Documenti indicizzati | 48 | 50 | 52 |
+| Directory tematiche | 10 | 10 | 10 |
+| Osservazioni tecniche RC02 | 253 | 360 | 410 |
+| RPC pubbliche analizzate strutturalmente | 9/9 | 9/9 | 9/9 |
+| Controlli strutturali RPC | 180 | 180 | 180 |
+| Famiglie trasversali residue | 15 | 15 | 15 |
 
 Nella sessione S046 sono state aggiunte
 cinque schede tecniche RC02 durante il consolidamento SQL.
@@ -222,19 +219,22 @@ versionato e pubblicato su GitHub.
 
 Gli aggiornamenti S047 sono salvati localmente.
 
-Il consolidamento finale richiede
-verifica cumulativa, versionamento e pubblicazione.
+Per S048, GitHub contiene la chiusura tecnica RC10 nel commit
+`1cd7df5`. Le evidenze RC07–RC09 e le due nuove schede
+INF-WA-003 e TST-RC02-003 sono presenti nel Registro locale.
+Sono stati rilevati 53 documenti Markdown locali e 51 nella
+baseline pubblicata, prima del consolidamento finale.
 
 Controllo tecnico successivo:
 
-RC02.07 - Integrazione nei domini.
+RC11 — Registri, unità e parametri.
 
 Per lo stato operativo aggiornato
 consultare STATO_CORRENTE.
 
 ### 8.5. Stato quantitativo
 
-- Riconciliazioni tecniche concluse: 1/18.
+- Riconciliazioni tecniche concluse: 10/18 (55,56%).
 - Riconciliazioni quantitative concluse: 0/18.
 - DUP-A quantitative concluse: 0/9.
 - DUP-B quantitative concluse: 0/12.
@@ -295,6 +295,7 @@ Consultare soltanto le schede pertinenti all'attivita.
 - [INF-ID-001 - Identita client e sessione](02_infrastrutture/INF-ID-001_Identita_Client_Sessione.md)
 - [INF-WA-001 - Inventario Write Authority](02_infrastrutture/INF-WA-001_Inventario_Write_Authority.md)
 - [INF-WA-002 - Infrastruttura Flutter Write Authority](02_infrastrutture/INF-WA-002_Infrastruttura_Flutter_Write_Authority.md)
+- [INF-WA-003 - Integrazione Write Authority nei domini](02_infrastrutture/INF-WA-003_Integrazione_Write_Authority_Domini.md)
 
 ### 03_database
 
@@ -328,6 +329,7 @@ Consultare soltanto le schede pertinenti all'attivita.
 - [TST-RC01-001 - Evidenze identita e profilo](06_collaudi/TST-RC01-001_Evidenze_Identita_Profilo.md)
 - [TST-RC02-001 - Evidenze strutturali SQL Write Authority](06_collaudi/TST-RC02-001_Evidenze_Strutturali_SQL.md)
 - [TST-RC02-002 - Evidenze collaudi Flutter](06_collaudi/TST-RC02-002_Evidenze_Collaudi_Flutter.md)
+- [TST-RC02-003 - Evidenze collaudi dei domini](06_collaudi/TST-RC02-003_Evidenze_Collaudi_Domini.md)
 - [TST-S046-001 - Baseline dei collaudi](06_collaudi/TST-S046-001_Baseline_Collaudi.md)
 
 ### 07_criticita

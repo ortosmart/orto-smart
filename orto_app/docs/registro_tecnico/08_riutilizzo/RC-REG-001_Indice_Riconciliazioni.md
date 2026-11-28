@@ -2,16 +2,16 @@
 
 ## 1. Identificazione
 
-- Versione: 1.2.
+- Versione: 1.3.
 - Sessione originaria: S046.
-- Sessione aggiornamento: S047.
-- Data: 26/11/2026.
+- Sessione aggiornamento: S048.
+- Data: 27/11/2026.
 - Origine: STEP 275.6.4.
-- Aggiornamento: RC02.06.
+- Aggiornamento: consolidamento intermedio RC02.07.
 - Baseline Git originaria: 20649de7474765bd1c293b20bfcedab0a9493a14.
-- Baseline Git aggiornamento: 39665b458221b69c469ebe1d16a686312af79320.
+- Baseline Git aggiornamento: d1de8f659b52605aa52941ea33e920db5d684bd7.
 - Ricognizioni previste: 18.
-- Ricognizioni tecniche concluse: 1.
+- Ricognizioni tecniche concluse: 9.
 - Ricognizioni quantitative concluse: 0.
 
 ### 1.1. Storico delle versioni
@@ -20,6 +20,7 @@
 |---|---|---|
 | 1.1 | S046 | Consolidamento RC01 e ricognizione SQL RC02.01-05 |
 | 1.2 | S047 | Aggiornamento ricognizione Flutter RC02.06 |
+| 1.3 | S048 | Stato RC02.07 ed evidenze di Orti, Aiuole e Stagioni |
 
 ## 2. Finalita
 
@@ -38,15 +39,15 @@ integrazione, collaudo e operativita.
 | ID | Infrastruttura | Macroblocco principale | Stato tecnico | Stato quantitativo |
 |---|---|---|---|---|
 | RC01 | Autenticazione, identita e profilo | V1-01 | Concluso | Aperto |
-| RC02 | Write Authority ed edit lock | V1-02 | In corso | Aperto |
-| RC03 | RLS, permessi e RPC | V1-02 | Da eseguire | Aperto |
-| RC04 | Versioni e concorrenza | V1-02 | Da eseguire | Aperto |
-| RC05 | Journal, ricevute e riconciliazione | V1-02 | Da eseguire | Aperto |
-| RC06 | Backup e ripristino | V1-03 | Da eseguire | Aperto |
-| RC07 | Migrazioni e ambienti | V1-04 | Da eseguire | Aperto |
-| RC08 | Geometrie e storico | V1-06 | Da eseguire | Aperto |
-| RC09 | Stagioni e temporalita | V1-07 | Da eseguire | Aperto |
-| RC10 | Catalogo e identita canoniche | V1-08 | Conclusa tecnicamente (E4, S048) | Aperto |
+| RC02 | Write Authority ed edit lock | V1-02 | Concluso | Aperto |
+| RC03 | RLS, permessi e RPC | V1-02 | Concluso | Aperto |
+| RC04 | Versioni e concorrenza | V1-02 | Concluso | Aperto |
+| RC05 | Journal, ricevute e riconciliazione | V1-02 | Concluso | Aperto |
+| RC06 | Backup e ripristino | V1-03 | Concluso | Aperto |
+| RC07 | Migrazioni e ambienti | V1-04 | Conclusa tecnicamente e approvata, DB-MIG-001 §1.3 | Aperto |
+| RC08 | Geometrie e storico | V1-06 | Conclusa tecnicamente e approvata, PRC-001 §2.2 | Aperto |
+| RC09 | Stagioni e temporalita | V1-07 | Conclusa tecnicamente e approvata, PRC-001 §4.2 | Aperto |
+| RC10 | Catalogo e identita canoniche | V1-08 | Conclusa tecnicamente (E4, S048), INF-CAT-001 §2.14 | Aperto |
 | RC11 | Registri, unita e parametri | V1-08 | Da eseguire | Aperto |
 | RC12 | Resolver e acquisizione conoscenza | V1-08 | Da eseguire | Aperto |
 | RC13 | Motori agronomici | V1-09 | Da eseguire | Aperto |
@@ -194,16 +195,15 @@ Nessuna correzione tecnica autorizzata.
 
 ## 9. Stato RC02
 
-Ricognizione tecnica in corso.
+Ricognizione tecnica conclusa in S048.
 
 ### 9.1. Avanzamento dei controlli
 
-- Controlli formalmente conclusi: 5/10.
-- Avanzamento formale per numero di controlli: 50%.
-- Controlli 01-05: conclusi strutturalmente.
-- Controllo 06: ricognizione acquisita, consolidamento finale pendente.
-- Controlli 07-10: ancora aperti.
-- Avanzamento previsto dopo chiusura RC02.06: 60%.
+- Controlli formalmente conclusi: 10/10.
+- Avanzamento formale per numero di controlli: 100%.
+- Controlli 01-10: conclusi.
+- Controllo 07: concluso, 10/10 sottoblocchi completati.
+- Controllo 10: concluso.
 - Riconciliazione quantitativa: aperta.
 
 Le percentuali rappresentano il numero
@@ -267,18 +267,8 @@ non devono essere conteggiate due volte.
 
 ### 9.4. Punto di ripresa
 
-Completare RC02.06.10:
-
-- Aggiornamento stato e indici.
-- Verifiche cumulative.
-- Versionamento e chiusura.
-
-Controllo tecnico successivo:
-
-RC02.07 - Integrazione nei domini.
-
-Il piano analitico del controllo 07
-deve essere definito alla ripresa effettiva.
+Completati DOC.09, DOC.10 e la ricognizione tecnica RC02.
+Alla chiusura S048, punto di ripresa: RC11 — Registri, unità e parametri.
 
 Non ripetere i controlli 01-06
 se le condizioni tecniche rimangono invariate
@@ -290,9 +280,11 @@ e le evidenze consolidate sono ancora valide.
 - [Osservazioni tecniche RC02](RC02-OBS-001_Osservazioni_Tecniche.md)
 - [Inventario Write Authority](../02_infrastrutture/INF-WA-001_Inventario_Write_Authority.md)
 - [Infrastruttura Flutter Write Authority](../02_infrastrutture/INF-WA-002_Infrastruttura_Flutter_Write_Authority.md)
+- [Integrazione Write Authority nei domini](../02_infrastrutture/INF-WA-003_Integrazione_Write_Authority_Domini.md)
 - [Lifecycle e contratti RPC](../03_database/DB-WA-007_Lifecycle_Contratti_RPC.md)
 - [Evidenze strutturali SQL](../06_collaudi/TST-RC02-001_Evidenze_Strutturali_SQL.md)
 - [Evidenze collaudi Flutter](../06_collaudi/TST-RC02-002_Evidenze_Collaudi_Flutter.md)
+- [Evidenze collaudi dei domini](../06_collaudi/TST-RC02-003_Evidenze_Collaudi_Domini.md)
 - [Stato operativo corrente](../10_stato_operativo/STATO_CORRENTE.md)
 
 ### 9.6. Limiti e dipendenze
@@ -332,9 +324,9 @@ rimangono le fonti tecniche autorevoli.
 
 ## 11. Stato complessivo
 
-- RC tecniche concluse: 1/18.
-- RC tecniche in corso: 1/18.
-- RC tecniche da eseguire: 16/18.
+- RC tecniche concluse: 10/18 (55,56%), da RC01 a RC10.
+- RC tecniche in corso: 0/18.
+- RC tecniche da eseguire: 8/18, da RC11 a RC18.
 - RC quantitative concluse: 0/18.
 - DUP-A quantitative concluse: 0/9.
 - DUP-B quantitative concluse: 0/12.
