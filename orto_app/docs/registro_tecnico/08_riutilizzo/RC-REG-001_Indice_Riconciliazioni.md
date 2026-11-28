@@ -46,7 +46,7 @@ integrazione, collaudo e operativita.
 | RC07 | Migrazioni e ambienti | V1-04 | Da eseguire | Aperto |
 | RC08 | Geometrie e storico | V1-06 | Da eseguire | Aperto |
 | RC09 | Stagioni e temporalita | V1-07 | Da eseguire | Aperto |
-| RC10 | Catalogo e identita canoniche | V1-08 | Da eseguire | Aperto |
+| RC10 | Catalogo e identita canoniche | V1-08 | Conclusa tecnicamente (E4, S048) | Aperto |
 | RC11 | Registri, unita e parametri | V1-08 | Da eseguire | Aperto |
 | RC12 | Resolver e acquisizione conoscenza | V1-08 | Da eseguire | Aperto |
 | RC13 | Motori agronomici | V1-09 | Da eseguire | Aperto |

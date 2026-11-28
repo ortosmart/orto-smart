@@ -38,7 +38,29 @@ Identificativi S045:
 
 Applicazione locale confermata.
 
-Applicazione remota non autorizzata.
+Applicazione remota eseguita in S048. Vedere §2.1.
+
+### 2.1. Allineamento Supabase remoto — RC10, S048
+
+Il 28/11/2026 sulla baseline `d1de8f6`, il dry run ha confermato
+le 14 versioni pendenti, da `20261104190000` a `20261125151100`.
+Il backup logico pre-migrazione del remoto è conservato in
+`C:/Sviluppo/orto-smart-backups/S048-RC10-remoto-20261128`.
+Comprende schema, ruoli, dati, schemi gestiti e storico migrazioni.
+L'esportazione dati esclude le due tabelle degli upload multipart
+di Storage.
+
+Il ripristino in PostgreSQL isolato senza rete ha recuperato le 34
+versioni pre-migrazione e i conteggi di catalogo attesi (3 taxa,
+1 coltura e 0 cultivar). Le 14 migrazioni sono state provate sulla
+copia ripristinata. Il container di prova è stato rimosso.
+
+Il titolare ha autorizzato l'applicazione sul remoto. La CLI ha
+completato tutte le 14 migrazioni e il controllo PostgreSQL ha
+confermato 48 versioni registrate, ultima `20261125151100`, e il
+vincolo `planned_plantings_cultivar_crop_fk` validato.
+I riscontri funzionali sono in
+[INF-CAT-001 §2.14](../02_infrastrutture/INF-CAT-001_Catalogo_Agronomico.md#214-collaudo-della-pianificazione-su-supabase-remoto--rc10-s048).
 
 ## 3. Backup precedente alle migrazioni S045
 

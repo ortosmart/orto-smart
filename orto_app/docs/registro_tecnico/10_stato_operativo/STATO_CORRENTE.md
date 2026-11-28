@@ -455,3 +455,25 @@ Nessuna modifica applicativa o SQL.
 
 L effettiva pubblicazione e attestata
 dalle evidenze Git e dal checkpoint S047.
+
+## Checkpoint S048 — chiusura tecnica RC10
+
+Checkpoint S048 del 28/11/2026, ripresa alle 12:57 (Europe/Rome).
+`main` e il riferimento locale `origin/main` coincidono con la
+baseline `d1de8f659b52605aa52941ea33e920db5d684bd7`.
+Il titolare ha eseguito il collaudo remoto delle nove RPC degli alias
+e la pulizia delle righe di prova. Per gli esiti vedere
+[INF-CAT-001 §2.12](../02_infrastrutture/INF-CAT-001_Catalogo_Agronomico.md#212-mutazioni-flutter-e-rpc-degli-alias-su-supabase-remoto--rc10-s048).
+
+La valutazione del divario è acquisita in INF-CAT-001 §2.13.
+L'allineamento ha portato il remoto a 48 versioni. La prova SQL
+della coppia cultivar–coltura ha dato 2/2 PASS. Flutter Web ha
+visualizzato il piano temporaneo del 01/05/2026 in stato Bozza.
+Le verifiche successive hanno rilevato zero righe di prova residue.
+Vedere INF-CAT-001 §2.14 e DB-MIG-001 §2.1.
+Restano aperte la riconciliazione quantitativa e l'accettazione
+operativa. L'errore nella sezione Aiuole rimane un'osservazione da
+approfondire.
+Il consuntivo del lavoro dopo il trasferimento resta da ricostruire.
+
+Punto di ripresa tecnico: RC11 — Registri, unità e parametri.
