@@ -165,7 +165,7 @@ RC03–RC10: concluse tecnicamente. RC11–RC18: da eseguire.
 
 ### 8.2. Consistenza del Registro
 
-| Indicatore | S046 | S047 | S048 (locale) |
+| Indicatore | S046 | S047 | S048 (consolidamento pubblicato) |
 |---|---:|---:| ---: |
 | Documenti Markdown complessivi | 49 | 51 | 53 |
 | Documenti indicizzati | 48 | 50 | 52 |
@@ -174,6 +174,8 @@ RC03–RC10: concluse tecnicamente. RC11–RC18: da eseguire.
 | RPC pubbliche analizzate strutturalmente | 9/9 | 9/9 | 9/9 |
 | Controlli strutturali RPC | 180 | 180 | 180 |
 | Famiglie trasversali residue | 15 | 15 | 15 |
+
+La colonna S048 fotografa il Registro pubblicato nel commit `671b09a`.
 
 Nella sessione S046 sono state aggiunte
 cinque schede tecniche RC02 durante il consolidamento SQL.
@@ -219,11 +221,15 @@ versionato e pubblicato su GitHub.
 
 Gli aggiornamenti S047 sono salvati localmente.
 
-Per S048, GitHub contiene la chiusura tecnica RC10 nel commit
-`1cd7df5`. Le evidenze RC07–RC09 e le due nuove schede
-INF-WA-003 e TST-RC02-003 sono presenti nel Registro locale.
-Sono stati rilevati 53 documenti Markdown locali e 51 nella
-baseline pubblicata, prima del consolidamento finale.
+La chiusura tecnica RC10 è stata pubblicata nel commit `1cd7df5`.
+Il consolidamento S048 è stato pubblicato su `origin/main` nel commit
+`671b09a`, che include le attestazioni RC07–RC09, i riepiloghi
+riconciliati e le schede INF-WA-003 e TST-RC02-003.
+La baseline pubblicata è passata da 51 a 53 documenti Markdown,
+di cui 52 indicizzati.
+
+Restano nel working tree modifiche documentali locali fuori dal
+perimetro di `671b09a`.
 
 Controllo tecnico successivo:
 

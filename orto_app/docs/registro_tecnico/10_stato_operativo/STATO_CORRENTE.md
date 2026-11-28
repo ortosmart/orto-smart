@@ -347,6 +347,27 @@ Consultare:
 - [Infrastruttura Flutter e verifiche residue](../02_infrastrutture/INF-WA-002_Infrastruttura_Flutter_Write_Authority.md)
 - [Evidenze e limiti dei collaudi](../06_collaudi/TST-RC02-002_Evidenze_Collaudi_Flutter.md)
 
+### 7.1. Pendenze di consolidamento
+
+Rilevazione del 28/11/2026, sessione S048, sulla baseline pubblicata
+`671b09a`. Staging vuoto al momento della rilevazione.
+
+| Riferimento e stato tecnico | Documenti, Git e Coordinamento | Prossima azione e responsabile | Condizione e verifica della risoluzione |
+|---|---|---|---|
+| S048 · STEP 275. Evidenze tecniche già acquisite. Pubblicazione documentale residua. | Gli 11 documenti elencati sotto hanno modifiche locali fuori da `671b09a`. Anche la correzione di README §§8.2 e 8.4 dello STEP 03 è locale. Nessun commit o push per questi aggiornamenti. Sincronizzazione delle singole evidenze da verificare dove pertinente. | Codex. Classificare i blocchi di diff, proporne il perimetro e verificare le registrazioni pertinenti. | Alla successiva ricognizione autorizzata. Verificare per ogni blocco la pubblicazione e la coerenza delle evidenze, oppure la destinazione alternativa documentata e approvata. Un rinvio resta aperto nel checkpoint. |
+| S048 · STEP 275. Protocollo permanente applicato e verificato localmente. | `AGENTS.md` è non tracciato. Primo commit e push pendenti. Sincronizzazione della procedura con Coordinamento da valutare secondo pertinenza. | Titolare. Decidere il perimetro del primo versionamento. | Dopo le autorizzazioni distinte. Verificare il testo approvato nel commit e sul riferimento remoto effettivo. |
+| S048 · RC10. Conclusa tecnicamente. Osservazione Aiuole da approfondire. | INF-CAT-001 §2.14 è pubblicato in `1cd7df5`. Il Coordinamento registra la conclusione di RC10. Causa e riproducibilità dell'errore osservato restano non verificate. | Codex. Acquisire evidenze sulla riproducibilità e sulla causa. | Quando l'approfondimento sarà autorizzato. Registrare il contesto di riproduzione, l'esito supportato dalle evidenze e l'eventuale verifica tecnica residua. |
+| S048 · STEP 275. RC01–RC10 concluse tecnicamente. Accettazione operativa aperta dove pertinente e quantitativa a 0/18. | RC-REG-001 e checkpoint S048 pubblicati in `671b09a`. Il Coordinamento conferma il riepilogo tecnico. Decisioni operative ed esiti quantitativi residui da registrare quando acquisiti. | Titolare. Approvare le decisioni e gli esiti applicabili sulla base delle verifiche previste. | Quando le evidenze saranno disponibili. Verificare l'accettazione esplicita dove applicabile e l'esito quantitativo approvato, con criterio e fonte. |
+
+Inventario degli 11 documenti con modifiche locali preesistenti:
+`INF-WA-001`, `DB-MIG-001` (§§3.1–3.3), `DB-SEC-001`,
+`DB-VER-001`, `DB-WA-001`, `FLT-INV-001`, `PRC-002`,
+`TST-RC02-002`, `NC-RC01-001`, `RC02-OBS-001` e
+`RC02_Stato_Parziale`.
+
+Le registrazioni RC07–RC10, l'indicatore tecnico 10/18 e i
+consuntivi S048 già verificati nel Coordinamento sono riscontri acquisiti.
+
 ## 8. Stato della programmazione V1
 
 Consultare le schede della directory 09_programmazione.
@@ -499,5 +520,8 @@ erano un riepilogo intermedio, superato dalla riconciliazione.
 
 Riconciliazioni tecniche: 10/18 (55,56%). Riconciliazioni
 quantitative: 0/18. STEP 275: 50%, invariato.
+
+Per le pendenze da preservare alla ripresa vedere
+[§7.1 — Pendenze di consolidamento](#71-pendenze-di-consolidamento).
 
 Punto di ripresa tecnico: RC11 — Registri, unità e parametri.
